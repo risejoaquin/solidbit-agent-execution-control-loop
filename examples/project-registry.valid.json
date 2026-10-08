@@ -1,0 +1,44 @@
+{
+  "schema": "solidbit.project-registry.v1",
+  "version": "1.0.0",
+  "projects": [
+    {
+      "project_id": "solidbit-agent-execution-control-loop",
+      "repository": "risejoaquin/solidbit-agent-execution-control-loop",
+      "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+      "default_branch": "main",
+      "allowed_worktree_base": "worktrees",
+      "allowed_target_roots": [
+        "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop"
+      ],
+      "allow_target_override": false,
+      "concurrency_policy": {
+        "max_mutating_jobs": 1,
+        "allow_concurrent_read_only": true
+      },
+      "risk_tier": "SAFE_IN_ISOLATED_BRANCH",
+      "enforce_dirty_root_check": true,
+      "active": true,
+      "description": "SolidBit Agent Execution Control Loop (SACL V1) orchestrator repository"
+    },
+    {
+      "project_id": "stable-ecommerce",
+      "repository": "risejoaquin/stable-ecommerce",
+      "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce",
+      "default_branch": "main",
+      "allowed_worktree_base": "worktrees",
+      "allowed_target_roots": [
+        "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce"
+      ],
+      "allow_target_override": false,
+      "concurrency_policy": {
+        "max_mutating_jobs": 1,
+        "allow_concurrent_read_only": true
+      },
+      "risk_tier": "POST_GATE",
+      "enforce_dirty_root_check": true,
+      "active": true,
+      "description": "Legacy product codebase under strict human authority gate protection"
+    }
+  ]
+}

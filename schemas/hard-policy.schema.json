@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/hard-policy.schema.json",
+  "title": "SolidBit Hard Local Policy Specification v1",
+  "description": "Inviolable local machine security boundary for SACL V1. Hard deny always wins. Bounded human approvals cannot override hard denies.",
+  "type": "object",
+  "required": [
+    "schema",
+    "policy_id",
+    "lattice_level",
+    "hard_deny_always_wins",
+    "approval_override_allowed",
+    "hard_denies"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.hard-policy.v1"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "lattice_level": {
+      "type": "string",
+      "const": "HARD_LOCAL_POLICY"
+    },
+    "hard_deny_always_wins": {
+      "type": "boolean",
+      "const": true
+    },
+    "approval_override_allowed": {
+      "type": "boolean",
+      "const": false
+    },
+    "hard_denies": {
+      "type": "object",
+      "description": "Immutable denials enforced by the local execution host. When set to true, the action is unconditionally denied.",
+      "required": [
+        "remote_production_execution",
+        "github_merge",
+        "production_db_write",
+        "secret_export",
+        "arbitrary_remote_code",
+        "main_branch_execution",
+        "primary_checkout_mutation",
+        "hard_reset",
+        "auto_stash"
+      ],
+      "properties": {
+        "remote_production_execution": {
+          "type": "boolean",
+          "description": "Deny live execution or deployment against remote production environments (Railway, cloud hosts, remote endpoints)."
+        },
+        "github_merge": {
+          "type": "boolean",
+          "description": "Deny automated git merge operations into protected branches or automated PR merge actions."
+        },
+        "production_db_write": {
+          "type": "boolean",
+          "description": "Deny destructive queries, writes, or schema alterations against shared or production databases."
+        },
+        "secret_export": {
+          "type": "boolean",
+          "description": "Deny inspection, reading, extraction, or transmission of API secrets, keys, or credentials."
+        },
+        "arbitrary_remote_code": {
+          "type": "boolean",
+          "description": "Deny arbitrary remote code execution. Packages cannot self-authorize attached scripts. Execution is restricted to locally trusted handlers."
+        },
+        "main_branch_execution": {
+          "type": "boolean",
+          "description": "Deny agent worker execution directly on main or master branches. Execution requires isolated task branches."
+        },
+        "primary_checkout_mutation": {
+          "type": "boolean",
+          "description": "Deny mutation of files within the developer's primary git checkout directory."
+        },
+        "hard_reset": {
+          "type": "boolean",
+          "description": "Deny git reset --hard or destructive git clean operations in developer workspaces."
+        },
+        "auto_stash": {
+          "type": "boolean",
+          "description": "Deny automated git stash or git stash pop operations that touch uncommitted human modifications."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

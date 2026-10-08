@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/manifest.schema.json",
+  "title": "SolidBit Execution Package Manifest v1",
+  "description": "Declarative manifest for SACL V1 execution packages. Packages declare requested operations and parameters. Packages cannot self-authorize executable scripts.",
+  "type": "object",
+  "required": [
+    "schema",
+    "package_id",
+    "job_id",
+    "project",
+    "repository",
+    "mode",
+    "source_orchestrator",
+    "target_local_repo",
+    "agents",
+    "entrypoint",
+    "execution_plan",
+    "readme",
+    "requested_operations",
+    "prohibited_actions",
+    "expected_outputs",
+    "runtime_files"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.execution-package.v1"
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "architecture_freeze_and_repo_bootstrap",
+        "governed_documentation_generation",
+        "isolated_branch_development",
+        "integration_and_audit",
+        "certification_test"
+      ]
+    },
+    "source_orchestrator": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_local_repo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "entrypoint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution_plan": {
+      "type": "string",
+      "minLength": 1
+    },
+    "readme": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_operations": {
+      "type": "array",
+      "description": "Declarative list of stable operation identifiers requested by this package. Packages cannot self-authorize executable scripts. Local SACL core autoexecution only invokes locally trusted handlers from the local operation registry.",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_.:-]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "prohibited_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "runtime_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "checksums_file": {
+      "type": "string",
+      "default": "checksums.sha256"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "author": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "wave": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

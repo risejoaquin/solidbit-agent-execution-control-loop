@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/mail-envelope.schema.json",
+  "title": "SolidBit Mail Gateway Message Envelope Specification v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "message_id",
+    "direction",
+    "sender",
+    "recipient",
+    "routing_subject",
+    "delivery_semantics",
+    "timestamp",
+    "nonce",
+    "attachment",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.mail-envelope.v1"
+    },
+    "message_id": {
+      "type": "string",
+      "description": "Unique RFC 2822 email message identifier or Gmail Message ID."
+    },
+    "history_id": {
+      "type": ["string", "null"],
+      "description": "Gmail historyId cursor associated with the mailbox change event."
+    },
+    "thread_id": {
+      "type": ["string", "null"],
+      "description": "Gmail thread identifier for conversation threading and replies."
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["INBOUND", "OUTBOUND"]
+    },
+    "sender": {
+      "type": "string",
+      "format": "email"
+    },
+    "recipient": {
+      "type": "string",
+      "format": "email"
+    },
+    "routing_subject": {
+      "type": "object",
+      "description": "Subject line parsed as a routing hint only. Authoritative permissions and project configuration reside in validated package metadata.",
+      "required": [
+        "raw_subject",
+        "job_id",
+        "is_valid_routing_hint"
+      ],
+      "properties": {
+        "raw_subject": { "type": "string" },
+        "routing_prefix": {
+          "type": "string",
+          "default": "[SACL][JOB][v1]"
+        },
+        "job_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "is_valid_routing_hint": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "delivery_semantics": {
+      "type": "string",
+      "const": "AT_LEAST_ONCE",
+      "description": "Transport guarantees at-least-once delivery; consumers must be idempotent."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{8,64}$"
+    },
+    "attachment": {
+      "type": "object",
+      "required": [
+        "filename",
+        "size_bytes",
+        "sha256",
+        "mime_type"
+      ],
+      "properties": {
+        "filename": { "type": "string" },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 26214400
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "mime_type": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "signature_hmac": {
+      "type": ["string", "null"],
+      "description": "Optional HMAC-SHA256 signature for future hardening. Formally deferred and not required in V1.",
+      "pattern": "^sha256=[a-fA-F0-9]{64}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "RECEIVED",
+        "AUTHENTICATED",
+        "VALIDATED",
+        "PERSISTED",
+        "QUEUED",
+        "PROCESSED",
+        "DISPATCHED",
+        "FAILED",
+        "REJECTED",
+        "QUARANTINED",
+        "DUPLICATE_IGNORED"
+      ]
+    },
+    "rejection_reason": {
+      "type": ["string", "null"]
+    },
+    "run_id": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

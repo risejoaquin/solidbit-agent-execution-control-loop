@@ -1,0 +1,55 @@
+{
+  "schema": "solidbit.result.v1",
+  "job_id": "SACL-W0-1-JOB-001",
+  "run_id": "w0-1-20261007-094653-54bb4c",
+  "agent_id": "AG-PROTOCOL-MAT",
+  "node_id": "AG-PROTOCOL-MAT",
+  "stage_id": 1,
+  "status": "SUCCEEDED",
+  "result_verdict": "PASS",
+  "reconciliation": {
+    "process_observation": {
+      "pid": 14820,
+      "is_active": false,
+      "process_name": "agy",
+      "start_time_drift_seconds": 4,
+      "exit_code": 0
+    },
+    "persisted_state": {
+      "status": "SUCCEEDED",
+      "started_at": "2026-10-07T09:47:00Z",
+      "updated_at": "2026-10-07T09:52:00Z",
+      "finished_at": "2026-10-07T09:52:00Z"
+    },
+    "required_outputs": {
+      "report_path": "reports/AG-PROTOCOL-MAT.REPORT.md",
+      "report_exists": true,
+      "report_size_bytes": 15420,
+      "stdout_path": "logs/AG-PROTOCOL-MAT.stdout.log",
+      "stderr_path": "logs/AG-PROTOCOL-MAT.stderr.log",
+      "expected_files_verified": true
+    },
+    "verdict_extraction": {
+      "verdict": "PASS",
+      "extraction_method": "REGEX_PRIMARY",
+      "matched_marker": "AGENT_PROTOCOL_MAT_RESULT = PASS"
+    }
+  },
+  "worktree": {
+    "branch": "docs/sacl-protocol-materialization",
+    "worktree_path": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+    "commit_sha": null,
+    "is_clean": true,
+    "modified_files": [
+      "schemas/manifest.schema.json",
+      "schemas/graph.schema.json",
+      "schemas/policy.schema.json",
+      "schemas/approval.schema.json",
+      "schemas/result.schema.json",
+      "schemas/mail-envelope.schema.json",
+      "schemas/summary.schema.json",
+      "schemas/project-registry.schema.json"
+    ]
+  },
+  "error_message": null
+}

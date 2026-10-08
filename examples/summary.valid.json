@@ -1,0 +1,93 @@
+{
+  "schema": "solidbit.run-summary.v1",
+  "run_id": "w0-1-20261007-094653-54bb4c",
+  "package_id": "SACL-W0-1-ARCHITECTURE-MATERIALIZATION-v1",
+  "job_id": "job-20261007-094653",
+  "project": "solidbit-agent-execution-control-loop",
+  "status": "PASS",
+  "architecture_freeze_ready": true,
+  "implementation_authorized": false,
+  "open_contradictions": 0,
+  "security_critical_unknowns": 0,
+  "ready_for_integration": "NO",
+  "agent_results": [
+    {
+      "agent": "AG-PROTOCOL-MAT",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "verdict": "PASS",
+      "reportExists": true
+    },
+    {
+      "agent": "AG-ARCH-MAT",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "verdict": "PASS",
+      "reportExists": true
+    },
+    {
+      "agent": "AG-QA-MAT",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "verdict": "PASS",
+      "reportExists": true
+    }
+  ],
+  "conflicting_files": [],
+  "documents_created": [
+    "docs/ARCHITECTURE.md",
+    "docs/AUTHORITY_MODEL.md",
+    "docs/CONCURRENCY_AND_LOCKING.md",
+    "docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md",
+    "docs/E2E_CERTIFICATION_PLAN.md",
+    "docs/EXECUTION_PACKAGE_SPEC.md",
+    "docs/FREEZE_REMEDIATION.md",
+    "docs/MAIL_PROTOCOL.md",
+    "docs/OBSERVABILITY.md",
+    "docs/OPERATIONS.md",
+    "docs/RECOVERY_MODEL.md",
+    "docs/RESULT_PROTOCOL.md",
+    "docs/RETRY_AND_TIMEOUT_POLICY.md",
+    "docs/SECURITY_MODEL.md",
+    "docs/SQLITE_DATA_MODEL.md",
+    "docs/STATE_MACHINE.md",
+    "docs/THREAT_MODEL.md",
+    "docs/TRACEABILITY_MATRIX.md"
+  ],
+  "adrs_created": [
+    "ADR-001",
+    "ADR-002",
+    "ADR-003",
+    "ADR-004",
+    "ADR-005",
+    "ADR-006",
+    "ADR-007",
+    "ADR-008",
+    "ADR-009",
+    "ADR-010",
+    "ADR-011",
+    "ADR-012",
+    "ADR-013",
+    "ADR-014"
+  ],
+  "schemas_created": [
+    "schemas/manifest.schema.json",
+    "schemas/graph.schema.json",
+    "schemas/policy.schema.json",
+    "schemas/approval.schema.json",
+    "schemas/result.schema.json",
+    "schemas/mail-envelope.schema.json",
+    "schemas/summary.schema.json",
+    "schemas/project-registry.schema.json"
+  ],
+  "compatibility_findings": [
+    "P1-01 Gmail Subject syntax harmonized to routing hint [SACL][JOB][v1][<JOB_ID>]",
+    "P1-02 HMAC signing deferred to future hardening per W0.1 remediation baseline",
+    "P1-03 SQLite DDL unified under AG-SCHEMA tables",
+    "P1-04 CHECK constraint updated to permit PASS (Report Present)",
+    "P2-01 Duplicate package handling relaxed to (JOB_ID, package hash) idempotency",
+    "P2-02 Dual summary delivery established for SUMMARY.md and SUMMARY.json",
+    "P3-01 Harmonization of root-level entrypoints with modular src/ implementation hierarchy"
+  ],
+  "next_safe_action": "HUMAN_CODE_REVIEW_AND_REPO_INITIALIZATION"
+}

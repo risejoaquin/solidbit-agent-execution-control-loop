@@ -1,0 +1,27 @@
+{
+  "schema": "solidbit.mail-envelope.v1",
+  "message_id": "<20261007094653.54bb4c@mail.gmail.com>",
+  "history_id": "105492",
+  "thread_id": "18e0a1b2c3d4e5f6",
+  "direction": "INBOUND",
+  "sender": "uniquedraken@gmail.com",
+  "recipient": "uniquedraken@gmail.com",
+  "routing_subject": {
+    "raw_subject": "[SACL][JOB][v1][job-20261007-094653] W0.1 Materialization Package",
+    "routing_prefix": "[SACL][JOB][v1]",
+    "job_id": "job-20261007-094653",
+    "is_valid_routing_hint": true
+  },
+  "delivery_semantics": "AT_LEAST_ONCE",
+  "timestamp": "2026-10-07T09:46:53Z",
+  "nonce": "7f9a2b1c4e8d3a2f",
+  "attachment": {
+    "filename": "SACL_W0_1_ARCHITECTURE_MATERIALIZATION_v1.zip",
+    "size_bytes": 1048576,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mime_type": "application/zip"
+  },
+  "status": "PROCESSED",
+  "rejection_reason": null,
+  "run_id": "w0-1-20261007-094653-54bb4c"
+}

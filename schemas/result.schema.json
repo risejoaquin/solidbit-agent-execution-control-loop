@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/result.schema.json",
+  "title": "SolidBit Reconciled Agent Result & Deliverable Specification v1",
+  "description": "Defines canonical 4-point reconciliation output: process observation + persisted state + required outputs + final verdict.",
+  "type": "object",
+  "required": [
+    "schema",
+    "run_id",
+    "agent_id",
+    "status",
+    "result_verdict",
+    "reconciliation",
+    "worktree"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.result.v1"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Canonical parent logical job ID."
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "agent_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "node_id": {
+      "type": "string",
+      "description": "Graph-H DAG node identifier."
+    },
+    "stage_id": {
+      "type": ["integer", "string"]
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle status covering worker process and Graph-H node states.",
+      "enum": [
+        "SCHEDULED",
+        "LAUNCHING",
+        "RUNNING",
+        "TIMEOUT_RUNNING",
+        "STOPPING",
+        "STOPPED",
+        "COMPLETE",
+        "FAILED",
+        "UNKNOWN",
+        "PENDING",
+        "READY",
+        "SUCCEEDED",
+        "RETRYABLE_FAILURE",
+        "BLOCKED",
+        "WAITING_APPROVAL",
+        "CANCELLED",
+        "VERIFYING",
+        "RESULT_PACKAGED",
+        "RESULT_SENT",
+        "COMPLETED"
+      ]
+    },
+    "result_verdict": {
+      "type": "string",
+      "description": "Canonical result verdict. DONE_REVIEW_REQUIRED indicates completed execution requiring review, never PASS. PASS (Report Present) is the legacy fallback when report exists without explicit marker.",
+      "enum": [
+        "PASS",
+        "PARTIAL",
+        "BLOCKED",
+        "FAILED",
+        "IN_PROGRESS",
+        "UNKNOWN",
+        "STOPPED_BY_USER",
+        "PASS (Report Present)",
+        "DONE_REVIEW_REQUIRED"
+      ]
+    },
+    "reconciliation": {
+      "type": "object",
+      "description": "Multi-dimensional 4-point reconciliation: process observation + persisted state + required outputs + final verdict.",
+      "required": [
+        "process_observation",
+        "persisted_state",
+        "required_outputs",
+        "verdict_extraction"
+      ],
+      "properties": {
+        "process_observation": {
+          "type": "object",
+          "description": "Pillar 1: Active OS process inspection, image whitelist, and PID recycling defense.",
+          "required": [
+            "is_active",
+            "process_name"
+          ],
+          "properties": {
+            "pid": {
+              "type": ["integer", "null"],
+              "minimum": 0
+            },
+            "is_active": { "type": "boolean" },
+            "process_name": { "type": "string" },
+            "start_time_drift_seconds": {
+              "type": ["integer", "null"]
+            },
+            "exit_code": {
+              "type": ["integer", "null"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "persisted_state": {
+          "type": "object",
+          "description": "Pillar 2: State recorded in SQLite operational store at last update/heartbeat.",
+          "required": [
+            "status",
+            "started_at",
+            "updated_at"
+          ],
+          "properties": {
+            "status": { "type": "string" },
+            "started_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "finished_at": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        },
+        "required_outputs": {
+          "type": "object",
+          "description": "Pillar 3: Physical evidence verification on filesystem.",
+          "required": [
+            "report_path",
+            "report_exists",
+            "report_size_bytes",
+            "stdout_path",
+            "stderr_path"
+          ],
+          "properties": {
+            "report_path": { "type": "string" },
+            "report_exists": { "type": "boolean" },
+            "report_size_bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "stdout_path": { "type": "string" },
+            "stderr_path": { "type": "string" },
+            "expected_files_verified": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "verdict_extraction": {
+          "type": "object",
+          "description": "Pillar 4: Final verdict extraction via regex ladder and fallback rules.",
+          "required": [
+            "verdict",
+            "extraction_method"
+          ],
+          "properties": {
+            "verdict": { "type": "string" },
+            "extraction_method": {
+              "type": "string",
+              "enum": [
+                "REGEX_PRIMARY",
+                "REGEX_WAVE_SUMMARY",
+                "HEADER_MARKER",
+                "FALLBACK_REPORT_PRESENT",
+                "SQLITE_RECORD",
+                "FAILED_NO_EVIDENCE"
+              ]
+            },
+            "matched_marker": {
+              "type": ["string", "null"]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "worktree": {
+      "type": "object",
+      "required": [
+        "branch",
+        "worktree_path",
+        "is_clean"
+      ],
+      "properties": {
+        "branch": { "type": "string" },
+        "worktree_path": { "type": "string" },
+        "commit_sha": {
+          "type": ["string", "null"]
+        },
+        "is_clean": { "type": "boolean" },
+        "modified_files": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "error_message": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

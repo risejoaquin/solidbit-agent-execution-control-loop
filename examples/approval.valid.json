@@ -1,0 +1,33 @@
+{
+  "schema": "solidbit.approval.v1",
+  "request_id": "REQ-20261007-001",
+  "job_id": "job-20261007-094653",
+  "run_id": "w0-1-20261007-094653-54bb4c",
+  "package_id": "SACL-W0-1-ARCHITECTURE-MATERIALIZATION-v1",
+  "action": "SPECIFICATION_AND_SCHEMA_MATERIALIZATION",
+  "scope": [
+    "docs/*",
+    "schemas/*",
+    "contracts/*"
+  ],
+  "expires_at": "2026-10-07T12:46:53Z",
+  "decision": "APPROVED",
+  "approver": {
+    "identity": "Joaquín",
+    "channel": "CLI",
+    "approved_at": "2026-10-07T09:46:53Z"
+  },
+  "resume_run": true,
+  "cannot_override_hard_deny": true,
+  "created_at": "2026-10-07T09:46:53Z",
+  "prohibited_actions": [
+    "GIT_MERGE",
+    "REMOTE_DEPLOY",
+    "MAIN_PUSH",
+    "PRODUCTION_DB_MUTATION",
+    "SECRET_EXPORT"
+  ],
+  "remaining_blockers": [],
+  "next_safe_action": "RESUME_RUN_EXECUTION",
+  "notes": "Bounded approval granted for specification and schema materialization. Hard local policy denies remain active and non-overridable."
+}

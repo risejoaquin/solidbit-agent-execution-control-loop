@@ -1,0 +1,136 @@
+{
+  "schema": "solidbit.architecture-invariants.v1",
+  "decision_precedence": [
+    "explicit_joaquin_decisions",
+    "proven_current_orchestrator_behavior",
+    "existing_governance_and_contracts",
+    "industry_standard_for_undefined_gaps_only"
+  ],
+  "gmail": {
+    "transport_only": true,
+    "auth": "oauth2",
+    "primary_ingress": "gmail_api_users_watch_pubsub_pull",
+    "authoritative_fetch": "gmail_history_api_historyId",
+    "unread_is_source_of_truth": false,
+    "public_inbound_webhook": false,
+    "fallback_polling_only": true
+  },
+  "package": {
+    "task_context_self_contained": true,
+    "package_self_authorizes_code": false,
+    "runtime_services_allowed_when_explicitly_configured": [
+      "gmail_api",
+      "google_cloud_pubsub",
+      "antigravity_cli",
+      "git",
+      "github_when_policy_allows"
+    ]
+  },
+  "github": {
+    "direct_main_push_hard_denied": true,
+    "merge_hard_denied_v1": true,
+    "feature_branch_push_requires_bounded_human_approval": true,
+    "pr_creation_requires_bounded_human_approval": true
+  },
+  "approval_channels_v1": [
+    "CLI",
+    "GMAIL",
+    "MANUAL"
+  ],
+  "implementation_authorized": false,
+  "transport": {
+    "gmail_role": "transport_only",
+    "primary_ingress": "gmail_api_users_watch_pubsub_pull",
+    "public_webhook": false,
+    "wake_signal": "pubsub_notification",
+    "authoritative_fetch": "gmail_history_api",
+    "cursor": "historyId",
+    "startup_reconciliation": true,
+    "watch_renewal": true,
+    "fallback_polling_only": true
+  },
+  "package_authority": {
+    "declarative": true,
+    "package_may_self_authorize_scripts": false,
+    "trusted_handlers_owned_locally": true
+  },
+  "permission_lattice": [
+    "hard_local_policy",
+    "project_policy",
+    "package_requested_permissions",
+    "valid_approval_grant"
+  ],
+  "hard_deny_wins": true,
+  "approval_can_override_hard_deny": false,
+  "remote_production_v1": false,
+  "job_lifecycle": [
+    "RECEIVED",
+    "AUTHENTICATED",
+    "VALIDATED",
+    "PERSISTED",
+    "QUEUED",
+    "DISPATCHED",
+    "RUNNING",
+    "VERIFYING",
+    "RESULT_PACKAGED",
+    "RESULT_SENT",
+    "COMPLETED",
+    "ARCHIVED"
+  ],
+  "job_side_states": [
+    "WAITING_APPROVAL",
+    "RETRY_WAIT",
+    "BLOCKED",
+    "FAILED",
+    "CANCELLED",
+    "INTERRUPTED",
+    "TIMED_OUT",
+    "POLICY_DENIED",
+    "REJECTED",
+    "QUARANTINED"
+  ],
+  "graph_node_states": [
+    "PENDING",
+    "READY",
+    "RUNNING",
+    "SUCCEEDED",
+    "RETRYABLE_FAILURE",
+    "FAILED",
+    "BLOCKED",
+    "WAITING_APPROVAL",
+    "CANCELLED"
+  ],
+  "approval_binding": [
+    "job_id",
+    "action",
+    "scope",
+    "request_id",
+    "expires_at"
+  ],
+  "operational_state_domains": [
+    "schema_migrations",
+    "projects",
+    "packages",
+    "mail_messages",
+    "jobs",
+    "runs",
+    "graph_nodes",
+    "node_attempts",
+    "agents",
+    "events",
+    "approvals",
+    "artifacts",
+    "results",
+    "leases",
+    "heartbeats",
+    "errors"
+  ],
+  "heavy_artifacts_on_filesystem": true,
+  "run_status_reconciliation": [
+    "process_observation",
+    "persisted_state",
+    "required_outputs",
+    "final_verdict"
+  ],
+  "process_exit_code_alone_is_authoritative": false
+}

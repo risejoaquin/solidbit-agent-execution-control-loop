@@ -1,0 +1,105 @@
+{
+  "schema": "solidbit.execution-graph.v1",
+  "graph_id": "SACL-W0-1-GRAPH",
+  "job_id": "SACL-W0-1-JOB-001",
+  "max_parallel": 2,
+  "default_timeout_minutes": 30,
+  "phases": [
+    {
+      "phase_number": 1,
+      "stage_name": "MATERIALIZATION",
+      "agents": [
+        "AG-PROTOCOL-MAT",
+        "AG-ARCH-MAT"
+      ],
+      "gate_required": false
+    },
+    {
+      "phase_number": 2,
+      "stage_name": "QA_AUDIT",
+      "agents": [
+        "AG-QA-MAT"
+      ],
+      "gate_required": true
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "AG-PROTOCOL-MAT",
+      "agent_id": "AG-PROTOCOL-MAT",
+      "phase_number": 1,
+      "timeout_minutes": 20,
+      "max_attempts": 2,
+      "gate_required": false,
+      "allowed_states": [
+        "PENDING",
+        "READY",
+        "RUNNING",
+        "SUCCEEDED",
+        "RETRYABLE_FAILURE",
+        "FAILED",
+        "BLOCKED",
+        "WAITING_APPROVAL",
+        "CANCELLED"
+      ]
+    },
+    {
+      "node_id": "AG-ARCH-MAT",
+      "agent_id": "AG-ARCH-MAT",
+      "phase_number": 1,
+      "timeout_minutes": 25,
+      "max_attempts": 1,
+      "gate_required": false,
+      "allowed_states": [
+        "PENDING",
+        "READY",
+        "RUNNING",
+        "SUCCEEDED",
+        "RETRYABLE_FAILURE",
+        "FAILED",
+        "BLOCKED",
+        "WAITING_APPROVAL",
+        "CANCELLED"
+      ]
+    },
+    {
+      "node_id": "AG-QA-MAT",
+      "agent_id": "AG-QA-MAT",
+      "phase_number": 2,
+      "timeout_minutes": 20,
+      "max_attempts": 1,
+      "gate_required": true,
+      "allowed_states": [
+        "PENDING",
+        "READY",
+        "RUNNING",
+        "SUCCEEDED",
+        "RETRYABLE_FAILURE",
+        "FAILED",
+        "BLOCKED",
+        "WAITING_APPROVAL",
+        "CANCELLED"
+      ]
+    }
+  ],
+  "edges": [
+    [
+      "AG-PROTOCOL-MAT",
+      "AG-QA-MAT"
+    ],
+    [
+      "AG-ARCH-MAT",
+      "AG-QA-MAT"
+    ]
+  ],
+  "agent_timeouts": {
+    "AG-PROTOCOL-MAT": 20,
+    "AG-ARCH-MAT": 25,
+    "AG-QA-MAT": 20
+  },
+  "failure_policy": "complete_stage_then_halt",
+  "collision_detection": {
+    "enabled": true,
+    "scope": "stage"
+  }
+}

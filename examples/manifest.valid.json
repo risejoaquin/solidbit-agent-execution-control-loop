@@ -1,0 +1,52 @@
+{
+  "schema": "solidbit.execution-package.v1",
+  "package_id": "SACL-W0-1-ARCHITECTURE-MATERIALIZATION-v1",
+  "job_id": "job-20261007-094653",
+  "project": "solidbit-agent-execution-control-loop",
+  "repository": "risejoaquin/solidbit-agent-execution-control-loop",
+  "mode": "architecture_freeze_and_repo_bootstrap",
+  "source_orchestrator": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce-Orchestrator",
+  "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+  "agents": [
+    "AG-PROTOCOL-MAT",
+    "AG-ARCH-MAT",
+    "AG-QA-MAT"
+  ],
+  "entrypoint": "RUN-WAVE.ps1",
+  "execution_plan": "EXECUTION_PLAN.md",
+  "readme": "README.md",
+  "requested_operations": [
+    "op:preflight-check",
+    "op:worker-governed-execution",
+    "op:status-monitor",
+    "op:results-aggregation",
+    "op:finalize-summary"
+  ],
+  "prohibited_actions": [
+    "merge",
+    "production_deploy",
+    "direct_main_push",
+    "production_db_mutation",
+    "secret_export",
+    "arbitrary_script_execution"
+  ],
+  "expected_outputs": [
+    "SUMMARY.md",
+    "SUMMARY.json",
+    "reports/FINAL_REPORT.md",
+    "reports/*.REPORT.md"
+  ],
+  "runtime_files": [
+    "RUN-WAVE.ps1",
+    "WORKER.ps1",
+    "MONITOR.ps1",
+    "FINALIZE.ps1"
+  ],
+  "checksums_file": "checksums.sha256",
+  "metadata": {
+    "created_at": "2026-10-07T09:46:53Z",
+    "author": "Joaquín",
+    "description": "SACL V1 Architecture Materialization Package",
+    "wave": "W0.1"
+  }
+}

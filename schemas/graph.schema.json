@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/graph.schema.json",
+  "title": "SolidBit Execution Graph & DAG Dependency Specification v1",
+  "description": "Defines the ephemeral Graph-H execution graph, staged phases, node states, and concurrency policies.",
+  "type": "object",
+  "required": [
+    "schema",
+    "graph_id",
+    "max_parallel",
+    "default_timeout_minutes",
+    "phases",
+    "edges",
+    "failure_policy"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.execution-graph.v1"
+    },
+    "graph_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "job_id": {
+      "type": "string",
+      "description": "Optional parent logical job ID."
+    },
+    "max_parallel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16,
+      "description": "Maximum number of parallel agent worker processes executing concurrently."
+    },
+    "default_timeout_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 240,
+      "description": "Default timeout in minutes before transitioning an agent to non-killing TIMEOUT_RUNNING."
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "phase_number",
+          "stage_name",
+          "agents"
+        ],
+        "properties": {
+          "phase_number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stage_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "gate_required": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "description": "Explicit Graph-H node definitions with lifecycle states and retry policies.",
+      "items": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "agent_id",
+          "phase_number"
+        ],
+        "properties": {
+          "node_id": {
+            "type": "string"
+          },
+          "agent_id": {
+            "type": "string"
+          },
+          "phase_number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "timeout_minutes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "max_attempts": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "gate_required": {
+            "type": "boolean",
+            "default": false
+          },
+          "allowed_states": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "READY",
+                "RUNNING",
+                "SUCCEEDED",
+                "RETRYABLE_FAILURE",
+                "FAILED",
+                "BLOCKED",
+                "WAITING_APPROVAL",
+                "CANCELLED"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Directed dependency edges where [upstream_agent, downstream_agent] dictates that downstream requires upstream PASS before launch.",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "agent_timeouts": {
+      "type": "object",
+      "description": "Per-agent custom timeout overrides in minutes.",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "failure_policy": {
+      "type": "string",
+      "enum": [
+        "abort_immediately",
+        "complete_stage_then_halt",
+        "continue_independent"
+      ]
+    },
+    "collision_detection": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["stage", "run", "all_branches"],
+          "default": "stage"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

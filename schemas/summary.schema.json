@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/summary.schema.json",
+  "title": "SolidBit Universal Run Summary Specification v1",
+  "description": "Universal summary schema for SACL V1 execution runs. Captures run results, verification evidence, and human authorization status. Bounded by policy and approval; boolean in summary is evidence, not authority.",
+  "type": "object",
+  "required": [
+    "schema",
+    "run_id",
+    "package_id",
+    "project",
+    "status",
+    "architecture_freeze_ready",
+    "implementation_authorized",
+    "open_contradictions",
+    "security_critical_unknowns",
+    "ready_for_integration",
+    "agent_results",
+    "conflicting_files",
+    "documents_created",
+    "adrs_created",
+    "schemas_created",
+    "compatibility_findings",
+    "next_safe_action"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.run-summary.v1"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$"
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "REVIEW_REQUIRED",
+        "DONE_REVIEW_REQUIRED"
+      ]
+    },
+    "architecture_freeze_ready": {
+      "type": "boolean"
+    },
+    "implementation_authorized": {
+      "type": "boolean",
+      "description": "Indicates whether functional code implementation/mutation has been authorized by human principal. Bounded by hard policy and approval; a boolean in a summary is evidence, not authority."
+    },
+    "open_contradictions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "security_critical_unknowns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ready_for_integration": {
+      "type": "string",
+      "enum": ["YES", "NO"]
+    },
+    "agent_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "exitCode",
+          "verdict",
+          "reportExists"
+        ],
+        "properties": {
+          "agent": { "type": "string" },
+          "status": { "type": "string" },
+          "exitCode": {
+            "type": ["integer", "null"]
+          },
+          "verdict": { "type": "string" },
+          "reportExists": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "conflicting_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "documents_created": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "adrs_created": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "schemas_created": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "compatibility_findings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "next_safe_action": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

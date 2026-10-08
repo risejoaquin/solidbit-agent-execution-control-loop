@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/policy.schema.json",
+  "title": "SolidBit Project Policy & Operational Permissions Specification v1",
+  "description": "Project-level policy envelope within the SACL V1 permission lattice: effective permissions = hard local policy ∩ project policy ∩ package requested permissions ∩ valid approval grant. Hard deny always wins.",
+  "type": "object",
+  "required": [
+    "schema",
+    "policy_id",
+    "permissions",
+    "workspace_safety",
+    "runtime_safety",
+    "stop_conditions"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.policy.v1"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "permissions": {
+      "type": "object",
+      "required": [
+        "source_orchestrator_read",
+        "target_docs_write",
+        "product_code_write",
+        "github_merge",
+        "production_deploy",
+        "production_db_write",
+        "secret_export",
+        "arbitrary_script_execution"
+      ],
+      "properties": {
+        "source_orchestrator_read": { "type": "boolean" },
+        "target_docs_write": { "type": "boolean" },
+        "product_code_write": { "type": "boolean" },
+        "github_merge": { "type": "boolean" },
+        "production_deploy": { "type": "boolean" },
+        "production_db_write": { "type": "boolean" },
+        "secret_export": { "type": "boolean" },
+        "arbitrary_script_execution": {
+          "type": "boolean",
+          "description": "If false, arbitrary attached scripts cannot be executed. Packages cannot self-authorize code. Execution is restricted to locally trusted operation handlers in the local operation registry."
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_safety": {
+      "type": "object",
+      "required": [
+        "enforce_clean_root",
+        "disallow_main_branch",
+        "allow_primary_checkout",
+        "allow_hard_reset",
+        "allow_auto_stash"
+      ],
+      "properties": {
+        "enforce_clean_root": { "type": "boolean" },
+        "disallow_main_branch": { "type": "boolean" },
+        "allow_primary_checkout": { "type": "boolean" },
+        "allow_hard_reset": { "type": "boolean" },
+        "allow_auto_stash": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "runtime_safety": {
+      "type": "object",
+      "required": [
+        "remote_execution_enabled",
+        "non_killing_timeout",
+        "pid_drift_tolerance_seconds",
+        "allowed_process_images"
+      ],
+      "properties": {
+        "remote_execution_enabled": { "type": "boolean" },
+        "non_killing_timeout": { "type": "boolean" },
+        "pid_drift_tolerance_seconds": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 3600
+        },
+        "allowed_process_images": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "stop_conditions": {
+      "type": "object",
+      "required": ["stop_on"],
+      "properties": {
+        "stop_on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "explicit_user_decision_conflict",
+              "proven_orchestrator_behavior_conflict_without_adr",
+              "unknown_repository_or_path",
+              "secret_required_or_exposed",
+              "merge_or_deploy_attempt",
+              "production_mutation_attempt",
+              "unresolved_security_critical_unknown",
+              "dirty_root_detected",
+              "unauthorized_script_execution",
+              "cross_agent_file_conflict"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

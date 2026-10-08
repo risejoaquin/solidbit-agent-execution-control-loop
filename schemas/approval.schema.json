@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/approval.schema.json",
+  "title": "SolidBit Bounded Human Action Gate Approval Specification v1",
+  "description": "Generic bounded approval token for SACL V1. Bound strictly to request_id, job_id, action, scope, and expiration. Resumes the same logical run and cannot override hard local policy denials.",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "job_id",
+    "action",
+    "scope",
+    "expires_at",
+    "decision",
+    "approver"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.approval.v1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$",
+      "description": "Unique identifier of the authorization request being decided."
+    },
+    "job_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$",
+      "description": "Logical job identifier bound to the approval."
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+$",
+      "description": "Specific logical run identifier resumed by this approval."
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "action": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The specific bounded action authorized (e.g. STAGE_CONTINUATION, BRANCH_INTEGRATION, SPECIFICATION_MATERIALIZATION)."
+    },
+    "scope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Bounded operational or path scope permitted for the action."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Strict expiration timestamp (fail-closed upon expiry)."
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "REJECTED",
+        "DEFERRED"
+      ],
+      "description": "Human decision outcome."
+    },
+    "approver": {
+      "type": "object",
+      "required": [
+        "identity",
+        "channel"
+      ],
+      "properties": {
+        "identity": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identity of the sovereign human approver (e.g. Joaquín)."
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "CLI",
+            "GMAIL",
+            "MANUAL"
+          ],
+          "description": "Channel through which approval was attested."
+        },
+        "approved_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resume_run": {
+      "type": "boolean",
+      "default": true,
+      "description": "Indicates that this approval resumes the existing paused logical run rather than starting a new run."
+    },
+    "cannot_override_hard_deny": {
+      "type": "boolean",
+      "default": true,
+      "description": "Constitutional invariant: approvals cannot override hard local policy denies."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "prohibited_actions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "remaining_blockers": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "next_safe_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

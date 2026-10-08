@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/operation-registry.schema.json",
+  "title": "SolidBit Local Operation Registry Specification v1",
+  "description": "Local registry of trusted execution handlers and operation profiles owned by the local SACL core installation. Packages declare requested operation IDs; SACL resolves them to trusted local handlers.",
+  "type": "object",
+  "required": [
+    "schema",
+    "registry_id",
+    "version",
+    "operations"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.operation-registry.v1"
+    },
+    "registry_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "operations": {
+      "type": "array",
+      "description": "List of locally trusted operation handlers registered on this SACL host.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "operation_id",
+          "name",
+          "handler_path",
+          "handler_type",
+          "handler_sha256",
+          "execution_profile",
+          "required_permissions",
+          "enabled"
+        ],
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:-]+$",
+            "description": "Stable canonical identifier requested by execution package manifests."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "handler_path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Path to local trusted handler script or binary owned by the SACL installation."
+          },
+          "handler_type": {
+            "type": "string",
+            "enum": [
+              "powershell",
+              "binary",
+              "builtin",
+              "node",
+              "python"
+            ]
+          },
+          "handler_sha256": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "description": "Cryptographic SHA-256 digest of the trusted local handler file verified at runtime."
+          },
+          "execution_profile": {
+            "type": "object",
+            "required": [
+              "timeout_seconds",
+              "isolation",
+              "allow_network"
+            ],
+            "properties": {
+              "timeout_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_memory_mb": {
+                "type": "integer",
+                "minimum": 16
+              },
+              "isolation": {
+                "type": "string",
+                "enum": [
+                  "worktree",
+                  "readonly",
+                  "sandbox",
+                  "none"
+                ]
+              },
+              "allow_network": {
+                "type": "boolean"
+              },
+              "allowed_process_images": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": false
+          },
+          "required_permissions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

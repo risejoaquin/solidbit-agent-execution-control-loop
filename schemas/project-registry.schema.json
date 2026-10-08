@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/project-registry.schema.json",
+  "title": "SolidBit Project Registry Specification v1",
+  "description": "Local authority configuration for registered projects, canonical filesystem roots, and concurrency policies. Packages identify registered projects but cannot redirect execution outside local registry policy.",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "projects"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "solidbit.project-registry.v1"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "projects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "project_id",
+          "repository",
+          "target_local_repo",
+          "default_branch",
+          "risk_tier",
+          "enforce_dirty_root_check",
+          "active"
+        ],
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "Unique stable identifier for the registered project matching manifest 'project' property"
+          },
+          "repository": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$",
+            "description": "Canonical Git repository identifier (e.g. organization/repo)"
+          },
+          "target_local_repo": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Authoritative local filesystem root path for this project. Packages cannot redirect execution to arbitrary paths outside this registered root."
+          },
+          "default_branch": {
+            "type": "string",
+            "default": "main",
+            "description": "Protected primary branch name"
+          },
+          "allowed_worktree_base": {
+            "type": "string",
+            "description": "Subdirectory or absolute base path where agent worktrees are provisioned"
+          },
+          "allowed_target_roots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Explicit whitelist of authorized filesystem roots. Package-requested target paths must reside within this whitelist."
+          },
+          "allow_target_override": {
+            "type": "boolean",
+            "default": false,
+            "description": "When false, package requests targeting paths differing from target_local_repo are strictly rejected by policy."
+          },
+          "concurrency_policy": {
+            "type": "object",
+            "description": "Project-level concurrency controls and lock limits",
+            "properties": {
+              "max_mutating_jobs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1,
+                "default": 1,
+                "description": "Maximum concurrent mutating jobs allowed for this project. Baseline is strictly 1."
+              },
+              "allow_concurrent_read_only": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether read-only operations (monitoring, inspection, preflights) may run concurrently with a mutating job"
+              }
+            },
+            "additionalProperties": false
+          },
+          "risk_tier": {
+            "type": "string",
+            "enum": [
+              "SAFE_NOW",
+              "SAFE_IN_ISOLATED_BRANCH",
+              "POST_GATE",
+              "REQUIRES_DECISION"
+            ],
+            "description": "Risk categorization governing required gate approvals"
+          },
+          "enforce_dirty_root_check": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to enforce the Local Dirty-Root Rule before worktree provisioning"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this project is active and accepting execution jobs"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable summary of the project and its operational role"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
