@@ -1,0 +1,93 @@
+{
+  "schema": "solidbit.operation-registry.v1",
+  "registry_id": "sacl-local-operation-registry",
+  "version": "1.0.0",
+  "description": "Locally installed and trusted operation handlers for SolidBit Agent Control Loop",
+  "operations": [
+    {
+      "operation_id": "op:preflight-check",
+      "name": "Environment Preflight Validation",
+      "description": "Verifies host tooling, git state, directory cleanliness, and CLI availability.",
+      "handler_path": "local/handlers/preflight.ps1",
+      "handler_type": "powershell",
+      "handler_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "execution_profile": {
+        "timeout_seconds": 120,
+        "max_memory_mb": 512,
+        "isolation": "readonly",
+        "allow_network": false,
+        "allowed_process_images": ["powershell", "pwsh"]
+      },
+      "required_permissions": ["source_orchestrator_read"],
+      "enabled": true
+    },
+    {
+      "operation_id": "op:worker-governed-execution",
+      "name": "Governed Antigravity Worker Execution",
+      "description": "Spawns headless agy.exe worker inside isolated git worktree with injected machine governance headers.",
+      "handler_path": "local/handlers/governed_worker.ps1",
+      "handler_type": "powershell",
+      "handler_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "execution_profile": {
+        "timeout_seconds": 1800,
+        "max_memory_mb": 4096,
+        "isolation": "worktree",
+        "allow_network": true,
+        "allowed_process_images": ["agy", "powershell", "pwsh", "node"]
+      },
+      "required_permissions": ["target_docs_write"],
+      "enabled": true
+    },
+    {
+      "operation_id": "op:status-monitor",
+      "name": "Run Status Monitoring Dashboard",
+      "description": "Inspects active worker processes and database states without process killing.",
+      "handler_path": "local/handlers/monitor.ps1",
+      "handler_type": "powershell",
+      "handler_sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "execution_profile": {
+        "timeout_seconds": 60,
+        "max_memory_mb": 256,
+        "isolation": "readonly",
+        "allow_network": false,
+        "allowed_process_images": ["powershell", "pwsh"]
+      },
+      "required_permissions": [],
+      "enabled": true
+    },
+    {
+      "operation_id": "op:results-aggregation",
+      "name": "Results & Overlap Aggregator",
+      "description": "Reconciles 4-dimensional deliverable evidence and checks for cross-agent git file conflicts.",
+      "handler_path": "local/handlers/aggregate_results.ps1",
+      "handler_type": "powershell",
+      "handler_sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "execution_profile": {
+        "timeout_seconds": 300,
+        "max_memory_mb": 1024,
+        "isolation": "readonly",
+        "allow_network": false,
+        "allowed_process_images": ["powershell", "pwsh"]
+      },
+      "required_permissions": ["target_docs_write"],
+      "enabled": true
+    },
+    {
+      "operation_id": "op:finalize-summary",
+      "name": "Wave Finalization and Packaging",
+      "description": "Generates dual summary artifacts (SUMMARY.md and SUMMARY.json) and prepares output package.",
+      "handler_path": "local/handlers/finalize.ps1",
+      "handler_type": "powershell",
+      "handler_sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "execution_profile": {
+        "timeout_seconds": 180,
+        "max_memory_mb": 512,
+        "isolation": "readonly",
+        "allow_network": false,
+        "allowed_process_images": ["powershell", "pwsh"]
+      },
+      "required_permissions": ["target_docs_write"],
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "solidbit.policy.v1",
+  "policy_id": "SACL-DEFAULT-PROJECT-POLICY",
+  "permissions": {
+    "source_orchestrator_read": true,
+    "target_docs_write": true,
+    "product_code_write": false,
+    "github_merge": false,
+    "production_deploy": false,
+    "production_db_write": false,
+    "secret_export": false,
+    "arbitrary_script_execution": false
+  },
+  "workspace_safety": {
+    "enforce_clean_root": true,
+    "disallow_main_branch": true,
+    "allow_primary_checkout": false,
+    "allow_hard_reset": false,
+    "allow_auto_stash": false
+  },
+  "runtime_safety": {
+    "remote_execution_enabled": false,
+    "non_killing_timeout": true,
+    "pid_drift_tolerance_seconds": 300,
+    "allowed_process_images": [
+      "agy",
+      "powershell",
+      "pwsh",
+      "cmd",
+      "node",
+      "conhost"
+    ]
+  },
+  "stop_conditions": {
+    "stop_on": [
+      "explicit_user_decision_conflict",
+      "proven_orchestrator_behavior_conflict_without_adr",
+      "unknown_repository_or_path",
+      "secret_required_or_exposed",
+      "merge_or_deploy_attempt",
+      "production_mutation_attempt",
+      "unresolved_security_critical_unknown",
+      "dirty_root_detected",
+      "unauthorized_script_execution",
+      "cross_agent_file_conflict"
+    ]
+  }
+}

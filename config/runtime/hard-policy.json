@@ -1,0 +1,18 @@
+{
+  "schema": "solidbit.hard-policy.v1",
+  "policy_id": "SACL-V1-DEFAULT-HARD-LOCAL-POLICY",
+  "lattice_level": "HARD_LOCAL_POLICY",
+  "hard_deny_always_wins": true,
+  "approval_override_allowed": false,
+  "hard_denies": {
+    "remote_production_execution": true,
+    "github_merge": true,
+    "production_db_write": true,
+    "secret_export": true,
+    "arbitrary_remote_code": true,
+    "main_branch_execution": true,
+    "primary_checkout_mutation": true,
+    "hard_reset": true,
+    "auto_stash": true
+  }
+}
