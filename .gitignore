@@ -80,7 +80,7 @@ ehthumbs_vista.db
 
 # SACL Campaign / Runtime directories (ephemeral, not to be tracked in git)
 artifacts/
-state/
+/state/
 logs/
 reports/
 worktrees/

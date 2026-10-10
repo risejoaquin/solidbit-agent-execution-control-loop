@@ -1,6 +1,7 @@
 """Unit tests for SACL V1 heartbeat recording and process liveness monitoring."""
 
 import sqlite3
+import threading
 import time
 from datetime import datetime, timezone, timedelta
 import pytest
@@ -94,10 +95,13 @@ def test_background_heartbeater_context_manager(sqlite_temp_db: sqlite3.Connecti
     """Verifies BackgroundHeartbeater emits periodic heartbeats and stops cleanly."""
     service = HeartbeatService(sqlite_temp_db)
 
+    tick_event = threading.Event()
     counter = {"count": 0}
 
     def get_details():
         counter["count"] += 1
+        if counter["count"] >= 2:
+            tick_event.set()
         return {"ticks": counter["count"]}
 
     with BackgroundHeartbeater(
@@ -105,11 +109,12 @@ def test_background_heartbeater_context_manager(sqlite_temp_db: sqlite3.Connecti
         component="TEST_DAEMON",
         instance_id="inst-bg",
         pid=9999,
-        interval_seconds=0.05,
+        interval_seconds=0.02,
         status="RUNNING",
         details_fn=get_details,
     ):
-        time.sleep(0.18)
+        assert tick_event.wait(timeout=2.0), "Timed out waiting for at least 2 heartbeats"
+        time.sleep(0.05)
 
     # Verify heartbeats were emitted
     beats = service.list_heartbeats(component="TEST_DAEMON")
