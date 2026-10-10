@@ -11,7 +11,8 @@ param(
     [Alias("WaveDir")]
     [string]$RunDir = "",
     [switch]$All,
-    [int]$Pid = 0,
+    [Alias("Pid", "TargetPid")]
+    [int]$ProcessId = 0,
     [switch]$Force
 )
 
@@ -31,8 +32,8 @@ if ($All) {
     $cliArgs += @("--agent", $Agent)
 }
 
-if ($Pid -gt 0) {
-    $cliArgs += @("--pid", $Pid)
+if ($ProcessId -gt 0) {
+    $cliArgs += @("--pid", $ProcessId)
 }
 if ($RunId) {
     $cliArgs += @("--run-id", $RunId)
