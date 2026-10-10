@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 import zipfile
 
+from sacl.contracts.interfaces import IPackageValidator
+from sacl.contracts.models import Manifest
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.legacy.adapter import LegacyPackageAdapter
 from sacl.transport.sanitization import (
@@ -38,7 +40,7 @@ def compute_sha256(file_path: Union[Path, str]) -> str:
     return h.hexdigest()
 
 
-class WaveZipPackager:
+class WaveZipPackager(IPackageValidator):
     """Packages directories into canonical wave ZIPs and extracts them with security checks."""
 
     def __init__(
@@ -49,6 +51,45 @@ class WaveZipPackager:
         self.validator = validator or get_default_validator()
         self.extractor = extractor or ZipDefenseExtractor()
         self.adapter = LegacyPackageAdapter(validator=self.validator)
+
+    def validate_archive(self, zip_path: Path) -> Manifest:
+        """Validates package archive structure, manifest schema, and zip-slip defense."""
+        is_valid, errors = self.verify_wave_package(zip_path)
+        if not is_valid:
+            from sacl.contracts.exceptions import ContractValidationError
+            raise ContractValidationError(f"Invalid package archive: {errors}")
+        return self.adapter.load_manifest(zip_path)
+
+    def check_zip_slip(self, zip_path: Path) -> List[str]:
+        """Detects path traversal or escaping relative paths in archive."""
+        violations: List[str] = []
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            for name in zf.namelist():
+                if ".." in name or name.startswith("/") or name.startswith("\\"):
+                    violations.append(name)
+        return violations
+
+    def verify_checksums(self, extracted_dir: Path, checksums_file: str = "checksums.sha256") -> bool:
+        """Verifies cryptographic integrity of extracted package assets."""
+        chk_p = extracted_dir / checksums_file
+        if not chk_p.exists():
+            return False
+        with open(chk_p, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split(None, 1)
+            if len(parts) == 2:
+                expected_hash, rel_path = parts
+                rel_path = rel_path.strip()
+                target_file = extracted_dir / rel_path
+                if not target_file.is_file():
+                    return False
+                if compute_sha256(target_file).lower() != expected_hash.lower():
+                    return False
+        return True
 
     def create_checksums_file(self, package_dir: Union[Path, str]) -> Path:
         """Computes SHA-256 for all files in package_dir and writes checksums.sha256."""

@@ -9,10 +9,13 @@ param(
     [string]$Action,
 
     [Parameter(Position=1, Mandatory=$true)]
+    [Alias("InputDir", "PackageFile")]
     [string]$Path,
 
+    [Alias("OutputFile")]
     [string]$Output = "",
 
+    [Alias("OutputDir")]
     [string]$Destination = "",
 
     [switch]$PrefixRoot

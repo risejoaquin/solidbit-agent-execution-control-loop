@@ -8,7 +8,10 @@ param(
     [string]$Agent = "all",
     [string]$RunId = "",
     [string]$DbPath = "",
+    [Alias("WaveDir")]
     [string]$RunDir = "",
+    [switch]$All,
+    [int]$Pid = 0,
     [switch]$Force
 )
 
@@ -20,8 +23,17 @@ $RepoRoot = Split-Path -Parent $ScriptDir
 $SrcDir = Join-Path $RepoRoot "src"
 $env:PYTHONPATH = "$SrcDir;$env:PYTHONPATH"
 
-$cliArgs = @("-m", "sacl.cli", "stop", "--agent", $Agent)
+$cliArgs = @("-m", "sacl.cli", "stop")
 
+if ($All) {
+    $cliArgs += "--all"
+} elseif ($Agent) {
+    $cliArgs += @("--agent", $Agent)
+}
+
+if ($Pid -gt 0) {
+    $cliArgs += @("--pid", $Pid)
+}
 if ($RunId) {
     $cliArgs += @("--run-id", $RunId)
 }

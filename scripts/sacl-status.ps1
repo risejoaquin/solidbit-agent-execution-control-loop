@@ -7,9 +7,11 @@ param(
     [string]$RunId = "",
     [string]$Agent = "all",
     [string]$DbPath = "",
+    [Alias("WaveDir")]
     [string]$RunDir = "",
     [switch]$Json,
     [switch]$Watch,
+    [Alias("Interval")]
     [int]$RefreshSeconds = 5
 )
 

@@ -281,7 +281,7 @@ class GraphPSupervisor(ISupervisor):
 
         # 5. Update IDLE Posture
         self._is_idle = (len(self._active_runs) == 0)
-        if self._state not in {SupervisorState.STOPPED, SupervisorState.STOPPING}:
+        if not self._stop_event.is_set() and self._state != SupervisorState.STOPPING:
             self._state = SupervisorState.IDLE if self._is_idle else SupervisorState.RUNNING
 
     def _find_job_id_for_run(self, run_id: str) -> Optional[str]:
@@ -822,6 +822,10 @@ class GraphPSupervisor(ISupervisor):
                 self._stop_event.wait(timeout=self.config.poll_interval_seconds)
         finally:
             self.shutdown()
+
+    def stop(self, graceful: bool = True) -> None:
+        """Alias for shutdown(). Initiates controlled graceful operator shutdown."""
+        self.shutdown(graceful=graceful)
 
     def shutdown(self, graceful: bool = True) -> None:
         """Initiates controlled graceful operator shutdown."""

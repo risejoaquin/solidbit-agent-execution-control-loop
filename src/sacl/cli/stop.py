@@ -30,6 +30,16 @@ def configure_stop_parser(parser: argparse.ArgumentParser) -> None:
         help="Target agent ID to terminate, or 'all' for all running agents (default: all)",
     )
     parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Stop all active orchestrated agents across the system",
+    )
+    parser.add_argument(
+        "--pid",
+        type=int,
+        help="Target a specific process ID to safely stop",
+    )
+    parser.add_argument(
         "--run-id",
         help="Target run ID to stop workers for",
     )
@@ -59,6 +69,16 @@ def execute_stop(
     # 1. Discover target processes to stop
     targets: List[Dict[str, Any]] = []
 
+    effective_agent = "all" if getattr(args, "all", False) else args.agent
+
+    if getattr(args, "pid", None):
+        targets.append({
+            "agent_id": f"pid-{args.pid}",
+            "pid": args.pid,
+            "started_at": None,
+            "state_file": None,
+        })
+
     # Check SQLite
     db_path = None
     if args.db:
@@ -69,13 +89,13 @@ def execute_stop(
         db_path = Path("data/sacl_ops.db").resolve()
 
     if db_path and db_path.exists():
-        targets.extend(_find_targets_from_db(db_path, args.run_id, args.agent))
+        targets.extend(_find_targets_from_db(db_path, args.run_id, effective_agent))
 
     # Check filesystem
     if args.run_dir:
-        targets.extend(_find_targets_from_fs(Path(args.run_dir), args.agent))
+        targets.extend(_find_targets_from_fs(Path(args.run_dir), effective_agent))
     elif Path("state").exists():
-        targets.extend(_find_targets_from_fs(Path("."), args.agent))
+        targets.extend(_find_targets_from_fs(Path("."), effective_agent))
 
     # Deduplicate by (agent_id, pid)
     unique_targets = {}

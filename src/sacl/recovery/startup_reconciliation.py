@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
+from sacl.contracts.interfaces import IRecoveryManager
 from sacl.observability.events import (
     AuditEventType,
     create_audit_event,
@@ -88,7 +89,7 @@ class StartupReconciliationReport:
         }
 
 
-class StartupReconciliationEngine:
+class StartupReconciliationEngine(IRecoveryManager):
     """Orchestrates cold-start recovery, lease acquisition, and interrupted run handling."""
 
     def __init__(
@@ -113,6 +114,16 @@ class StartupReconciliationEngine:
         conn.execute("PRAGMA foreign_keys = ON;")
         conn.execute("PRAGMA busy_timeout = 5000;")
         return conn
+
+    def reconcile_startup(self) -> List[str]:
+        """Detects and reconciles INTERRUPTED runs from prior host crash."""
+        report = self.execute_startup_reconciliation()
+        return report.messages
+
+    def check_pid_safety(self, pid: int, recorded_start_time: str) -> bool:
+        """Verifies process identity to prevent interacting with recycled PIDs."""
+        res = inspect_process(pid=pid, expected_start_time=recorded_start_time, inspector=self.inspector)
+        return res.status == ProcessInspectionStatus.RUNNING_MATCH
 
     def execute_startup_reconciliation(
         self,

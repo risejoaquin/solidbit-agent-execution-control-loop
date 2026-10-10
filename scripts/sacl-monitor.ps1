@@ -6,6 +6,7 @@
 param(
     [string]$RunId = "",
     [ValidateRange(1, 120)]
+    [Alias("Interval")]
     [int]$RefreshSeconds = 10,
     [string]$DbPath = "",
     [switch]$Once

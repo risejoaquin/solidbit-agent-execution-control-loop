@@ -5,10 +5,12 @@
 [CmdletBinding()]
 param(
     [Parameter(Position=0, Mandatory=$false)]
+    [Alias("WaveDir", "PackageZip")]
     [string]$Package,
 
     [int]$MaxParallel = 4,
 
+    [Alias("TargetRepo")]
     [string]$Repo = "",
 
     [string]$SourceOrchestrator = "C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator",

@@ -160,6 +160,7 @@ class LegacyOperatorExperience:
             started_at=now_dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
         self.state_bridge.write_latest_run_marker(pkg_root, run_id)
+        self.state_bridge.write_latest_run_marker(run_dir_path, run_id)
 
         # 5. Phased Agent Execution
         # If package has config/dependencies.json, compile graph
@@ -173,11 +174,44 @@ class LegacyOperatorExperience:
             running_batch: List[Tuple[str, Any]] = []
 
             for agent_id in phase.agents:
-                prompt_file = pkg_root / "prompts" / f"{agent_id}.md"
+                candidate_prompts = [
+                    pkg_root / "prompts" / f"{agent_id}.md",
+                    pkg_root / "prompts" / f"{agent_id}.prompt.md",
+                    pkg_root / "prompts" / f"{agent_id.lower()}.prompt.md",
+                    pkg_root / "prompts" / f"{agent_id.lower()}.md",
+                    pkg_root / "prompts" / f"{agent_id.replace('-', '_')}.prompt.md",
+                    pkg_root / "prompts" / f"{agent_id.lower().replace('-', '_')}.prompt.md",
+                    pkg_root / "prompts" / f"{agent_id.replace('-', '_')}.md",
+                    pkg_root / "prompts" / f"{agent_id.lower().replace('-', '_')}.md",
+                ]
+                prompt_file = candidate_prompts[0]
+                for cp in candidate_prompts:
+                    if cp.exists():
+                        prompt_file = cp
+                        break
+
                 report_file = reports_dir / f"{agent_id}.REPORT.md"
                 stdout_file = logs_dir / f"{agent_id}.stdout.log"
                 stderr_file = logs_dir / f"{agent_id}.stderr.log"
                 agent_state_file = state_dir / f"{agent_id}.json"
+
+                run_prompts_dir = run_dir_path / "prompts"
+                run_prompts_dir.mkdir(parents=True, exist_ok=True)
+                run_prompt_file = run_prompts_dir / f"{agent_id}.prompt.md"
+
+                if prompt_file.exists():
+                    rendered = self.adapter.render_prompt(
+                        prompt_template_path=prompt_file,
+                        package_root=pkg_root,
+                        run_dir=run_dir_path,
+                        report_path=report_file,
+                        source_orchestrator=effective_source,
+                        worktree_path=effective_repo,
+                    )
+                    run_prompt_file.write_text(rendered, encoding="utf-8")
+                else:
+                    gov_h = generate_governance_header(worktree_path=effective_repo)
+                    run_prompt_file.write_text(f"{gov_h}\n# Task for {agent_id}\n", encoding="utf-8")
 
                 # Initial state RUNNING
                 self.state_bridge.write_agent_state(

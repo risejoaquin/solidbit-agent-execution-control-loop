@@ -143,13 +143,23 @@ class LegacyPackageAdapter:
                 agents = [p.stem for p in prompts_dir.glob("*.md")]
         if not agents:
             agents = ["AG-MAIN"]
-        # Ensure all agents match regex ^[A-Za-z0-9_-]+$
-        clean_agents = [re.sub(r"[^A-Za-z0-9_-]", "-", a) for a in agents]
+        # Ensure all agents are strings matching regex ^[A-Za-z0-9_-]+$
+        clean_agents = []
+        for a in agents:
+            if isinstance(a, dict):
+                a_name = a.get("agent_id") or a.get("name") or "AG-WORKER"
+            else:
+                a_name = str(a)
+            clean_agents.append(re.sub(r"[^A-Za-z0-9_-]", "-", a_name))
         data["agents"] = list(dict.fromkeys(clean_agents))  # unique preserving order
 
         # 8. Entrypoint, Execution Plan, Readme
         data["entrypoint"] = data.get("entrypoint") or "RUN-WAVE.ps1"
-        data["execution_plan"] = data.get("execution_plan") or "EXECUTION_PLAN.md"
+        exec_plan = data.get("execution_plan")
+        if isinstance(exec_plan, dict) or not exec_plan:
+            data["execution_plan"] = "EXECUTION_PLAN.md"
+        else:
+            data["execution_plan"] = str(exec_plan)
         data["readme"] = data.get("readme") or "README.md"
 
         # 9. Requested operations (Mandatory in V1, prevents self-authorizing scripts)

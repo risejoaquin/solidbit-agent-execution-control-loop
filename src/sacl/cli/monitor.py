@@ -26,8 +26,10 @@ def configure_monitor_parser(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--refresh",
+        "--interval",
         type=int,
         default=10,
+        dest="refresh",
         help="Refresh interval in seconds (default: 10)",
     )
     parser.add_argument(

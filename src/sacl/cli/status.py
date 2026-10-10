@@ -102,7 +102,8 @@ def execute_status(args: argparse.Namespace) -> int:
         ec_s = str(r.get("EXIT")) if r.get("EXIT") is not None else "--"
         rep_s = "[YES]" if r.get("REPORT") else "[NO]"
         verdict = r.get("RESULT", "--")
-        updated = r.get("LAST_ACTIVITY", "--")[:19]
+        last_act = r.get("LAST_ACTIVITY") or "--"
+        updated = last_act[:19]
 
         if st == "RUNNING":
             running += 1
