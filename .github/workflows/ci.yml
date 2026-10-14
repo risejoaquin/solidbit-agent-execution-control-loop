@@ -50,6 +50,9 @@ jobs:
       - name: Run governance and regression tests using mock/sandbox services
         run: python -m pytest tests --tb=short -ra
 
+      - name: Rehearse the isolated eight-step E2E gates (02-08)
+        run: python -m pytest tests/e2e/test_mock_certification.py --junitxml=e2e-rehearsal.xml -q
+
       - name: Parse PowerShell scripts (do not execute them)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -71,3 +74,20 @@ jobs:
             exit 1
           }
           Write-Host "PowerShell AST PASS ($($scripts.Count) scripts)."
+          Set-Content -Path "e2e-ast-pass.txt" -Value "TEST-01-AST=PASS" -Encoding utf8
+
+
+      - name: Generate fail-closed mock certification evidence
+        if: always()
+        run: python scripts/report_e2e_mock.py --junit e2e-rehearsal.xml --runner ${{ runner.os }} --ast-marker e2e-ast-pass.txt --output-dir e2e-evidence
+
+      - name: Upload E2E rehearsal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sacl-e2e-mock-${{ runner.os }}-${{ github.run_id }}
+          path: |
+            e2e-evidence/
+            e2e-rehearsal.xml
+          if-no-files-found: error
+          retention-days: 14
