@@ -8,17 +8,15 @@
 - Estado efectivo: commits/PR/CI actuales en GitHub; este archivo sirve de checkpoint, no invalida cambios recientes realizados por el Product Owner.
 
 ## Último checkpoint
-- Resultado: **INITIALIZED — NO DEVELOPMENT RUN VERIFIED**.
-- Iteración: pendiente.
-- Fecha y hora: pendiente.
-- Rama y SHA base: pendiente de sincronización actual.
-- Responsable/ejecutor: pendiente.
-- Sprint/fase actual: determinar leyendo las fuentes canónicas.
-- Requisitos completados con evidencia: N/D.
-- Tests ejecutados, entorno y resultados: ninguno acreditado mediante este registro.
-- PR/commits producidos en la iteración: ninguno.
-- Defectos y bloqueos: verificar en GitHub.
-- Próximo trabajo no duplicado: inspeccionar commits y PR actuales, determinar siguiente slice P0 permitido, implementar/probar/documentar en la misma ejecución.
+- Resultado: **S0 DOCS PERSISTED — NO IMPLEMENTATION OR HOST CERTIFICATION**.
+- Iteración: `SACL-DOC-20261014T1128Z`; UTC: 2026-10-14T11:29:42.300Z.
+- Rama: `docs/sacl-certification-ledger-20261014-0129`; base `78e62e76ef7cb517f26659fccc5a80f803b0131c`; commit documental `0a82bb9131cd0fcc56c15eb6081bee84c94b721a`.
+- Gate: `IMPLEMENTATION_AUTHORIZED=NO`, GO operativo NO.
+- Entregable: `docs/certification/SACL_S0_OPERATION_AUTHORITY_TEST_REGISTER_2026-10-14.md`, 12 casos negativos únicos, verificación estructural 12/12 (NO son pruebas runtime).
+- CI previo: PR #3 SHA `d0429459b9caf13d1941b514371847a48409b1ad`, mock CI run 38520855350 y CodeQL run 38520855325 SUCCESS; no pruebas nuevas de runtime.
+- Certificación Windows: 18 inventariados, 0 certificados con evidencia host aceptada; avance operativo N/D.
+- Bloqueos: alertas CodeQL no clasificadas (#4), revisión humana del hardening (#5), certificación host (#6).
+- Próximo: revisión humana de PR #3 y clasificación real de alertas; ensayos host sólo tras autorización.
 
 ## Protocolo obligatorio de cada ejecución
 1. Leer este archivo, documentos canónicos y planes existentes; inspeccionar ramas y HEAD, commits posteriores al checkpoint, PRs, issues, reviews y CI. Reconstruir todos los avances humanos y automáticos desde el último estado. No asumir que se conoce el estado por un chat.
@@ -88,3 +86,15 @@ Los 18 componentes están inventariados en `docs/CURRENT_ORCHESTRATOR_COMPATIBIL
 | 18 | Remote operations policy | PENDIENTE DE CERTIFICACIÓN |
 
 Gate: PR #3 revisión humana; issue #4 clasificación de alertas CodeQL; issue #6 host Windows y 8 pasos E2E; `IMPLEMENTATION_AUTHORIZED=NO` sigue vigente. Piloto de ahorro interno posterior a GO: medir minutos humanos, duración, resultados aceptados, intervenciones, incidentes y costo por wave. No hay implementación nueva ni pruebas de host ejecutadas en este ciclo.
+
+### SACL-DOC-20261014T1128Z — 2026-10-14T11:29:42.300Z
+- Ejecutor y contexto: ChatGPT, análisis de autoridad S0 y escritura documental en rama aislada.
+- Sprint y gate: S0; `IMPLEMENTATION_AUTHORIZED=NO`; NO-GO operativo.
+- Cambios humanos/concurrentes: AC-CONT `d0429459b9caf13d1941b514371847a48409b1ad`, PR #3 Draft; PR #7 `09685c27f7ab449be070c0b9c2f62bc9e00acbe7` Draft; ledger documental preexistente dos commits por delante de AC-CONT antes de esta iteración. Se preservaron los cambios existentes.
+- SHA base → SHA documental: `78e62e76ef7cb517f26659fccc5a80f803b0131c` → `0a82bb9131cd0fcc56c15eb6081bee84c94b721a`; commit final del checkpoint: el SHA del commit de esta actualización.
+- Archivo nuevo: `docs/certification/SACL_S0_OPERATION_AUTHORITY_TEST_REGISTER_2026-10-14.md`. Registro de 12 casos negativos AUTH-01..12, sin cambiar contratos ni código.
+- Validación realmente ejecutada: lectura posterior del archivo publicado; 12/12 IDs únicos, sin duplicados, contiene `IMPLEMENTATION_AUTHORIZED=NO` y contrato de evidencia. No se ejecutaron tests de runtime, E2E host ni mocks nuevos.
+- CI existente por SHA: `d0429459` mock CI run 38520855350 SUCCESS, CodeQL run 38520855325 SUCCESS; no atribuir esos PASS a este documento.
+- Issues y bloqueos: #4 Code Scanning alert inventory desconocido; #5 revisión humana pendiente; #6 certificación Windows pendiente. 18/18 componentes inventariados, 0/18 certificados host acreditados; avance funcional N/D.
+- Próximo slice independiente: clasificar alertas efectivas de CodeQL con revisor autorizado y ligar casos AUTH a pruebas futuras aisladas; no ejecutar host real hasta GO.
+- Sin merge, deploy, producción, secretos, gastos, contacto externo ni transición del legado.
