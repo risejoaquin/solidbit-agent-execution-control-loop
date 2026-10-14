@@ -15,7 +15,7 @@ from typing import List, Optional, Tuple
 
 from sacl.contracts.exceptions import DirtyRootError
 from sacl.contracts.interfaces import IWorkspaceManager
-from sacl.workspace.dirty_root import check_clean_root
+from sacl.workspace.dirty_root import check_clean_root, parse_porcelain_status
 from sacl.workspace.exceptions import (
     BranchProtectionError,
     PrimaryCheckoutViolationError,
@@ -304,27 +304,27 @@ class WorkspaceManager(IWorkspaceManager):
 
         modified: set[str] = set()
 
-        # 1. Uncommitted changes (staged and unstaged)
-        status_res = self.git_runner.run(["status", "--porcelain"], cwd=resolved_path)
-        if status_res.success:
-            for dirty_file in check_clean_root(resolved_path, self.git_runner)[1]:
-                modified.add(dirty_file)
+        # 1. Never mask a failed Git status as a clean worktree.
+        status_res = self.git_runner.run(
+            ["status", "--porcelain"], cwd=resolved_path, check=True,
+        )
+        modified.update(parse_porcelain_status(status_res.stdout))
 
-        # 2. Committed changes relative to base_ref
-        diff_cmd = ["diff", "--name-only", f"{base_ref}...HEAD"]
-        diff_res = self.git_runner.run(diff_cmd, cwd=resolved_path)
+        # 2. Resolve committed modifications; both ref strategies must fail
+        # explicitly if unavailable, never returning an empty list.
+        diff_res = self.git_runner.run(
+            ["diff", "--name-only", f"{base_ref}...HEAD"], cwd=resolved_path,
+        )
         if not diff_res.success:
-            # Fallback to direct two-dot diff or single ref diff
-            fallback_cmd = ["diff", "--name-only", base_ref, "HEAD"]
-            diff_res = self.git_runner.run(fallback_cmd, cwd=resolved_path)
+            diff_res = self.git_runner.run(
+                ["diff", "--name-only", base_ref, "HEAD"], cwd=resolved_path,
+            )
+            diff_res.check()
 
-        if diff_res.success:
-            for raw_line in diff_res.stdout.splitlines():
-                line = raw_line.strip()
-                if line:
-                    norm = line.replace("\\", "/").strip()
-                    if norm:
-                        modified.add(norm)
+        for raw_line in diff_res.stdout.splitlines():
+            line = raw_line.strip()
+            if line:
+                modified.add(line.replace("\\", "/"))
 
         return sorted(modified)
 

@@ -220,3 +220,26 @@ def test_real_worker_branch_is_bound_to_registered_task(
     with pytest.raises(WorkspaceError):
         manager.assert_registered_worktree(git_checkout)
     manager.teardown_worktree(git_checkout, target)
+
+
+
+def test_canonical_manager_cannot_silence_git_status_or_bad_ref(
+    git_checkout: Path, tmp_path: Path,
+) -> None:
+    from sacl.workspace.manager import WorkspaceManager as CanonicalWorkspaceManager
+    from sacl.workspace.git_runner import GitRunner
+
+    manager = CanonicalWorkspaceManager()
+    worktree = tmp_path / "canonical"
+    manager.provision_worktree(git_checkout, "task/ci", worktree)
+
+    with pytest.raises(GitCommandError):
+        manager.get_modified_files(worktree, base_ref="SACL_MISSING_REF_NO_MATCH")
+
+    missing_git = CanonicalWorkspaceManager(
+        git_runner=GitRunner(git_executable="sacl-intentionally-missing-git"),
+    )
+    with pytest.raises(GitCommandError):
+        missing_git.get_modified_files(worktree)
+
+    manager.teardown_worktree(git_checkout, worktree)
