@@ -23,6 +23,7 @@ from sacl.workspace.guards import (
     assert_branch_allowed,
     assert_not_primary_checkout,
     assert_valid_repository,
+    normalize_branch_name,
 )
 from sacl.workspace.manager import WorkspaceManager as CanonicalWorkspaceManager
 
@@ -114,6 +115,34 @@ class WorkspaceManager(CanonicalWorkspaceManager):
         # rmdir refuses to delete any file whatsoever. Never use rmtree.
         target.rmdir()
         del self._mock_worktrees[target]
+
+    def assert_registered_worktree(
+        self, worktree_path: Path, expected_branch: str | None = None,
+    ) -> None:
+        """Guard used immediately before any real worker process can be spawned.
+
+        Validate the Git worktree registry, disallow primary checkouts, detached
+        HEAD and protected branches, and enforce the scheduled task branch.
+        """
+        original = Path(worktree_path)
+        if original.is_symlink():
+            raise WorkspaceError("Refusing to execute via worktree symlink.")
+        target = original.resolve()
+        assert_valid_repository(target, self.git_runner)
+        registered = self.list_worktrees(target)
+        if not registered or target == registered[0].path:
+            raise WorkspaceError("Refusing real worker execution in primary checkout.")
+        record = next((wt for wt in registered[1:] if wt.path == target), None)
+        if record is None:
+            raise WorktreeNotFoundError(str(target))
+        if record.is_detached or not record.branch:
+            raise WorkspaceError("Refusing real worker execution on detached HEAD.")
+        assert_branch_allowed(record.branch)
+        if expected_branch is not None and normalize_branch_name(expected_branch) != record.branch:
+            raise WorktreeCollisionError(
+                "Scheduled worker branch differs from the registered Git worktree.",
+                worktree_path=str(target), branch=expected_branch,
+            )
 
     def get_modified_files(self, worktree_path: Path, base_ref: str = "HEAD") -> List[str]:
         raw_target = Path(worktree_path)

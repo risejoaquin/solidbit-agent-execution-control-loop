@@ -175,3 +175,48 @@ def test_symlink_untrusted_path_rejected(git_checkout: Path, tmp_path: Path) -> 
         WorkspaceManager().provision_worktree(git_checkout, "task/new", link)
     with pytest.raises(WorkspaceError):
         WorkspaceManager().teardown_worktree(git_checkout, link)
+
+
+
+def test_real_worker_cannot_spawn_from_unregistered_folder(
+    git_checkout: Path, tmp_path: Path,
+) -> None:
+    from sacl.worker.agent_worker import AgentWorker
+    from sacl.worker.models import WorkerConfig
+    from sacl.worker.process import MockProcessInspector
+
+    target = tmp_path / "unmanaged-worker"
+    config = WorkerConfig(
+        agent_id="AG-DENIED",
+        run_id="run-test-denied",
+        branch="task/denied",
+        worktree_path=target,
+        prompt_path=tmp_path / "prompt.txt",
+        report_path=tmp_path / "reports" / "report.md",
+        stdout_path=tmp_path / "logs" / "out.log",
+        stderr_path=tmp_path / "logs" / "err.log",
+        executable_command=["never-run-agent"],
+        timeout_seconds=5,
+        max_attempts=1,
+    )
+    worker = AgentWorker(config=config, process_inspector=MockProcessInspector())
+    with patch("sacl.worker.agent_worker.subprocess.Popen") as popen:
+        with pytest.raises(RepositoryValidationError):
+            worker.launch_attempt()
+        popen.assert_not_called()
+    assert not target.exists()
+    assert not (tmp_path / "logs").exists()
+
+
+def test_real_worker_branch_is_bound_to_registered_task(
+    git_checkout: Path, tmp_path: Path,
+) -> None:
+    manager = WorkspaceManager()
+    target = tmp_path / "registered-agent"
+    manager.provision_worktree(git_checkout, "task/allowed", target)
+    manager.assert_registered_worktree(target, expected_branch="task/allowed")
+    with pytest.raises(WorktreeCollisionError):
+        manager.assert_registered_worktree(target, expected_branch="task/someone-else")
+    with pytest.raises(WorkspaceError):
+        manager.assert_registered_worktree(git_checkout)
+    manager.teardown_worktree(git_checkout, target)
