@@ -461,9 +461,11 @@ class EphemeralDagScheduler(IDagScheduler):
         """Collects modified files for each agent worktree in the phase."""
         agent_files: Dict[str, List[str]] = {}
         for nid in phase.node_ids:
-            # Aborted/not-started nodes have no worktree to inspect.
-            # Started workers must be inspected fail-closed; Git errors still raise.
-            if nid not in self.running_workers:
+            # Completed workers are removed from running_workers; use the
+            # persisted attempt count to distinguish them from never-started
+            # nodes. Every attempted node must still undergo strict Git checks.
+            node = self.nodes_map.get(nid)
+            if node is None or node.current_attempt == 0:
                 continue
             wt_path = self.config.run_dir / "worktrees" / f"wt-{nid}"
             files = self.workspace_manager.get_modified_files(wt_path)
