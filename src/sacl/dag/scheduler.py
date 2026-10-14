@@ -65,7 +65,11 @@ class EphemeralDagScheduler(IDagScheduler):
         self.config = config
         self.db_conn = db_conn
         self.audit_emitter = audit_emitter
-        self.workspace_manager = workspace_manager or WorkspaceManager()
+        # An injected mock worker is an explicit local test-only execution mode.
+        # Production without mock_runner_factory always demands a valid Git repo.
+        self.workspace_manager = workspace_manager or WorkspaceManager(
+            mock_mode=mock_runner_factory is not None
+        )
         self.process_inspector = process_inspector or OSProcessInspector()
         self.reconciler = reconciler or WorkerReconciler(db_conn=db_conn)
         self.mock_runner_factory = mock_runner_factory
