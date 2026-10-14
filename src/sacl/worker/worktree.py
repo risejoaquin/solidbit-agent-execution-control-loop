@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List, Tuple
 
+from sacl.contracts.exceptions import DirtyRootError
 from sacl.workspace.dirty_root import parse_porcelain_status
 from sacl.workspace.exceptions import (
     BranchProtectionError,
@@ -48,6 +49,12 @@ class WorkspaceManager(CanonicalWorkspaceManager):
             # Explicit mock directories do not have a Git index to inspect.
             return True, []
         return super().check_clean_root(repo)
+
+    def assert_clean_root(self, repo_path: Path) -> None:
+        """Raise without mutating the caller's checkout when uncommitted files exist."""
+        is_clean, dirty_files = self.check_clean_root(repo_path)
+        if not is_clean:
+            raise DirtyRootError(target_path=str(repo_path), dirty_files=dirty_files)
 
     def provision_worktree(
         self,
@@ -100,7 +107,7 @@ class WorkspaceManager(CanonicalWorkspaceManager):
         if not self._is_mock_repo(repo):
             return super().teardown_worktree(repo, target, force=False)
 
-        if self._mock_worktrees.get(target) != (repo, self._mock_worktrees.get(target, (None, None))[1]):
+        if target not in self._mock_worktrees or self._mock_worktrees[target][0] != repo:
             raise WorktreeNotFoundError(str(target))
         if not target.is_dir():
             raise WorktreeNotFoundError(str(target))
