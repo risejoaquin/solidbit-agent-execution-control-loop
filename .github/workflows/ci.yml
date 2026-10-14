@@ -50,6 +50,14 @@ jobs:
       - name: Run governance and regression tests using mock/sandbox services
         run: python -m pytest tests --tb=short -ra
 
+      - name: Verify persisted crash recovery and security regression gates
+        run: >-
+          python -m pytest
+          tests/integration/recovery/test_restart_reconciliation.py
+          tests/unit/recovery/test_startup_reconciliation.py
+          tests/security/test_workspace_fail_closed.py
+          --junitxml=sprint-verification.xml -q
+
       - name: Rehearse the isolated eight-step E2E gates (02-08)
         run: python -m pytest tests/e2e/test_mock_certification.py --junitxml=e2e-rehearsal.xml -q
 
@@ -89,5 +97,6 @@ jobs:
           path: |
             e2e-evidence/
             e2e-rehearsal.xml
+            sprint-verification.xml
           if-no-files-found: error
           retention-days: 14
