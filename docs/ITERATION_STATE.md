@@ -98,3 +98,13 @@ Gate: PR #3 revisión humana; issue #4 clasificación de alertas CodeQL; issue #
 - Issues y bloqueos: #4 Code Scanning alert inventory desconocido; #5 revisión humana pendiente; #6 certificación Windows pendiente. 18/18 componentes inventariados, 0/18 certificados host acreditados; avance funcional N/D.
 - Próximo slice independiente: clasificar alertas efectivas de CodeQL con revisor autorizado y ligar casos AUTH a pruebas futuras aisladas; no ejecutar host real hasta GO.
 - Sin merge, deploy, producción, secretos, gastos, contacto externo ni transición del legado.
+
+### SACL-S0-20261014T1527Z — 2026-10-14T15:27Z
+- Gate: S0, IMPLEMENTATION_AUTHORIZED=NO; operational NO-GO.
+- Human work: PR #3 Draft AC-CONT d0429459; PR #7 Draft 09685c27; existing documentation branch 806ab6ac. All preserved.
+- Branch: docs/sacl-s0-trust-boundaries-20261014-0827; base 806ab6ac; documentation commit dfb959d1; final checkpoint SHA: branch HEAD after this commit.
+- File: docs/certification/SACL_S0_GRAPH_P_TRUST_BOUNDARY_REVIEW_2026-10-14.md; TB-01 trusted callback bypass conditional; TB-02 dirty-root exception handling conditional. Both require review, not confirmed vulnerabilities.
+- Tests: published document readback PASS, six distinct planned cases TB-T01..06, not executed. No runtime tests this cycle.
+- Prior CI: SHA d0429459, runs 38520855350 CI SUCCESS and 38520855325 CodeQL SUCCESS. Not CI for new document.
+- Issues: #4 CodeQL alerts UNKNOWN; #5 human review; #6 Windows 18/18 certification pending. 18/18 inventoried, 0/18 host evidence accepted, functional progress N/D.
+- Next: inspect callback callsites and dirty-root checker origin; no implementation, merge, deploy, secrets, costs, legacy transition or operational authorization.
