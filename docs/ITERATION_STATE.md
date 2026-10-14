@@ -61,3 +61,30 @@
 - Issues: #4 alert triage, #5 human review, #6 Windows host certification pending. No production access, merge, deploy or legacy transition.
 - Certificación: N/D; 0/18 host certificates evidenced, not an implementation progress percentage.
 - Próximo trabajo: CodeQL alert classification and host evidence worksheets under explicit authorization.
+
+## SACL-DOC-20261014T082910Z — Certificación 18/18 (anexo documental)
+
+Los 18 componentes están inventariados en `docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md`. Ninguno dispone de certificación host Windows aceptada en esta revisión; esto **no** representa 0% de implementación. Estado de certificación total: N/D. Cada fila exige SHA, fecha, operador, caso, resultado, artefacto y revisor.
+
+| ID | Componente | Estado host |
+|---:|---|---|
+| 1 | Worktrees | PENDIENTE DE CERTIFICACIÓN |
+| 2 | Dirty-root | PENDIENTE DE CERTIFICACIÓN |
+| 3 | Preflight | PENDIENTE DE CERTIFICACIÓN |
+| 4 | Agent invocation | PENDIENTE DE CERTIFICACIÓN |
+| 5 | Prompt governance | PENDIENTE DE CERTIFICACIÓN |
+| 6 | DAG and concurrency | PENDIENTE DE CERTIFICACIÓN |
+| 7 | State and process identity | PENDIENTE DE CERTIFICACIÓN |
+| 8 | Results extraction | PENDIENTE DE CERTIFICACIÓN |
+| 9 | File overlap | PENDIENTE DE CERTIFICACIÓN |
+| 10 | Safe stop and timeout | PENDIENTE DE CERTIFICACIÓN |
+| 11 | Supervisor singleton | PENDIENTE DE CERTIFICACIÓN |
+| 12 | Console monitor | PENDIENTE DE CERTIFICACIÓN |
+| 13 | Human authorization | PENDIENTE DE CERTIFICACIÓN |
+| 14 | Wave package | PENDIENTE DE CERTIFICACIÓN |
+| 15 | E2E suite | PENDIENTE DE CERTIFICACIÓN |
+| 16 | Risk taxonomy | PENDIENTE DE CERTIFICACIÓN |
+| 17 | Mail transport | PENDIENTE DE CERTIFICACIÓN |
+| 18 | Remote operations policy | PENDIENTE DE CERTIFICACIÓN |
+
+Gate: PR #3 revisión humana; issue #4 clasificación de alertas CodeQL; issue #6 host Windows y 8 pasos E2E; `IMPLEMENTATION_AUTHORIZED=NO` sigue vigente. Piloto de ahorro interno posterior a GO: medir minutos humanos, duración, resultados aceptados, intervenciones, incidentes y costo por wave. No hay implementación nueva ni pruebas de host ejecutadas en este ciclo.
