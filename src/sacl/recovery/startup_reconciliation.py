@@ -122,7 +122,7 @@ class StartupReconciliationEngine(IRecoveryManager):
 
     def check_pid_safety(self, pid: int, recorded_start_time: str) -> bool:
         """Verifies process identity to prevent interacting with recycled PIDs."""
-        res = inspect_process(pid=pid, expected_start_time=recorded_start_time, inspector=self.inspector)
+        res = inspect_process(pid=pid, persisted_start_time=recorded_start_time, inspector=self.inspector)
         # A matching process must also have an observable start-time drift:
         # unknown process creation times cannot establish PID identity.
         return (
