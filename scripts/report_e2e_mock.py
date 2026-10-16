@@ -20,22 +20,42 @@ STEPS = {
 
 
 def build_report(junit: Path, runner: str, ast_marker: Path) -> dict:
+    # Multiple testcases can map to the same certification step. The least
+    # successful outcome must win, regardless of their order in JUnit XML.
+    severity = {"PASS": 0, "SKIPPED": 1, "FAIL": 2}
     observed: dict[str, str] = {}
-    if junit.exists():
+    try:
         root = ET.parse(junit).getroot()
+    except (OSError, ET.ParseError):
+        # Missing, unreadable or corrupt evidence never becomes a PASS.
+        root = None
+    if root is not None:
         for case in root.iter("testcase"):
             name = case.attrib.get("name", "")
             for number in range(2, 9):
                 if name.startswith(f"test_{number:02d}_"):
-                    observed[f"TEST-{number:02d}"] = (
+                    key = f"TEST-{number:02d}"
+                    status = (
                         "FAIL" if case.find("failure") is not None or case.find("error") is not None
                         else "SKIPPED" if case.find("skipped") is not None
                         else "PASS"
                     )
+                    previous = observed.get(key)
+                    if previous is None or severity[status] > severity[previous]:
+                        observed[key] = status
+
+    # File existence alone cannot prove the Windows AST parser ran.
+    ast_verified = False
+    if runner == "Windows":
+        try:
+            ast_verified = ast_marker.read_text(encoding="utf-8-sig").strip() == "TEST-01-AST=PASS"
+        except (OSError, UnicodeError):
+            pass
+
     lines = []
     for index, (key, label) in enumerate(STEPS.items(), start=1):
         if index == 1:
-            status = "PASS" if runner == "Windows" and ast_marker.exists() else "NOT_RUN"
+            status = "PASS" if ast_verified else "NOT_RUN"
         else:
             status = observed.get(f"TEST-{index:02d}", "NOT_RUN")
         lines.append({"id": key, "name": label, "status": status})
