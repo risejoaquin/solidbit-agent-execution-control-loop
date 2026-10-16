@@ -15,7 +15,7 @@ from typing import List, Optional, Tuple
 
 from sacl.contracts.exceptions import DirtyRootError
 from sacl.contracts.interfaces import IWorkspaceManager
-from sacl.workspace.dirty_root import check_clean_root
+from sacl.workspace.dirty_root import check_clean_root, parse_porcelain_status
 from sacl.workspace.exceptions import (
     BranchProtectionError,
     PrimaryCheckoutViolationError,
@@ -253,53 +253,39 @@ class WorkspaceManager(IWorkspaceManager):
         worktree_path: Path,
         force: bool = False,
     ) -> None:
-        """Cleans up and removes an isolated Git worktree.
+        """Remove only a *registered, clean* worktree, never arbitrary directories.
 
-        Args:
-            repo_path: Primary Git repository directory.
-            worktree_path: Worktree directory to tear down.
-            force: If True, forces removal even if uncommitted changes exist.
-
-        Raises:
-            PrimaryCheckoutViolationError: If worktree_path is the primary checkout.
-            DirtyRootError: If worktree contains uncommitted changes and force=False.
+        Forced removal and filesystem rmtree are intentionally prohibited.
+        Git itself removes only the worktree it has registered, and errors are
+        propagated to preserve forensic evidence and human uncommitted edits.
         """
-        repo_path = repo_path.resolve()
-        assert_valid_repository(repo_path, self.git_runner)
-        assert_not_primary_checkout(worktree_path, repo_path)
-
-        resolved_target = worktree_path.resolve()
-
-        if resolved_target.exists():
-            wt_clean, dirty_files = check_clean_root(resolved_target, self.git_runner)
-            if not wt_clean and not force:
-                raise DirtyRootError(
-                    target_path=str(resolved_target),
-                    dirty_files=dirty_files,
-                )
-
-        # Run git worktree remove
-        remove_cmd = ["worktree", "remove", str(resolved_target)]
+        repo = Path(repo_path).resolve()
+        raw_target = Path(worktree_path)
+        if raw_target.is_symlink():
+            raise WorkspaceError("Refusing teardown via symlink.")
+        target = raw_target.resolve()
+        assert_valid_repository(repo, self.git_runner)
+        assert_not_primary_checkout(target, repo)
         if force:
-            remove_cmd.append("--force")
+            raise WorkspaceError("Forced worktree teardown is disabled for data safety.")
 
-        res = self.git_runner.run(remove_cmd, cwd=repo_path)
-        if not res.success:
-            # If git reported it was not a working tree, prune and verify
-            self.git_runner.run(["worktree", "prune"], cwd=repo_path)
-            if resolved_target.exists():
-                res.check()
+        existing = self.list_worktrees(repo)
+        record = next(
+            (wt for wt in existing[1:] if wt.path == target),
+            None,
+        )
+        if record is None:
+            raise WorktreeNotFoundError(str(target))
+        if not target.is_dir():
+            raise WorktreeNotFoundError(str(target))
 
-        # Always prune metadata
-        self.git_runner.run(["worktree", "prune"], cwd=repo_path)
+        is_clean, dirty = check_clean_root(target, self.git_runner)
+        if not is_clean:
+            raise DirtyRootError(target_path=str(target), dirty_files=dirty)
 
-        # If directory still exists and force=True or empty, clean up
-        if resolved_target.exists():
-            try:
-                shutil.rmtree(resolved_target, ignore_errors=force)
-            except Exception:
-                if not force:
-                    raise
+        self.git_runner.run(
+            ["worktree", "remove", str(target)], cwd=repo, check=True,
+        )
 
     def get_modified_files(self, worktree_path: Path, base_ref: str = "HEAD") -> List[str]:
         """Collects files modified in worktree relative to base reference.
@@ -318,27 +304,27 @@ class WorkspaceManager(IWorkspaceManager):
 
         modified: set[str] = set()
 
-        # 1. Uncommitted changes (staged and unstaged)
-        status_res = self.git_runner.run(["status", "--porcelain"], cwd=resolved_path)
-        if status_res.success:
-            for dirty_file in check_clean_root(resolved_path, self.git_runner)[1]:
-                modified.add(dirty_file)
+        # 1. Never mask a failed Git status as a clean worktree.
+        status_res = self.git_runner.run(
+            ["status", "--porcelain"], cwd=resolved_path, check=True,
+        )
+        modified.update(parse_porcelain_status(status_res.stdout))
 
-        # 2. Committed changes relative to base_ref
-        diff_cmd = ["diff", "--name-only", f"{base_ref}...HEAD"]
-        diff_res = self.git_runner.run(diff_cmd, cwd=resolved_path)
+        # 2. Resolve committed modifications; both ref strategies must fail
+        # explicitly if unavailable, never returning an empty list.
+        diff_res = self.git_runner.run(
+            ["diff", "--name-only", f"{base_ref}...HEAD"], cwd=resolved_path,
+        )
         if not diff_res.success:
-            # Fallback to direct two-dot diff or single ref diff
-            fallback_cmd = ["diff", "--name-only", base_ref, "HEAD"]
-            diff_res = self.git_runner.run(fallback_cmd, cwd=resolved_path)
+            diff_res = self.git_runner.run(
+                ["diff", "--name-only", base_ref, "HEAD"], cwd=resolved_path,
+            )
+            diff_res.check()
 
-        if diff_res.success:
-            for raw_line in diff_res.stdout.splitlines():
-                line = raw_line.strip()
-                if line:
-                    norm = line.replace("\\", "/").strip()
-                    if norm:
-                        modified.add(norm)
+        for raw_line in diff_res.stdout.splitlines():
+            line = raw_line.strip()
+            if line:
+                modified.add(line.replace("\\", "/"))
 
         return sorted(modified)
 

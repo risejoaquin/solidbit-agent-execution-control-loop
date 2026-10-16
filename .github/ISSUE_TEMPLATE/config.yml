@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Gobierno de SACL
+    url: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/blob/AC-CONT/DECISION_BASELINE.md
+    about: Consultar decisiones vigentes antes de proponer cambios.

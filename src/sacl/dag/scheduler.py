@@ -65,7 +65,11 @@ class EphemeralDagScheduler(IDagScheduler):
         self.config = config
         self.db_conn = db_conn
         self.audit_emitter = audit_emitter
-        self.workspace_manager = workspace_manager or WorkspaceManager()
+        # An injected mock worker is an explicit local test-only execution mode.
+        # Production without mock_runner_factory always demands a valid Git repo.
+        self.workspace_manager = workspace_manager or WorkspaceManager(
+            mock_mode=mock_runner_factory is not None
+        )
         self.process_inspector = process_inspector or OSProcessInspector()
         self.reconciler = reconciler or WorkerReconciler(db_conn=db_conn)
         self.mock_runner_factory = mock_runner_factory
@@ -457,6 +461,12 @@ class EphemeralDagScheduler(IDagScheduler):
         """Collects modified files for each agent worktree in the phase."""
         agent_files: Dict[str, List[str]] = {}
         for nid in phase.node_ids:
+            # Completed workers are removed from running_workers; use the
+            # persisted attempt count to distinguish them from never-started
+            # nodes. Every attempted node must still undergo strict Git checks.
+            node = self.nodes_map.get(nid)
+            if node is None or node.current_attempt == 0:
+                continue
             wt_path = self.config.run_dir / "worktrees" / f"wt-{nid}"
             files = self.workspace_manager.get_modified_files(wt_path)
             agent_files[nid] = files

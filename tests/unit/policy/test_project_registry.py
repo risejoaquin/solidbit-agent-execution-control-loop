@@ -182,3 +182,13 @@ def test_worktree_base_resolution(sample_registry_dict):
     manager = ProjectRegistryManager.from_dict(sample_registry_dict)
     base = manager.get_worktree_base("test-project-strict")
     assert normalize_fs_path(base) == normalize_fs_path("C:\\Repos\\TestStrict\\worktrees")
+
+
+
+def test_windows_absolute_paths_are_compared_portably_and_safely():
+    """Lexical Windows path rules must be identical on Linux and Windows CI."""
+    assert is_same_or_subpath("c:/repos/app/child", r"C:\Repos\App")
+    assert is_same_or_subpath(r"C:\Repos\App", r"C:\Repos\App")
+    assert not is_same_or_subpath(r"C:\Repos\AppBackup", r"C:\Repos\App")
+    assert not is_same_or_subpath(r"D:\Repos\App", r"C:\Repos\App")
+    assert not is_same_or_subpath(r"C:\Repos\App\..\Sibling", r"C:\Repos\App")
