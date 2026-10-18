@@ -189,3 +189,17 @@
 - PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft, no merge).
 - Blockers: full repo checkout and real Windows-host worker tests not available locally; CI for new SHA must be verified after ref update; previous checkpoint write denied, do not bypass any renewed safety denial.
 - Next slice: confirm T53 SHA and Windows/Linux/CodeQL results, then evaluate independent P0 registry/CLI authorization boundary with mocks; keep OS-level TOCTOU residual risk tracked.
+
+
+### SACL-20261018T16 — 2026-10-18T23:29:29.975Z
+- Authority: isolated code/tests on AC-CONT only; no merge, deploy, legacy transition, real workers, production mutation, email or spending. Frozen baseline unchanged.
+- Reconciliation: initial HEAD 522310ca6641b770c2d8bc2faf0639be3403e51c; initial dispatcher blob b4e2cdeaac19bb8a054a47fcf552189db103d59f; initial checkpoint blob 868da0e8db314d02eec0dd33723498032daa9a81; PR #3 Draft, PR #7/#8 Draft. No duplicate SACL-20261018T16 in checkpoint.
+- One P0 criterion T54: when trusted project_root_resolver is configured, reject untrusted metadata target_repo_path mismatches and resolver failure, before lease/run/spawn; preserve canonical matching target and mock launcher. No claims about absent-resolver fallback (separate risk).
+- Files: src/sacl/supervisor/dispatcher.py; tests/security/test_dispatcher_registry_root.py; docs/ITERATION_STATE.md (append-only).
+- Tests ACTUALLY executed before commit: Linux Python isolated fixture RED original 8 FAIL, 2 PASS; GREEN corrected 10/10 PASS (pytest -q). These are isolated method reproductions, NOT repository integration tests. Committed tests are designed for GitHub CI; full repo suite and Windows NOT run locally. No worker started.
+- Initial SHA 522310ca6641b770c2d8bc2faf0639be3403e51c; final SHA is the commit containing this checkpoint (self-referential; verify ref read-after-write).
+- CI on final SHA: PENDING until commit and verification. Initial SHA previous CI green is not evidence for T54.
+- Progress: T54 integrated+CI 0/1 until new SHA CI verified; parity 0/18 certified, real-host E2E 0/8 certified, savings N/D; NO-GO.
+- PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft, no merge).
+- Blockers: full checkout unavailable locally; real Windows-host parity and CodeQL alert triage not certified. If write denied, checkpoint NOT PERSISTED.
+- Next slice: verify T54 Windows/Linux and CodeQL by SHA, then inspect unconfigured resolver / database fallback root authority.

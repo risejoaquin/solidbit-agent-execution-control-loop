@@ -118,13 +118,40 @@ class JobDispatcher:
 
     def _resolve_target_repo_path(self, project_id: Optional[str], metadata: Dict[str, Any]) -> str:
         """Determines target repository path from resolver, project registry, or metadata."""
-        if metadata.get("target_repo_path"):
-            return str(metadata["target_repo_path"])
+        # A configured registry resolver is authoritative. Untrusted package
+        # metadata cannot redirect an otherwise registered project.
         if project_id and self.project_root_resolver:
             try:
-                return self.project_root_resolver(project_id)
-            except Exception:
-                pass
+                registered_root = self.project_root_resolver(project_id)
+            except Exception as exc:
+                raise PolicyDeniedError(
+                    action="resolve_target_root",
+                    layer="PROJECT_REGISTRY",
+                    reason=f"Trusted project root resolver failed for '{project_id}': {exc}",
+                ) from exc
+            if not isinstance(registered_root, (str, Path)) or not str(registered_root).strip():
+                raise PolicyDeniedError(
+                    action="resolve_target_root",
+                    layer="PROJECT_REGISTRY",
+                    reason=f"Trusted project root resolver returned an invalid root for '{project_id}'.",
+                )
+            requested = metadata.get("target_repo_path")
+            if requested is not None:
+                try:
+                    from sacl.policy.project_registry import normalize_fs_path
+                    matches = normalize_fs_path(requested) == normalize_fs_path(registered_root)
+                except (OSError, ValueError, TypeError):
+                    matches = False
+                if not matches:
+                    raise PolicyDeniedError(
+                        action="resolve_target_root",
+                        layer="PROJECT_REGISTRY",
+                        reason=f"Untrusted target_repo_path override denied for '{project_id}'.",
+                    )
+            return str(registered_root)
+
+        if metadata.get("target_repo_path"):
+            return str(metadata["target_repo_path"])
 
         # Try querying projects table directly
         if project_id:
@@ -192,6 +219,19 @@ class JobDispatcher:
             )
             return None
 
+        # Resolve trusted target before acquiring any lease or creating a run.
+        # Denials leave no RUNNING job, lease, or physical run record.
+        try:
+            target_repo_path = self._resolve_target_repo_path(project_id, metadata)
+        except PolicyDeniedError as exc:
+            self.lifecycle_manager.transition(
+                job_id=job_id,
+                to_status=JobSideStatus.POLICY_DENIED.value,
+                error_summary=f"TARGET_ROOT_DENIED: {exc}",
+                expected_current_status=JobStatus.QUEUED.value,
+            )
+            return None
+
         # ---------------------------------------------------------------------
         # 1. Project Concurrency Lock Check
         # ---------------------------------------------------------------------
@@ -206,7 +246,6 @@ class JobDispatcher:
                 # Another job holds the project lock; job remains QUEUED
                 return None
 
-        target_repo_path = self._resolve_target_repo_path(project_id, metadata)
         run_dir = str(Path("runs") / run_id)
 
         # ---------------------------------------------------------------------
