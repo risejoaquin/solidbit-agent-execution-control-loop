@@ -151,3 +151,15 @@
 - Human reconciliation: branch HEAD and all three blobs refreshed before atomic tree creation; no conflicting changes observed.
 - Blockers: no complete local checkout for full pytest; real Windows-host parity and CodeQL alert triage not certified.
 - Next slice: verify new SHA's Windows/Linux CI and CodeQL; then assess pre-spawn worktree containment at WorkspaceManager boundary.
+
+### SACL-20261018T08 — 2026-10-18T15:27:16Z
+- Objective P0 T51: fail-closed on worktree ancestor symlink/junction before any real worker spawn, allow canonical registered worktrees.
+- Authority: AC-CONT isolated development only; no merge, deploy, legacy transition, real workers, production or spending.
+- Reconciliation: T51 previous SACL-20261018T07 package recovered; its checkpoint was not persisted; PR #3, #7, #8 remain Draft.
+- SHA initial d6cbe8a59526fc4ffcd4a6f0c977d4643513a33b; SHA final is the commit containing this checkpoint (self-referential). Initial worker blob 1930357d699aa783b450f4bd00fb299723b041b5, checkpoint blob 7a10b525bd6405c1a7619e46ce83a79f3bb3e6c6.
+- Files: src/sacl/worker/worktree.py; tests/security/test_worktree_alias_pre_spawn.py; docs/ITERATION_STATE.md (append-only).
+- Tests actually executed BEFORE COMMIT: isolated Linux Python 3.13.5 RED original 2 expected failures, GREEN corrected 4/4 PASS; applicator 3/3 PASS; compileall PASS. Full repository tests/Windows CI NOT executed pre-commit; integration tests are committed but must be checked in CI.
+- CI by final SHA: PENDING; CodeQL PENDING. No worker executed.
+- Acceptance integrated+CI: 0/1 pending CI; parity certified 0/18, real E2E 0/8, savings N/D; NO-GO.
+- PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 Draft. No merges.
+- Blockers: full checkout unavailable locally; Windows-host parity not certified. Next slice: verify full CI Windows/Linux and CodeQL by final SHA; assess pre-spawn TOCTOU.

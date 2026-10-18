@@ -6,6 +6,7 @@ A test-only non-Git sandbox is available only when mock_mode=True.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import List, Tuple
 
@@ -127,7 +128,13 @@ class WorkspaceManager(CanonicalWorkspaceManager):
         original = Path(worktree_path)
         if original.is_symlink():
             raise WorkspaceError("Refusing to execute via worktree symlink.")
-        target = original.resolve()
+        # Reject symlink/junction ancestors before any real worker can spawn.
+        absolute = Path(os.path.abspath(original))
+        target = absolute.resolve()
+        if target != absolute:
+            raise WorkspaceError(
+                "Refusing real worker execution through a symlink or junction in the worktree path."
+            )
         assert_valid_repository(target, self.git_runner)
         registered = self.list_worktrees(target)
         if not registered or target == registered[0].path:
