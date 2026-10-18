@@ -163,3 +163,16 @@
 - Acceptance integrated+CI: 0/1 pending CI; parity certified 0/18, real E2E 0/8, savings N/D; NO-GO.
 - PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 Draft. No merges.
 - Blockers: full checkout unavailable locally; Windows-host parity not certified. Next slice: verify full CI Windows/Linux and CodeQL by final SHA; assess pre-spawn TOCTOU.
+
+
+### SACL-20261018T11 — 2026-10-18T18:36:54Z
+- Authority: explicit non-production implementation on AC-CONT; no merge, deployment, legacy transition, real worker, production change, or spending. Frozen decisions and 18-component matrix unchanged.
+- Reconciliation: PR #3 AC-CONT Draft, PR #7/#8 Draft. HEAD before write 7fe65e8b118c3021eb3ffb941948a491426c0407, tree 7bfce4646fb306e02e62ccc473b5d93a3955c7c8; worker blob bdea018f85bab598d25c69b68775034cb202400b; checkpoint blob 09941ac40f6fc589daf1a9650c1ef4d30160ab70. T09/T10 T52 recovery artifacts inspected; no T11 duplicate. No human commit since T08 detected at read time.
+- One P0 criterion T52: for non-mock AgentWorker launch, capture worktree directory identity (st_dev, st_ino), revalidate Git registry and compare identity after log preparation immediately before subprocess.Popen. Reject changed identity or second registry failure without invoking Popen. This narrows but does not eliminate OS-level TOCTOU.
+- Files proposed in this atomic commit: src/sacl/worker/agent_worker.py; tests/security/test_worktree_recheck_pre_spawn.py (3 mocked tests); docs/ITERATION_STATE.md (append-only).
+- Tests ACTUALLY executed pre-write: Linux Python pytest -q test_guard_contract.py = 3/3 PASS (isolated fixture, not repository); compileall of offline applicator and tests PASS; GitHub source transformation static checks = 6/6 PASS, source anchors 3/3. Repository full pytest, Windows tests and E2E real host NOT executed pre-write. No real worker spawned.
+- CI baseline 7fe65e8b118c3021eb3ffb941948a491426c0407: Ubuntu/Windows SUCCESS https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/runs/39140720240 ; CodeQL SUCCESS https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/runs/39140720273 . CI/CodeQL for new SHA: PENDING until remote commit and subsequent verification; do not attribute baseline CI to T52.
+- Initial SHA 7fe65e8b118c3021eb3ffb941948a491426c0407; final SHA: the commit containing this checkpoint (self-referential SHA cannot be embedded in its own tree); must be confirmed via GitHub ref read-after-write. PR #3 https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 Draft; no merge.
+- Progress: T52 integrated+CI 0/1 until commit and green CI verified; inventory 18/18, operational parity certified 0/18; real-host E2E 0/8; savings N/D; global NO-GO.
+- Blockers: CI/CodeQL new SHA pending, Windows real-host parity not certified, OS-level TOCTOU remains after mitigation. If write denied, checkpoint NOT PERSISTED; do not bypass security controls.
+- Next slice: verify Windows/Linux CI and CodeQL on resulting SHA, then examine other P0 worker pre-spawn guards / remaining authorization boundaries without real workers.
