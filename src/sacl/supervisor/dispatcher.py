@@ -181,6 +181,17 @@ class JobDispatcher:
         suffix = uuid4().hex[:6]
         run_id = f"run-{timestamp_str}-{suffix}"
 
+        # Graph-H must be configured before leasing a project or creating a run.
+        # An absent executor is never evidence of a RUNNING worker.
+        if self.executor_launcher is None:
+            self.lifecycle_manager.transition(
+                job_id=job_id,
+                to_status=JobSideStatus.BLOCKED.value,
+                error_summary="EXECUTOR_UNAVAILABLE: Graph-H launcher is not configured",
+                expected_current_status=JobStatus.QUEUED.value,
+            )
+            return None
+
         # ---------------------------------------------------------------------
         # 1. Project Concurrency Lock Check
         # ---------------------------------------------------------------------
@@ -312,6 +323,8 @@ class JobDispatcher:
         if self.executor_launcher:
             try:
                 launcher_result = self.executor_launcher(run_context)
+                if launcher_result is None:
+                    raise RuntimeError("EXECUTOR_UNAVAILABLE: launcher returned no process handle or PID")
                 if isinstance(launcher_result, int):
                     run_context.pid = launcher_result
             except Exception as ex:

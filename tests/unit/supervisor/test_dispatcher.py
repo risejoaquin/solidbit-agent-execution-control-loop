@@ -28,7 +28,7 @@ def test_prioritized_queue_dispatch(sqlite_temp_db: sqlite3.Connection):
     _seed_project(sqlite_temp_db, "proj-prio")
     coordinator = LeaseCoordinator(sqlite_temp_db)
     lifecycle = JobLifecycleManager(sqlite_temp_db, lease_coordinator=coordinator)
-    dispatcher = JobDispatcher(sqlite_temp_db, coordinator, lifecycle)
+    dispatcher = JobDispatcher(sqlite_temp_db, coordinator, lifecycle, executor_launcher=lambda ctx: 7701)
 
     # Insert two jobs: low priority first, high priority second
     lifecycle.create_job("job-low", project_id="proj-prio", status=JobStatus.QUEUED, priority=1)
@@ -55,7 +55,7 @@ def test_project_concurrency_lock_blocks_second_mutating_job(sqlite_temp_db: sql
 
     coordinator = LeaseCoordinator(sqlite_temp_db)
     lifecycle = JobLifecycleManager(sqlite_temp_db, lease_coordinator=coordinator)
-    dispatcher = JobDispatcher(sqlite_temp_db, coordinator, lifecycle)
+    dispatcher = JobDispatcher(sqlite_temp_db, coordinator, lifecycle, executor_launcher=lambda ctx: 7701)
 
     # Queue 2 jobs for proj-alpha and 1 job for proj-beta
     lifecycle.create_job("job-alpha-1", project_id="proj-alpha", status=JobStatus.QUEUED, priority=10)
@@ -102,6 +102,7 @@ def test_dirty_root_rule_halts_dispatch(sqlite_temp_db: sqlite3.Connection):
         lifecycle,
         clean_root_checker=dirty_checker,
         error_recorder=error_recorder,
+        executor_launcher=lambda ctx: 7702,
     )
 
     lifecycle.create_job("job-dirty", project_id="proj-dirty", status=JobStatus.QUEUED)
@@ -157,3 +158,45 @@ def test_executor_launcher_invocation(sqlite_temp_db: sqlite3.Connection):
     assert launched_contexts[0].job_id == "job-exec"
     assert launched_contexts[0].pid == 7788
     assert lifecycle.get_job("job-exec")["status"] == "RUNNING"
+
+
+
+def test_missing_executor_blocks_without_creating_run_or_lease(sqlite_temp_db: sqlite3.Connection):
+    """P0: missing Graph-H launcher cannot create a phantom RUNNING run."""
+    _seed_project(sqlite_temp_db, "proj-no-executor")
+    coordinator = LeaseCoordinator(sqlite_temp_db)
+    lifecycle = JobLifecycleManager(sqlite_temp_db, lease_coordinator=coordinator)
+    dispatcher = JobDispatcher(sqlite_temp_db, coordinator, lifecycle)
+    lifecycle.create_job("job-no-executor", project_id="proj-no-executor", status=JobStatus.QUEUED)
+
+    assert dispatcher.dispatch_job("job-no-executor") is None
+    job = lifecycle.get_job("job-no-executor")
+    assert job["status"] == JobSideStatus.BLOCKED.value
+    assert "EXECUTOR_UNAVAILABLE" in job["error_summary"]
+    assert job["current_run_id"] is None
+    assert coordinator.get_project_lease("proj-no-executor") is None
+    assert sqlite_temp_db.execute(
+        "SELECT COUNT(*) FROM runs WHERE job_id = ?", ("job-no-executor",)
+    ).fetchone()[0] == 0
+
+
+def test_executor_returning_none_fails_and_releases_lease(sqlite_temp_db: sqlite3.Connection):
+    """P0: null launch result must fail and release lease; never RUNNING."""
+    _seed_project(sqlite_temp_db, "proj-empty-executor")
+    coordinator = LeaseCoordinator(sqlite_temp_db)
+    lifecycle = JobLifecycleManager(sqlite_temp_db, lease_coordinator=coordinator)
+    dispatcher = JobDispatcher(
+        sqlite_temp_db, coordinator, lifecycle, executor_launcher=lambda ctx: None
+    )
+    lifecycle.create_job("job-empty-executor", project_id="proj-empty-executor", status=JobStatus.QUEUED)
+
+    assert dispatcher.dispatch_job("job-empty-executor") is None
+    job = lifecycle.get_job("job-empty-executor")
+    assert job["status"] == JobSideStatus.FAILED.value
+    assert "EXECUTOR_UNAVAILABLE" in job["error_summary"]
+    assert coordinator.get_project_lease("proj-empty-executor") is None
+    rows = sqlite_temp_db.execute(
+        "SELECT status FROM runs WHERE job_id = ?", ("job-empty-executor",)
+    ).fetchall()
+    assert len(rows) == 1
+    assert rows[0]["status"] == JobSideStatus.FAILED.value

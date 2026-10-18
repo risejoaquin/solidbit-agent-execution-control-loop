@@ -108,3 +108,18 @@
 - Evidencia: 18/18 componentes inventariados (100%, NO certificados); 18/18 cobertura CI documental (100%, NO certificación); paridad real Windows 0/18 acreditados; E2E reales 0/8 acreditados; regresiones nuevas preparadas 3/3, ejecutadas en repo 0/3; pruebas aisladas 5/5 PASS; ahorro operativo N/D; avance funcional integrado de T06 0/1 criterio.
 - Bloqueos: GitHub write rechazado por controles de seguridad; no checkout completo disponible para pytest; parche T05 pendiente sobre el mismo blob exige conciliación al integrar; CodeQL alertas individuales no clasificadas; host Windows real no certificado. Escalamiento: no enviado, email_sent=false.
 - Siguiente trabajo permitido: integrar T05/T06 de forma revisada en rama aislada si se habilita escritura autorizada; ejecutar pytest y CI en SHA resultante, resolver conflictos por revisión sin force push; luego completar criterios de autorización restantes.
+
+
+### SACL-20261018T00 — 2026-10-18T07:35:04.831Z
+- Scope/authorization: user explicitly authorizes non-production implementation and tests on AC-CONT; no merges, deployment, legacy transition, real workers, production changes, or costs.
+- Slice P0: reject a missing Graph-H executor before project lease/run creation, and fail a launcher returning None without ever marking RUNNING.
+- Branch: AC-CONT; initial HEAD 6bc67b817c0b8ed1b82f42fb5e00d0f24b9fdc4a; final code/checkpoint SHA: inspect the commit carrying this entry (self-referential commit hashes cannot be embedded in their own contents).
+- Starting blob SHAs: dispatcher 5d7cc7b9c976e0422086470fe0ea0d03e1717760; unit tests 1cd38f64179054d2fdbf1d71df368f71bba9b376; checkpoint d6aafad877b1f41763e0041ddc1cdf43c7a78b5f.
+- Files: src/sacl/supervisor/dispatcher.py; tests/unit/supervisor/test_dispatcher.py; docs/ITERATION_STATE.md (append-only).
+- Tests actually executed before commit: `python -m pytest -q test_patch_offline.py` = 8/8 PASS on isolated T47 patch/behavior fixtures (Linux Python, not full repo); `python -m compileall -q apply_t06_executor_fail_closed.py test_patch_offline.py` = PASS. Negative/positive coverage in repository is added but not yet executed until CI; no real workers started.
+- CI for initial SHA 6bc67b817c0b8ed1b82f42fb5e00d0f24b9fdc4a: SACL CI SUCCESS https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/runs/39087205089 ; CodeQL SUCCESS https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/runs/39087205098 . CI for final SHA: PENDING until GitHub Actions executes, verify separately; no claim of Windows certification.
+- Acceptance: P0 integrated 0/1 before commit; code and tests staged for commit, conditional on branch ref update and SHA/CI verification. Operational parity certified 0/18; real E2E certified 0/8; savings N/D; NO-GO.
+- PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft); PR #7 and #8 remain Draft; no merge.
+- Human changes: branch HEAD and all three blobs rechecked immediately before preparing tree, no concurrent changes observed.
+- Blockers: previous writes rejected by safety controls; if ref update fails, this tree is not integrated. Windows real-host parity, CodeQL alert triage and backlog T39/T44/T46 remain open.
+- Next slice: verify final SHA and Windows/Linux CI; then reconcile the remaining fail-closed policy/worktree patches against current blobs without force push.
