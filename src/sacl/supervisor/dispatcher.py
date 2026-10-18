@@ -323,10 +323,22 @@ class JobDispatcher:
         if self.executor_launcher:
             try:
                 launcher_result = self.executor_launcher(run_context)
-                if launcher_result is None:
-                    raise RuntimeError("EXECUTOR_UNAVAILABLE: launcher returned no process handle or PID")
-                if isinstance(launcher_result, int):
+                # Reject placeholders, bools, invalid PIDs and already-exited handles.
+                # Never mark a job RUNNING without a usable executor identity.
+                if type(launcher_result) is int:
+                    if launcher_result <= 0:
+                        raise RuntimeError("EXECUTOR_UNAVAILABLE: launcher returned an invalid PID")
                     run_context.pid = launcher_result
+                else:
+                    pid = getattr(launcher_result, "pid", None)
+                    poll = getattr(launcher_result, "poll", None)
+                    if type(pid) is not int or pid <= 0 or not callable(poll):
+                        raise RuntimeError(
+                            "EXECUTOR_UNAVAILABLE: launcher returned no valid process handle or PID"
+                        )
+                    if poll() is not None:
+                        raise RuntimeError("EXECUTOR_UNAVAILABLE: launcher process already exited")
+                    run_context.pid = pid
             except Exception as ex:
                 err_msg = f"Failed to spawn ephemeral Graph-H engine: {ex}"
                 self.lifecycle_manager.transition(
