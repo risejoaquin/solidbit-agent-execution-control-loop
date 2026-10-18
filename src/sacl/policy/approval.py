@@ -51,8 +51,33 @@ def format_iso_datetime(dt: Optional[datetime] = None) -> str:
     return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _safe_scope_reference(value: str, *, is_pattern: bool = False) -> bool:
+    """Fail closed on noncanonical, unsafe or Windows-ambiguous relative paths."""
+    if not isinstance(value, str) or any(ord(ch) < 32 or ord(ch) == 127 for ch in value):
+        return False
+    normalized = value.replace("\\", "/")
+    if not normalized or normalized != normalized.strip():
+        return False
+    # Absolute, UNC, drive-relative/absolute and alternate data stream paths.
+    if normalized.startswith("/") or ":" in normalized or any(ch in normalized for ch in '<>|"'):
+        return False
+    if not is_pattern and any(ch in normalized for ch in "*?[]"):
+        return False
+    reserved = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"}
+    reserved.update(f"COM{i}" for i in range(1, 10))
+    reserved.update(f"LPT{i}" for i in range(1, 10))
+    for part in normalized.split("/"):
+        if part in ("", ".", "..") or part.endswith((".", " ")):
+            return False
+        if part.split(".", 1)[0].upper() in reserved:
+            return False
+    return True
+
+
 def matches_scope_pattern(scope_pattern: str, target_path: str) -> bool:
     """Evaluates whether a target path matches a scope pattern (e.g. docs/*)."""
+    if not _safe_scope_reference(scope_pattern, is_pattern=True) or not _safe_scope_reference(target_path):
+        return False
     pat = scope_pattern.strip().replace("\\", "/")
     target = target_path.strip().replace("\\", "/")
 

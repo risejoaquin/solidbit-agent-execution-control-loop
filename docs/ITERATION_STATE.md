@@ -123,3 +123,17 @@
 - Human changes: branch HEAD and all three blobs rechecked immediately before preparing tree, no concurrent changes observed.
 - Blockers: previous writes rejected by safety controls; if ref update fails, this tree is not integrated. Windows real-host parity, CodeQL alert triage and backlog T39/T44/T46 remain open.
 - Next slice: verify final SHA and Windows/Linux CI; then reconcile the remaining fail-closed policy/worktree patches against current blobs without force push.
+
+
+### SACL-20261018T05 — 2026-10-18T12:36:13.357Z
+- Autorización: desarrollo no productivo en AC-CONT, sin merge, deploy, legacy, workers reales, producción ni gastos.
+- Criterio P0 único: bounded approval scope fail-closed para traversal, UNC/drive, ADS, nombres Windows reservados, caracteres inválidos y glob objetivo; preservar patrones glob legítimos.
+- Rama: AC-CONT; SHA inicial f7bd9798d739cd201649d5899b7d45b1ca986782; SHA final: consultar commit que contiene esta entrada (autorreferencia no posible).
+- Concurrencia: HEAD y blobs refrescados; PR #3 Draft; PR #7/#8 Draft; sin cambios humanos posteriores detectados. Recuperación T49: parche T49 revalidado y absorbido en este intento, no duplicar run_id anterior.
+- Archivos: src/sacl/policy/approval.py, tests/unit/policy/test_scope_path_traversal.py, docs/ITERATION_STATE.md (append-only).
+- Pruebas realmente ejecutadas antes de commit: PYTHONPATH=red python -m pytest -q test_scope_path_traversal.py = 9 FAIL esperados, 65 PASS (fixture T48); PYTHONPATH=green python -m pytest -q test_scope_path_traversal.py = 74 PASS (fixture T49); python -m compileall -q green/sacl/policy/approval.py test_scope_path_traversal.py = PASS; Linux Python 3.13.5. No suite completa ni Windows ejecutados localmente.
+- CI SHA inicial f7bd9798d739cd201649d5899b7d45b1ca986782: CI mock SUCCESS https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/runs/39111809888 ; CodeQL SUCCESS https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/runs/39111809889 . CI del SHA final: PENDING, verificar tras commit.
+- PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft, sin merge).
+- Avance: P0 integrado+CI 0/1 hasta verificar ref/CI; paridad operativa real 0/18, E2E reales 0/8, ahorro N/D; NO-GO.
+- Bloqueos: si GitHub rechaza la escritura, CHECKPOINT NO PERSISTIDO; pruebas en fixture no equivalen a suite repo; Windows host real pendiente.
+- Siguiente slice: verificar ref y CI Windows/Linux para este SHA; si pasa, evaluar siguiente P0 de ProjectRegistry/worktrees con pruebas mock.
