@@ -188,13 +188,54 @@ class ProjectRegistryManager:
         return project.concurrency_policy or ConcurrencyPolicy(max_mutating_jobs=1, allow_concurrent_read_only=True)
 
     def get_worktree_base(self, project_id: str) -> Path:
-        """Resolves the allowed worktree provisioning base directory."""
+        """Resolve an explicitly registered worktree base without relative escape.
+
+        Absolute bases are local registry authority; relative bases must remain
+        beneath the registered repository root, on both Windows and POSIX.
+        """
         project = self.require_project(project_id)
-        base = project.allowed_worktree_base or "worktrees"
+        base = project.allowed_worktree_base
+        if base is None:
+            base = "worktrees"
+        if not base or not base.strip() or "\x00" in base:
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Invalid empty worktree base.",
+            )
+
         base_path = Path(base)
-        if not base_path.is_absolute():
-            return Path(project.target_local_repo) / base_path
-        return base_path
+        windows_path = PureWindowsPath(base)
+        if base_path.is_absolute() or windows_path.is_absolute():
+            # An absolute base is authorized only by local registry configuration.
+            return base_path
+        if windows_path.drive or windows_path.root:
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Ambiguous drive-relative or rooted worktree base.",
+            )
+        if base_path.parts in ((), (".",)) or windows_path.parts in ((), (".",)):
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Worktree base cannot be the primary checkout.",
+            )
+        if ".." in windows_path.parts or ".." in base_path.parts:
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Worktree base traversal denied.",
+            )
+
+        resolved = Path(project.target_local_repo) / base_path
+        if not is_same_or_subpath(resolved, project.target_local_repo):
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Worktree base outside registered repository root.",
+            )
+        return resolved
 
     @classmethod
     def from_file(

@@ -137,3 +137,17 @@
 - Avance: P0 integrado+CI 0/1 hasta verificar ref/CI; paridad operativa real 0/18, E2E reales 0/8, ahorro N/D; NO-GO.
 - Bloqueos: si GitHub rechaza la escritura, CHECKPOINT NO PERSISTIDO; pruebas en fixture no equivalen a suite repo; Windows host real pendiente.
 - Siguiente slice: verificar ref y CI Windows/Linux para este SHA; si pasa, evaluar siguiente P0 de ProjectRegistry/worktrees con pruebas mock.
+
+
+### SACL-20261018T06 — 2026-10-18T13:28:54Z
+- Authorization: implementation/tests only in AC-CONT; no merge, deploy, legacy transition, real workers, production or spending. Prior IMPLEMENTATION_AUTHORIZED=NO overridden only for isolated development.
+- Acceptance P0 (one slice): ProjectRegistry.get_worktree_base denies relative traversal (POSIX/Windows separators), drive-relative/rooted ambiguous paths, empty and primary-checkout bases; retains legitimate nested and explicitly configured absolute bases.
+- Branch: AC-CONT; initial HEAD 81efb2b6bb9f40cbc48179c232f8d9b72761cb79; final SHA: resolve from commit containing this checkpoint (self-referential SHA cannot be embedded). Starting tree c3961367376d5acb60088bcb02dcdc75c9f162f8; blobs: project_registry aae609767efd76da2f2d3236ef7ed590b0c354ac, test_project_registry 84fb05ea449f0df2f64e34768f1e60e8bc7e2058, ITERATION_STATE 3abc655f80de74e419b9671b75f2a7384f35d4d0.
+- Files: src/sacl/policy/project_registry.py; tests/unit/policy/test_project_registry.py; docs/ITERATION_STATE.md (append-only).
+- Tests ACTUALLY run pre-commit: Linux Python 3.13 isolated extracted-method unittest, original 10 FAIL/2 PASS; corrected 12/12 PASS; compileall offline fixture PASS. Full repository pytest/Windows/E2E not executed locally; GitHub CI for final SHA PENDING. No worker process started.
+- CI baseline for initial SHA: last prior successful CI/CodeQL reported in PR; new SHA CI must be verified independently. No CI success claimed here.
+- Progress: slice integrated+CI 0/1 pending ref and CI verification; operational parity 0/18 certified, real E2E 0/8 certified, savings N/D; NO-GO.
+- PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft). PR #7/#8 remain Draft; no merge.
+- Human reconciliation: branch HEAD and all three blobs refreshed before atomic tree creation; no conflicting changes observed.
+- Blockers: no complete local checkout for full pytest; real Windows-host parity and CodeQL alert triage not certified.
+- Next slice: verify new SHA's Windows/Linux CI and CodeQL; then assess pre-spawn worktree containment at WorkspaceManager boundary.
