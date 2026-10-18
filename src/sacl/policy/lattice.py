@@ -101,29 +101,30 @@ class PermissionLattice:
         # LAYER 2: PROJECT POLICY (Repository-level permissions & stop-conditions)
         # ====================================================================
         canonical_action = normalize_action(action)
-        norm_perms = {normalize_action(k): v for k, v in project_policy.permissions.items()}
+        # Normalize aliases conjunctively: a single explicit denial must win
+        # regardless of spelling, insertion order, or an approval token.
+        norm_perms: Dict[str, bool] = {}
+        for key, enabled in project_policy.permissions.items():
+            canonical = normalize_action(key)
+            norm_perms[canonical] = norm_perms.get(canonical, True) and (enabled is True)
 
-        # Check if the requested action is directly configured as disabled in project policy
+        # A bounded human approval cannot expand the Project Policy envelope.
         if canonical_action in norm_perms and not norm_perms[canonical_action]:
-            # If disabled at project level, check whether an approval grant exists
-            if not approval_grant:
-                raise PolicyDeniedError(
-                    action=action,
-                    layer="PROJECT_POLICY",
-                    reason=f"Action '{action}' is explicitly disabled in Project Policy permissions.",
-                )
+            raise PolicyDeniedError(
+                action=action,
+                layer="PROJECT_POLICY",
+                reason=f"Action '{action}' is explicitly disabled in Project Policy permissions.",
+            )
 
         # Check all requested permissions against project policy
         for perm in requested_permissions:
             canon_p = normalize_action(perm)
             if canon_p in norm_perms and not norm_perms[canon_p]:
-                # If project policy explicitly disables this permission, approval is required
-                if not approval_grant:
-                    raise PolicyDeniedError(
-                        action=action,
-                        layer="PROJECT_POLICY",
-                        reason=f"Permission '{perm}' is explicitly disabled in Project Policy.",
-                    )
+                raise PolicyDeniedError(
+                    action=action,
+                    layer="PROJECT_POLICY",
+                    reason=f"Permission '{perm}' is explicitly disabled in Project Policy.",
+                )
 
         # ====================================================================
         # LAYER 3: PACKAGE REQUESTED PERMISSIONS (Declarative incoming requests)
@@ -142,10 +143,7 @@ class PermissionLattice:
         # LAYER 4: VALID APPROVAL GRANT (Bounded human sign-off)
         # ====================================================================
         is_gated = canonical_action in GATED_ACTIONS
-        needs_approval = is_gated or any(
-            (normalize_action(p) in norm_perms and not norm_perms[normalize_action(p)])
-            for p in requested_permissions
-        )
+        needs_approval = is_gated
 
         if needs_approval and not approval_grant:
             effective_job_id = job_id or "job-unknown"
