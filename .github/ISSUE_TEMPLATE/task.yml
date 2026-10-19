@@ -1,0 +1,27 @@
+name: "Ingeniería SACL"
+description: "Tarea delimitada y verificable"
+title: "task: "
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación y pruebas
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Dependencias, ADR y límites de autoridad
+  - type: checkboxes
+    id: controls
+    attributes:
+      label: Seguridad
+      options:
+        - label: No modificar contratos congelados sin autorización específica.
+          required: true

@@ -25,6 +25,7 @@ from sacl.contracts.models import Manifest
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.contracts.exceptions import ContractValidationError
 
+from sacl.package.archive_names import find_ambiguous_member
 from sacl.package.exceptions import (
     DeclarativeAuthorityViolationError,
     InvalidFilenameError,
@@ -157,6 +158,17 @@ class PackageValidator(IPackageValidator):
                 )
 
             entries = zf.infolist()
+
+            # Fail closed before parsing/extracting ambiguous ZIP members.
+            # Windows case folding and separator normalization can make
+            # distinct archive names overwrite the same destination.
+            conflict = find_ambiguous_member(entries)
+            if conflict is not None:
+                raise InvalidFilenameError(
+                    package_id="UNKNOWN",
+                    reason=f"Ambiguous ZIP member destinations: {conflict[0]!r} and {conflict[1]!r}",
+                    offending_name=conflict[1],
+                )
 
             # Step 3: Total file count quota
             file_count = len(entries)

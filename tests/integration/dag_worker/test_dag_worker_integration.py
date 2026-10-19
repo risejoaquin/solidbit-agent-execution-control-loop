@@ -209,6 +209,9 @@ class TestDagWorkerIntegration:
 
         # Custom workspace manager reporting overlapping modified files
         class CollisionWorkspaceManager(WorkspaceManager):
+            def __init__(self):
+                super().__init__(mock_mode=True)
+
             def get_modified_files(self, worktree_path: Path, base_ref: str = "HEAD"):
                 # Both agents modify the identical config file
                 return ["src/sacl/core_config.py"]

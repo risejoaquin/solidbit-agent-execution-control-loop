@@ -551,3 +551,47 @@ def test_supervisor_liveness_heartbeat_service(sqlite_temp_db: sqlite3.Connectio
     final_row = cursor.fetchone()
     assert final_row is not None
     assert final_row["status"] == "STOPPED"
+
+
+
+@pytest.mark.parametrize(
+    ("process_name", "offset", "has_time", "liveness", "expected"),
+    [
+        ("agy", 0, True, True, True),
+        ("powershell", 299, True, True, True),
+        ("agy", 301, True, True, False),
+        ("unrelated.exe", 0, True, True, False),
+        ("agy", 0, False, True, False),
+        ("agy", 0, True, False, False),
+    ],
+)
+def test_graph_p_cold_start_default_path_verifies_three_way_pid_identity(
+    sqlite_temp_db: sqlite3.Connection,
+    process_name: str,
+    offset: int,
+    has_time: bool,
+    liveness: bool,
+    expected: bool,
+) -> None:
+    """An existing PID alone must not reconnect a worker after host restart."""
+    from datetime import timedelta
+    from sacl.recovery.process_identity import MockProcessInspector
+
+    recorded = datetime.now(timezone.utc)
+    inspector = MockProcessInspector()
+    inspector.register_process(
+        pid=99371,
+        process_name=process_name,
+        is_active=True,
+        start_time=recorded + timedelta(seconds=offset) if has_time else None,
+    )
+    supervisor = GraphPSupervisor(
+        db_source=sqlite_temp_db,
+        recovery_process_inspector=inspector,
+        # Do NOT set a custom process_checker: exercise production identity path.
+    )
+    # Only mock the OS liveness syscall, not the process identity contract.
+    supervisor.process_checker = lambda pid: liveness
+    assert supervisor._use_canonical_recovery_identity is True
+    assert supervisor._is_recovery_worker_alive(99371, recorded.isoformat()) is expected
+    assert supervisor._is_recovery_worker_alive(99371, None) is False

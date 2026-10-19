@@ -12,8 +12,9 @@ local registry policy.
 from __future__ import annotations
 
 import json
+import ntpath
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Dict, List, Optional, Union
 
 from sacl.contracts.exceptions import ContractValidationError, PolicyDeniedError
@@ -23,18 +24,39 @@ from sacl.contracts.schema_validator import SchemaValidator, get_default_validat
 
 
 def normalize_fs_path(p: Union[str, Path]) -> str:
-    """Normalizes a filesystem path for robust cross-platform/Windows comparison."""
+    """Normalize native paths and compare registered Windows roots across OSes.
+
+    On a POSIX CI runner, a Windows absolute path must remain a Windows
+    absolute path: pathlib.Path would otherwise interpret it as a relative
+    filename under the checkout. Windows-native hosts continue resolving
+    their paths through pathlib, including filesystem symlinks.
+    """
+    raw = str(p)
+    if os.name != "nt" and PureWindowsPath(raw).is_absolute():
+        return ntpath.normcase(ntpath.normpath(raw))
     resolved = Path(p).resolve()
-    # Normalize case on Windows / case-insensitive filesystems
     return os.path.normcase(os.path.normpath(str(resolved)))
 
 
 def is_same_or_subpath(target: Union[str, Path], root: Union[str, Path]) -> bool:
-    """Checks whether target is equal to or a child of root."""
+    """Check a path boundary, never a string-prefix match."""
     norm_target = normalize_fs_path(target)
     norm_root = normalize_fs_path(root)
     if norm_target == norm_root:
         return True
+
+    if os.name != "nt":
+        root_is_windows = PureWindowsPath(norm_root).is_absolute()
+        target_is_windows = PureWindowsPath(norm_target).is_absolute()
+        if root_is_windows or target_is_windows:
+            # Never compare unrelated path syntaxes or different drives.
+            if not (root_is_windows and target_is_windows):
+                return False
+            try:
+                return ntpath.commonpath((norm_target, norm_root)) == norm_root
+            except ValueError:
+                return False
+
     try:
         Path(norm_target).relative_to(Path(norm_root))
         return True
@@ -166,13 +188,54 @@ class ProjectRegistryManager:
         return project.concurrency_policy or ConcurrencyPolicy(max_mutating_jobs=1, allow_concurrent_read_only=True)
 
     def get_worktree_base(self, project_id: str) -> Path:
-        """Resolves the allowed worktree provisioning base directory."""
+        """Resolve an explicitly registered worktree base without relative escape.
+
+        Absolute bases are local registry authority; relative bases must remain
+        beneath the registered repository root, on both Windows and POSIX.
+        """
         project = self.require_project(project_id)
-        base = project.allowed_worktree_base or "worktrees"
+        base = project.allowed_worktree_base
+        if base is None:
+            base = "worktrees"
+        if not base or not base.strip() or "\x00" in base:
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Invalid empty worktree base.",
+            )
+
         base_path = Path(base)
-        if not base_path.is_absolute():
-            return Path(project.target_local_repo) / base_path
-        return base_path
+        windows_path = PureWindowsPath(base)
+        if base_path.is_absolute() or windows_path.is_absolute():
+            # An absolute base is authorized only by local registry configuration.
+            return base_path
+        if windows_path.drive or windows_path.root:
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Ambiguous drive-relative or rooted worktree base.",
+            )
+        if base_path.parts in ((), (".",)) or windows_path.parts in ((), (".",)):
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Worktree base cannot be the primary checkout.",
+            )
+        if ".." in windows_path.parts or ".." in base_path.parts:
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Worktree base traversal denied.",
+            )
+
+        resolved = Path(project.target_local_repo) / base_path
+        if not is_same_or_subpath(resolved, project.target_local_repo):
+            raise PolicyDeniedError(
+                action="resolve_worktree_base",
+                layer="PROJECT_REGISTRY",
+                reason="Worktree base outside registered repository root.",
+            )
+        return resolved
 
     @classmethod
     def from_file(

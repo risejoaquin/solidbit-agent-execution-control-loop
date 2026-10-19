@@ -179,3 +179,38 @@ def test_cold_start_inspects_orphaned_worktrees(
     report = engine.execute_startup_reconciliation(worktree_base_dir=wt_base)
     assert len(report.orphaned_worktrees) == 1
     assert "orphan-wt-01" in report.orphaned_worktrees[0].directory_path
+
+
+
+@pytest.mark.parametrize(
+    ("observed_name", "observed_offset_seconds", "has_start_time", "expected"),
+    [
+        ("pwsh", 0, True, True),
+        ("pwsh", 299, True, True),
+        ("pwsh", 301, True, False),
+        ("untrusted-app", 0, True, False),
+        ("pwsh", 0, False, False),
+    ],
+)
+def test_recovery_pid_safety_is_three_factor_fail_closed(
+    clean_db: sqlite3.Connection,
+    observed_name: str,
+    observed_offset_seconds: int,
+    has_start_time: bool,
+    expected: bool,
+) -> None:
+    """Do not treat recycled/unobservable PIDs as safe after restart."""
+    recorded = datetime.now(timezone.utc)
+    inspector = MockProcessInspector()
+    inspector.register_process(
+        pid=7712,
+        process_name=observed_name,
+        is_active=True,
+        start_time=recorded + timedelta(seconds=observed_offset_seconds)
+        if has_start_time else None,
+    )
+    engine = StartupReconciliationEngine(
+        db_source=clean_db, supervisor_pid=8812, inspector=inspector,
+    )
+    assert engine.check_pid_safety(7712, recorded.isoformat()) is expected
+    assert engine.check_pid_safety(-1, recorded.isoformat()) is False
