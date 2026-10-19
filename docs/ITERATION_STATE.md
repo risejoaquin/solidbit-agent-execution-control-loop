@@ -203,3 +203,16 @@
 - PR: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft, no merge).
 - Blockers: full checkout unavailable locally; real Windows-host parity and CodeQL alert triage not certified. If write denied, checkpoint NOT PERSISTED.
 - Next slice: verify T54 Windows/Linux and CodeQL by SHA, then inspect unconfigured resolver / database fallback root authority.
+
+
+### SACL-20261018T18 — 2026-10-19T01:28:35.578Z
+- Scope: authorized non-production isolated branch development only. No merges, deployments, legacy transition, real workers, production changes, expenses or emails. Frozen baseline/invariants unchanged.
+- Reconciliation: AC-CONT initial HEAD 823ce839cf35acac12b8623daf751edc5f4b44a6; dispatcher initial blob a6b798a7ad46667f8df65810f1a1c774f627410e; checkpoint initial blob 041143016ef4937b3a182e09bded745b29006479; prior T55 run SACL-20261018T17 was NOT persisted, no T55 commit; PR #3 Draft; PR #7/#8 open documentation PRs. This iteration recovers T55 once without duplicate.
+- Single P0 T55 criterion: when no trusted project_root_resolver exists, dispatcher MUST derive project root from SQLite projects.root_path, reject missing/invalid/unregistered roots and metadata redirects before lease, run or executor, while preserving legitimate registered roots and injected resolver behavior. No real worker execution.
+- Files: src/sacl/supervisor/dispatcher.py; tests/security/test_dispatcher_db_root.py; docs/ITERATION_STATE.md (append-only).
+- Tests ACTUALLY executed in isolated fixture: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -q test_fallback.py => 19/19 PASS (2026-10-18 T18 run). python -m py_compile apply_t55.py test_dispatcher_db_root_fixed.py => PASS. These are isolated method tests, NOT the full repository or Windows/CodeQL; committed regression tests are pending CI.
+- Initial SHA 823ce839cf35acac12b8623daf751edc5f4b44a6; final SHA is the commit containing this checkpoint (self-reference cannot be embedded); verify branch ref after write. CI Windows/Linux and CodeQL on final SHA PENDING. Baseline T54 CI does NOT certify T55.
+- Progress: T55 integrated and CI certified 0/1 until branch ref + new SHA CI pass; operational parity certified 0/18; real-host E2E certified 0/8; savings N/D; commercial NO-GO.
+- PR #3: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft, no merge).
+- Blockers: no local full repo checkout; real Windows-host parity and 8-step real E2E not certified. If remote write denied, checkpoint is NOT PERSISTED; no alternate write bypass.
+- Next slice: verify new SHA GitHub Actions Windows/Linux + CodeQL and recover any CI failures, then select next independent P0 authorization boundary.

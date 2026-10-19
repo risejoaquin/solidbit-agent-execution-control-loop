@@ -117,58 +117,64 @@ class JobDispatcher:
             return conn, True
 
     def _resolve_target_repo_path(self, project_id: Optional[str], metadata: Dict[str, Any]) -> str:
-        """Determines target repository path from resolver, project registry, or metadata."""
-        # A configured registry resolver is authoritative. Untrusted package
-        # metadata cannot redirect an otherwise registered project.
-        if project_id and self.project_root_resolver:
+        """Resolve project roots from trusted resolver or SQLite; deny metadata redirects."""
+        from pathlib import PureWindowsPath
+        from sacl.policy.project_registry import normalize_fs_path
+
+        def canonical_root(value: Any) -> str:
+            if not isinstance(value, (str, Path)) or not str(value).strip() or "\x00" in str(value):
+                raise ValueError("Invalid registered root")
+            raw = str(value)
+            if not (Path(raw).is_absolute() or PureWindowsPath(raw).is_absolute()):
+                raise ValueError("Registered root must be absolute")
+            return normalize_fs_path(raw)
+
+        if not project_id:
+            raise PolicyDeniedError(
+                action="resolve_target_root", layer="PROJECT_REGISTRY",
+                reason="Project ID required for authorized execution root.",
+            )
+
+        if self.project_root_resolver:
             try:
                 registered_root = self.project_root_resolver(project_id)
+                registered_normalized = canonical_root(registered_root)
             except Exception as exc:
                 raise PolicyDeniedError(
-                    action="resolve_target_root",
-                    layer="PROJECT_REGISTRY",
+                    action="resolve_target_root", layer="PROJECT_REGISTRY",
                     reason=f"Trusted project root resolver failed for '{project_id}': {exc}",
                 ) from exc
-            if not isinstance(registered_root, (str, Path)) or not str(registered_root).strip():
-                raise PolicyDeniedError(
-                    action="resolve_target_root",
-                    layer="PROJECT_REGISTRY",
-                    reason=f"Trusted project root resolver returned an invalid root for '{project_id}'.",
-                )
-            requested = metadata.get("target_repo_path")
-            if requested is not None:
-                try:
-                    from sacl.policy.project_registry import normalize_fs_path
-                    matches = normalize_fs_path(requested) == normalize_fs_path(registered_root)
-                except (OSError, ValueError, TypeError):
-                    matches = False
-                if not matches:
-                    raise PolicyDeniedError(
-                        action="resolve_target_root",
-                        layer="PROJECT_REGISTRY",
-                        reason=f"Untrusted target_repo_path override denied for '{project_id}'.",
-                    )
-            return str(registered_root)
-
-        if metadata.get("target_repo_path"):
-            return str(metadata["target_repo_path"])
-
-        # Try querying projects table directly
-        if project_id:
-            conn, should_close = self._get_connection()
+        else:
             try:
-                cursor = conn.cursor()
-                cursor.execute("SELECT root_path FROM projects WHERE project_id = ?", (project_id,))
-                row = cursor.fetchone()
-                if row and row["root_path"]:
-                    return str(row["root_path"])
-            except sqlite3.OperationalError:
-                pass
-            finally:
-                if should_close:
-                    conn.close()
+                conn, should_close = self._get_connection()
+                try:
+                    row = conn.execute(
+                        "SELECT root_path FROM projects WHERE project_id = ?", (project_id,)
+                    ).fetchone()
+                    if row is None:
+                        raise ValueError("Project not registered")
+                    registered_root = row["root_path"]
+                    registered_normalized = canonical_root(registered_root)
+                finally:
+                    if should_close:
+                        conn.close()
+            except (sqlite3.Error, ValueError, TypeError) as exc:
+                raise PolicyDeniedError(
+                    action="resolve_target_root", layer="PROJECT_REGISTRY",
+                    reason=f"Local project registry unavailable or invalid for '{project_id}': {exc}",
+                ) from exc
 
-        return str(Path.cwd())
+        requested = metadata.get("target_repo_path")
+        if requested is not None:
+            try:
+                if not isinstance(requested, (str, Path)) or canonical_root(requested) != registered_normalized:
+                    raise ValueError("Requested root does not match registered root")
+            except (OSError, ValueError, TypeError) as exc:
+                raise PolicyDeniedError(
+                    action="resolve_target_root", layer="PROJECT_REGISTRY",
+                    reason=f"Untrusted target_repo_path override denied for '{project_id}': {exc}",
+                ) from exc
+        return str(registered_root)
 
     def poll_and_dispatch(self, limit: Optional[int] = None) -> List[str]:
         """Scans for queued jobs and dispatches eligible ones.
