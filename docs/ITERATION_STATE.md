@@ -216,3 +216,16 @@
 - PR #3: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft, no merge).
 - Blockers: no local full repo checkout; real Windows-host parity and 8-step real E2E not certified. If remote write denied, checkpoint is NOT PERSISTED; no alternate write bypass.
 - Next slice: verify new SHA GitHub Actions Windows/Linux + CodeQL and recover any CI failures, then select next independent P0 authorization boundary.
+
+
+### SACL-20261019T00 — 2026-10-19T07:42:58.210Z (T56 recovery, no duplicate)
+- Authority: isolated AC-CONT code/tests only; no merge, deploy, legacy transition, real worker, production change, expense or email. Frozen decisions unchanged; user authorizes non-production implementation only.
+- Reconciliation: HEAD before write 0cd4eacf9116234e50cdce177c64ca9d005932ca; checkpoint prior blob f87c3098002d73c41bbd32bca7ffd94115ba6999; T56 earlier SACL-20261018T19/T20/T21/T22 and SACL-20261019T00 packages NOT committed; recovering once. PR #3/#7/#8 Draft; no human commits observed on HEAD at read time.
+- Single P0 acceptance T56: Git status probe failure (nonzero exit, timeout, missing executable or permission error) must return dirty=True with GIT_CHECK_ERROR, preventing preflight/operator from treating unverifiable root as clean. Preserve clean/dirty successful probe behavior.
+- Proposed files in atomic commit: src/sacl/legacy/compatibility.py (verified blob 3b57c7ac1f07266d9d36eaf64e4638ebedf394d9); tests/security/test_dirty_root_git_probe_fail_closed.py (verified blob 1f95ea2a4182792d6e5a859838f8c8bb61712d3e); docs/ITERATION_STATE.md (append-only).
+- Tests ACTUALLY executed THIS turn: isolated Python 3.13 fixture extracted from source logic, 4 RED expected failures and 10/10 GREEN PASS (4 negative Git errors, 3 porcelain states, 3 real Git CLI sandbox cases); compileall PASS. Prior T00 isolated 11/11 PASS is historical evidence, not rerun. Full repository pytest, Windows CI, real E2E and CodeQL for T56 NOT executed before commit. No real workers.
+- Initial SHA 0cd4eacf9116234e50cdce177c64ca9d005932ca; final SHA is the commit containing this checkpoint, self-referential and to be verified from AC-CONT HEAD after update. CI by new SHA PENDING; baseline previous CI/CodeQL do not certify T56.
+- Progress: T56 integrated+CI 0/1 until remote commit and new SHA CI pass; operational parity certified 0/18; real-host E2E 0/8; savings N/D; commercial NO-GO.
+- PR #3: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/pull/3 (Draft); #7/#8 Draft; no merge.
+- Blockers: full checkout unavailable locally; Windows/Linux and CodeQL must be checked on final SHA; T57 separate patch remains unintegrated.
+- Next slice: verify final SHA CI Windows/Linux and CodeQL, remediate any failure; then T57 separate acceptance if appropriate.
