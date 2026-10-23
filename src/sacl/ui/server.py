@@ -128,7 +128,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/gates/impact":
-            req_id = query.get("request_id", [""])[0]
+            req_id = query.get("request_id", query.get("gate_id", [""]))[0]
             impact = self.service.gates.get_gate_impact_details(req_id)
             self._send_json(200, impact)
             return
