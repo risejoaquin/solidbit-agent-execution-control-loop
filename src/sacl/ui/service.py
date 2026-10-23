@@ -27,13 +27,19 @@ from sacl.ui.models import (
     TechnologyConnection,
     UIMode,
 )
+from sacl.ui.modules.campaign_designer import CampaignDesignerModule
 from sacl.ui.modules.campaigns import CampaignsModule
 from sacl.ui.modules.connections import ConnectionsModule
 from sacl.ui.modules.contracts import ContractsModule
 from sacl.ui.modules.db_inspector import DBInspectorModule
+from sacl.ui.modules.email_gateway import EmailGatewayModule
 from sacl.ui.modules.evidence import EvidenceModule
 from sacl.ui.modules.gates import GatesModule
+from sacl.ui.modules.models import ModelsModule
+from sacl.ui.modules.projects import ProjectsModule
 from sacl.ui.modules.recovery import RecoveryModule
+from sacl.ui.modules.roadmap import RoadmapModule
+from sacl.ui.modules.telemetry import TelemetryModule
 
 logger = logging.getLogger("sacl.ui.service")
 
@@ -74,6 +80,18 @@ class UIService:
         self.evidence = EvidenceModule()
         self.contracts = ContractsModule()
         self.db_inspector = DBInspectorModule(self._get_read_only_conn)
+        self.projects = ProjectsModule()
+        self.models = ModelsModule()
+        self.roadmap = RoadmapModule()
+        self.telemetry = TelemetryModule()
+        self.campaign_designer = CampaignDesignerModule(self.workspace_root)
+        self.email_gateway = EmailGatewayModule(
+            sender_email="lucilfer@selfcaresinners.com",
+            operator_email="lawlieeet@outlook.es",
+            launch_campaign_cb=self.campaigns.launch_campaign,
+            host=self.host,
+            port=self.port,
+        )
 
     def _ensure_db_initialized(self) -> None:
         """Ensures sacl_ops.db schema exists and bootstraps initial seed if empty."""
@@ -177,9 +195,12 @@ class UIService:
             recommended_action=recovery_info.get("recommended_action", "Operational state verified"),
         )
 
+        active_proj = self.projects.get_active_project()
+        active_proj_name = active_proj["name"] if active_proj else "Stable-Ecommerce"
+
         return FullDashboardView(
             readiness_score=readiness,
-            active_project=base_snap.project if base_snap.project != "--" else "Stable-Ecommerce",
+            active_project=active_proj_name,
             active_campaign=base_snap.package_id if base_snap.package_id != "--" else "Productization V1",
             mode=mode,
             safety=SafetyBoundaryStatus(),

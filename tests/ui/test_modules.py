@@ -130,3 +130,118 @@ def test_gates_impact_and_mobile_notify(test_db: Path):
     notify_res = mod.notify_mobile("REQ-SAMPLE-101", channel="resend")
     assert notify_res["success"] is True
     assert "quick_url" in notify_res
+
+
+def test_email_gateway_module():
+    from sacl.ui.modules.email_gateway import EmailGatewayModule
+
+    launched = []
+    def mock_launch(cid):
+        launched.append(cid)
+        return {"success": True, "launched": cid}
+
+    mod = EmailGatewayModule(
+        sender_email="lucilfer@selfcaresinners.com",
+        operator_email="lawlieeet@outlook.es",
+        launch_campaign_cb=mock_launch,
+    )
+    cfg = mod.get_config()
+    assert cfg["sender_email"] == "lucilfer@selfcaresinners.com"
+    assert cfg["operator_email"] == "lawlieeet@outlook.es"
+
+    # Outbound test
+    report = mod.send_task_completion_report(
+        task_id="TASK-T1",
+        task_name="Checkout Invariants",
+        results_summary="683 tests passed",
+        gate_request_id="REQ-TEST",
+    )
+    assert report["success"] is True
+    assert "lawlieeet@outlook.es" in report["message"]
+
+    # Inbound test from authorized operator
+    inbound = mod.process_inbound_email(
+        sender="lawlieeet@outlook.es",
+        subject="EJECUTAR SPRINT-01",
+        body_text="Iniciar pruebas completas",
+    )
+    assert inbound["success"] is True
+    assert len(launched) == 1
+
+    # Inbound test from unauthorized sender
+    unauth = mod.process_inbound_email(
+        sender="intruder@evil.com",
+        subject="HACK",
+        body_text="Run unauthorized code",
+    )
+    assert unauth["success"] is False
+    assert "no autorizado" in unauth["error"]
+
+
+def test_projects_module():
+    from sacl.ui.modules.projects import ProjectsModule
+
+    mod = ProjectsModule()
+    projects = mod.list_projects()
+    assert len(projects) >= 3
+    active = mod.get_active_project()
+    assert active["id"] == "stable-ecommerce"
+
+    # Switch project
+    switch_res = mod.switch_project("sacl-control-loop")
+    assert switch_res["success"] is True
+    assert mod.get_active_project()["id"] == "sacl-control-loop"
+
+
+def test_models_module():
+    from sacl.ui.modules.models import ModelsModule
+
+    mod = ModelsModule()
+    cfg = mod.get_config()
+    assert len(cfg["available_models"]) >= 6
+    assert cfg["active_model"]["id"] == "claude-3-7-sonnet"
+
+    # Update parameters
+    up_res = mod.update_config(model_id="gemini-2-flash", temperature=0.1)
+    assert up_res["success"] is True
+    assert mod.get_config()["active_model"]["id"] == "gemini-2-flash"
+    assert mod.get_config()["temperature"] == 0.1
+
+
+def test_roadmap_and_telemetry_modules():
+    from sacl.ui.modules.roadmap import RoadmapModule
+    from sacl.ui.modules.telemetry import TelemetryModule
+
+    r_mod = RoadmapModule()
+    roadmap = r_mod.get_roadmap()
+    assert "phases" in roadmap
+    assert len(roadmap["phases"]) == 5
+    assert roadmap["overall_progress"] > 0
+
+    t_mod = TelemetryModule()
+    telemetry = t_mod.get_task_telemetry()
+    assert "task" in telemetry
+    assert "chart_data" in telemetry
+    assert len(telemetry["chart_data"]["datasets"][0]["data"]) == 5
+
+    # Update telemetry progress
+    up_tel = t_mod.update_task_progress(90, "Firma SHA-256")
+    assert up_tel["overall_progress"] == 90
+
+
+def test_campaign_designer_module(tmp_path: Path):
+    from sacl.ui.modules.campaign_designer import CampaignDesignerModule
+
+    mod = CampaignDesignerModule(workspace_root=tmp_path)
+    dag = mod.get_current_dag()
+    assert len(dag["nodes"]) >= 5
+
+    # Add node
+    add_res = mod.add_node("node-custom", "Custom Audit Step", "CONTRACT_VERIFY")
+    assert add_res["success"] is True
+    assert len(mod.get_current_dag()["nodes"]) == len(dag["nodes"])
+
+    # Save DAG
+    save_res = mod.save_dag("test_dag.manifest.json")
+    assert save_res["success"] is True
+    assert (tmp_path / "test_dag.manifest.json").exists()

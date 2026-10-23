@@ -215,6 +215,42 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, stats)
             return
 
+        # 12. REST API: Multi-Project Workspaces
+        if path == "/api/projects":
+            self._send_json(
+                200,
+                {
+                    "projects": self.service.projects.list_projects(),
+                    "active": self.service.projects.get_active_project(),
+                },
+            )
+            return
+
+        # 13. REST API: AI Model Selector & Parameters
+        if path == "/api/model/config":
+            self._send_json(200, self.service.models.get_config())
+            return
+
+        # 14. REST API: SDLC Roadmap & Governance
+        if path == "/api/roadmap":
+            self._send_json(200, self.service.roadmap.get_roadmap())
+            return
+
+        # 15. REST API: Task Telemetry & Real-Time Phases
+        if path == "/api/telemetry":
+            self._send_json(200, self.service.telemetry.get_task_telemetry())
+            return
+
+        # 16. REST API: Visual Campaign DAG Designer
+        if path == "/api/campaigns/designer":
+            self._send_json(200, self.service.campaign_designer.get_current_dag())
+            return
+
+        # 17. REST API: Email Gateway Configuration & Audit
+        if path == "/api/email/config":
+            self._send_json(200, self.service.email_gateway.get_config())
+            return
+
         # 404
         self._send_json(404, {"error": "Not Found", "path": path})
 
@@ -277,6 +313,115 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             res = self.service.campaigns.launch_campaign(camp_id)
             broadcast_sse("campaign_launched", res)
             self._send_json(200, res)
+            return
+
+        # 6. Project Workspace Switching
+        if path == "/api/projects/switch":
+            project_id = body.get("project_id", "")
+            res = self.service.projects.switch_project(project_id)
+            broadcast_sse("project_switched", res)
+            self._send_json(200, res)
+            return
+
+        # 7. Model Selection & Tuning
+        if path == "/api/model/select":
+            model_id = body.get("model_id")
+            temp = body.get("temperature")
+            tokens = body.get("max_tokens")
+            guard = body.get("guardrails_enforced")
+            res = self.service.models.update_config(
+                model_id=model_id,
+                temperature=temp,
+                max_tokens=tokens,
+                guardrails_enforced=guard,
+            )
+            broadcast_sse("model_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 8. Real-time Telemetry Updates
+        if path == "/api/telemetry/progress":
+            prog = int(body.get("progress", 0))
+            phase = body.get("phase")
+            res = self.service.telemetry.update_task_progress(prog, phase)
+            broadcast_sse("telemetry_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 9. Campaign Designer: Add Node
+        if path == "/api/campaigns/designer/add-node":
+            node_id = body.get("id", f"node-{int(time.time())}")
+            label = body.get("label", node_id)
+            action = body.get("action", "RUN_TESTS")
+            deps = body.get("dependencies", [])
+            gate = bool(body.get("gate_required", False))
+            timeout = int(body.get("timeout_sec", 120))
+            res = self.service.campaign_designer.add_node(
+                node_id=node_id,
+                label=label,
+                action=action,
+                dependencies=deps,
+                gate_required=gate,
+                timeout_sec=timeout,
+            )
+            broadcast_sse("dag_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 10. Campaign Designer: Save Manifest
+        if path == "/api/campaigns/designer/save":
+            filename = body.get("filename")
+            res = self.service.campaign_designer.save_dag(filename)
+            self._send_json(200, res)
+            return
+
+        # 11. Browser-Assisted OAuth Launch
+        if path == "/api/connections/browser-auth":
+            tool_id = body.get("tool_id", "")
+            res = self.service.connections.open_browser_auth(tool_id)
+            broadcast_sse("browser_auth_launched", res)
+            self._send_json(200, res)
+            return
+
+        # 12. Email Gateway Configuration
+        if path == "/api/email/config":
+            sender = body.get("sender_email")
+            operator = body.get("operator_email")
+            resend_key = body.get("resend_api_key")
+            res = self.service.email_gateway.update_config(
+                sender_email=sender,
+                operator_email=operator,
+                resend_api_key=resend_key,
+            )
+            broadcast_sse("email_config_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 13. Email Gateway: Send Test Report to Operator
+        if path == "/api/email/test":
+            res = self.service.email_gateway.send_task_completion_report(
+                task_id="TASK-TEST-E2E-AUTONOMOUS",
+                task_name="Prueba de Canal Bidireccional y Notificación",
+                results_summary="683/683 pruebas unitarias PASSED. Contratos DR-INV-001 y DR-PAY-001 blindados. Listo para autorización.",
+                gate_request_id="REQ-20261023-29F6C674",
+            )
+            broadcast_sse("email_sent", res)
+            self._send_json(200, res)
+            return
+
+        # 14. Inbound Email Webhook (Operator Email -> Autonomous Agent Trigger)
+        if path == "/api/webhooks/inbound-email":
+            # Handles Resend inbound webhook format or direct JSON
+            sender = body.get("from") or body.get("sender") or body.get("from_email") or ""
+            subject = body.get("subject", "")
+            text = body.get("text") or body.get("html") or body.get("body", "")
+            res = self.service.email_gateway.process_inbound_email(
+                sender=sender,
+                subject=subject,
+                body_text=text,
+            )
+            broadcast_sse("inbound_email_triggered", res)
+            self._send_json(200 if res.get("success") else 403, res)
             return
 
         self._send_json(404, {"error": "Not Found", "path": path})

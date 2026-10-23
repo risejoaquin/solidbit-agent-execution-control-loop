@@ -14,6 +14,7 @@ from pathlib import Path
 import shutil
 import subprocess
 from typing import Any, Dict, List, Optional
+import webbrowser
 
 from sacl.ui.models import ConnectionState, TechnologyConnection
 
@@ -26,6 +27,15 @@ def utc_now() -> str:
 
 class ConnectionsModule:
     """Manages diagnostics, status reports, and E2E authentication for external tools."""
+
+    AUTH_URLS = {
+        "gh": "https://github.com/settings/tokens/new?scopes=repo,read:org,workflow&description=SolidBit-SACL-Orchestrator",
+        "railway": "https://railway.app/account/tokens",
+        "supabase": "https://supabase.com/dashboard/account/tokens",
+        "jira": "https://id.atlassian.com/manage-profile/security/api-tokens",
+        "resend": "https://resend.com/api-keys",
+        "gcloud": "https://console.cloud.google.com/apis/credentials",
+    }
 
     TOOLS = [
         ("git", "Git VCS", "vcs", ["git", "--version"], ["git", "config", "user.name"]),
@@ -60,9 +70,37 @@ class ConnectionsModule:
             "timestamp": utc_now(),
         }
 
-    def authenticate_e2e(self, tool_id: str, credentials: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    def open_browser_auth(self, tool_id: str) -> Dict[str, Any]:
+        """Opens the official authentication portal / token page in the user's default browser."""
+        url = self.AUTH_URLS.get(tool_id)
+        if not url:
+            return {
+                "success": False,
+                "tool_id": tool_id,
+                "error": f"No hay URL de autenticación web registrada para '{tool_id}'",
+            }
+        
+        opened = False
+        try:
+            opened = webbrowser.open_new_tab(url)
+        except Exception as exc:
+            logger.warning(f"Error opening browser for {tool_id}: {exc}")
+
+        return {
+            "success": True,
+            "tool_id": tool_id,
+            "browser_opened": opened,
+            "auth_url": url,
+            "message": f"Navegador abierto en {url}. Complete la autorización y guarde el token.",
+        }
+
+    def authenticate_e2e(self, tool_id: str, credentials: Optional[Dict[str, str]] = None, open_browser: bool = False) -> Dict[str, Any]:
         """Executes an E2E authentication flow for the specified technology."""
         credentials = credentials or {}
+        mode = credentials.get("mode")
+
+        if open_browser or mode == "browser":
+            return self.open_browser_auth(tool_id)
 
         if tool_id == "resend":
             token = credentials.get("token") or os.environ.get("RESEND_API_KEY")
@@ -170,6 +208,65 @@ class ConnectionsModule:
                 "tool_id": "supabase",
                 "status": "connected",
                 "message": "Supabase CLI listo para migraciones locales (db/migrations).",
+            }
+
+        if tool_id == "jira":
+            token = credentials.get("token") or credentials.get("api_key")
+            email = credentials.get("email")
+            domain = credentials.get("domain")
+            if token:
+                os.environ["JIRA_API_TOKEN"] = token
+                if email:
+                    os.environ["JIRA_USER_EMAIL"] = email
+                if domain:
+                    os.environ["JIRA_DOMAIN"] = domain
+                return {
+                    "success": True,
+                    "tool_id": "jira",
+                    "status": "connected",
+                    "message": "Credenciales de Jira API configuradas exitosamente.",
+                }
+            return {
+                "success": False,
+                "tool_id": "jira",
+                "status": "unauthenticated",
+                "message": "Ingrese su Jira API Token generado en Atlassian.",
+            }
+
+        if tool_id == "gcloud":
+            token = credentials.get("token") or credentials.get("key_json")
+            if token:
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS_JSON"] = token
+                return {
+                    "success": True,
+                    "tool_id": "gcloud",
+                    "status": "connected",
+                    "message": "Google Cloud Service Account / Application Credentials configuradas.",
+                }
+            try:
+                proc = subprocess.run(
+                    ["gcloud", "auth", "list"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=3.0,
+                    shell=True,
+                )
+                if proc.returncode == 0 and "ACTIVE" in proc.stdout:
+                    return {
+                        "success": True,
+                        "tool_id": "gcloud",
+                        "status": "connected",
+                        "message": "Sesión activa detectada en gcloud CLI.",
+                        "details": proc.stdout.strip()[:200],
+                    }
+            except Exception:
+                pass
+            return {
+                "success": False,
+                "tool_id": "gcloud",
+                "status": "unauthenticated",
+                "message": "Ejecute 'gcloud auth login' o ingrese el JSON de Service Account.",
             }
 
         # Default fallback
