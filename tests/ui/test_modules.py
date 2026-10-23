@@ -38,13 +38,27 @@ def test_connections_module():
     assert "success" in res
     assert res["connection"]["id"] == "git"
 
+    # Test E2E auth flow
+    auth_res = mod.authenticate_e2e("resend", {"token": "re_sample_test_key"})
+    assert auth_res["success"] is True
+    assert auth_res["status"] == "connected"
 
-def test_campaigns_module(tmp_path: Path):
-    mod = CampaignsModule(workspace_root=tmp_path)
+
+def test_campaigns_module(tmp_path: Path, test_db: Path):
+    def get_conn():
+        return sqlite3.connect(str(test_db))
+
+    mod = CampaignsModule(workspace_root=tmp_path, get_rw_conn=get_conn)
     overview = mod.get_campaigns_overview()
     assert "workorders" in overview
     assert len(overview["workorders"]) > 0
     assert "phases" in overview
+
+    # 1-Click Launch
+    launch_res = mod.launch_campaign("SACL_TEST_CAMPAIGN")
+    assert launch_res["success"] is True
+    assert launch_res["status"] == "RUNNING"
+    assert "run_id" in launch_res
 
 
 def test_contracts_module():
@@ -95,3 +109,24 @@ def test_db_inspector_module(test_db: Path):
     assert "jobs" in stats["tables"]
     assert "runs" in stats["tables"]
     assert stats["status"] == "OPERATIONAL_WAL"
+
+
+def test_gates_impact_and_mobile_notify(test_db: Path):
+    def get_ro():
+        return sqlite3.connect(f"file:{test_db.as_posix()}?mode=ro", uri=True)
+
+    def get_rw():
+        return sqlite3.connect(str(test_db))
+
+    mod = GatesModule(get_ro, get_rw, host="127.0.0.1", port=8765)
+    impact = mod.get_gate_impact_details("REQ-SAMPLE-101")
+    assert "human_summary" in impact
+    assert "contracts_status" in impact
+    assert impact["contracts_status"]["DR-INV-001"] == "VERIFIED_INTACT"
+    assert "file_tree" in impact
+    assert "diff_preview" in impact
+    assert "mobile_approval_url" in impact
+
+    notify_res = mod.notify_mobile("REQ-SAMPLE-101", channel="resend")
+    assert notify_res["success"] is True
+    assert "quick_url" in notify_res

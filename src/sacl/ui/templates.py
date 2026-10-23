@@ -1,7 +1,8 @@
-"""SACL V1 Modular Apple-grade Decision Shell HTML/CSS/JS Application.
+"""SACL V1 Modular Apple-grade Decision Shell with SSE, Impact Drawer, and E2E Auth.
 
 Implements an ultra-refined, responsive macOS/iPadOS styled modular dashboard,
-providing sovereign human micro-decisions and full system observability.
+providing sovereign human micro-decisions, visual impact diffs, SSE live streams,
+and E2E technology authentication wizards.
 """
 
 HTML_APPLICATION = """<!DOCTYPE html>
@@ -9,13 +10,14 @@ HTML_APPLICATION = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SolidBit · SACL Decision Shell</title>
+  <title>SolidBit · SACL Decision Shell Pro</title>
   <style>
     :root {
       --bg: #000000;
-      --sidebar-bg: rgba(18, 18, 22, 0.75);
-      --card-bg: rgba(24, 24, 30, 0.7);
-      --card-elevated: rgba(32, 32, 40, 0.85);
+      --sidebar-bg: rgba(18, 18, 22, 0.82);
+      --card-bg: rgba(24, 24, 30, 0.72);
+      --card-elevated: rgba(32, 32, 40, 0.9);
+      --drawer-bg: rgba(20, 20, 26, 0.95);
       --border: rgba(255, 255, 255, 0.08);
       --border-focus: rgba(255, 255, 255, 0.22);
       --text: #f5f5f7;
@@ -45,7 +47,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       display: flex;
       height: 100vh;
       background-image: 
-        radial-gradient(circle at 60% 0%, rgba(41, 151, 255, 0.07), transparent 40%),
+        radial-gradient(circle at 60% 0%, rgba(41, 151, 255, 0.08), transparent 45%),
         radial-gradient(circle at 10% 30%, rgba(191, 90, 242, 0.04), transparent 30%);
     }
 
@@ -134,11 +136,12 @@ HTML_APPLICATION = """<!DOCTYPE html>
       border: 1px solid rgba(255, 159, 10, 0.35);
     }
 
-    /* MAIN CONTENT AREA */
+    /* MAIN CONTENT */
     main {
       flex: 1;
       overflow-y: auto;
       padding: 28px 36px 80px 36px;
+      position: relative;
     }
 
     /* TOP BAR */
@@ -146,7 +149,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 26px;
+      margin-bottom: 24px;
     }
     .top-left {
       display: flex;
@@ -162,8 +165,19 @@ HTML_APPLICATION = """<!DOCTYPE html>
       color: var(--text);
       border: 1px solid var(--border);
     }
+    .sse-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--green);
+      background: rgba(48, 209, 88, 0.1);
+      padding: 3px 9px;
+      border-radius: 6px;
+      border: 1px solid rgba(48, 209, 88, 0.2);
+    }
 
-    /* Apple Segmented Control */
+    /* Segmented Control */
     .segmented-control {
       background: rgba(255, 255, 255, 0.06);
       padding: 3px;
@@ -200,7 +214,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       border: 1px solid rgba(48, 209, 88, 0.2);
       border-radius: 14px;
       padding: 12px 18px;
-      margin-bottom: 26px;
+      margin-bottom: 24px;
       backdrop-filter: blur(20px);
       font-size: 12px;
     }
@@ -225,14 +239,12 @@ HTML_APPLICATION = """<!DOCTYPE html>
       border: 1px solid rgba(48, 209, 88, 0.25);
     }
 
-    /* MODULE CONTAINERS */
+    /* MODULES */
     .view-module {
       display: none;
       animation: fadeIn 0.2s ease-in-out;
     }
-    .view-module.active {
-      display: block;
-    }
+    .view-module.active { display: block; }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
@@ -248,9 +260,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       margin-bottom: 20px;
       transition: all 0.2s ease;
     }
-    .frosted-card:hover {
-      border-color: var(--border-focus);
-    }
+    .frosted-card:hover { border-color: var(--border-focus); }
 
     /* METRICS GRID */
     .metrics-grid {
@@ -277,53 +287,6 @@ HTML_APPLICATION = """<!DOCTYPE html>
       color: var(--text-secondary);
       margin-top: 4px;
     }
-
-    /* SECTION HEADERS */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .section-title {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-    .section-sub {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    /* DECISION GATE CARD */
-    .gate-card {
-      background: var(--card-elevated);
-      border: 1px solid rgba(255, 159, 10, 0.35);
-      border-radius: 18px;
-      padding: 24px;
-      margin-bottom: 16px;
-      backdrop-filter: blur(30px);
-      box-shadow: 0 8px 32px rgba(255, 159, 10, 0.08);
-      position: relative;
-      overflow: hidden;
-    }
-    .gate-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--orange), var(--red));
-    }
-    .risk-badge {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      padding: 3px 9px;
-      border-radius: 6px;
-      text-transform: uppercase;
-    }
-    .risk-badge.high { background: rgba(255, 69, 58, 0.15); color: var(--red); border: 1px solid rgba(255, 69, 58, 0.3); }
-    .risk-badge.medium { background: rgba(255, 159, 10, 0.15); color: var(--orange); border: 1px solid rgba(255, 159, 10, 0.3); }
-    .risk-badge.low { background: rgba(48, 209, 88, 0.15); color: var(--green); border: 1px solid rgba(48, 209, 88, 0.3); }
 
     /* BUTTONS */
     .btn {
@@ -359,10 +322,40 @@ HTML_APPLICATION = """<!DOCTYPE html>
     }
     .btn-danger:hover { background: rgba(255, 69, 58, 0.2); }
 
+    /* GATE CARDS */
+    .gate-card {
+      background: var(--card-elevated);
+      border: 1px solid rgba(255, 159, 10, 0.35);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(30px);
+      box-shadow: 0 8px 32px rgba(255, 159, 10, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .gate-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--orange), var(--red));
+    }
+    .risk-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 3px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .risk-badge.high { background: rgba(255, 69, 58, 0.15); color: var(--red); border: 1px solid rgba(255, 69, 58, 0.3); }
+    .risk-badge.medium { background: rgba(255, 159, 10, 0.15); color: var(--orange); border: 1px solid rgba(255, 159, 10, 0.3); }
+    .risk-badge.low { background: rgba(48, 209, 88, 0.15); color: var(--green); border: 1px solid rgba(48, 209, 88, 0.3); }
+
     /* CONNECTIONS GRID */
     .connections-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 14px;
     }
     .conn-card {
@@ -374,49 +367,87 @@ HTML_APPLICATION = """<!DOCTYPE html>
       flex-direction: column;
       justify-content: space-between;
     }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
     .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
     .status-dot.degraded { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
     .status-dot.disconnected { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
-    /* DAG WORKORDERS LIST */
-    .dag-list {
+    /* SLIDE-OVER DRAWER (VISUAL IMPACT & DIFF) */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      justify-content: flex-end;
+    }
+    .drawer-overlay.visible { display: flex; }
+    .drawer-panel {
+      width: 580px;
+      background: var(--drawer-bg);
+      border-left: 1px solid var(--border);
+      height: 100%;
+      padding: 32px;
+      overflow-y: auto;
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8);
       display: flex;
       flex-direction: column;
-      gap: 10px;
-    }
-    .dag-item {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 14px 18px;
-      background: var(--card-bg);
+      animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    .diff-block {
+      background: rgba(0, 0, 0, 0.6);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #a6accd;
+      white-space: pre-wrap;
+      overflow-x: auto;
     }
+    .diff-add { color: var(--green); }
+    .diff-del { color: var(--red); }
 
-    /* TABLE */
-    table {
+    /* AUTH MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      z-index: 1100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+      width: 440px;
+      background: var(--card-elevated);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+    .input-field {
       width: 100%;
-      border-collapse: collapse;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: var(--font);
       font-size: 13px;
-      text-align: left;
+      margin: 12px 0 16px 0;
+      outline: none;
     }
-    th {
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-secondary);
-      font-weight: 500;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      text-transform: uppercase;
-      font-size: 11px;
-    }
-    td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-    }
+    .input-field:focus { border-color: var(--accent); }
 
     /* TOAST */
     .toast {
@@ -434,21 +465,21 @@ HTML_APPLICATION = """<!DOCTYPE html>
       transform: translateY(100px);
       opacity: 0;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 999;
+      z-index: 1200;
     }
     .toast.visible { transform: translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
 
-  <!-- MODULAR SIDEBAR -->
+  <!-- SIDEBAR -->
   <aside>
     <div>
       <div class="brand">
         <div class="brand-mark">S</div>
         <div>
           <div class="brand-title">SolidBit SACL</div>
-          <div style="font-size: 11px; color: var(--text-secondary);">Control Shell v1.0</div>
+          <div style="font-size: 11px; color: var(--text-secondary);">Control Shell Pro</div>
         </div>
       </div>
 
@@ -465,7 +496,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           <span>⚡ Campañas & DAG</span>
         </li>
         <li class="nav-item" onclick="switchModule('connections')">
-          <span>🔌 Tecnologías & CLIs</span>
+          <span>🔌 Tecnologías & Auth</span>
         </li>
       </ul>
 
@@ -498,11 +529,20 @@ HTML_APPLICATION = """<!DOCTYPE html>
       <div class="top-left">
         <span class="project-pill" id="top-project-name">Stable-Ecommerce</span>
         <span style="font-size: 12px; color: var(--text-secondary);" id="top-campaign-name">Productization V1</span>
+        <div class="sse-indicator">
+          <div class="pulse-dot"></div>
+          <span>SSE LIVE PUSH</span>
+        </div>
       </div>
-      <div class="segmented-control">
-        <button class="segment-btn active" onclick="setMode('simple')">Simple</button>
-        <button class="segment-btn" onclick="setMode('technical')">Technical</button>
-        <button class="segment-btn" onclick="setMode('audit')">Audit</button>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button class="btn btn-primary" onclick="launchCampaignModal()" style="padding: 6px 14px; font-size: 12px;">
+          🚀 Iniciar Campaña / Sprint
+        </button>
+        <div class="segmented-control">
+          <button class="segment-btn active" onclick="setMode('simple')">Simple</button>
+          <button class="segment-btn" onclick="setMode('technical')">Technical</button>
+          <button class="segment-btn" onclick="setMode('audit')">Audit</button>
+        </div>
       </div>
     </div>
 
@@ -510,7 +550,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <div class="safety-banner">
       <div style="display: flex; align-items: center; gap: 10px;">
         <div class="pulse-dot"></div>
-        <span><strong>Safety Guardrails Activo:</strong> Loop sandboxed sin mutación a producción.</span>
+        <span><strong>Safety Guardrails Activo:</strong> Sandboxed execution loop; non-blocking human approval.</span>
       </div>
       <div class="safety-tags">
         <span class="tag">PROD DEPLOY: BLOCKED</span>
@@ -539,14 +579,14 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <div class="frosted-card">
           <div class="metric-title">Agent Fleet</div>
           <div class="metric-value" id="dash-agents">0</div>
-          <div class="metric-sub">Procesos en reposo seguro</div>
+          <div class="metric-sub">Procesos seguros en reposo</div>
         </div>
       </div>
 
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 14px;">
         <div>
-          <div class="section-title">Micro-Decisiones Inmediatas</div>
-          <div class="section-sub">Decisiones predefinidas sin bloqueo técnico para el operador.</div>
+          <div style="font-size: 16px; font-weight: 600;">Micro-Decisiones Inmediatas</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Decisiones atómicas sin fricción técnica para el operador.</div>
         </div>
       </div>
       <div id="dash-gates-container"></div>
@@ -554,10 +594,10 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
     <!-- MODULE 2: GATES -->
     <div id="module-gates" class="view-module">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 14px;">
         <div>
-          <div class="section-title">Centro Soberano de Micro-Decisiones</div>
-          <div class="section-sub">Acciones precalificadas por la arquitectura que exigen consentimiento humano.</div>
+          <div style="font-size: 16px; font-weight: 600;">Centro Soberano de Micro-Decisiones</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Inspección visual de diffs, verificación de contratos e impacto antes de autorizar.</div>
         </div>
       </div>
       <div id="gates-full-list"></div>
@@ -565,103 +605,159 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
     <!-- MODULE 3: CAMPAIGNS & DAG -->
     <div id="module-campaigns" class="view-module">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 14px;">
         <div>
-          <div class="section-title">Topological DAG & Workorders</div>
-          <div class="section-sub">Flujo de fases A a F con dependencias y ownership de rutas.</div>
+          <div style="font-size: 16px; font-weight: 600;">Topological DAG & Workorders</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Fases A a F organizadas con dependencias y ownership de rutas.</div>
         </div>
+        <button class="btn btn-primary" onclick="launchCampaignModal()" style="font-size: 12px;">+ Nueva Ejecución</button>
       </div>
-      <div class="dag-list" id="dag-workorders-list"></div>
+      <div style="display: flex; flex-direction: column; gap: 10px;" id="dag-workorders-list"></div>
     </div>
 
-    <!-- MODULE 4: CONNECTIONS -->
+    <!-- MODULE 4: CONNECTIONS & AUTH -->
     <div id="module-connections" class="view-module">
-      <div class="section-header">
+      <div class="section-header" style="margin-bottom: 14px;">
         <div>
-          <div class="section-title">Tecnologías & CLIs Conectadas</div>
-          <div class="section-sub">Herramientas locales del desarrollador y servicios cloud integrados.</div>
+          <div style="font-size: 16px; font-weight: 600;">Tecnologías & Inicio de Sesión E2E</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Herramientas locales autenticadas y verificación integral con 1 clic.</div>
         </div>
-        <button class="btn btn-secondary" onclick="loadConnections()">⟳ Re-verificar Todo</button>
+        <button class="btn btn-secondary" onclick="loadConnections()" style="font-size: 12px;">⟳ Re-verificar Todo</button>
       </div>
       <div class="connections-grid" id="connections-full-grid"></div>
     </div>
 
     <!-- MODULE 5: RECOVERY -->
     <div id="module-recovery" class="view-module">
-      <div class="section-header">
-        <div>
-          <div class="section-title">Centro de Recuperación & Crash Consistency</div>
-          <div class="section-sub">Detección de corridas interrumpidas, limpieza de locks y reanudación segura.</div>
-        </div>
-      </div>
-      <div class="frosted-card" id="recovery-status-card">
-        Cargando estado de recuperación...
-      </div>
+      <div class="frosted-card" id="recovery-status-card">Cargando estado de recuperación...</div>
     </div>
 
     <!-- MODULE 6: EVIDENCE -->
     <div id="module-evidence" class="view-module">
-      <div class="section-header">
-        <div>
-          <div class="section-title">Centro de Evidencias & Auditoría</div>
-          <div class="section-sub">Paquetes de auditoría generados, diffs y digests criptográficos SHA-256.</div>
-        </div>
-      </div>
-      <div class="frosted-card" id="evidence-container">
-        Cargando evidencias...
-      </div>
+      <div class="frosted-card" id="evidence-container">Cargando evidencias...</div>
     </div>
 
     <!-- MODULE 7: CONTRACTS -->
     <div id="module-contracts" class="view-module">
-      <div class="section-header">
-        <div>
-          <div class="section-title">Contratos Congelados & Políticas SDLC</div>
-          <div class="section-sub">Invariantes inviolables (DR-INV-001, DR-PAY-001) y 6 Gates obligatorios.</div>
-        </div>
-      </div>
       <div id="contracts-container"></div>
     </div>
 
     <!-- MODULE 8: DB INSPECTOR -->
     <div id="module-db" class="view-module">
-      <div class="section-header">
-        <div>
-          <div class="section-title">Inspector de Base de Datos Operacional (SQLite WAL)</div>
-          <div class="section-sub">Métricas de almacenamiento y registros inmutables de auditoría en sacl_ops.db.</div>
-        </div>
-      </div>
-      <div class="frosted-card" id="db-stats-container">
-        Cargando estadísticas de base de datos...
-      </div>
+      <div class="frosted-card" id="db-stats-container">Cargando estadísticas de base de datos...</div>
     </div>
 
   </main>
+
+  <!-- VISUAL IMPACT & DIFF DRAWER -->
+  <div class="drawer-overlay" id="impact-drawer">
+    <div class="drawer-panel">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border);">
+          <div>
+            <div style="font-size: 17px; font-weight: 700;" id="drawer-action-title">DEPLOY_STAGING_PREVIEW</div>
+            <div style="font-size: 12px; color: var(--text-secondary);" id="drawer-req-id">REQ-SAMPLE</div>
+          </div>
+          <button class="btn btn-secondary" onclick="closeDrawer()" style="padding: 6px 12px;">✕ Cerrar</button>
+        </div>
+
+        <!-- Human Summary -->
+        <div style="background: rgba(41, 151, 255, 0.1); border: 1px solid rgba(41, 151, 255, 0.25); border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+          <div style="font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">RESUMEN DE NEGOCIO (SIN JERGA)</div>
+          <p style="font-size: 13px; color: #fff; line-height: 1.5;" id="drawer-human-summary"></p>
+        </div>
+
+        <!-- Contract Semaphores -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Semáforo de Contratos Congelados</div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" id="drawer-contracts-grid"></div>
+        </div>
+
+        <!-- File Tree -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Archivos Afectados</div>
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 10px;" id="drawer-file-tree"></div>
+        </div>
+
+        <!-- Diff Viewer -->
+        <div>
+          <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Diff Visual de Cambios</div>
+          <div class="diff-block" id="drawer-diff-preview"></div>
+        </div>
+      </div>
+
+      <!-- Drawer Actions -->
+      <div style="padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-primary" id="drawer-btn-approve" style="flex: 1; justify-content: center;">✓ Autorizar Acción</button>
+        <button class="btn btn-secondary" id="drawer-btn-mobile" style="justify-content: center;">📱 Notificar Móvil</button>
+        <button class="btn btn-danger" id="drawer-btn-reject" style="justify-content: center;">✕ Rechazar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- E2E AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 16px; font-weight: 700;" id="auth-modal-title">Conectar Tecnología</h3>
+        <button class="btn btn-secondary" onclick="closeAuthModal()" style="padding: 4px 10px;">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;" id="auth-modal-desc">
+        Configura o valida tus credenciales locales para habilitar acceso seguro al orquestador.
+      </p>
+      <input type="password" id="auth-token-input" class="input-field" placeholder="Token, API Key o PAT..." />
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeAuthModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="submitAuth()">Guardar y Conectar E2E</button>
+      </div>
+    </div>
+  </div>
 
   <div class="toast" id="toast">Operación ejecutada con éxito.</div>
 
   <script>
     let activeModule = 'dashboard';
     let currentMode = 'simple';
+    let selectedAuthTool = null;
+    let activeDrawerReqId = null;
+
+    // SSE ENGINE
+    function initSSE() {
+      try {
+        const es = new EventSource('/api/events/stream');
+        es.addEventListener('snapshot', (e) => {
+          const data = JSON.parse(e.data);
+          updateDashboardUI(data);
+        });
+        es.addEventListener('gate_decided', (e) => {
+          showToast('Decision Gate actualizado en tiempo real.');
+          refreshSnapshot();
+        });
+        es.addEventListener('campaign_launched', (e) => {
+          showToast('Campaña iniciada exitosamente.');
+          refreshSnapshot();
+        });
+        es.addEventListener('connection_updated', (e) => {
+          showToast('Conexión actualizada.');
+          loadConnections();
+        });
+      } catch (err) {
+        console.warn('SSE fallback to polling:', err);
+      }
+    }
 
     function switchModule(modId) {
       activeModule = modId;
-      document.querySelectorAll('.nav-item').forEach((item, idx) => {
-        item.classList.remove('active');
-      });
-      // highlight active sidebar
-      const navItems = document.querySelectorAll('.nav-list .nav-item');
+      document.querySelectorAll('.nav-list .nav-item').forEach(item => item.classList.remove('active'));
       const map = ['dashboard', 'gates', 'campaigns', 'connections', 'recovery', 'evidence', 'contracts', 'db'];
-      const targetIdx = map.indexOf(modId);
-      if (targetIdx !== -1 && navItems[targetIdx]) {
-        navItems[targetIdx].classList.add('active');
-      }
+      const idx = map.indexOf(modId);
+      const items = document.querySelectorAll('.nav-list .nav-item');
+      if (idx !== -1 && items[idx]) items[idx].classList.add('active');
 
       document.querySelectorAll('.view-module').forEach(m => m.classList.remove('active'));
-      const activeEl = document.getElementById('module-' + modId);
-      if (activeEl) activeEl.classList.add('active');
+      const target = document.getElementById('module-' + modId);
+      if (target) target.classList.add('active');
 
-      // Trigger module loader
       if (modId === 'campaigns') loadCampaigns();
       if (modId === 'connections') loadConnections();
       if (modId === 'recovery') loadRecovery();
@@ -693,12 +789,13 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({
             request_id: requestId,
             decision: decision,
-            justification: 'Autorizado vía SACL Modular Decision Shell'
+            justification: 'Autorizado vía SACL Decision Shell Pro'
           })
         });
         const res = await resp.json();
         if (res.success) {
           showToast(`Gate ${decision}: ${res.message}`);
+          closeDrawer();
           refreshSnapshot();
         } else {
           showToast(`Error: ${res.message}`);
@@ -708,33 +805,139 @@ HTML_APPLICATION = """<!DOCTYPE html>
       }
     }
 
+    async function openImpactDrawer(requestId) {
+      activeDrawerReqId = requestId;
+      try {
+        const resp = await fetch('/api/gates/impact?request_id=' + encodeURIComponent(requestId));
+        const data = await resp.json();
+
+        document.getElementById('drawer-action-title').textContent = data.action;
+        document.getElementById('drawer-req-id').textContent = data.request_id;
+        document.getElementById('drawer-human-summary').textContent = data.human_summary;
+
+        // Contracts Grid
+        const cGrid = document.getElementById('drawer-contracts-grid');
+        cGrid.innerHTML = Object.entries(data.contracts_status || {}).map(([k, v]) => `
+          <div style="background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: var(--accent);">${k}</strong>
+            <span class="tag" style="background: rgba(48,209,88,0.15); color: var(--green);">${v}</span>
+          </div>
+        `).join('');
+
+        // File Tree
+        const fTree = document.getElementById('drawer-file-tree');
+        fTree.innerHTML = (data.file_tree || []).map(f => `
+          <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <code>${f.path}</code>
+            <div><span style="color: var(--green);">+${f.lines_added}</span> <span style="color: var(--red);">-${f.lines_removed}</span></div>
+          </div>
+        `).join('');
+
+        // Diff
+        document.getElementById('drawer-diff-preview').textContent = data.diff_preview;
+
+        // Button events
+        document.getElementById('drawer-btn-approve').onclick = () => submitGate(requestId, 'APPROVED');
+        document.getElementById('drawer-btn-reject').onclick = () => submitGate(requestId, 'REJECTED');
+        document.getElementById('drawer-btn-mobile').onclick = () => notifyMobile(requestId);
+
+        document.getElementById('impact-drawer').classList.add('visible');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function closeDrawer() {
+      document.getElementById('impact-drawer').classList.remove('visible');
+    }
+
+    async function notifyMobile(requestId) {
+      try {
+        const resp = await fetch('/api/gates/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ request_id: requestId, channel: 'resend' })
+        });
+        const res = await resp.json();
+        showToast(res.message);
+      } catch (e) {
+        showToast('Error enviando notificación');
+      }
+    }
+
+    function openAuthModal(toolId, toolName) {
+      selectedAuthTool = toolId;
+      document.getElementById('auth-modal-title').textContent = 'Autenticar ' + toolName;
+      document.getElementById('auth-token-input').value = '';
+      document.getElementById('auth-modal').classList.add('visible');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.remove('visible');
+      selectedAuthTool = null;
+    }
+
+    async function submitAuth() {
+      if (!selectedAuthTool) return;
+      const token = document.getElementById('auth-token-input').value.trim();
+      try {
+        const resp = await fetch('/api/connections/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_id: selectedAuthTool, credentials: { token: token } })
+        });
+        const res = await resp.json();
+        showToast(res.message);
+        closeAuthModal();
+        loadConnections();
+      } catch (e) {
+        showToast('Error al conectar');
+      }
+    }
+
+    async function launchCampaignModal() {
+      if (!confirm('¿Desea iniciar la ejecución de la campaña preparada con verificación automática de preflight?')) return;
+      try {
+        const resp = await fetch('/api/campaigns/launch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaign_id: 'SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED' })
+        });
+        const res = await resp.json();
+        showToast(res.message);
+        refreshSnapshot();
+      } catch (e) {
+        showToast('Fallo al lanzar campaña');
+      }
+    }
+
     async function refreshSnapshot() {
       try {
         const resp = await fetch('/api/snapshot?mode=' + currentMode);
         const data = await resp.json();
-
-        // Top bar & metrics
-        document.getElementById('top-project-name').textContent = data.active_project;
-        document.getElementById('top-campaign-name').textContent = data.active_campaign;
-        document.getElementById('dash-readiness').textContent = data.readiness_score + '%';
-        document.getElementById('dash-campaign').textContent = data.active_campaign;
-        document.getElementById('dash-gates').textContent = data.pending_gates.length;
-        document.getElementById('dash-agents').textContent = data.agents.length;
-
-        // Sidebar badge
-        const badge = document.getElementById('sidebar-gates-badge');
-        if (data.pending_gates.length > 0) {
-          badge.textContent = data.pending_gates.length;
-          badge.style.display = 'inline-block';
-        } else {
-          badge.style.display = 'none';
-        }
-
-        // Render gates
-        renderGates(data.pending_gates);
+        updateDashboardUI(data);
       } catch (e) {
-        console.error('Error fetching snapshot:', e);
+        console.error(e);
       }
+    }
+
+    function updateDashboardUI(data) {
+      document.getElementById('top-project-name').textContent = data.active_project;
+      document.getElementById('top-campaign-name').textContent = data.active_campaign;
+      document.getElementById('dash-readiness').textContent = data.readiness_score + '%';
+      document.getElementById('dash-campaign').textContent = data.active_campaign;
+      document.getElementById('dash-gates').textContent = data.pending_gates.length;
+      document.getElementById('dash-agents').textContent = data.agents.length;
+
+      const badge = document.getElementById('sidebar-gates-badge');
+      if (data.pending_gates.length > 0) {
+        badge.textContent = data.pending_gates.length;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      renderGates(data.pending_gates);
     }
 
     function renderGates(gates) {
@@ -769,8 +972,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <button class="btn btn-primary" onclick="submitGate('${g.request_id}', 'APPROVED')">
               ✓ Autorizar Acción
             </button>
-            <button class="btn btn-secondary" onclick="showToast('Solicitado informe técnico y diff de pruebas...')">
-              ⟳ Solicitar Más Evidencia
+            <button class="btn btn-secondary" onclick="openImpactDrawer('${g.request_id}')">
+              🔍 Ver Impacto & Diff
+            </button>
+            <button class="btn btn-secondary" onclick="notifyMobile('${g.request_id}')">
+              📱 Enviar a mi Móvil
             </button>
             <button class="btn btn-danger" onclick="submitGate('${g.request_id}', 'REJECTED')">
               ✕ Rechazar / Pausa Segura
@@ -789,7 +995,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         const data = await resp.json();
         const list = document.getElementById('dag-workorders-list');
         list.innerHTML = data.workorders.map(w => `
-          <div class="dag-item">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="tag" style="background: rgba(255,255,255,0.08); color: #fff;">${w.phase}</span>
@@ -826,9 +1032,12 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 ${c.version || c.error_message || 'Verificado'}
               </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border);">
               <span style="font-size: 10px; color: var(--text-tertiary); text-transform: uppercase;">${c.status}</span>
-              <button class="btn btn-secondary" onclick="testConnection('${c.id}')" style="padding: 3px 8px; font-size: 10px;">Test</button>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-secondary" onclick="testConnection('${c.id}')" style="padding: 3px 8px; font-size: 11px;">Test</button>
+                <button class="btn btn-primary" onclick="openAuthModal('${c.id}', '${c.name}')" style="padding: 3px 8px; font-size: 11px;">Conectar E2E</button>
+              </div>
             </div>
           </div>
         `).join('');
@@ -894,17 +1103,22 @@ HTML_APPLICATION = """<!DOCTYPE html>
           return;
         }
         container.innerHTML = `
-          <table>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
             <thead>
-              <tr><th>Archivo de Evidencia</th><th>Tipo</th><th>Tamaño</th><th>Acción</th></tr>
+              <tr style="text-align: left; border-bottom: 1px solid var(--border);">
+                <th style="padding: 8px;">Archivo de Evidencia</th>
+                <th style="padding: 8px;">Tipo</th>
+                <th style="padding: 8px;">Tamaño</th>
+                <th style="padding: 8px;">Acción</th>
+              </tr>
             </thead>
             <tbody>
               ${data.files.map(f => `
-                <tr>
-                  <td><strong>${f.name}</strong></td>
-                  <td><code>${f.type}</code></td>
-                  <td>${f.size_bytes} B</td>
-                  <td><button class="btn btn-secondary" onclick="viewReport('${f.name}')" style="padding: 3px 8px; font-size: 11px;">Ver Contenido</button></td>
+                <tr style="border-bottom: 1px solid var(--border);">
+                  <td style="padding: 8px;"><strong>${f.name}</strong></td>
+                  <td style="padding: 8px;"><code>${f.type}</code></td>
+                  <td style="padding: 8px;">${f.size_bytes} B</td>
+                  <td style="padding: 8px;"><button class="btn btn-secondary" onclick="viewReport('${f.name}')" style="padding: 3px 8px; font-size: 11px;">Ver Contenido</button></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -985,9 +1199,9 @@ HTML_APPLICATION = """<!DOCTYPE html>
       }
     }
 
-    // Auto-refresh snapshot every 4s
+    // Startup
+    initSSE();
     refreshSnapshot();
-    setInterval(refreshSnapshot, 4000);
   </script>
 </body>
 </html>

@@ -49,7 +49,11 @@ class UIService:
         self,
         db_path: Optional[Union[Path, str]] = None,
         workspace_root: Optional[Union[Path, str]] = None,
+        host: str = "127.0.0.1",
+        port: int = 8765,
     ) -> None:
+        self.host = host
+        self.port = port
         if db_path is not None:
             self.db_path = Path(db_path)
         elif Path("sacl_ops.db").exists():
@@ -64,8 +68,8 @@ class UIService:
 
         # Initialize sub-modules
         self.connections = ConnectionsModule()
-        self.gates = GatesModule(self._get_read_only_conn, self._get_read_write_conn)
-        self.campaigns = CampaignsModule(self.workspace_root)
+        self.gates = GatesModule(self._get_read_only_conn, self._get_read_write_conn, host=self.host, port=self.port)
+        self.campaigns = CampaignsModule(self.workspace_root, get_rw_conn=self._get_read_write_conn)
         self.recovery = RecoveryModule(self._get_read_only_conn)
         self.evidence = EvidenceModule()
         self.contracts = ContractsModule()

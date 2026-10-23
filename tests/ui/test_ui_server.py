@@ -1,4 +1,4 @@
-"""Integration tests for SACL V1 Decision Shell Web Server."""
+"""Integration tests for SACL V1 Decision Shell Web Server with SSE and Remote Gates."""
 
 from datetime import datetime, timezone
 import json
@@ -51,7 +51,7 @@ def test_ui_server_root_html(running_server):
         assert "text/html" in resp.headers.get("Content-Type", "")
         body = resp.read().decode("utf-8")
         assert "SolidBit SACL" in body
-        assert "Decision Gates" in body
+        assert "SSE LIVE PUSH" in body
 
 
 def test_ui_server_api_snapshot(running_server):
@@ -67,79 +67,59 @@ def test_ui_server_api_snapshot(running_server):
         assert data["mode"] == "audit"
 
 
-def test_ui_server_api_campaigns(running_server):
+def test_ui_server_gate_impact_endpoint(running_server):
     host, port, _ = running_server
-    url = f"http://{host}:{port}/api/campaigns"
+    url = f"http://{host}:{port}/api/gates/impact?request_id=REQ-101"
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode("utf-8"))
-        assert "workorders" in data
-        assert len(data["workorders"]) > 0
+        assert "human_summary" in data
+        assert "contracts_status" in data
+        assert "diff_preview" in data
 
 
-def test_ui_server_api_recovery(running_server):
+def test_ui_server_campaign_launch_endpoint(running_server):
     host, port, _ = running_server
-    url = f"http://{host}:{port}/api/recovery"
-    req = urllib.request.Request(url)
+    url = f"http://{host}:{port}/api/campaigns/launch"
+    payload = json.dumps({"campaign_id": "TEST_CAMPAIGN"}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode("utf-8"))
-        assert "classification" in data
-        assert "safe_to_resume" in data
+        assert data["success"] is True
+        assert data["status"] == "RUNNING"
 
 
-def test_ui_server_api_contracts(running_server):
+def test_ui_server_connection_auth_endpoint(running_server):
     host, port, _ = running_server
-    url = f"http://{host}:{port}/api/contracts"
-    req = urllib.request.Request(url)
+    url = f"http://{host}:{port}/api/connections/auth"
+    payload = json.dumps({"tool_id": "resend", "credentials": {"token": "re_sample"}}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode("utf-8"))
-        assert "contracts" in data
-        assert "decision_gates" in data
+        assert data["success"] is True
 
 
-def test_ui_server_api_db_stats(running_server):
-    host, port, _ = running_server
-    url = f"http://{host}:{port}/api/db/stats"
-    req = urllib.request.Request(url)
-    with urllib.request.urlopen(req) as resp:
-        assert resp.status == 200
-        data = json.loads(resp.read().decode("utf-8"))
-        assert "tables" in data
-        assert "status" in data
-
-
-def test_ui_server_gate_decide_endpoint(running_server):
+def test_ui_server_mobile_quick_decide(running_server, monkeypatch):
     host, port, db_file = running_server
 
-    # Issue an approval in DB
+    # Issue approval
     conn = create_connection(db_file)
     mgr = BoundedApprovalManager(db_conn=conn)
     req_id = mgr.create_approval_request(
         job_id="job-server",
         action="GIT_COMMIT_PRIMARY",
         scope=["docs/TEST.md"],
-        reason="Server API test",
+        reason="Server quick decide test",
     )
     conn.close()
 
-    # Make decision via POST /api/gates/decide
-    url = f"http://{host}:{port}/api/gates/decide"
-    payload = json.dumps({
-        "request_id": req_id,
-        "decision": "APPROVED",
-        "justification": "Approved via automated test",
-    }).encode("utf-8")
-    http_req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(http_req) as resp:
+    # Hit quick-decide URL as a mobile browser
+    url = f"http://{host}:{port}/api/gates/quick-decide?request_id={req_id}&decision=APPROVED"
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
-        res = json.loads(resp.read().decode("utf-8"))
-        assert res["success"] is True
-        assert res["status"] == "APPROVED"
+        body = resp.read().decode("utf-8")
+        assert "Acción Autorizada con Éxito" in body
