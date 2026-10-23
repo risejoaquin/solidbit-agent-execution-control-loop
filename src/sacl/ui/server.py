@@ -1,7 +1,7 @@
 """SACL V1 Local Decision Shell Web Server.
 
 Lightweight, high-performance embedded HTTP server powering the Apple-grade
-operator UI and micro-decision center, requiring zero external npm or pip dependencies.
+operator UI and micro-decision center across all system modules.
 """
 
 from __future__ import annotations
@@ -56,28 +56,74 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         path = parsed_url.path
         query = urllib.parse.parse_qs(parsed_url.query)
 
-        # 1. Root / UI
+        # 1. Root / UI Shell
         if path in ("/", "/index.html", "/ui"):
             self._send_html(200, HTML_APPLICATION)
             return
 
-        # 2. REST API: /api/snapshot
+        # 2. REST API: Dashboard Snapshot
         if path == "/api/snapshot":
             mode = query.get("mode", ["simple"])[0]
             snap = self.service.get_dashboard_snapshot(mode=mode)
             self._send_json(200, snap.to_dict())
             return
 
-        # 3. REST API: /api/gates
+        # 3. REST API: Human Decision Gates
         if path == "/api/gates":
             gates = [g.to_dict() for g in self.service.get_pending_gates()]
             self._send_json(200, {"gates": gates, "count": len(gates)})
             return
 
-        # 4. REST API: /api/connections
+        if path == "/api/gates/history":
+            history = self.service.gates.get_gate_history()
+            self._send_json(200, {"history": history, "count": len(history)})
+            return
+
+        # 4. REST API: Technology Connections
         if path == "/api/connections":
             conns = [c.to_dict() for c in self.service.check_technology_connections()]
             self._send_json(200, {"connections": conns, "count": len(conns)})
+            return
+
+        # 5. REST API: Campaigns & DAG
+        if path == "/api/campaigns":
+            overview = self.service.campaigns.get_campaigns_overview()
+            self._send_json(200, overview)
+            return
+
+        # 6. REST API: Recovery Center
+        if path == "/api/recovery":
+            recovery = self.service.recovery.get_recovery_status()
+            self._send_json(200, recovery)
+            return
+
+        # 7. REST API: Evidence Center
+        if path == "/api/evidence":
+            evidence_files = self.service.evidence.list_evidence()
+            self._send_json(200, {"files": evidence_files, "count": len(evidence_files)})
+            return
+
+        if path == "/api/evidence/view":
+            filename = query.get("file", [""])[0]
+            report = self.service.evidence.read_report(filename)
+            self._send_json(200, report)
+            return
+
+        # 8. REST API: Contracts & Policies
+        if path == "/api/contracts":
+            policies = self.service.contracts.get_policies_overview()
+            self._send_json(200, policies)
+            return
+
+        # 9. REST API: Database Inspector
+        if path == "/api/db/stats":
+            stats = self.service.db_inspector.get_database_stats()
+            self._send_json(200, stats)
+            return
+
+        if path == "/api/db/events":
+            events = self.service.db_inspector.get_recent_audit_events()
+            self._send_json(200, {"events": events, "count": len(events)})
             return
 
         # 404
@@ -87,6 +133,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
 
+        # 1. Gate Micro-Decision
         if path == "/api/gates/decide":
             content_len = int(self.headers.get("Content-Length", 0))
             post_data = self.rfile.read(content_len).decode("utf-8")
@@ -110,10 +157,22 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(500, {"error": str(exc)})
             return
 
+        # 2. Connection targeted test
+        if path == "/api/connections/test":
+            content_len = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_len).decode("utf-8")
+            try:
+                body = json.loads(post_data)
+                tool_id = body.get("tool_id", "")
+                res = self.service.connections.test_single(tool_id)
+                self._send_json(200, res)
+            except Exception as exc:
+                self._send_json(500, {"error": str(exc)})
+            return
+
         self._send_json(404, {"error": "Not Found", "path": path})
 
     def log_message(self, format: str, *args: Any) -> None:
-        """Suppresses default noisy stderr server logging."""
         pass
 
 
@@ -135,7 +194,6 @@ class DecisionShellServer:
 
     def start(self, blocking: bool = False) -> Tuple[str, int]:
         """Starts the HTTP server."""
-        # Attach service to request handler class
         class CustomHandler(DecisionShellRequestHandler):
             service = self.service
 

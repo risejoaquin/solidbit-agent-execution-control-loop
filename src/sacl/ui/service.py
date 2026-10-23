@@ -1,7 +1,7 @@
 """SACL V1 UI Backend Service.
 
 Coordinates read models from SQLite, external CLI readiness checks,
-and human approval gate decisions.
+and human approval gate decisions across modular sub-services.
 """
 
 from __future__ import annotations
@@ -10,15 +10,14 @@ from datetime import datetime, timezone
 import json
 import logging
 from pathlib import Path
-import shutil
 import sqlite3
-import subprocess
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sacl.approval.manager import BoundedApprovalManager
 from sacl.approval.models import Approver
-from sacl.contracts.invariants import ApprovalDecision
 from sacl.observability.monitor import MonitorReadModel
+from sacl.state.connection import create_connection
+from sacl.state.migrations import MigrationRunner
 from sacl.ui.models import (
     ConnectionState,
     FullDashboardView,
@@ -28,6 +27,13 @@ from sacl.ui.models import (
     TechnologyConnection,
     UIMode,
 )
+from sacl.ui.modules.campaigns import CampaignsModule
+from sacl.ui.modules.connections import ConnectionsModule
+from sacl.ui.modules.contracts import ContractsModule
+from sacl.ui.modules.db_inspector import DBInspectorModule
+from sacl.ui.modules.evidence import EvidenceModule
+from sacl.ui.modules.gates import GatesModule
+from sacl.ui.modules.recovery import RecoveryModule
 
 logger = logging.getLogger("sacl.ui.service")
 
@@ -37,7 +43,7 @@ def utc_iso_now() -> str:
 
 
 class UIService:
-    """Backend service providing real-time data and micro-decision handling."""
+    """Unified facade coordinating all UI backend modules and read models."""
 
     def __init__(
         self,
@@ -54,6 +60,54 @@ class UIService:
             self.db_path = Path("sacl_ops.db")
 
         self.workspace_root = Path(workspace_root) if workspace_root else Path.cwd()
+        self._ensure_db_initialized()
+
+        # Initialize sub-modules
+        self.connections = ConnectionsModule()
+        self.gates = GatesModule(self._get_read_only_conn, self._get_read_write_conn)
+        self.campaigns = CampaignsModule(self.workspace_root)
+        self.recovery = RecoveryModule(self._get_read_only_conn)
+        self.evidence = EvidenceModule()
+        self.contracts = ContractsModule()
+        self.db_inspector = DBInspectorModule(self._get_read_only_conn)
+
+    def _ensure_db_initialized(self) -> None:
+        """Ensures sacl_ops.db schema exists and bootstraps initial seed if empty."""
+        need_seed = not self.db_path.exists()
+        mig_dir = Path(__file__).resolve().parents[3] / "db" / "migrations"
+        if not mig_dir.exists():
+            mig_dir = Path("db/migrations")
+
+        if mig_dir.exists():
+            conn = create_connection(self.db_path)
+            runner = MigrationRunner(mig_dir)
+            runner.apply_all(conn)
+
+            if need_seed:
+                now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO projects (project_id, name, root_path)
+                    VALUES ('stable-ecommerce', 'Stable-Ecommerce', 'C:/Users/Lucilfer/Documents/Stable-Ecommerce');
+                    """
+                )
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO jobs (job_id, status, priority, created_at, updated_at)
+                    VALUES ('JOB-GATE-001', 'WAITING_APPROVAL', 1, ?, ?);
+                    """,
+                    (now_iso, now_iso),
+                )
+                conn.commit()
+
+                mgr = BoundedApprovalManager(db_conn=conn)
+                mgr.create_approval_request(
+                    job_id="JOB-GATE-001",
+                    action="DEPLOY_STAGING_PREVIEW",
+                    scope=["services/web-storefront", "railway.json"],
+                    reason="Verificar despliegue efimero en Railway antes de merge a main.",
+                )
+            conn.close()
 
     def _get_read_only_conn(self) -> Optional[sqlite3.Connection]:
         if not self.db_path.exists():
@@ -73,134 +127,12 @@ class UIService:
         conn.execute("PRAGMA foreign_keys = ON;")
         return conn
 
+    # Delegated methods for backward compatibility
     def check_technology_connections(self) -> List[TechnologyConnection]:
-        """Inspects status of all development and operational tooling."""
-        tools = [
-            ("git", "Git VCS", "vcs", ["git", "--version"]),
-            ("gh", "GitHub CLI", "vcs", ["gh", "--version"]),
-            ("python", "Python 3 Runtime", "runtime", ["python", "--version"]),
-            ("node", "Node.js Runtime", "runtime", ["node", "--version"]),
-            ("railway", "Railway CLI", "infra", ["railway", "--version"]),
-            ("supabase", "Supabase CLI", "database", ["supabase", "--version"]),
-            ("jira", "Jira Integration", "governance", ["jira", "version"]),
-            ("resend", "Resend Email Service", "notifications", None),
-        ]
-
-        connections: List[TechnologyConnection] = []
-        for tool_id, name, category, cmd in tools:
-            if cmd is None:
-                # Check token or config presence for API-based services
-                connections.append(
-                    TechnologyConnection(
-                        id=tool_id,
-                        name=name,
-                        category=category,
-                        status=ConnectionState.CONNECTED,
-                        version="API v1 (Resend)",
-                        account_info="Operational",
-                        last_checked=utc_iso_now(),
-                    )
-                )
-                continue
-
-            bin_name = cmd[0]
-            bin_path = shutil.which(bin_name)
-            if not bin_path:
-                connections.append(
-                    TechnologyConnection(
-                        id=tool_id,
-                        name=name,
-                        category=category,
-                        status=ConnectionState.DISCONNECTED,
-                        error_message=f"Executable '{bin_name}' not found in PATH",
-                        last_checked=utc_iso_now(),
-                    )
-                )
-                continue
-
-            try:
-                proc = subprocess.run(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    timeout=2.0,
-                    shell=True,
-                )
-                if proc.returncode == 0:
-                    ver_line = proc.stdout.strip().split("\n")[0]
-                    connections.append(
-                        TechnologyConnection(
-                            id=tool_id,
-                            name=name,
-                            category=category,
-                            status=ConnectionState.CONNECTED,
-                            version=ver_line[:60],
-                            account_info="Ready",
-                            last_checked=utc_iso_now(),
-                        )
-                    )
-                else:
-                    connections.append(
-                        TechnologyConnection(
-                            id=tool_id,
-                            name=name,
-                            category=category,
-                            status=ConnectionState.DEGRADED,
-                            error_message=proc.stderr.strip()[:100] or "Non-zero exit code",
-                            last_checked=utc_iso_now(),
-                        )
-                    )
-            except Exception as e:
-                connections.append(
-                    TechnologyConnection(
-                        id=tool_id,
-                        name=name,
-                        category=category,
-                        status=ConnectionState.DEGRADED,
-                        error_message=str(e)[:100],
-                        last_checked=utc_iso_now(),
-                    )
-                )
-
-        return connections
+        return self.connections.check_all()
 
     def get_pending_gates(self) -> List[HumanGateCard]:
-        """Fetches pending approval gates from SQLite."""
-        conn = self._get_read_only_conn()
-        if not conn:
-            return []
-
-        gates: List[HumanGateCard] = []
-        try:
-            mgr = BoundedApprovalManager(db_conn=conn)
-            pending_reqs = mgr.list_pending_requests()
-            for req in pending_reqs:
-                risk = "HIGH" if any(x in req.action for x in ("DEPLOY", "MERGE", "RULESET")) else "MEDIUM"
-                scope_str = ", ".join(req.scope) if isinstance(req.scope, list) else str(req.scope)
-                gates.append(
-                    HumanGateCard(
-                        approval_id=req.request_id,
-                        request_id=req.request_id,
-                        job_id=req.job_id,
-                        run_id=req.run_id,
-                        action=req.action,
-                        scope=scope_str,
-                        risk_level=risk,
-                        status=req.status,
-                        reason=req.reason or "Mandatory decision gate",
-                        evidence_summary=f"Approval requested for action '{req.action}' targeting '{scope_str}'",
-                        created_at=req.created_at,
-                        expires_at=req.expires_at,
-                        can_decide=True,
-                    )
-                )
-        except Exception as exc:
-            logger.debug(f"Failed to query approvals: {exc}")
-        finally:
-            conn.close()
-
-        return gates
+        return self.gates.get_pending_gates()
 
     def submit_gate_decision(
         self,
@@ -209,38 +141,12 @@ class UIService:
         approver_id: str = "human_operator",
         justification: str = "Authorized via SACL Decision Shell",
     ) -> Dict[str, Any]:
-        """Records a human micro-decision on a pending approval gate."""
-        decision_val = "APPROVED" if decision_str.upper() == "APPROVED" else "REJECTED"
-        approver = Approver(
-            identity=approver_id,
-            channel="CLI",
-            approved_at=utc_iso_now(),
+        return self.gates.submit_decision(
+            request_id=request_id,
+            decision_str=decision_str,
+            approver_id=approver_id,
+            justification=justification,
         )
-
-        rw_conn = self._get_read_write_conn()
-        try:
-            mgr = BoundedApprovalManager(db_conn=rw_conn)
-            token = mgr.record_decision(
-                request_id=request_id,
-                decision=decision_val,
-                approver=approver,
-                notes=justification,
-            )
-            return {
-                "success": True,
-                "status": decision_val,
-                "token": token.request_id if token else None,
-                "message": f"Gate decision recorded as {decision_val}",
-            }
-        except Exception as exc:
-            logger.error(f"Error submitting gate decision: {exc}")
-            return {
-                "success": False,
-                "status": "ERROR",
-                "message": str(exc),
-            }
-        finally:
-            rw_conn.close()
 
     def get_dashboard_snapshot(self, mode: str = "simple") -> FullDashboardView:
         """Consolidates the complete UI state for presentation."""
@@ -258,12 +164,13 @@ class UIService:
         agents_data = [a.to_dict() for a in base_snap.agents]
         leases_data = [l.to_dict() for l in base_snap.leases]
 
+        recovery_info = self.recovery.get_recovery_status()
         recovery = RecoverySummaryView(
-            interrupted_runs_count=0,
+            interrupted_runs_count=len(recovery_info.get("interrupted_runs", [])),
             latest_run_id=base_snap.run_id if base_snap.run_id != "--" else None,
-            classification="READY_SAFE",
+            classification=recovery_info.get("classification", "READY_SAFE"),
             safe_to_resume=True,
-            recommended_action="Operational state verified",
+            recommended_action=recovery_info.get("recommended_action", "Operational state verified"),
         )
 
         return FullDashboardView(
