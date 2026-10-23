@@ -6,6 +6,7 @@ Recovery, Evidence, Contracts, and Database Inspector.
 
 from sacl.ui.modules.campaign_designer import CampaignDesignerModule
 from sacl.ui.modules.campaigns import CampaignsModule
+from sacl.ui.modules.chat import ChatModule
 from sacl.ui.modules.connections import ConnectionsModule
 from sacl.ui.modules.contracts import ContractsModule
 from sacl.ui.modules.db_inspector import DBInspectorModule
@@ -21,6 +22,7 @@ from sacl.ui.modules.telemetry import TelemetryModule
 __all__ = [
     "CampaignDesignerModule",
     "CampaignsModule",
+    "ChatModule",
     "ConnectionsModule",
     "ContractsModule",
     "DBInspectorModule",

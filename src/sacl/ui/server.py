@@ -272,6 +272,11 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, self.service.email_gateway.get_config())
             return
 
+        # 18. REST API: Chat History
+        if path == "/api/chat/history":
+            self._send_json(200, {"history": self.service.chat.get_history()})
+            return
+
         # 404
         self._send_json(404, {"error": "Not Found", "path": path})
 
@@ -454,6 +459,22 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             )
             broadcast_sse("inbound_email_triggered", res)
             self._send_json(200 if res.get("success") else 403, res)
+            return
+
+        # 15. Chat Message & Intent Execution
+        if path == "/api/chat/message":
+            prompt = body.get("prompt", "")
+            model_id = body.get("model_id")
+            res = self.service.chat.post_message(prompt, model_id=model_id)
+            broadcast_sse("chat_message", res)
+            self._send_json(200, res)
+            return
+
+        # 16. Chat Clear History
+        if path == "/api/chat/clear":
+            res = self.service.chat.clear_history()
+            broadcast_sse("chat_cleared", res)
+            self._send_json(200, res)
             return
 
         self._send_json(404, {"error": "Not Found", "path": path})

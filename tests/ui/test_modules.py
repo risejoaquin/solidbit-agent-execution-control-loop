@@ -245,3 +245,24 @@ def test_campaign_designer_module(tmp_path: Path):
     save_res = mod.save_dag("test_dag.manifest.json")
     assert save_res["success"] is True
     assert (tmp_path / "test_dag.manifest.json").exists()
+
+
+def test_chat_module():
+    from sacl.ui.modules.chat import ChatModule
+
+    chat = ChatModule()
+    history = chat.get_history()
+    assert len(history) >= 1
+    assert history[0]["role"] == "assistant"
+
+    # Post user prompt
+    res = chat.post_message("Hola, quiero auditar los contratos inmutables", model_id="claude-3-7-sonnet")
+    assert res["success"] is True
+    assert "DR-INV-001" in res["assistant_message"]["content"]
+    assert len(chat.get_history()) == 3
+
+    # Clear history
+    clear_res = chat.clear_history()
+    assert clear_res["success"] is True
+    assert len(chat.get_history()) == 1
+

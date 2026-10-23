@@ -124,3 +124,29 @@ def test_ui_server_mobile_quick_decide(running_server, monkeypatch):
         assert resp.status == 200
         body = resp.read().decode("utf-8")
         assert "Acción Autorizada con Éxito" in body
+
+
+def test_ui_server_chat_api(running_server):
+    host, port, *_ = running_server
+
+    # 1. GET /api/chat/history
+    url = f"http://{host}:{port}/api/chat/history"
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req) as resp:
+        assert resp.status == 200
+        data = json.loads(resp.read().decode("utf-8"))
+        assert "history" in data
+        assert len(data["history"]) >= 1
+
+    # 2. POST /api/chat/message
+    post_url = f"http://{host}:{port}/api/chat/message"
+    payload = json.dumps({"prompt": "revisar compuertas pendientes"}).encode("utf-8")
+    post_req = urllib.request.Request(
+        post_url, data=payload, headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(post_req) as resp:
+        assert resp.status == 200
+        res = json.loads(resp.read().decode("utf-8"))
+        assert res["success"] is True
+        assert "compuerta" in res["assistant_message"]["content"].lower()
+

@@ -30,6 +30,7 @@ from sacl.ui.models import (
 )
 from sacl.ui.modules.campaign_designer import CampaignDesignerModule
 from sacl.ui.modules.campaigns import CampaignsModule
+from sacl.ui.modules.chat import ChatModule
 from sacl.ui.modules.connections import ConnectionsModule
 from sacl.ui.modules.contracts import ContractsModule
 from sacl.ui.modules.db_inspector import DBInspectorModule
@@ -94,6 +95,7 @@ class UIService:
         self.roadmap = RoadmapModule()
         self.telemetry = TelemetryModule()
         self.campaign_designer = CampaignDesignerModule(self.workspace_root)
+        self.chat = ChatModule(self)
         self.email_gateway = EmailGatewayModule(
             sender_email="lucilfer@selfcaresinners.com",
             operator_email="lawlieeet@outlook.es",
