@@ -18,6 +18,7 @@ from sacl.approval.models import Approver
 from sacl.observability.monitor import MonitorReadModel
 from sacl.state.connection import create_connection
 from sacl.state.migrations import MigrationRunner
+from sacl.ui.security import load_or_create_secret
 from sacl.ui.models import (
     ConnectionState,
     FullDashboardView,
@@ -70,11 +71,19 @@ class UIService:
             self.db_path = Path("sacl_ops.db")
 
         self.workspace_root = Path(workspace_root) if workspace_root else Path.cwd()
+        self.secret = load_or_create_secret(self.workspace_root)
         self._ensure_db_initialized()
 
         # Initialize sub-modules
         self.connections = ConnectionsModule()
-        self.gates = GatesModule(self._get_read_only_conn, self._get_read_write_conn, host=self.host, port=self.port)
+        self.gates = GatesModule(
+            self._get_read_only_conn,
+            self._get_read_write_conn,
+            host=self.host,
+            port=self.port,
+            secret=self.secret,
+            workspace_root=self.workspace_root,
+        )
         self.campaigns = CampaignsModule(self.workspace_root, get_rw_conn=self._get_read_write_conn)
         self.recovery = RecoveryModule(self._get_read_only_conn)
         self.evidence = EvidenceModule()
@@ -91,6 +100,8 @@ class UIService:
             launch_campaign_cb=self.campaigns.launch_campaign,
             host=self.host,
             port=self.port,
+            secret=self.secret,
+            gate_url_builder=self.gates.build_quick_url,
         )
 
     def _ensure_db_initialized(self) -> None:
@@ -162,12 +173,14 @@ class UIService:
         decision_str: str,
         approver_id: str = "human_operator",
         justification: str = "Authorized via SACL Decision Shell",
+        channel: str = "CLI",
     ) -> Dict[str, Any]:
         return self.gates.submit_decision(
             request_id=request_id,
             decision_str=decision_str,
             approver_id=approver_id,
             justification=justification,
+            channel=channel,
         )
 
     def get_dashboard_snapshot(self, mode: str = "simple") -> FullDashboardView:

@@ -38,12 +38,12 @@ def running_server(tmp_path: Path, migration_sql_path: Path):
         db_path=db_file,
     )
     host, port = server.start(blocking=False)
-    yield host, port, db_file
+    yield host, port, db_file, server
     server.stop()
 
 
 def test_ui_server_root_html(running_server):
-    host, port, _ = running_server
+    host, port, *_ = running_server
     url = f"http://{host}:{port}/"
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req) as resp:
@@ -55,7 +55,7 @@ def test_ui_server_root_html(running_server):
 
 
 def test_ui_server_api_snapshot(running_server):
-    host, port, _ = running_server
+    host, port, *_ = running_server
     url = f"http://{host}:{port}/api/snapshot?mode=audit"
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req) as resp:
@@ -68,7 +68,7 @@ def test_ui_server_api_snapshot(running_server):
 
 
 def test_ui_server_gate_impact_endpoint(running_server):
-    host, port, _ = running_server
+    host, port, *_ = running_server
     url = f"http://{host}:{port}/api/gates/impact?request_id=REQ-101"
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req) as resp:
@@ -80,7 +80,7 @@ def test_ui_server_gate_impact_endpoint(running_server):
 
 
 def test_ui_server_campaign_launch_endpoint(running_server):
-    host, port, _ = running_server
+    host, port, *_ = running_server
     url = f"http://{host}:{port}/api/campaigns/launch"
     payload = json.dumps({"campaign_id": "TEST_CAMPAIGN"}).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
@@ -92,7 +92,7 @@ def test_ui_server_campaign_launch_endpoint(running_server):
 
 
 def test_ui_server_connection_auth_endpoint(running_server):
-    host, port, _ = running_server
+    host, port, *_ = running_server
     url = f"http://{host}:{port}/api/connections/auth"
     payload = json.dumps({"tool_id": "resend", "credentials": {"token": "re_sample"}}).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
@@ -103,7 +103,7 @@ def test_ui_server_connection_auth_endpoint(running_server):
 
 
 def test_ui_server_mobile_quick_decide(running_server, monkeypatch):
-    host, port, db_file = running_server
+    host, port, db_file, server = running_server
 
     # Issue approval
     conn = create_connection(db_file)
@@ -116,8 +116,9 @@ def test_ui_server_mobile_quick_decide(running_server, monkeypatch):
     )
     conn.close()
 
-    # Hit quick-decide URL as a mobile browser
-    url = f"http://{host}:{port}/api/gates/quick-decide?request_id={req_id}&decision=APPROVED"
+    # Hit quick-decide URL as a mobile browser (includes HMAC signature)
+    gate_details = server.service.gates.get_gate_impact_details(req_id)
+    url = f"{gate_details['mobile_approval_url']}&decision=APPROVED"
     req = urllib.request.Request(url)
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200

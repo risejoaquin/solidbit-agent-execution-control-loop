@@ -84,3 +84,6 @@ artifacts/
 logs/
 reports/
 worktrees/
+
+.sacl_ui_secret
+src/.sacl_ui_secret

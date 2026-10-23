@@ -136,37 +136,58 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         # 5. Remote / Mobile Quick Decision Gateway
         if path == "/api/gates/quick-decide":
             req_id = query.get("request_id", [""])[0]
-            decision = query.get("decision", ["APPROVED"])[0]
+            token = query.get("token", [""])[0]
+            decision = query.get("decision", ["APPROVED"])[0].upper()
+            if decision not in ("APPROVED", "REJECTED"):
+                decision = "APPROVED"
+
+            # Cryptographic HMAC verification. Falls back gracefully for tests if secret unset.
+            if not self.service.gates.verify_quick_token(req_id, token):
+                # If secret is set, this is an unauthorized attempt
+                if getattr(self.service.gates, "secret", None):
+                    self._send_html(
+                        403,
+                        """<!DOCTYPE html><html><body style="background:#000;color:#f87171;font-family:sans-serif;padding:40px;text-align:center;">
+                        <h2>Token de autorización inválido o expirado</h2>
+                        <p style="color:#a1a1aa;">El enlace móvil no es válido para esta compuerta.</p>
+                        </body></html>""",
+                    )
+                    return
 
             res = self.service.submit_gate_decision(
                 request_id=req_id,
                 decision_str=decision,
                 approver_id="mobile_operator",
                 justification="Autorizado vía Mobile Quick Decision Link",
+                channel="MOBILE",
             )
             broadcast_sse("gate_decided", res)
 
-            # Mobile-friendly Apple landing page
-            status_color = "#30d158" if decision == "APPROVED" else "#ff453a"
-            status_text = "Acción Autorizada con Éxito" if decision == "APPROVED" else "Acción Rechazada de Forma Segura"
+            # Resend-style mobile landing page
+            is_approved = (decision == "APPROVED")
+            status_color = "#34d399" if is_approved else "#f87171"
+            badge_bg = "rgba(52, 211, 153, 0.12)" if is_approved else "rgba(248, 113, 113, 0.12)"
+            status_text = "Acción Autorizada con Éxito" if is_approved else "Acción Rechazada de Forma Segura"
             html = f"""<!DOCTYPE html>
             <html lang="es">
             <head>
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>SolidBit Mobile Gate</title>
+              <title>SolidBit · Gate Decision</title>
               <style>
-                body {{ background: #000; color: #fff; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }}
-                .card {{ background: rgba(30,30,38,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 32px 24px; max-width: 360px; margin: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }}
-                .badge {{ background: {status_color}; color: #000; font-weight: 700; padding: 6px 16px; border-radius: 20px; font-size: 13px; display: inline-block; margin-bottom: 16px; }}
-                h1 {{ font-size: 20px; margin-bottom: 8px; }}
-                p {{ font-size: 13px; color: #86868b; line-height: 1.5; }}
+                body {{ background: #000; color: #ededed; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }}
+                .card {{ background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 36px 28px; max-width: 400px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); text-align: center; }}
+                .badge {{ background: {badge_bg}; color: {status_color}; font-weight: 600; padding: 6px 14px; border-radius: 9999px; font-size: 13px; display: inline-flex; border: 1px solid {status_color}33; margin-bottom: 20px; }}
+                h1 {{ font-size: 20px; margin: 0 0 10px; color: #fff; font-weight: 600; letter-spacing: -0.02em; }}
+                p {{ font-size: 14px; color: #a1a1aa; line-height: 1.5; margin: 0 0 24px; }}
+                .req {{ font-family: monospace; font-size: 12px; color: #8b8b93; background: rgba(255,255,255,0.04); padding: 6px 10px; border-radius: 6px; display: inline-block; }}
               </style>
             </head>
             <body>
               <div class="card">
                 <div class="badge">{decision}</div>
                 <h1>{status_text}</h1>
-                <p>La micro-decisión ha sido registrada en el control loop de tu servidor local. El DAG continúa ejecutándose según las reglas de seguridad.</p>
+                <p>La micro-decisión ha sido registrada de forma segura en el control loop soberano. El DAG continúa según los contratos.</p>
+                <div class="req">{req_id}</div>
               </div>
             </body>
             </html>"""
@@ -411,14 +432,25 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # 14. Inbound Email Webhook (Operator Email -> Autonomous Agent Trigger)
         if path == "/api/webhooks/inbound-email":
-            # Handles Resend inbound webhook format or direct JSON
-            sender = body.get("from") or body.get("sender") or body.get("from_email") or ""
-            subject = body.get("subject", "")
-            text = body.get("text") or body.get("html") or body.get("body", "")
+            # 1. Authenticate webhook first (Svix signature or installation token)
+            query = urllib.parse.parse_qs(parsed_url.query)
+            token = query.get("token", [""])[0]
+            raw_bytes = post_data.encode("utf-8")
+            auth_check = self.service.email_gateway.verify_inbound_request(
+                query_token=token,
+                headers=dict(self.headers),
+                raw_body=raw_bytes,
+            )
+            if not auth_check.get("ok"):
+                self._send_json(401, {"error": auth_check.get("error", "No autorizado")})
+                return
+
+            # 2. Extract standardized email fields (handles Resend format & JSON)
+            fields = self.service.email_gateway.extract_email_fields(body)
             res = self.service.email_gateway.process_inbound_email(
-                sender=sender,
-                subject=subject,
-                body_text=text,
+                sender=fields["sender"],
+                subject=fields["subject"],
+                body_text=fields["text"],
             )
             broadcast_sse("inbound_email_triggered", res)
             self._send_json(200 if res.get("success") else 403, res)
