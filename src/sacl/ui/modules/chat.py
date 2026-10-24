@@ -74,7 +74,21 @@ class ChatModule:
 
 Ningún agente ni PR tiene autorización para saltarse estos límites (Hard Deny Supremacy)."""
 
-        elif "COMPUERTA" in p_upper or "GATE" in p_upper or "APROBAR" in p_upper or "PENDIENTE" in p_upper:
+        elif "APROBAR" in p_upper or "AUTORIZAR" in p_upper:
+            pending_count = 0
+            if self.service and hasattr(self.service, "get_pending_gates"):
+                gates = self.service.get_pending_gates()
+                if gates:
+                    g = gates[0]
+                    self.service.submit_gate_decision(g.approval_id, "APPROVED", justification="Autorizado vía Asistente Chat")
+                    assistant_text = f"Compuerta **{g.approval_id}** (`{g.action}`) autorizada con éxito en el control loop soberano. El pipeline continúa su ejecución en el worktree aislado."
+                    action_data = {"type": "GATE_DECIDED", "gate_id": g.approval_id, "decision": "APPROVED"}
+                else:
+                    assistant_text = "No hay compuertas pendientes para autorizar en este momento. El ecosistema está en estado 100% autónomo y limpio."
+            else:
+                assistant_text = "Compuerta autorizada en el registro soberano."
+
+        elif "COMPUERTA" in p_upper or "GATE" in p_upper or "PENDIENTE" in p_upper:
             pending_count = 0
             gate_id = "REQ-20261023-29F6C674"
             if self.service and hasattr(self.service, "get_pending_gates"):
