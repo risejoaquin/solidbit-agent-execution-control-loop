@@ -1,7 +1,8 @@
 """LLM Model Selector & Parameter Configuration Module for SACL UI.
 
 Allows operators and architects to configure the sovereign agent engine,
-switch models, tune temperatures, and enforce bounded reasoning guardrails.
+switch models, tune temperatures, and enforce bounded reasoning guardrails
+powered directly by the Antigravity (AGY) runtime.
 """
 
 from __future__ import annotations
@@ -18,8 +19,8 @@ class ModelsModule:
     AVAILABLE_MODELS = [
         {
             "id": "claude-3-7-sonnet",
-            "name": "Claude 3.7 Sonnet",
-            "provider": "Anthropic",
+            "name": "Claude 3.7 Sonnet (via AGY)",
+            "provider": "Anthropic (AGY Mapped)",
             "tier": "Flagship Hybrid",
             "badge": "Recommended",
             "description": "State-of-the-art hybrid reasoning for strict code generation and architecture invariants.",
@@ -27,24 +28,44 @@ class ModelsModule:
             "default_temp": 0.2,
         },
         {
-            "id": "claude-3-5-sonnet",
-            "name": "Claude 3.5 Sonnet",
-            "provider": "Anthropic",
-            "tier": "Code Specialist",
-            "badge": "Proven",
-            "description": "High-speed code synthesis, refactoring, and deterministic test writing.",
-            "context_window": "200k",
-            "default_temp": 0.1,
+            "id": "gemini-3.8-flash-high",
+            "name": "Gemini 3.8 Flash (High Reasoning)",
+            "provider": "Google DeepMind (AGY Native)",
+            "tier": "Ultra-Low Latency & High Reasoning",
+            "badge": "Native AGY",
+            "description": "Modelo nativo de Antigravity con inferencia sub-segundo para análisis de código y contratos.",
+            "context_window": "1M tokens",
+            "default_temp": 0.2,
         },
         {
             "id": "gemini-2-flash",
-            "name": "Gemini 2.0 Flash",
+            "name": "Gemini 2.0 Flash (via AGY)",
             "provider": "Google DeepMind",
             "tier": "Ultra-Low Latency",
             "badge": "Fast",
             "description": "Sub-second step transitions for fast DAG triage and real-time validations.",
             "context_window": "1M",
             "default_temp": 0.3,
+        },
+        {
+            "id": "claude-sonnet-5-5-medium",
+            "name": "Claude Sonnet 5.5 (Medium)",
+            "provider": "Anthropic (via AGY)",
+            "tier": "Flagship Code Synthesis",
+            "badge": "Precisión Alta",
+            "description": "Especialista en refactorización compleja, generación de tests deterministas y arquitecturas.",
+            "context_window": "200k tokens",
+            "default_temp": 0.1,
+        },
+        {
+            "id": "gemini-4-argon-medium",
+            "name": "Gemini 4 Argon (Medium)",
+            "provider": "Google DeepMind (AGY Native)",
+            "tier": "Deep Architecture Review",
+            "badge": "Contexto Masivo",
+            "description": "Auditorías multi-repositorio y análisis de dependencias a escala de todo el proyecto.",
+            "context_window": "2M tokens",
+            "default_temp": 0.2,
         },
         {
             "id": "gemini-1-5-pro",
@@ -54,6 +75,16 @@ class ModelsModule:
             "badge": "Deep Context",
             "description": "Full-codebase multi-file analysis, cross-repository audits, and monolithic reviews.",
             "context_window": "2M",
+            "default_temp": 0.2,
+        },
+        {
+            "id": "claude-opus-5-5-medium",
+            "name": "Claude Opus 5.5 (Medium)",
+            "provider": "Anthropic (via AGY)",
+            "tier": "Maximum Depth Reasoner",
+            "badge": "Arquitectura",
+            "description": "Razonamiento formal para contratos inmutables DR-INV-001 y pruebas de estrés de seguridad.",
+            "context_window": "200k tokens",
             "default_temp": 0.2,
         },
         {
@@ -67,14 +98,14 @@ class ModelsModule:
             "default_temp": 0.2,
         },
         {
-            "id": "deepseek-r1",
-            "name": "DeepSeek R1 (Local / Ollama)",
-            "provider": "Local/Open",
-            "tier": "Autonomous Reasoner",
-            "badge": "Private",
-            "description": "Air-gapped on-premise execution with step-by-step mathematical reasoning.",
-            "context_window": "64k",
-            "default_temp": 0.6,
+            "id": "gpt-oss-120b-medium",
+            "name": "GPT-OSS 120B (Open Weights)",
+            "provider": "Open Source / AGY",
+            "tier": "Air-Gapped Sovereign",
+            "badge": "Privado",
+            "description": "Ejecución autónoma y desacoplada para auditoría de código confidencial en disco.",
+            "context_window": "128k tokens",
+            "default_temp": 0.3,
         },
     ]
 

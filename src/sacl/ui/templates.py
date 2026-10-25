@@ -13,10 +13,10 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg: #0b0c10;
-      --surface: #121318;
-      --surface-elevated: #181a22;
-      --surface-card: #14151c;
+      --bg: #000000;
+      --surface: #020204;
+      --surface-elevated: #040406;
+      --surface-card: #030305;
       --border: rgba(255, 255, 255, 0.08);
       --border-strong: rgba(255, 255, 255, 0.16);
       --text: #f4f4f6;
@@ -27,12 +27,12 @@ HTML_APPLICATION = """<!DOCTYPE html>
       --accent-blue: #3b82f6;
     }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #000000 !important;
+      color: #ededed;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
     .mono {
       font-family: 'JetBrains Mono', monospace;
@@ -173,10 +173,10 @@ HTML_APPLICATION = """<!DOCTYPE html>
     }
   </style>
 </head>
-<body class="flex flex-col h-screen bg-[#0b0c10] text-[#f4f4f6]">
+<body class="flex flex-col h-screen bg-[#000000] text-[#f4f4f6]">
 
   <!-- TOP HEADER -->
-  <header class="h-16 border-b bd flex items-center justify-between px-3 md:px-6 bg-[#0b0c10]/95 backdrop-blur-md z-30 shrink-0">
+  <header class="h-16 border-b bd flex items-center justify-between px-3 md:px-6 bg-[#000000]/95 backdrop-blur-md z-30 shrink-0">
     <!-- Brand & Active Project -->
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0 cursor-pointer hover:border-emerald-500/50 transition-colors shadow-sm" onclick="switchSection('dashboard')" title="SolidBit SACL · Volver al HUD">
@@ -261,11 +261,6 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <i data-lucide="folder-open" class="w-3.5 h-3.5 text-amber-400"></i>
         <span class="hidden md:inline">Abrir Archivo / Carpeta</span>
       </button>
-            <!-- Open File / Folder Button -->
-      <button onclick="switchSection('projects'); showOpenFolderModal();" class="px-3 py-1.5 rounded-lg border bd bg-white/5 hover:bg-white/10 text-white cursor-pointer flex items-center gap-1.5 text-xs font-medium" title="Abrir Carpeta o Archivo">
-        <i data-lucide="folder-open" class="w-3.5 h-3.5 text-amber-400"></i>
-        <span class="hidden md:inline">Abrir Archivo / Carpeta</span>
-      </button>
       <!-- Settings Drawer Button -->
       <button onclick="openSettingsDrawer()" class="relative p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-white cursor-pointer" title="Configuración de Sistema">
         <i data-lucide="sliders" class="w-4 h-4"></i>
@@ -289,7 +284,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <div id="sec-dashboard" class="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
 
       <!-- HERO STATUS BANNER WITH LIVE PROGRESS PANEL -->
-      <div class="section-canvas p-6 md:p-8 relative overflow-hidden bg-gradient-to-br from-[#14161f] via-[#101217] to-[#0c0d12]">
+      <div class="section-canvas p-6 md:p-8 relative overflow-hidden bg-gradient-to-br from-[#030305] via-[#030305] to-[#020204]">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div class="space-y-3">
             <div class="flex flex-wrap items-center gap-2">
@@ -359,7 +354,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
       <!-- EXECUTIVE TELEMETRY & KPI MATRIX (4 HIGH-VISIBILITY CARDS) -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="section-canvas p-5 space-y-2 border-emerald-500/20 bg-gradient-to-br from-[#12141c] to-[#0e0f14]">
+        <div class="section-canvas p-5 space-y-2 border-emerald-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
           <div class="flex items-center justify-between">
             <span class="text-xs text-zinc-400 font-medium">Tasa de Éxito SDLC</span>
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -371,7 +366,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           </div>
         </div>
 
-        <div class="section-canvas p-5 space-y-2 border-blue-500/20 bg-gradient-to-br from-[#12141c] to-[#0e0f14]">
+        <div class="section-canvas p-5 space-y-2 border-blue-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
           <div class="flex items-center justify-between">
             <span class="text-xs text-zinc-400 font-medium">Contratos Inmutables</span>
             <span class="w-2 h-2 rounded-full bg-blue-400"></span>
@@ -383,7 +378,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           </div>
         </div>
 
-        <div class="section-canvas p-5 space-y-2 border-purple-500/20 bg-gradient-to-br from-[#12141c] to-[#0e0f14]">
+        <div class="section-canvas p-5 space-y-2 border-purple-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
           <div class="flex items-center justify-between">
             <span class="text-xs text-zinc-400 font-medium">Latencia Promedio</span>
             <span class="w-2 h-2 rounded-full bg-purple-400"></span>
@@ -395,7 +390,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           </div>
         </div>
 
-        <div class="section-canvas p-5 space-y-2 border-amber-500/20 bg-gradient-to-br from-[#12141c] to-[#0e0f14]">
+        <div class="section-canvas p-5 space-y-2 border-amber-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
           <div class="flex items-center justify-between">
             <span class="text-xs text-zinc-400 font-medium">Salud SQLite WAL</span>
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -409,7 +404,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       </div>
 
       <!-- SECTION: DECISION INTELLIGENCE DOSSIER (TOMA DE DECISIONES CON INFORMACIÓN COMPLETA) -->
-      <div class="section-canvas p-6 md:p-8 space-y-6 border-amber-500/40 bg-gradient-to-br from-[#181512] via-[#141318] to-[#0e0f14]" id="active-gate-panel">
+      <div class="section-canvas p-6 md:p-8 space-y-6 border-amber-500/40 bg-gradient-to-br from-[#181512] via-[#141318] to-[#030305]" id="active-gate-panel">
         
         <!-- Dossier Header -->
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b bd pb-4">
@@ -557,7 +552,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       </div>
 
       <!-- SECTION: GESTIÓN DE DATOS EN VIVO (SQLITE WAL DIRECT EXPLORER) -->
-      <div class="section-canvas p-6 md:p-8 space-y-5 bg-gradient-to-br from-[#11131a] to-[#0e1014] border-emerald-500/25">
+      <div class="section-canvas p-6 md:p-8 space-y-5 bg-gradient-to-br from-[#030305] to-[#030305] border-emerald-500/25">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
           <div class="space-y-1">
             <div class="flex items-center gap-2">
@@ -773,7 +768,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       </div>
 
       <!-- Featured Gate Card in Gates Tab -->
-      <div class="section-canvas p-6 md:p-8 space-y-6 border-amber-500/30 bg-gradient-to-br from-[#161412] to-[#121318]" id="gates-tab-card-container">
+      <div class="section-canvas p-6 md:p-8 space-y-6 border-amber-500/30 bg-gradient-to-br from-[#161412] to-[#020204]" id="gates-tab-card-container">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
           <div>
             <span class="px-2.5 py-0.5 rounded text-xs mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 uppercase">
@@ -875,7 +870,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <div class="text-xs mono text-zinc-400">test_cli_ui, test_modules (29 tests)</div>
               </div>
             </div>
-            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 hidden" data-action="test_suite">
+            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-[#27272a] bg-[#040406] text-emerald-500 focus:ring-0 hidden" data-action="test_suite">
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
             Ejecución verificada de suite completa pytest con reporte de contratos, fixtures y esquemas SQLite WAL.
@@ -897,7 +892,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <div class="text-xs mono text-zinc-400">DR-INV-001, DR-PAY-001</div>
               </div>
             </div>
-            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 hidden" data-action="security_audit">
+            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-[#27272a] bg-[#040406] text-emerald-500 focus:ring-0 hidden" data-action="security_audit">
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
             Verificación estricta de contratos inmutables contra sobreventa de stock, doble cargo y escaneo de secretos en git.
@@ -919,7 +914,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <div class="text-xs mono text-zinc-400">StartupReconciliationEngine</div>
               </div>
             </div>
-            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 hidden" data-action="reconcile_runs">
+            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-[#27272a] bg-[#040406] text-emerald-500 focus:ring-0 hidden" data-action="reconcile_runs">
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
             Reclama leases huérfanos, actualiza runs interrumpidos a sus estados históricos y restaura estado CLEAN_STEADY en SQLite WAL.
@@ -941,7 +936,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <div class="text-xs mono text-zinc-400">services/web-storefront</div>
               </div>
             </div>
-            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 hidden" data-action="release_pipeline">
+            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-[#27272a] bg-[#040406] text-emerald-500 focus:ring-0 hidden" data-action="release_pipeline">
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
             Aprovisionamiento de entorno efímero en Railway y verificación de credenciales previas a compuerta de merge a producción.
@@ -963,7 +958,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <div class="text-xs mono text-zinc-400">OpenAPI, RPC & Esquemas</div>
               </div>
             </div>
-            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 hidden" data-action="software_design">
+            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-[#27272a] bg-[#040406] text-emerald-500 focus:ring-0 hidden" data-action="software_design">
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
             Extracción y validación de interfaces frozen, esquemas SQLite WAL y especificación arquitectónica integral de servicios.
@@ -985,7 +980,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <div class="text-xs mono text-zinc-400">DAG Topológico Aislado</div>
               </div>
             </div>
-            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-0 hidden" data-action="campaign_sprint">
+            <input type="checkbox" class="action-checkbox w-4 h-4 rounded border-[#27272a] bg-[#040406] text-emerald-500 focus:ring-0 hidden" data-action="campaign_sprint">
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
             Genera worktree aislado con branch temporal, construye grafo de 6 etapas DAG e inicia despacho de agentes con lock supervisor.
@@ -1041,7 +1036,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       </div>
 
       <!-- WORKSPACE ROOT PATH BANNER -->
-      <div class="section-canvas p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gradient-to-r from-[#12141c] to-[#0d0e12] border-amber-500/25">
+      <div class="section-canvas p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gradient-to-r from-[#020204] to-[#020204] border-amber-500/25">
         <div class="flex items-center gap-3 truncate">
           <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
             <i data-lucide="folder" class="w-4 h-4"></i>
@@ -1068,7 +1063,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[550px]">
         
         <!-- LEFT: FILE DIRECTORY TREE -->
-        <div class="lg:col-span-4 section-canvas p-4 flex flex-col space-y-3 bg-[#0d0e12]">
+        <div class="lg:col-span-4 section-canvas p-4 flex flex-col space-y-3 bg-[#020204]">
           <div class="flex items-center justify-between border-b bd pb-2.5">
             <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
               <i data-lucide="list-tree" class="w-3.5 h-3.5 text-amber-400"></i>
@@ -1086,7 +1081,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         </div>
 
         <!-- RIGHT: CODE & DOCUMENTATION VIEWER -->
-        <div class="lg:col-span-8 section-canvas p-0 flex flex-col bg-[#0a0b0e] overflow-hidden border-zinc-700">
+        <div class="lg:col-span-8 section-canvas p-0 flex flex-col bg-[#000000] overflow-hidden border-[#27272a]">
           <!-- Viewer Top Toolbar -->
           <div class="h-14 border-b bd flex items-center justify-between px-4 bg-black/40 shrink-0">
             <div class="flex items-center gap-2.5 truncate">
@@ -1205,7 +1200,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           </button>
         </div>
 
-        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();" class="flex items-center gap-2 bg-[#14151c] border bd rounded-xl p-2 focus-within:border-emerald-500/50 transition-all shadow-xl">
+        <form id="chat-form" onsubmit="event.preventDefault(); sendChatMessage();" class="flex items-center gap-2 bg-[#030305] border bd rounded-xl p-2 focus-within:border-emerald-500/50 transition-all shadow-xl">
           <span class="mono text-emerald-400 pl-2 text-xs font-bold shrink-0">sacl&gt;</span>
           <input type="text" id="chat-input" placeholder="Escribe un comando o selecciona una acción rápida..."
             class="flex-1 bg-transparent px-2 py-1 text-xs mono text-white placeholder-zinc-500 focus:outline-none"
@@ -1222,7 +1217,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- ========================================== -->
   <!-- FLOATING MULTI-ACTION EXECUTION BAR -->
   <!-- ========================================== -->
-  <div id="floating-multiaction-bar" class="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[#161822] border border-emerald-500/50 rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-5 hidden">
+  <div id="floating-multiaction-bar" class="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[#040406] border border-emerald-500/50 rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-5 hidden">
     <div class="flex items-center gap-2">
       <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
       <span id="multiaction-count-text" class="text-xs font-bold text-white mono">0 seleccionados</span>
@@ -1239,7 +1234,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- ========================================== -->
   <!-- MOBILE BOTTOM TAB NAVIGATION -->
   <!-- ========================================== -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0b0c10]/95 border-t bd backdrop-blur-md z-30 flex items-center justify-around px-2">
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#000000]/95 border-t bd backdrop-blur-md z-30 flex items-center justify-around px-2">
     <button id="mtab-dashboard" class="mobile-tab active" onclick="switchSection('dashboard')">
       <i data-lucide="layout-grid" class="w-4 h-4"></i>
       <span>HUD</span>
@@ -1266,7 +1261,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- MODAL: DOCUMENTATION VIEWER -->
   <!-- ========================================== -->
   <div id="doc-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden bg-[#0e0f14] border-zinc-700 shadow-2xl">
+    <div class="section-canvas w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden bg-[#030305] border-[#27272a] shadow-2xl">
       <div class="p-4 border-b bd flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
           <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
@@ -1290,7 +1285,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- MODAL: DIFF & IMPACT INSPECTOR -->
   <!-- ========================================== -->
   <div id="diff-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden bg-[#0e0f14] border-zinc-700 shadow-2xl">
+    <div class="section-canvas w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden bg-[#030305] border-[#27272a] shadow-2xl">
       <div class="p-4 border-b bd flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
           <i data-lucide="file-diff" class="w-4 h-4 text-emerald-400"></i>
@@ -1317,7 +1312,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- MODAL: OPEN FOLDER / WORKSPACE PICKER -->
   <!-- ========================================== -->
   <div id="open-folder-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-amber-500/40 shadow-2xl space-y-4 p-6">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-amber-500/40 shadow-2xl space-y-4 p-6">
       <div class="flex items-center justify-between border-b bd pb-3">
         <div class="flex items-center gap-2.5">
           <i data-lucide="folder-open" class="w-5 h-5 text-amber-400"></i>
@@ -1362,7 +1357,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- MODAL: OPEN FILE PICKER -->
   <!-- ========================================== -->
   <div id="open-file-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-emerald-500/40 shadow-2xl space-y-4 p-6">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-emerald-500/40 shadow-2xl space-y-4 p-6">
       <div class="flex items-center justify-between border-b bd pb-3">
         <div class="flex items-center gap-2.5">
           <i data-lucide="file-code" class="w-5 h-5 text-emerald-400"></i>
@@ -1411,7 +1406,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- MODAL: OPEN FOLDER / WORKSPACE PICKER -->
   <!-- ========================================== -->
   <div id="open-folder-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-amber-500/40 shadow-2xl space-y-4 p-6">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-amber-500/40 shadow-2xl space-y-4 p-6">
       <div class="flex items-center justify-between border-b bd pb-3">
         <div class="flex items-center gap-2.5">
           <i data-lucide="folder-open" class="w-5 h-5 text-amber-400"></i>
@@ -1456,7 +1451,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- MODAL: OPEN FILE PICKER -->
   <!-- ========================================== -->
   <div id="open-file-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-emerald-500/40 shadow-2xl space-y-4 p-6">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-emerald-500/40 shadow-2xl space-y-4 p-6">
       <div class="flex items-center justify-between border-b bd pb-3">
         <div class="flex items-center gap-2.5">
           <i data-lucide="file-code" class="w-5 h-5 text-emerald-400"></i>
@@ -1504,7 +1499,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- ========================================== -->
   <!-- DRAWER: TERMINAL LOGS OVERLAY -->
   <!-- ========================================== -->
-  <div id="terminal-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-[#0c0d12] border-l bd z-50 transform translate-x-full transition-transform duration-200 ease-out flex flex-col shadow-2xl">
+  <div id="terminal-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-[#020204] border-l bd z-50 transform translate-x-full transition-transform duration-200 ease-out flex flex-col shadow-2xl">
     <div class="h-14 border-b bd flex items-center justify-between px-5 bg-black/50 shrink-0">
       <div class="flex items-center gap-2">
         <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
@@ -1518,7 +1513,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         </button>
       </div>
     </div>
-    <div id="terminal-stdout-container" class="flex-1 p-4 font-mono text-xs text-zinc-300 overflow-y-auto space-y-1.5 select-text custom-scroll bg-[#08080a]">
+    <div id="terminal-stdout-container" class="flex-1 p-4 font-mono text-xs text-zinc-300 overflow-y-auto space-y-1.5 select-text custom-scroll bg-[#000000]">
       <div class="text-zinc-500">[INIT] Consola de ejecución soberana lista. Aguardando procesos...</div>
     </div>
   </div>
@@ -1526,7 +1521,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- ========================================== -->
   <!-- DRAWER: SETTINGS & TOOLCHAIN OVERVIEW -->
   <!-- ========================================== -->
-  <div id="settings-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-[#0e0f14] border-l bd z-50 transform translate-x-full transition-transform duration-200 ease-out flex flex-col shadow-2xl">
+  <div id="settings-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-[#030305] border-l bd z-50 transform translate-x-full transition-transform duration-200 ease-out flex flex-col shadow-2xl">
     <div class="h-16 border-b bd flex items-center justify-between px-5 bg-black/40 shrink-0">
       <div class="flex items-center gap-2">
         <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i>
@@ -1635,7 +1630,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       if (!container) return;
       const toast = document.createElement('div');
       const borderCol = type === 'success' ? 'border-emerald-500 bg-emerald-950/90 text-emerald-200' :
-                        type === 'error' ? 'border-red-500 bg-red-950/90 text-red-200' : 'border-zinc-600 bg-[#161822] text-zinc-100';
+                        type === 'error' ? 'border-red-500 bg-red-950/90 text-red-200' : 'border-zinc-600 bg-[#040406] text-zinc-100';
       toast.className = `p-4 rounded-xl border ${borderCol} shadow-2xl text-xs font-semibold flex items-center gap-3 pointer-events-auto toast-animate min-w-[280px]`;
       toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle-2' : type === 'error' ? 'alert-triangle' : 'info'}" class="w-5 h-5 shrink-0 ${type === 'success' ? 'text-emerald-400' : type === 'error' ? 'text-red-400' : 'text-blue-400'}"></i><span>${msg}</span>`;
       container.appendChild(toast);
@@ -2506,7 +2501,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         }
 
         msgDiv.innerHTML = `
-          <div class="p-4 rounded-xl bg-[#14151c] border bd text-xs text-zinc-200 space-y-1.5">
+          <div class="p-4 rounded-xl bg-[#030305] border bd text-xs text-zinc-200 space-y-1.5">
             <div class="flex items-center gap-1.5 mono text-[10px] text-zinc-500 font-semibold">
               <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
               <span>OUTPUT</span>
@@ -2991,7 +2986,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
           const lines = data.content.split(String.fromCharCode(10));
           bodyEl.innerHTML = `
-            <div class="flex text-xs font-mono select-text bg-[#08080b]">
+            <div class="flex text-xs font-mono select-text bg-[#000000]">
               <div class="pr-3 text-right select-none text-zinc-600 border-r bd py-3 space-y-0.5 min-w-[42px] bg-black/40">
                 ${lines.map((_, i) => `<div>${i + 1}</div>`).join('')}
               </div>
