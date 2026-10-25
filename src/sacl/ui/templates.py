@@ -959,7 +959,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           <input type="text" id="chat-input" placeholder="Escribe un comando o selecciona una acción rápida..."
             class="flex-1 bg-transparent px-2 py-1 text-xs mono text-white placeholder-zinc-500 focus:outline-none"
             onkeydown="handleChatKeyDown(event)">
-          <button id="chat-send-btn" type="submit" class="btn btn-primary text-xs px-4 py-2 shrink-0 mono">
+          <button id="chat-send-btn" type="button" onclick="sendChatMessage()" class="btn btn-primary text-xs px-4 py-2 shrink-0 mono cursor-pointer">
             <span>Ejecutar ↵</span>
           </button>
         </form>
@@ -1130,7 +1130,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   </div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
-  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
 
   <!-- JAVASCRIPT APPLICATION CORE -->
   <script>
@@ -1279,6 +1279,10 @@ HTML_APPLICATION = """<!DOCTYPE html>
     window.checkDbIntegrity = checkDbIntegrity;
 
     async function viewTableRows(tableName) {
+      if (currentSection !== 'database') {
+        switchSection('database');
+      }
+
       const headersEl = document.getElementById('db-table-headers');
       const bodyEl = document.getElementById('db-table-body');
       const countEl = document.getElementById('db-table-active-count');
@@ -1415,8 +1419,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
     window.quickApproveFromCard = quickApproveFromCard;
 
     async function quickRejectFromCard() {
-      const reason = prompt('Motivo de rechazo de compuerta:') || 'Rechazado por operador soberano';
       const reqId = currentGateRequestId;
+      const gateCard = document.getElementById('active-gate-container');
+      const gatesTabCard = document.getElementById('gates-tab-card-container');
+      showToast(`Rechazando compuerta ${reqId} en SQLite WAL...`, 'info');
+
       try {
         const res = await fetch(`${API_BASE}/api/gates/decide`, {
           method: 'POST',
@@ -1424,14 +1431,44 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({
             request_id: reqId,
             decision: 'REJECTED',
-            justification: reason
+            justification: 'Compuerta rechazada por operador soberano LUCILFER / risejoaquin'
           })
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`Compuerta ${reqId} rechazada y cancelada`, 'error');
+          const rejectHtml = `
+            <div class="p-6 rounded-2xl bg-red-950/40 border border-red-500/50 text-center space-y-3.5 toast-animate">
+              <div class="w-14 h-14 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center mx-auto text-red-400">
+                <i data-lucide="x" class="w-7 h-7 stroke-[3]"></i>
+              </div>
+              <div>
+                <div class="text-xl font-bold text-white mono">DESPLIEGUE RECHAZADO / DETENIDO</div>
+                <div class="text-xs text-red-400 mono mt-1 font-semibold">Compuerta ${reqId} cancelada en SQLite WAL</div>
+              </div>
+              <p class="text-xs text-zinc-300 max-w-md mx-auto leading-relaxed">
+                El pipeline efímero ha sido detenido de forma segura. Se ha registrado el evento de veto en el ledger inmutable.
+              </p>
+              <div class="pt-2 flex flex-wrap justify-center gap-3">
+                <button onclick="createNewGateSim()" class="btn btn-secondary text-xs px-4 py-2">
+                  <i data-lucide="plus" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Crear Nueva Compuerta de Prueba</span>
+                </button>
+                <button onclick="loadDashboardSnapshot()" class="btn btn-primary text-xs px-4 py-2">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5 fill-black"></i>
+                  <span>Refrescar Panel</span>
+                </button>
+              </div>
+            </div>
+          `;
+          if (gateCard) gateCard.innerHTML = rejectHtml;
+          if (gatesTabCard) gatesTabCard.innerHTML = rejectHtml;
+          lucide.createIcons();
+
+          showToast(`✓ Compuerta ${reqId} rechazada con éxito`, 'error');
           loadDashboardSnapshot();
           loadDbDashboard();
+        } else {
+          showToast(`Fallo al rechazar: ${data.message || 'Error'}`, 'error');
         }
       } catch (e) {
         showToast('Error al rechazar: ' + e.message, 'error');
@@ -1582,11 +1619,15 @@ HTML_APPLICATION = """<!DOCTYPE html>
       if (triggerBtn) {
         originalHtml = triggerBtn.innerHTML;
         triggerBtn.disabled = true;
-        triggerBtn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>...</span>';
+        triggerBtn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Ejecutando...</span>';
         lucide.createIcons();
       }
 
-      appendTerminalLog(`[DISPATCH] Ejecutando acción: ${actionType}...`);
+      // Desplegar terminal en vivo inmediatamente para que el usuario VEA la ejecución real
+      openTerminalDrawer();
+      appendTerminalLog(`========================================`);
+      appendTerminalLog(`[DISPATCH] Lanzando acción: ${actionType.toUpperCase()}`);
+      appendTerminalLog(`[TIMESTAMP] ${new Date().toLocaleTimeString()} | Operador: LUCILFER / risejoaquin`);
       showToast(`Iniciando ${actionType}...`, 'info');
 
       try {
@@ -1598,15 +1639,26 @@ HTML_APPLICATION = """<!DOCTYPE html>
         const data = await res.json();
         if (data.success && data.execution) {
           const exec = data.execution;
-          showToast(`${exec.title}: ${exec.status} (${exec.duration_sec}s)`, 'success');
-          appendTerminalLog(`[COMPLETE] ${exec.title} terminado en ${exec.duration_sec}s con salida ${exec.exit_code}`);
+          showToast(`✓ ${exec.title}: COMPLETADO (Exit ${exec.exit_code})`, 'success');
+          appendTerminalLog(`[EXIT_0] ${exec.title} completado en ${exec.duration_sec}s`);
           (exec.logs || []).forEach(l => appendTerminalLog(l));
           loadActionHistory();
           loadDashboardSnapshot();
           loadDbDashboard();
+
+          if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span class="text-emerald-400 font-bold">¡Ejecutado!</span>';
+            lucide.createIcons();
+            setTimeout(() => {
+              triggerBtn.innerHTML = originalHtml;
+              lucide.createIcons();
+            }, 3000);
+            return exec;
+          }
           return exec;
         } else {
-          showToast(`Error al ejecutar ${actionType}`, 'error');
+          showToast(`Error al ejecutar ${actionType}: ${data.error || 'Fallo'}`, 'error');
           appendTerminalLog(`[ERROR] ${data.error || 'Fallo desconocido'}`);
         }
       } catch (err) {
@@ -1614,7 +1666,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         showToast(`Fallo de red: ${err.message}`, 'error');
         appendTerminalLog(`[EXCEPTION] ${err.message}`);
       } finally {
-        if (triggerBtn) {
+        if (triggerBtn && !triggerBtn.innerHTML.includes('Ejecutado')) {
           triggerBtn.disabled = false;
           triggerBtn.innerHTML = originalHtml;
           lucide.createIcons();
