@@ -6,7 +6,7 @@ and human approval gate decisions across modular sub-services.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 from pathlib import Path
@@ -117,6 +117,7 @@ class UIService:
             conn = create_connection(self.db_path)
             runner = MigrationRunner(mig_dir)
             runner.apply_all(conn)
+            conn.commit()
 
             if need_seed:
                 now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -141,7 +142,22 @@ class UIService:
                     action="DEPLOY_STAGING_PREVIEW",
                     scope=["services/web-storefront", "railway.json"],
                     reason="Verificar despliegue efimero en Railway antes de merge a main.",
+                    ttl_seconds=86400 * 7,
                 )
+            else:
+                # If existing demo seed gate expired, refresh its TTL so it remains actionable
+                now = datetime.now(timezone.utc)
+                now_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+                future_iso = (now + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                conn.execute(
+                    """
+                    UPDATE approvals
+                    SET expires_at = ?
+                    WHERE job_id = 'JOB-GATE-001' AND status = 'PENDING' AND expires_at < ?
+                    """,
+                    (future_iso, now_iso),
+                )
+                conn.commit()
             conn.close()
 
     def _get_read_only_conn(self) -> Optional[sqlite3.Connection]:

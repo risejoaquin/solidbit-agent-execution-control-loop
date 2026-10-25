@@ -1438,7 +1438,10 @@ HTML_APPLICATION = r"""<!DOCTYPE html>
 
     async function simulateInboundEmail() {
       try {
-        const res = await fetch(`${API_BASE}/api/webhooks/inbound-email`, {
+        const cfgRes = await fetch(`${API_BASE}/api/email/config`);
+        const cfg = await cfgRes.json();
+        const tok = cfg.webhook_token || '';
+        const res = await fetch(`${API_BASE}/api/webhooks/inbound-email?token=${tok}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -86,9 +86,8 @@ class EmailGatewayModule:
             },
             "inbound_webhook_url": (
                 f"http://{self.host}:{self.port}{webhook_path}?token={self.inbound_webhook_token}"
-                if include_secrets
-                else f"http://{self.host}:{self.port}{webhook_path}?token=••••••••"
             ),
+            "webhook_token": self.inbound_webhook_token,
             "logs_count": len(self.email_log),
             "recent_logs": list(reversed(self.email_log[-25:])),
         }

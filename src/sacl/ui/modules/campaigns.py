@@ -103,6 +103,13 @@ class CampaignsModule:
                 now_iso = utc_now()
                 conn.execute(
                     """
+                    INSERT OR IGNORE INTO jobs (job_id, status, priority, created_at, updated_at)
+                    VALUES ('JOB-CAMPAIGN-ORCH', 'RUNNING', 1, ?, ?);
+                    """,
+                    (now_iso, now_iso),
+                )
+                conn.execute(
+                    """
                     INSERT INTO runs (
                         run_id, job_id, package_id, project, repository, mode,
                         source_orchestrator, target_repo_path, run_dir, status,

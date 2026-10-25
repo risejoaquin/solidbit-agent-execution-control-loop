@@ -16,7 +16,7 @@ import sqlite3
 import subprocess
 from typing import Any, Callable, Dict, List, Optional
 
-from sacl.approval.manager import BoundedApprovalManager
+from sacl.approval.manager import BoundedApprovalManager, parse_iso_datetime
 from sacl.approval.models import Approver
 from sacl.ui.models import HumanGateCard
 from sacl.ui.security import sign_gate_token, verify_gate_token
@@ -57,7 +57,23 @@ class GatesModule:
         try:
             mgr = BoundedApprovalManager(db_conn=conn)
             pending_reqs = mgr.list_pending_requests()
+            now = datetime.now(timezone.utc)
+
             for req in pending_reqs:
+                # Mark expired if past TTL
+                try:
+                    exp_dt = parse_iso_datetime(req.expires_at)
+                    if now > exp_dt:
+                        rw_conn = self._get_rw_conn()
+                        try:
+                            rw_conn.execute("UPDATE approvals SET status = 'EXPIRED' WHERE request_id = ?", (req.request_id,))
+                            rw_conn.commit()
+                        finally:
+                            rw_conn.close()
+                        continue
+                except Exception:
+                    pass
+
                 risk = "HIGH" if any(x in req.action for x in ("DEPLOY", "MERGE", "RULESET")) else "MEDIUM"
                 scope_str = ", ".join(req.scope) if isinstance(req.scope, list) else str(req.scope)
                 gates.append(
