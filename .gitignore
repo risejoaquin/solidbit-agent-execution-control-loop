@@ -87,3 +87,5 @@ worktrees/
 
 .sacl_ui_secret
 src/.sacl_ui_secret
+
+scratch/

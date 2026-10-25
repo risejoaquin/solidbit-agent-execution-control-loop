@@ -474,9 +474,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             return
 
         # 15. Chat Message & Intent Execution
-        if path == "/api/chat/message":
+        if path in ("/api/chat", "/api/chat/message"):
             prompt = body.get("prompt", "")
-            model_id = body.get("model_id")
+            model_id = body.get("model_id") or body.get("model")
             res = self.service.chat.post_message(prompt, model_id=model_id)
             broadcast_sse("chat_message", res)
             self._send_json(200, res)

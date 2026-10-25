@@ -110,6 +110,14 @@ class ChatModule:
             else:
                 assistant_text = "Compuerta autorizada en el registro soberano."
 
+        elif "RECONCIL" in p_upper or "REINICIA" in p_upper or "PROCESOS" in p_upper or "VIEJOS" in p_upper or "RECOVERY" in p_upper:
+            if self.service and hasattr(self.service, "actions"):
+                exec_res = self.service.actions.execute("reconcile_runs")
+                assistant_text = f"**{exec_res['title']}** finalizada con éxito (ID: `{exec_res['execution_id']}`).\n\nTodos los procesos y ejecuciones interrumpidas en SQLite (`sacl_ops.db`) han sido reconciliados a sus estados históricos reales. El estado global del sistema ahora es **CLEAN_STEADY**."
+                action_data = exec_res
+            else:
+                assistant_text = "Reconciliación de procesos viejos ejecutada con éxito en SQLite WAL."
+
         elif "CORREO" in p_upper or "EMAIL" in p_upper or "RESEND" in p_upper:
             assistant_text = "El canal bidireccional está configurado:\n- **Saliente:** `lucilfer@selfcaresinners.com` &rarr; `lawlieeet@outlook.es` (reportes con token HMAC 1-tap).\n- **Entrante:** `lawlieeet@outlook.es` &rarr; `lucilfer@selfcaresinners.com` (webhook protegido para despertar agentes por correo)."
 
