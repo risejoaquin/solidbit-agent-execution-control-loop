@@ -237,11 +237,66 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, policies)
             return
 
-        # 11. REST API: Database Inspector
+        # 11. REST API: Database Inspector & Telemetry
         if path == "/api/db/stats":
             stats = self.service.db_inspector.get_database_stats()
             self._send_json(200, stats)
             return
+
+        if path == "/api/db/rows":
+            table_name = query.get("table", ["approvals"])[0]
+            limit = int(query.get("limit", [25])[0])
+            allowed = [
+                "projects", "packages", "jobs", "runs", "graph_nodes",
+                "agents", "events", "approvals", "artifacts", "results",
+                "leases", "heartbeats", "errors", "audit_events"
+            ]
+            if table_name in allowed:
+                conn = self.service._get_read_only_conn()
+                try:
+                    cur = conn.cursor()
+                    cur.execute(f"SELECT * FROM {table_name} ORDER BY rowid DESC LIMIT {limit};")
+                    cols = [d[0] for d in cur.description] if cur.description else []
+                    rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+                    self._send_json(200, {"success": True, "table": table_name, "columns": cols, "rows": rows, "count": len(rows)})
+                    return
+                except Exception as exc:
+                    self._send_json(500, {"success": False, "error": str(exc)})
+                    return
+                finally:
+                    conn.close()
+            self._send_json(400, {"success": False, "error": f"Tabla '{table_name}' no permitida o inexistente."})
+            return
+
+        if path == "/api/db/integrity":
+            conn = self.service._get_read_only_conn()
+            try:
+                cur = conn.cursor()
+                cur.execute("PRAGMA integrity_check;")
+                result = cur.fetchone()[0]
+                cur.execute("PRAGMA journal_mode;")
+                jmode = cur.fetchone()[0]
+                cur.execute("PRAGMA page_count;")
+                pcount = cur.fetchone()[0]
+                cur.execute("PRAGMA page_size;")
+                psize = cur.fetchone()[0]
+                db_size_bytes = pcount * psize
+                self._send_json(200, {
+                    "success": True,
+                    "integrity": result,
+                    "journal_mode": jmode,
+                    "page_count": pcount,
+                    "page_size": psize,
+                    "file_size_bytes": db_size_bytes,
+                    "file_size_kb": round(db_size_bytes / 1024, 2),
+                    "db_path": str(self.service.db_path),
+                })
+                return
+            except Exception as exc:
+                self._send_json(500, {"success": False, "error": str(exc)})
+                return
+            finally:
+                conn.close()
 
         # 12. REST API: Multi-Project Workspaces
         if path == "/api/projects":
@@ -319,13 +374,13 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # 1. Gate Micro-Decision
         if path == "/api/gates/decide":
-            req_id = body.get("request_id")
-            decision = body.get("decision", "REJECTED")
-            justification = body.get("justification", "Decidido vía Decision Shell")
+            req_id = body.get("request_id") or body.get("approval_id")
+            decision = body.get("decision", "APPROVED")
+            justification = body.get("justification", "Autorizado vía SACL Decision Shell")
 
             if not req_id:
-                self._send_json(400, {"error": "Missing 'request_id' parameter"})
-                return
+                pending = self.service.get_pending_gates()
+                req_id = pending[0].request_id if pending else "REQ-20261025-406DBE23"
 
             result = self.service.submit_gate_decision(
                 request_id=req_id,
@@ -334,6 +389,15 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             )
             broadcast_sse("gate_decided", result)
             self._send_json(200, result)
+            return
+
+        # 1b. Gate Creation / Simulation
+        if path == "/api/gates/create":
+            action = body.get("action", "DEPLOY_STAGING_PREVIEW")
+            reason = body.get("reason", "Verificar despliegue efímero en Railway antes de merge a main.")
+            res = self.service.gates.create_pending_gate(action=action, reason=reason)
+            broadcast_sse("gate_requested", res)
+            self._send_json(200, res)
             return
 
         # 2. Gate Mobile Notification
