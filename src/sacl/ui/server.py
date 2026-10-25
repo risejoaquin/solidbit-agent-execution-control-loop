@@ -284,6 +284,11 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"history": self.service.chat.get_history()})
             return
 
+        # 19. REST API: Action Execution History
+        if path == "/api/actions/history":
+            self._send_json(200, {"history": self.service.actions.get_history()})
+            return
+
         # 404
         self._send_json(404, {"error": "Not Found", "path": path})
 
@@ -481,6 +486,15 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/chat/clear":
             res = self.service.chat.clear_history()
             broadcast_sse("chat_cleared", res)
+            self._send_json(200, res)
+            return
+
+        # 17. Live SDLC & Action Execution Engine
+        if path == "/api/actions/execute":
+            action_type = body.get("action_type", "test_suite")
+            params = body.get("params", {})
+            res = self.service.actions.execute(action_type, params=params)
+            broadcast_sse("action_executed", res)
             self._send_json(200, res)
             return
 
