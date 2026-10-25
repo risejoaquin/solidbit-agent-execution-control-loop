@@ -129,9 +129,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             return
 
         # 4. REST API: Human Decision Gates
-        if path == "/api/gates":
+        if path in ("/api/gates", "/api/gates/pending"):
             gates = [g.to_dict() for g in self.service.get_pending_gates()]
-            self._send_json(200, {"gates": gates, "count": len(gates)})
+            self._send_json(200, {"gates": gates, "pending_gates": gates, "count": len(gates)})
             return
 
         if path == "/api/gates/impact":
