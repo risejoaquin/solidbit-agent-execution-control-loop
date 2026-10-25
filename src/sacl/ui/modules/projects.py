@@ -54,15 +54,105 @@ class ProjectsModule:
         self.projects = list(self.DEFAULT_PROJECTS)
         self.active_project_id = default_id
 
+    def scan_local_projects(self, search_roots: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """Scans local directories for git repositories and projects with documentation and SDLC scripts."""
+        roots = [Path(r) for r in search_roots] if search_roots else [
+            Path.home() / "Documents",
+            Path.home() / "Desktop",
+        ]
+        scanned: List[Dict[str, Any]] = []
+
+        for root in roots:
+            if not root.exists():
+                continue
+            for item in root.iterdir():
+                if not item.is_dir() or item.name.startswith(".") or "node_modules" in item.name:
+                    continue
+                has_git = (item / ".git").exists()
+                has_pkg = (item / "package.json").exists()
+                has_py = (item / "pyproject.toml").exists() or any(item.glob("*.py"))
+                has_manifest = (item / "MANIFEST.json").exists()
+                has_docs = (item / "docs").exists() or any(item.glob("*.md"))
+
+                # Filter out system or non-code folders
+                skip_names = {"Eden Emulador", "Obsidian Vault", "Fortinait", "POR TERMINAR", "Music", "Pictures", "Videos"}
+                if item.name in skip_names:
+                    continue
+
+                if has_git or has_pkg or has_py or has_manifest or has_docs:
+                    # Detect documentation files
+                    docs_list = []
+                    for doc_file in item.glob("*.md"):
+                        docs_list.append({"name": doc_file.name, "path": str(doc_file), "type": "root_doc"})
+                    if (item / "docs").exists():
+                        for doc_file in (item / "docs").glob("*.md"):
+                            docs_list.append({"name": f"docs/{doc_file.name}", "path": str(doc_file), "type": "arch_doc"})
+                    if (item / "docs" / "architecture").exists():
+                        for doc_file in (item / "docs" / "architecture").glob("*.md"):
+                            docs_list.append({"name": f"architecture/{doc_file.name}", "path": str(doc_file), "type": "deep_spec"})
+
+                    # Detect SDLC Automations (Scripts)
+                    automations = []
+                    for script in item.glob("*.ps1"):
+                        automations.append({"name": script.name, "path": str(script), "type": "powershell_runner"})
+                    for script in item.glob("*.sh"):
+                        automations.append({"name": script.name, "path": str(script), "type": "bash_runner"})
+                    if (item / "scripts").exists():
+                        for script in (item / "scripts").glob("*.ps1"):
+                            automations.append({"name": f"scripts/{script.name}", "path": str(script), "type": "powershell_runner"})
+                        for script in (item / "scripts").glob("*.py"):
+                            automations.append({"name": f"scripts/{script.name}", "path": str(script), "type": "python_runner"})
+
+                    # Tech stack detection
+                    tech = []
+                    if (item / "package.json").exists(): tech.append("Node.js")
+                    if (item / "tsconfig.json").exists(): tech.append("TypeScript")
+                    if (item / "next.config.js").exists() or (item / "next.config.mjs").exists(): tech.append("Next.js")
+                    if has_py: tech.append("Python")
+                    if (item / "railway.json").exists() or (item / "railway.toml").exists(): tech.append("Railway")
+                    if (item / "supabase").exists(): tech.append("Supabase")
+                    if (item / "docker-compose.yml").exists() or (item / "Dockerfile").exists(): tech.append("Docker")
+                    if not tech: tech = ["SDLC Sovereign Project"]
+
+                    p_id = item.name.lower().replace(" ", "-")
+                    scanned.append({
+                        "id": p_id,
+                        "name": item.name,
+                        "description": f"Proyecto detectado en {item.parent.name} con {len(docs_list)} documentos y {len(automations)} scripts SDLC.",
+                        "path": str(item),
+                        "tech_stack": tech,
+                        "status": "DETECTED",
+                        "branch": "main",
+                        "readiness": 90 if has_git and docs_list else 80,
+                        "is_active": (p_id == self.active_project_id),
+                        "exists_on_disk": True,
+                        "documentation": docs_list[:8],
+                        "docs_count": len(docs_list),
+                        "automations": automations[:8],
+                        "automations_count": len(automations),
+                    })
+        return scanned
+
     def list_projects(self) -> List[Dict[str, Any]]:
-        """Returns all registered projects with active flag."""
-        out = []
+        """Returns all registered and locally scanned projects with documentation and automations."""
+        scanned = self.scan_local_projects()
+        scanned_ids = {p["id"] for p in scanned}
+        
+        # Include default blueprints if not already scanned
+        out = list(scanned)
         for p in self.projects:
-            item = dict(p)
-            item["is_active"] = (p["id"] == self.active_project_id)
-            p_path = Path(p["path"])
-            item["exists_on_disk"] = p_path.exists()
-            out.append(item)
+            if p["id"] not in scanned_ids:
+                item = dict(p)
+                item["is_active"] = (p["id"] == self.active_project_id)
+                item["exists_on_disk"] = Path(p["path"]).exists()
+                item["documentation"] = []
+                item["automations"] = []
+                out.append(item)
+
+        # Ensure active project is marked
+        for item in out:
+            item["is_active"] = (item["id"] == self.active_project_id)
+
         return out
 
     def get_active_project(self) -> Dict[str, Any]:
