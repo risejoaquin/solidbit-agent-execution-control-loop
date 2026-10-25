@@ -71,7 +71,32 @@ class ConnectionsModule:
         }
 
     def open_browser_auth(self, tool_id: str) -> Dict[str, Any]:
-        """Opens the official authentication portal / token page in the user's default browser."""
+        """Opens the official authentication portal or triggers native CLI browser OAuth."""
+        # Check if tool has native CLI browser login
+        if tool_id == "railway" and shutil.which("railway"):
+            try:
+                # Trigger native Railway CLI browser login
+                subprocess.Popen(["railway", "login", "--browser"], shell=True)
+                return {
+                    "success": True,
+                    "tool_id": tool_id,
+                    "browser_opened": True,
+                    "message": "Comando 'railway login' ejecutado. Se abrió el navegador para autorizar la sesión local.",
+                }
+            except Exception as exc:
+                logger.warning(f"Error launching railway login: {exc}")
+
+        if tool_id == "gh" and shutil.which("gh"):
+            # If already logged in, inform the user
+            r = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, shell=True)
+            if r.returncode == 0:
+                return {
+                    "success": True,
+                    "tool_id": tool_id,
+                    "browser_opened": False,
+                    "message": "GitHub CLI ya cuenta con una sesión local activa en el Keyring de Windows.",
+                }
+
         url = self.AUTH_URLS.get(tool_id)
         if not url:
             return {
@@ -91,7 +116,7 @@ class ConnectionsModule:
             "tool_id": tool_id,
             "browser_opened": opened,
             "auth_url": url,
-            "message": f"Navegador abierto en {url}. Complete la autorización y guarde el token.",
+            "message": f"Navegador abierto en {url}. Autorice el acceso para su sesión.",
         }
 
     def authenticate_e2e(self, tool_id: str, credentials: Optional[Dict[str, str]] = None, open_browser: bool = False) -> Dict[str, Any]:
@@ -288,19 +313,26 @@ class ConnectionsModule:
                 category=category,
                 status=ConnectionState.CONNECTED if has_key else ConnectionState.CONNECTED,
                 version="API v1 (Resend)",
-                account_info="Operacional" if has_key else "Modo Simulado / Sandbox",
+                account_info="Operacional (API Key detectada)" if has_key else "Modo Simulado / Sandbox",
                 last_checked=utc_now(),
             )
 
         bin_name = cmd[0]
         bin_path = shutil.which(bin_name)
+        
+        # Fallback check for npx-based CLI tools (like supabase)
+        if not bin_path and tool_id == "supabase" and shutil.which("npx"):
+            bin_name = "npx"
+            bin_path = shutil.which("npx")
+            cmd = ["npx", "-y", "supabase", "--version"]
+
         if not bin_path:
             return TechnologyConnection(
                 id=tool_id,
                 name=name,
                 category=category,
                 status=ConnectionState.DISCONNECTED,
-                error_message=f"Ejecutable '{bin_name}' no encontrado en PATH",
+                error_message=f"Ejecutable '{cmd[0]}' no encontrado en PATH",
                 last_checked=utc_now(),
             )
 
@@ -310,18 +342,61 @@ class ConnectionsModule:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                timeout=2.0,
+                timeout=4.0,
                 shell=True,
             )
             if proc.returncode == 0:
                 ver_line = proc.stdout.strip().split("\n")[0]
+                account_info = "Listo"
+
+                # Smart inspection of active local OS/CLI sessions
+                if tool_id == "git":
+                    try:
+                        r_name = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True, timeout=2.0)
+                        r_email = subprocess.run(["git", "config", "user.email"], capture_output=True, text=True, timeout=2.0)
+                        name_str = r_name.stdout.strip()
+                        email_str = r_email.stdout.strip()
+                        if email_str:
+                            account_info = f"Sesión Local: {name_str} <{email_str}>"
+                    except Exception:
+                        pass
+
+                elif tool_id == "gh":
+                    try:
+                        r_gh = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, shell=True, timeout=3.0)
+                        combined = r_gh.stdout + "\n" + r_gh.stderr
+                        if "Logged in to" in combined or "account" in combined:
+                            for line in combined.splitlines():
+                                if "Logged in to" in line or "account" in line:
+                                    account_info = f"Sesión Activa: {line.strip()}"
+                                    break
+                            # Auto-export token to GITHUB_TOKEN if not already set
+                            if not os.environ.get("GITHUB_TOKEN"):
+                                r_tok = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, shell=True, timeout=2.0)
+                                token_val = r_tok.stdout.strip()
+                                if token_val:
+                                    os.environ["GITHUB_TOKEN"] = token_val
+                    except Exception:
+                        pass
+
+                elif tool_id == "railway":
+                    try:
+                        r_rw = subprocess.run(["railway", "whoami"], capture_output=True, text=True, shell=True, timeout=3.0)
+                        out_rw = r_rw.stdout.strip()
+                        if r_rw.returncode == 0 and "Logged in as" in out_rw:
+                            account_info = f"Sesión Activa: {out_rw}"
+                        else:
+                            account_info = "Sesión CLI local (requiere refrescar con 'railway login')"
+                    except Exception:
+                        pass
+
                 return TechnologyConnection(
                     id=tool_id,
                     name=name,
                     category=category,
                     status=ConnectionState.CONNECTED,
                     version=ver_line[:60],
-                    account_info="Listo",
+                    account_info=account_info,
                     last_checked=utc_now(),
                 )
             else:
