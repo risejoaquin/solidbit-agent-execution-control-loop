@@ -254,6 +254,21 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if path == "/api/projects/doc":
+            doc_path_param = query.get("path", [None])[0]
+            if doc_path_param:
+                p = Path(doc_path_param)
+                if p.exists() and p.is_file() and p.suffix.lower() in (".md", ".json", ".txt", ".yaml", ".yml", ".py", ".ts"):
+                    try:
+                        content = p.read_text(encoding="utf-8", errors="replace")[:25000]
+                        self._send_json(200, {"success": True, "name": p.name, "path": str(p), "content": content})
+                        return
+                    except Exception as e:
+                        self._send_json(500, {"success": False, "error": str(e)})
+                        return
+            self._send_json(404, {"success": False, "error": "Documento no accesible o no encontrado"})
+            return
+
         # 13. REST API: AI Model Selector & Parameters
         if path == "/api/model/config":
             self._send_json(200, self.service.models.get_config())
