@@ -283,6 +283,144 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <!-- ========================================== -->
     <div id="sec-dashboard" class="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
 
+      <!-- ==================== ECOSYSTEM PROJECT SWITCHER (CENTRO UNIFICADO) ==================== -->
+      <div class="section-canvas p-4 md:p-5 bg-black border border-white/10 rounded-2xl space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="folder-git-2" class="w-5 h-5 text-white"></i>
+            <div>
+              <h2 class="text-sm font-bold text-white tracking-wide">Espacios de Trabajo del Ecosistema SolidBit</h2>
+              <p class="text-xs text-zinc-400">Selecciona el repositorio activo para gestionar codigo, compuertas y herramientas</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] mono px-2.5 py-1 rounded-full bg-white/10 text-white font-semibold flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Workspace Activo
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration', 'Stable-Ecommerce (Integration)')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-emerald-500/40 hover:border-emerald-400 text-left transition-all flex items-center justify-between group">
+            <div class="space-y-0.5 truncate">
+              <div class="text-xs font-bold text-white group-hover:text-emerald-300 flex items-center gap-1.5">
+                <i data-lucide="git-pull-request" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span class="truncate">Stable-Ecommerce</span>
+              </div>
+              <div class="text-[10px] text-zinc-400 mono">worktrees/integration</div>
+            </div>
+            <span class="text-[10px] mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-400/10">ACTIVO</span>
+          </button>
+
+          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/FULL-METAL-CASH', 'FULL-METAL-CASH')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
+            <div class="space-y-0.5 truncate">
+              <div class="text-xs font-bold text-white group-hover:text-blue-300 flex items-center gap-1.5">
+                <i data-lucide="credit-card" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span class="truncate">FULL-METAL-CASH</span>
+              </div>
+              <div class="text-[10px] text-zinc-400 mono">Pasarela Pagos & Ledgers</div>
+            </div>
+            <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
+          </button>
+
+          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/POS', 'SolidPOS')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
+            <div class="space-y-0.5 truncate">
+              <div class="text-xs font-bold text-white group-hover:text-amber-300 flex items-center gap-1.5">
+                <i data-lucide="store" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="truncate">SolidPOS (Punto de Venta)</span>
+              </div>
+              <div class="text-[10px] text-zinc-400 mono">Punto Venta & Offline POS</div>
+            </div>
+            <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
+          </button>
+
+          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop', 'SACL Core Engine')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
+            <div class="space-y-0.5 truncate">
+              <div class="text-xs font-bold text-white group-hover:text-purple-300 flex items-center gap-1.5">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span class="truncate">SACL Core Engine</span>
+              </div>
+              <div class="text-[10px] text-zinc-400 mono">risejoaquin/solidbit-sacl</div>
+            </div>
+            <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== CICLO DE EJECUCION MULTI-AGENTE 2026 (ROLES POR FASE) ==================== -->
+      <div class="section-canvas p-4 md:p-6 bg-black border border-white/10 rounded-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+            <div>
+              <h2 class="text-sm font-bold text-white tracking-wide">Ciclo de Ejecucion Multi-Agente 2026 &bull; Roles por Fase</h2>
+              <p class="text-xs text-zinc-400">Arquitectura de 4 capas inspirada en frameworks de estado y suspension HITL</p>
+            </div>
+          </div>
+          <span class="text-[10px] mono px-2.5 py-1 rounded bg-white/10 text-white font-semibold">DAG ACICLICO ACTIVO</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- Fase 1: Architect Agent -->
+          <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Fase 1</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="text-xs font-bold text-white">Architect Agent</div>
+            <div class="text-[11px] text-zinc-400 leading-relaxed">Valida contratos DR-INV-001, DR-PAY-001 y OpenAPI. Enforces Hard Deny pre-ejecucion.</div>
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
+              <span>Skill: spec-enforcer</span>
+              <span class="text-emerald-400 font-bold">VERIFIED</span>
+            </div>
+          </div>
+
+          <!-- Fase 2: Senior Coder -->
+          <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fase 2</span>
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            </div>
+            <div class="text-xs font-bold text-white">Senior Coder (AGY)</div>
+            <div class="text-[11px] text-zinc-400 leading-relaxed">Confinado en Git Worktrees efimeros (wt-*). Ejecuta agy.exe sin riesgo de dirty-root.</div>
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
+              <span>Skill: worktree-coder</span>
+              <span class="text-amber-400 font-bold">ACTIVE</span>
+            </div>
+          </div>
+
+          <!-- Fase 3: Independent QA -->
+          <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Fase 3</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="text-xs font-bold text-white">Independent QA</div>
+            <div class="text-[11px] text-zinc-400 leading-relaxed">Auditoria read-only determinista (690 tests). DONE_REVIEW_REQUIRED nunca es PASS.</div>
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
+              <span>Skill: zero-bypass-qa</span>
+              <span class="text-emerald-400 font-bold">PASSED</span>
+            </div>
+          </div>
+
+          <!-- Fase 4: Deployment Sentinel -->
+          <div class="p-3.5 rounded-xl bg-white/5 border border-emerald-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Fase 4</span>
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            </div>
+            <div class="text-xs font-bold text-white">Deployment Sentinel</div>
+            <div class="text-[11px] text-zinc-400 leading-relaxed">Suspension HITL (human_gate). Emite token HMAC 15m y notifica por Resend.</div>
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
+              <span>Skill: hitl-sentinel</span>
+              <span class="text-amber-400 font-bold">GATE WAITING</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <!-- HERO STATUS BANNER WITH LIVE PROGRESS PANEL -->
       <div class="section-canvas p-6 md:p-8 relative overflow-hidden bg-gradient-to-br from-[#030305] via-[#030305] to-[#020204]">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
@@ -1020,7 +1158,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <i data-lucide="folder-tree" class="w-6 h-6 text-amber-400"></i>
             <span>Explorador de Archivos, Carpetas & Código Fuente</span>
           </h2>
-          <p class="text-sm text-zinc-400 mt-1">Navega libremente por el árbol de directorios, abre cualquier archivo local e inspecciona su contenido en vivo.</p>
+          <p class="text-sm text-zinc-400 mt-1">Navega libremente por el áarbol de directorios, abre cualquier archivo local e inspecciona su contenido en vivo.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
@@ -1053,7 +1191,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
               class="w-full bg-black/60 border bd rounded-lg px-3 py-1.5 pl-8 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/50">
             <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-2"></i>
           </div>
-          <button onclick="loadFsTree()" class="p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-zinc-300 cursor-pointer" title="Recargar Árbol">
+          <button onclick="loadFsTree()" class="p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-zinc-300 cursor-pointer" title="Recargar Áarbol">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -1102,7 +1240,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
           <!-- File Absolute Path Subbar -->
           <div class="px-4 py-1.5 bg-black/20 border-b bd text-[11px] mono text-zinc-500 truncate" id="code-viewer-path">
-            Haz clic en cualquier archivo del árbol o pulsa "Abrir Archivo" para inspeccionar.
+            Haz clic en cualquier archivo del áarbol o pulsa "Abrir Archivo" para inspeccionar.
           </div>
 
           <!-- Code Display Container -->
@@ -1110,7 +1248,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <div class="py-24 text-center text-zinc-500 mono space-y-2">
               <i data-lucide="file-search" class="w-8 h-8 text-zinc-600 mx-auto"></i>
               <div class="text-xs font-semibold text-zinc-400">Ningún archivo cargado en el visor</div>
-              <p class="text-[11px] text-zinc-600 max-w-sm mx-auto">Haz clic en cualquier elemento del árbol izquierdo (.py, .json, .md, .toml) para abrir su código fuente en vivo.</p>
+              <p class="text-[11px] text-zinc-600 max-w-sm mx-auto">Haz clic en cualquier elemento del áarbol izquierdo (.py, .json, .md, .toml) para abrir su código fuente en vivo.</p>
             </div>
           </div>
         </div>
@@ -3191,6 +3329,32 @@ HTML_APPLICATION = """<!DOCTYPE html>
     // FILE SYSTEM EXPLORER & CODE VIEWER ENGINE (V8)
     // ==========================================
     
+
+  
+    async function switchEcosystemProject(folderPath, projectName) {
+      showToast(`Cambiando espacio de trabajo a ${projectName}...`, 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/fs/open-folder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder: folderPath })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Proyecto activo: ${projectName}`, 'success');
+          // Reload FS tree if on explorer
+          if (typeof loadFsTree === 'function') loadFsTree();
+          // Update indicator if exists
+          const curEl = document.getElementById('fs-current-root-path');
+          if (curEl) curEl.innerText = data.root_path;
+        } else {
+          showToast(`Error al abrir proyecto: ${data.error}`, 'error');
+        }
+      } catch (e) {
+        showToast(`Error de conexion: ${e.message}`, 'error');
+      }
+    }
+    window.switchEcosystemProject = switchEcosystemProject;
 
   </script>
 </body>
