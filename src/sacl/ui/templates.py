@@ -256,6 +256,16 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <span class="hidden sm:inline mono">Terminal Logs</span>
       </button>
 
+            <!-- Open File / Folder Button -->
+      <button onclick="switchSection('projects'); showOpenFolderModal();" class="px-3 py-1.5 rounded-lg border bd bg-white/5 hover:bg-white/10 text-white cursor-pointer flex items-center gap-1.5 text-xs font-medium" title="Abrir Carpeta o Archivo">
+        <i data-lucide="folder-open" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span class="hidden md:inline">Abrir Archivo / Carpeta</span>
+      </button>
+            <!-- Open File / Folder Button -->
+      <button onclick="switchSection('projects'); showOpenFolderModal();" class="px-3 py-1.5 rounded-lg border bd bg-white/5 hover:bg-white/10 text-white cursor-pointer flex items-center gap-1.5 text-xs font-medium" title="Abrir Carpeta o Archivo">
+        <i data-lucide="folder-open" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span class="hidden md:inline">Abrir Archivo / Carpeta</span>
+      </button>
       <!-- Settings Drawer Button -->
       <button onclick="openSettingsDrawer()" class="relative p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-white cursor-pointer" title="Configuración de Sistema">
         <i data-lucide="sliders" class="w-4 h-4"></i>
@@ -1002,44 +1012,126 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <!-- ========================================== -->
     <!-- SECTION 5: REPOSITORIOS & DOCS -->
     <!-- ========================================== -->
+        <!-- ========================================== -->
+    <!-- SECTION 5: EXPLORADOR DE ARCHIVOS & REPOSITORIOS -->
+    <!-- ========================================== -->
+        <!-- ========================================== -->
+    <!-- SECTION 5: EXPLORADOR DE ARCHIVOS & REPOSITORIOS -->
+    <!-- ========================================== -->
     <div id="sec-projects" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <i data-lucide="folder-git-2" class="w-6 h-6 text-emerald-400"></i>
-            <span>Espacios de Trabajo & Repositorios Locales</span>
+            <i data-lucide="folder-tree" class="w-6 h-6 text-amber-400"></i>
+            <span>Explorador de Archivos, Carpetas & Código Fuente</span>
           </h2>
-          <p class="text-sm text-zinc-400 mt-1">Explora repositorios en disco, haz clic en cualquier documentación para inspeccionarla en vivo.</p>
+          <p class="text-sm text-zinc-400 mt-1">Navega libremente por el árbol de directorios, abre cualquier archivo local e inspecciona su contenido en vivo.</p>
         </div>
 
-        <div class="flex items-center gap-2.5 w-full sm:w-auto">
-          <button onclick="toggleMultiSelectMode()" id="btn-toggle-multiselect" class="btn btn-secondary text-xs px-3.5 py-2 shrink-0">
-            <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
-            <span>Selección Lote</span>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="showOpenFolderModal()" class="btn btn-primary text-xs px-3.5 py-2">
+            <i data-lucide="folder-open" class="w-4 h-4 fill-black"></i>
+            <span>Abrir Carpeta (Open Folder)</span>
           </button>
-          <div class="relative flex-1 sm:w-72">
-            <input type="text" id="project-search-input" oninput="filterProjectsList()" placeholder="Filtrar proyectos o docs..."
-              class="w-full bg-black/50 border bd rounded-lg px-3.5 py-2 pl-9 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30">
-            <i data-lucide="search" class="w-4 h-4 text-zinc-500 absolute left-3 top-2.5"></i>
-          </div>
+          <button onclick="showOpenFileModal()" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="file-plus" class="w-4 h-4 text-emerald-400"></i>
+            <span>Abrir Archivo (Open File)</span>
+          </button>
         </div>
       </div>
 
-      <!-- Scanned Projects Container -->
-      <div id="projects-scanned-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+      <!-- WORKSPACE ROOT PATH BANNER -->
+      <div class="section-canvas p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gradient-to-r from-[#12141c] to-[#0d0e12] border-amber-500/25">
+        <div class="flex items-center gap-3 truncate">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+            <i data-lucide="folder" class="w-4 h-4"></i>
+          </div>
+          <div class="truncate">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Carpeta Activa en Disco:</div>
+            <div class="text-xs font-bold mono text-white truncate" id="fs-current-root-path">Cargando carpeta...</div>
+          </div>
+        </div>
 
-      <!-- Active Project Automation Scripts -->
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="relative w-48 sm:w-64">
+            <input type="text" id="fs-search-input" oninput="filterFsTree()" placeholder="Buscar archivo (.py, .json, .md)..."
+              class="w-full bg-black/60 border bd rounded-lg px-3 py-1.5 pl-8 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/50">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-2"></i>
+          </div>
+          <button onclick="loadFsTree()" class="p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-zinc-300 cursor-pointer" title="Recargar Árbol">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- SPLIT VIEW: FILE TREE (LEFT) & CODE VIEWER (RIGHT) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[550px]">
+        
+        <!-- LEFT: FILE DIRECTORY TREE -->
+        <div class="lg:col-span-4 section-canvas p-4 flex flex-col space-y-3 bg-[#0d0e12]">
+          <div class="flex items-center justify-between border-b bd pb-2.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+              <i data-lucide="list-tree" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Estructura de Archivos</span>
+            </span>
+            <span id="fs-tree-item-count" class="mono text-[10px] text-zinc-500">Cargando...</span>
+          </div>
+
+          <div id="fs-tree-container" class="flex-1 overflow-y-auto max-h-[580px] custom-scroll space-y-0.5 pr-1">
+            <div class="py-8 text-center text-zinc-500 text-xs mono">
+              <i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto mb-2"></i>
+              <span>Leyendo directorios...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: CODE & DOCUMENTATION VIEWER -->
+        <div class="lg:col-span-8 section-canvas p-0 flex flex-col bg-[#0a0b0e] overflow-hidden border-zinc-700">
+          <!-- Viewer Top Toolbar -->
+          <div class="h-14 border-b bd flex items-center justify-between px-4 bg-black/40 shrink-0">
+            <div class="flex items-center gap-2.5 truncate">
+              <i data-lucide="file-code" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+              <div class="truncate">
+                <span class="text-xs font-bold text-white mono truncate" id="code-viewer-filename">Selecciona un archivo</span>
+                <span class="text-[10px] text-zinc-500 mono ml-2" id="code-viewer-meta"></span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="copyCodeViewerContent()" class="btn btn-secondary text-xs px-2.5 py-1 flex items-center gap-1.5" title="Copiar Contenido">
+                <i data-lucide="copy" class="w-3.5 h-3.5 text-zinc-400"></i>
+                <span id="code-viewer-copy-btn-text">Copiar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- File Absolute Path Subbar -->
+          <div class="px-4 py-1.5 bg-black/20 border-b bd text-[11px] mono text-zinc-500 truncate" id="code-viewer-path">
+            Haz clic en cualquier archivo del árbol o pulsa "Abrir Archivo" para inspeccionar.
+          </div>
+
+          <!-- Code Display Container -->
+          <div id="code-viewer-content" class="flex-1 overflow-y-auto max-h-[520px] custom-scroll select-text">
+            <div class="py-24 text-center text-zinc-500 mono space-y-2">
+              <i data-lucide="file-search" class="w-8 h-8 text-zinc-600 mx-auto"></i>
+              <div class="text-xs font-semibold text-zinc-400">Ningún archivo cargado en el visor</div>
+              <p class="text-[11px] text-zinc-600 max-w-sm mx-auto">Haz clic en cualquier elemento del árbol izquierdo (.py, .json, .md, .toml) para abrir su código fuente en vivo.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- DETECTED WORKSPACES & AUTOMATIONS (PRESERVED) -->
       <div class="section-canvas p-6 space-y-4">
         <h3 class="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-          <i data-lucide="cpu" class="w-4 h-4 text-purple-400"></i>
-          <span>Scripts de Automatización Detectados en el Espacio Activo</span>
+          <i data-lucide="boxes" class="w-4 h-4 text-purple-400"></i>
+          <span>Espacios de Trabajo Detectados en el Sistema</span>
         </h3>
-        <div id="active-project-automations-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs"></div>
+        <div id="projects-scanned-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- SECTION 6: CONSOLA REPL -->
     <!-- ========================================== -->
     <div id="sec-chat" class="flex flex-col h-[calc(100vh-8.5rem)] md:h-[calc(100vh-5rem)] max-w-5xl mx-auto w-full px-3 md:px-6 pb-2 hidden">
       <div class="flex items-center justify-between py-2.5 border-b bd shrink-0 mb-3">
@@ -1221,6 +1313,194 @@ HTML_APPLICATION = """<!DOCTYPE html>
     </div>
   </div>
 
+    <!-- ========================================== -->
+  <!-- MODAL: OPEN FOLDER / WORKSPACE PICKER -->
+  <!-- ========================================== -->
+  <div id="open-folder-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-amber-500/40 shadow-2xl space-y-4 p-6">
+      <div class="flex items-center justify-between border-b bd pb-3">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="folder-open" class="w-5 h-5 text-amber-400"></i>
+          <h3 class="text-base font-bold text-white mono">Abrir Carpeta (Open Folder)</h3>
+        </div>
+        <button onclick="closeOpenFolderModal()" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Ruta Absoluta de la Carpeta en Disco:</label>
+          <input type="text" id="open-folder-input" class="w-full bg-black/60 border bd rounded-xl p-3 text-white mono text-xs focus:outline-none focus:border-amber-400" placeholder="C:/proyectos/mi-proyecto">
+        </div>
+
+        <div>
+          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Accesos Rápidos a Carpetas Locales:</div>
+          <div class="space-y-1.5">
+            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px] truncate">worktrees/integration (Espacio de Trabajo Activo)</span>
+              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
+            </button>
+            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px] truncate">Stable-Ecommerce-Orchestrator (Raíz de Proyecto)</span>
+              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t bd">
+        <button onclick="closeOpenFolderModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
+        <button onclick="submitOpenFolder()" class="btn btn-primary text-xs px-5 py-2">
+          <span>Abrir Carpeta &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: OPEN FILE PICKER -->
+  <!-- ========================================== -->
+  <div id="open-file-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-emerald-500/40 shadow-2xl space-y-4 p-6">
+      <div class="flex items-center justify-between border-b bd pb-3">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="file-code" class="w-5 h-5 text-emerald-400"></i>
+          <h3 class="text-base font-bold text-white mono">Abrir Archivo (Open File)</h3>
+        </div>
+        <button onclick="closeOpenFileModal()" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Ruta Absoluta del Archivo a Inspeccionar:</label>
+          <input type="text" id="open-file-input" class="w-full bg-black/60 border bd rounded-xl p-3 text-white mono text-xs focus:outline-none focus:border-emerald-400" placeholder="C:/proyectos/pyproject.toml">
+        </div>
+
+        <div>
+          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Archivos Clave Sugeridos:</div>
+          <div class="space-y-1.5">
+            <button onclick="setOpenFilePathPreset('pyproject.toml')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px]">pyproject.toml (Configuración del Paquete)</span>
+              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
+            </button>
+            <button onclick="setOpenFilePathPreset('src/sacl/cli.py')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px]">src/sacl/cli.py (Punto de Entrada CLI)</span>
+              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
+            </button>
+            <button onclick="setOpenFilePathPreset('README.md')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px]">README.md (Documentación de Proyecto)</span>
+              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t bd">
+        <button onclick="closeOpenFileModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
+        <button onclick="submitOpenFile()" class="btn btn-primary text-xs px-5 py-2">
+          <span>Abrir & Inspeccionar &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- ========================================== -->
+  <!-- MODAL: OPEN FOLDER / WORKSPACE PICKER -->
+  <!-- ========================================== -->
+  <div id="open-folder-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-amber-500/40 shadow-2xl space-y-4 p-6">
+      <div class="flex items-center justify-between border-b bd pb-3">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="folder-open" class="w-5 h-5 text-amber-400"></i>
+          <h3 class="text-base font-bold text-white mono">Abrir Carpeta (Open Folder)</h3>
+        </div>
+        <button onclick="closeOpenFolderModal()" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Ruta de Carpeta en Disco:</label>
+          <input type="text" id="open-folder-input" class="w-full bg-black/60 border bd rounded-xl p-3 text-white mono text-xs focus:outline-none focus:border-amber-400" placeholder="C:/Users/mi-proyecto">
+        </div>
+
+        <div>
+          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Accesos Rápidos a Carpetas Locales:</div>
+          <div class="space-y-1.5">
+            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px] truncate">worktrees/integration (Espacio de Trabajo Activo)</span>
+              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
+            </button>
+            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px] truncate">Stable-Ecommerce-Orchestrator (Raíz de Proyecto)</span>
+              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t bd">
+        <button onclick="closeOpenFolderModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
+        <button onclick="submitOpenFolder()" class="btn btn-primary text-xs px-5 py-2">
+          <span>Abrir Carpeta &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: OPEN FILE PICKER -->
+  <!-- ========================================== -->
+  <div id="open-file-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#0e0f14] border-emerald-500/40 shadow-2xl space-y-4 p-6">
+      <div class="flex items-center justify-between border-b bd pb-3">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="file-code" class="w-5 h-5 text-emerald-400"></i>
+          <h3 class="text-base font-bold text-white mono">Abrir Archivo (Open File)</h3>
+        </div>
+        <button onclick="closeOpenFileModal()" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold">Ruta del Archivo a Inspeccionar:</label>
+          <input type="text" id="open-file-input" class="w-full bg-black/60 border bd rounded-xl p-3 text-white mono text-xs focus:outline-none focus:border-emerald-400" placeholder="pyproject.toml o ruta completa">
+        </div>
+
+        <div>
+          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Archivos Clave Sugeridos:</div>
+          <div class="space-y-1.5">
+            <button onclick="setOpenFilePathPreset('pyproject.toml')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px]">pyproject.toml (Configuración del Paquete)</span>
+              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
+            </button>
+            <button onclick="setOpenFilePathPreset('src/sacl/cli.py')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px]">src/sacl/cli.py (Punto de Entrada CLI)</span>
+              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
+            </button>
+            <button onclick="setOpenFilePathPreset('README.md')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+              <span class="mono text-[11px]">README.md (Documentación de Proyecto)</span>
+              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-3 border-t bd">
+        <button onclick="closeOpenFileModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
+        <button onclick="submitOpenFile()" class="btn btn-primary text-xs px-5 py-2">
+          <span>Abrir & Inspeccionar &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========================================== -->
   <!-- DRAWER: TERMINAL LOGS OVERLAY -->
   <!-- ========================================== -->
@@ -1306,7 +1586,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       lucide.createIcons();
       loadDashboardSnapshot(); loadHudEmbeddedTable('approvals'); loadHudEmbeddedTable('approvals');
       loadDbDashboard();
-      loadProjects();
+      loadProjects(); loadFsTree(); loadFsTree();
       loadChatHistory();
       loadActionHistory();
       initSSE();
@@ -2036,7 +2316,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         const data = await res.json();
         if (data.success) {
           showToast(`Espacio de trabajo cambiado a ${data.active.name}`, 'success');
-          loadProjects();
+          loadProjects(); loadFsTree(); loadFsTree();
           loadDashboardSnapshot(); loadHudEmbeddedTable('approvals'); loadHudEmbeddedTable('approvals');
           loadDbDashboard();
         }
@@ -2512,6 +2792,410 @@ HTML_APPLICATION = """<!DOCTYPE html>
       }, 5000);
     }
     window.executeActionWithProgress = executeActionWithProgress;
+
+  
+    // ==========================================
+    // FILE SYSTEM EXPLORER & CODE VIEWER ENGINE (V8)
+    // ==========================================
+    let currentRawFsTree = [];
+    let currentViewedFilePath = '';
+    let currentViewedFileContent = '';
+
+    function showOpenFolderModal() {
+      const modal = document.getElementById('open-folder-modal');
+      const input = document.getElementById('open-folder-input');
+      const curRoot = document.getElementById('fs-current-root-path')?.innerText;
+      if (input && curRoot && curRoot !== 'Cargando carpeta...') {
+        input.value = curRoot;
+      }
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+    window.showOpenFolderModal = showOpenFolderModal;
+
+    function closeOpenFolderModal() {
+      document.getElementById('open-folder-modal')?.classList.add('hidden');
+    }
+    window.closeOpenFolderModal = closeOpenFolderModal;
+
+    function setOpenFolderPreset(path) {
+      const input = document.getElementById('open-folder-input');
+      if (input) input.value = path;
+      submitOpenFolder();
+    }
+    window.setOpenFolderPreset = setOpenFolderPreset;
+
+    async function submitOpenFolder() {
+      const input = document.getElementById('open-folder-input');
+      const folderPath = (input?.value || '').trim();
+      if (!folderPath) return;
+
+      closeOpenFolderModal();
+      showToast(`Abriendo carpeta: ${folderPath}...`, 'info');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/fs/open-folder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder: folderPath })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Carpeta abierta con éxito: ${data.root_name}`, 'success');
+          loadFsTree(data.root_path);
+        } else {
+          showToast(`No se pudo abrir carpeta: ${data.error}`, 'error');
+        }
+      } catch (e) {
+        showToast('Error de conexión al abrir carpeta: ' + e.message, 'error');
+      }
+    }
+    window.submitOpenFolder = submitOpenFolder;
+
+    function showOpenFileModal() {
+      const modal = document.getElementById('open-file-modal');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+    window.showOpenFileModal = showOpenFileModal;
+
+    function closeOpenFileModal() {
+      document.getElementById('open-file-modal')?.classList.add('hidden');
+    }
+    window.closeOpenFileModal = closeOpenFileModal;
+
+    function setOpenFilePathPreset(relPath) {
+      const curRoot = document.getElementById('fs-current-root-path')?.innerText || '';
+      const full = curRoot ? `${curRoot}/${relPath}`.split(String.fromCharCode(92)).join('/') : relPath;
+      const input = document.getElementById('open-file-input');
+      if (input) input.value = full;
+      submitOpenFile();
+    }
+    window.setOpenFilePathPreset = setOpenFilePathPreset;
+
+    function submitOpenFile() {
+      const input = document.getElementById('open-file-input');
+      const filePath = (input?.value || '').trim();
+      if (!filePath) return;
+      closeOpenFileModal();
+      openFsFile(filePath);
+    }
+    window.submitOpenFile = submitOpenFile;
+
+    async function loadFsTree(folder = '') {
+      const container = document.getElementById('fs-tree-container');
+      const rootPathEl = document.getElementById('fs-current-root-path');
+      const countEl = document.getElementById('fs-tree-item-count');
+      if (!container) return;
+
+      container.innerHTML = '<div class="py-8 text-center text-zinc-500 text-xs mono"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto mb-2"></i>Leyendo archivos en disco...</div>';
+      lucide.createIcons();
+
+      try {
+        const url = folder ? `${API_BASE}/api/fs/tree?folder=${encodeURIComponent(folder)}` : `${API_BASE}/api/fs/tree`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success) {
+          currentRawFsTree = data.tree || [];
+          if (rootPathEl) rootPathEl.innerText = data.root_path;
+          if (countEl) countEl.innerText = `${data.items_count} elementos`;
+          container.innerHTML = renderTreeNodes(currentRawFsTree, 0);
+          lucide.createIcons();
+        } else {
+          container.innerHTML = `<div class="p-4 text-center text-red-400 text-xs mono">Error: ${data.error}</div>`;
+        }
+      } catch (e) {
+        container.innerHTML = `<div class="p-4 text-center text-red-400 text-xs mono">Error de red: ${e.message}</div>`;
+      }
+    }
+    window.loadFsTree = loadFsTree;
+
+    function renderTreeNodes(nodes, level = 0) {
+      if (!nodes || nodes.length === 0) return '';
+      return nodes.map((n) => {
+        const pad = level * 14;
+        const nodeId = 'node-' + Math.random().toString(36).substr(2, 9);
+        if (n.is_dir) {
+          return `
+            <div class="tree-item-dir">
+              <div onclick="toggleFsFolder('${nodeId}')" class="flex items-center gap-1.5 py-1 px-2 rounded hover:bg-white/5 cursor-pointer text-xs text-zinc-300 font-medium select-none" style="padding-left: ${pad + 8}px">
+                <i data-lucide="chevron-right" id="arrow-${nodeId}" class="w-3 h-3 text-zinc-500 transition-transform"></i>
+                <i data-lucide="folder" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="truncate">${escapeHtml(n.name)}</span>
+              </div>
+              <div id="${nodeId}" class="hidden space-y-0.5">
+                ${renderTreeNodes(n.children, level + 1)}
+              </div>
+            </div>
+          `;
+        } else {
+          let iconColor = 'text-zinc-400';
+          let iconName = 'file-text';
+          const ext = n.extension;
+          if (ext === '.py') { iconColor = 'text-blue-400'; iconName = 'file-code'; }
+          else if (ext === '.json') { iconColor = 'text-amber-400'; iconName = 'file-json'; }
+          else if (ext === '.md') { iconColor = 'text-emerald-400'; iconName = 'book-open'; }
+          else if (ext === '.toml' || ext === '.yaml' || ext === '.yml') { iconColor = 'text-purple-400'; iconName = 'settings-2'; }
+          else if (ext === '.sh' || ext === '.bat' || ext === '.ps1') { iconColor = 'text-rose-400'; iconName = 'terminal'; }
+
+          const safePath = escapeHtml(n.path).split(String.fromCharCode(92)).join('/');
+          return `
+            <div onclick="openFsFile('${safePath}', this)" class="fs-file-pill flex items-center justify-between py-1 px-2 rounded hover:bg-white/10 cursor-pointer text-xs text-zinc-300 group select-none" style="padding-left: ${pad + 20}px">
+              <div class="flex items-center gap-1.5 truncate">
+                <i data-lucide="${iconName}" class="w-3.5 h-3.5 ${iconColor} shrink-0"></i>
+                <span class="truncate">${escapeHtml(n.name)}</span>
+              </div>
+              <span class="text-[10px] text-zinc-600 group-hover:text-zinc-400 mono shrink-0">${(n.size_bytes / 1024).toFixed(1)}k</span>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    function toggleFsFolder(nodeId) {
+      const el = document.getElementById(nodeId);
+      const arrow = document.getElementById('arrow-' + nodeId);
+      if (!el) return;
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (arrow) arrow.style.transform = 'rotate(90deg)';
+      } else {
+        el.classList.add('hidden');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
+    }
+    window.toggleFsFolder = toggleFsFolder;
+
+    async function openFsFile(filePath, el = null) {
+      document.querySelectorAll('.fs-file-pill').forEach(p => p.classList.remove('bg-emerald-500/10', 'text-emerald-300', 'font-semibold'));
+      if (el) el.classList.add('bg-emerald-500/10', 'text-emerald-300', 'font-semibold');
+
+      const titleEl = document.getElementById('code-viewer-filename');
+      const pathEl = document.getElementById('code-viewer-path');
+      const metaEl = document.getElementById('code-viewer-meta');
+      const bodyEl = document.getElementById('code-viewer-content');
+      if (!bodyEl) return;
+
+      bodyEl.innerHTML = '<div class="py-16 text-center text-zinc-500 mono"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-400"></i>Cargando código en memoria...</div>';
+      lucide.createIcons();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/fs/read?path=${encodeURIComponent(filePath)}`);
+        const data = await res.json();
+        if (data.success) {
+          currentViewedFilePath = data.path;
+          currentViewedFileContent = data.content;
+          if (titleEl) titleEl.innerText = data.filename;
+          if (pathEl) pathEl.innerText = data.path;
+          if (metaEl) metaEl.innerText = `${data.lines_count} líneas · ${(data.size_bytes / 1024).toFixed(2)} KB`;
+
+          const lines = data.content.split(String.fromCharCode(10));
+          bodyEl.innerHTML = `
+            <div class="flex text-xs font-mono select-text bg-[#08080b]">
+              <div class="pr-3 text-right select-none text-zinc-600 border-r bd py-3 space-y-0.5 min-w-[42px] bg-black/40">
+                ${lines.map((_, i) => `<div>${i + 1}</div>`).join('')}
+              </div>
+              <pre class="pl-3 py-3 overflow-x-auto text-zinc-200 leading-relaxed space-y-0.5 flex-1 whitespace-pre custom-scroll"><code>${lines.map(l => escapeHtml(l) || '&nbsp;').join(String.fromCharCode(10))}</code></pre>
+            </div>
+          `;
+          lucide.createIcons();
+          showToast(`Archivo cargado: ${data.filename}`, 'info');
+        } else {
+          bodyEl.innerHTML = `<div class="p-8 text-center text-red-400 mono">Error: ${data.error}</div>`;
+        }
+      } catch (e) {
+        bodyEl.innerHTML = `<div class="p-8 text-center text-red-400 mono">Error al leer archivo: ${e.message}</div>`;
+      }
+    }
+    window.openFsFile = openFsFile;
+
+    function copyCodeViewerContent() {
+      if (!currentViewedFileContent) return;
+      navigator.clipboard.writeText(currentViewedFileContent);
+      const btn = document.getElementById('code-viewer-copy-btn-text');
+      if (btn) {
+        btn.innerText = '¡Copiado!';
+        setTimeout(() => { btn.innerText = 'Copiar'; }, 2000);
+      }
+      showToast('Código copiado al portapapeles', 'success');
+    }
+    window.copyCodeViewerContent = copyCodeViewerContent;
+
+    function filterFsTree() {
+      const q = (document.getElementById('fs-search-input')?.value || '').toLowerCase();
+      const container = document.getElementById('fs-tree-container');
+      if (!q) {
+        container.innerHTML = renderTreeNodes(currentRawFsTree, 0);
+        lucide.createIcons();
+        return;
+      }
+      // Flatten search matching
+      function searchNodes(nodes) {
+        let results = [];
+        for (const n of nodes) {
+          if (!n.is_dir && n.name.toLowerCase().includes(q)) {
+            results.push(n);
+          }
+          if (n.children) {
+            results = results.concat(searchNodes(n.children));
+          }
+        }
+        return results;
+      }
+      const matched = searchNodes(currentRawFsTree);
+      if (matched.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-zinc-500 text-xs mono">No se encontraron archivos con "${q}".</div>`;
+        return;
+      }
+      container.innerHTML = matched.map(m => {
+        const safePath = escapeHtml(m.path).split(String.fromCharCode(92)).join('/');
+        return `
+          <div onclick="openFsFile('${safePath}', this)" class="fs-file-pill flex items-center justify-between py-1.5 px-3 rounded hover:bg-white/10 cursor-pointer text-xs text-zinc-300">
+            <span class="truncate mono text-emerald-300">${escapeHtml(m.name)}</span>
+            <span class="text-[10px] text-zinc-500 mono">${(m.size_bytes / 1024).toFixed(1)}k</span>
+          </div>
+        `;
+      }).join('');
+    }
+    window.filterFsTree = filterFsTree;
+
+  
+    // ==========================================
+    // DECISION DOSSIER & PROGRESS ENGINE (V7)
+    // ==========================================
+    function switchDossierTab(tabName) {
+      document.querySelectorAll('#dossier-tab-btn-checklist, #dossier-tab-btn-diff, #dossier-tab-btn-audit').forEach(b => {
+        b.classList.remove('active');
+      });
+      const activeBtn = document.getElementById('dossier-tab-btn-' + tabName);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.getElementById('dossier-panel-checklist').classList.add('hidden');
+      document.getElementById('dossier-panel-diff').classList.add('hidden');
+      document.getElementById('dossier-panel-audit').classList.add('hidden');
+
+      const target = document.getElementById('dossier-panel-' + tabName);
+      if (target) target.classList.remove('hidden');
+    }
+    window.switchDossierTab = switchDossierTab;
+
+    async function executeWalCheckpoint() {
+      showToast('Ejecutando PRAGMA wal_checkpoint(TRUNCATE)...', 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/db/checkpoint`);
+        const data = await res.json();
+        if (data.success) {
+          showToast(`WAL Checkpoint: ${data.checkpointed_pages} páginas sincronizadas a disco`, 'success');
+          loadDbDashboard();
+          loadDashboardSnapshot();
+        } else {
+          showToast('Fallo en checkpoint: ' + (data.error || 'error'), 'error');
+        }
+      } catch (e) {
+        showToast('Error de red al ejecutar checkpoint: ' + e.message, 'error');
+      }
+    }
+    window.executeWalCheckpoint = executeWalCheckpoint;
+
+    async function loadHudEmbeddedTable(tableName) {
+      const titleEl = document.getElementById('hud-embedded-table-title');
+      const headersEl = document.getElementById('hud-embedded-table-headers');
+      const bodyEl = document.getElementById('hud-embedded-table-body');
+      if (!bodyEl) return;
+
+      if (titleEl) titleEl.innerText = `Registros Recientes: ${tableName}`;
+      bodyEl.innerHTML = '<tr><td colspan="5" class="py-3 text-center text-zinc-500">Cargando registros...</td></tr>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/db/rows?table=${tableName}&limit=8`);
+        const data = await res.json();
+        if (data.success && data.rows && data.rows.length > 0) {
+          const cols = data.columns.slice(0, 5);
+          if (headersEl) {
+            headersEl.innerHTML = cols.map(c => `<th class="py-2 px-3 uppercase text-[11px]">${c}</th>`).join('');
+          }
+          bodyEl.innerHTML = data.rows.map(r => `
+            <tr class="hover:bg-white/5 transition-colors">
+              ${cols.map(c => {
+                let v = r[c];
+                if (typeof v === 'object' && v !== null) v = JSON.stringify(v);
+                if (v === null || v === undefined) v = '<span class="text-zinc-600">NULL</span>';
+                else if (v === 'APPROVED' || v === 'COMPLETED' || v === 'DONE') v = `<span class="text-emerald-400 font-bold">${v}</span>`;
+                else if (v === 'PENDING') v = `<span class="text-amber-400 font-bold">${v}</span>`;
+                else if (v === 'REJECTED' || v === 'FAILED') v = `<span class="text-red-400 font-bold">${v}</span>`;
+                return `<td class="py-2 px-3 truncate max-w-[140px]">${v}</td>`;
+              }).join('')}
+            </tr>
+          `).join('');
+        } else {
+          bodyEl.innerHTML = '<tr><td colspan="5" class="py-3 text-center text-zinc-500">Tabla vacía (0 registros).</td></tr>';
+        }
+      } catch (e) {
+        bodyEl.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-red-400">Error: ${e.message}</td></tr>`;
+      }
+    }
+    window.loadHudEmbeddedTable = loadHudEmbeddedTable;
+
+    async function executeActionWithProgress(actionType, btn) {
+      const container = document.getElementById('hero-action-progress-container');
+      const bar = document.getElementById('hero-progress-bar');
+      const pct = document.getElementById('hero-progress-pct');
+      const label = document.getElementById('hero-progress-label');
+      const step1 = document.getElementById('prog-step-1');
+      const step2 = document.getElementById('prog-step-2');
+      const step3 = document.getElementById('prog-step-3');
+      const step4 = document.getElementById('prog-step-4');
+
+      if (container) container.classList.remove('hidden');
+
+      if (bar) bar.style.width = '25%';
+      if (pct) pct.innerText = '25%';
+      if (label) label.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fase 1/4: Inspección de Contratos DR-INV-001 & DR-PAY-001...</span>';
+      if (step1) step1.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
+      lucide.createIcons();
+
+      await new Promise(r => setTimeout(r, 350));
+
+      if (bar) bar.style.width = '55%';
+      if (pct) pct.innerText = '55%';
+      if (label) label.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fase 2/4: Verificación de Singleton Leases & WAL Mode...</span>';
+      if (step2) step2.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
+      lucide.createIcons();
+
+      await new Promise(r => setTimeout(r, 350));
+
+      if (bar) bar.style.width = '85%';
+      if (pct) pct.innerText = '85%';
+      if (label) label.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fase 3/4: Despacho de Suite Pytest (29 tests)...</span>';
+      if (step3) step3.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
+      lucide.createIcons();
+
+      await executeAction(actionType, {}, btn);
+
+      if (bar) bar.style.width = '100%';
+      if (pct) pct.innerText = '100%';
+      if (label) label.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400 stroke-[3]"></i><span class="text-emerald-400 font-bold">¡Completado con Éxito (EXIT 0)!</span>';
+      if (step4) step4.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
+      lucide.createIcons();
+
+      loadHudEmbeddedTable('approvals');
+
+      setTimeout(() => {
+        if (container) container.classList.add('hidden');
+        if (bar) bar.style.width = '0%';
+        if (step1) step1.className = 'p-2 rounded bg-black/40 border bd text-center';
+        if (step2) step2.className = 'p-2 rounded bg-black/40 border bd text-center';
+        if (step3) step3.className = 'p-2 rounded bg-black/40 border bd text-center';
+        if (step4) step4.className = 'p-2 rounded bg-black/40 border bd text-center';
+      }, 5000);
+    }
+    window.executeActionWithProgress = executeActionWithProgress;
+
+  
+    // ==========================================
+    // FILE SYSTEM EXPLORER & CODE VIEWER ENGINE (V8)
+    // ==========================================
+    
 
   </script>
 </body>

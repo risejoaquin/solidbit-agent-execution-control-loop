@@ -41,6 +41,30 @@ def broadcast_sse(event_type: str, data: Any) -> None:
                 _sse_clients.remove(dead)
 
 
+def _scan_fs_tree(dir_path: Path, max_depth: int = 3, current_depth: int = 0) -> List[Dict[str, Any]]:
+    ignored = {".git", "__pycache__", ".pytest_cache", "node_modules", ".venv", "dist", "build", ".idea", ".vscode"}
+    items: List[Dict[str, Any]] = []
+    try:
+        entries = sorted(list(dir_path.iterdir()), key=lambda e: (not e.is_dir(), e.name.lower()))
+        for e in entries:
+            if e.name in ignored:
+                continue
+            is_d = e.is_dir()
+            item: Dict[str, Any] = {
+                "name": e.name,
+                "path": str(e),
+                "is_dir": is_d,
+                "size_bytes": e.stat().st_size if not is_d else 0,
+                "extension": e.suffix.lower() if not is_d else "",
+            }
+            if is_d and current_depth < max_depth:
+                item["children"] = _scan_fs_tree(e, max_depth=max_depth, current_depth=current_depth + 1)
+            items.append(item)
+    except Exception:
+        pass
+    return items
+
+
 class DecisionShellRequestHandler(BaseHTTPRequestHandler):
     """Handles REST API, SSE streaming, and static UI delivery for the SACL Decision Shell."""
 
@@ -447,6 +471,51 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(404, {"success": False, "error": "Documento no accesible o no encontrado"})
             return
 
+        # 12.1 REST API: File System Tree Explorer
+        if path == "/api/fs/tree":
+            folder_param = query.get("folder", [None])[0]
+            depth_param = int(query.get("depth", ["3"])[0])
+            target_folder = Path(folder_param).resolve() if folder_param else Path(self.service.workspace_root).resolve()
+            if not target_folder.exists() or not target_folder.is_dir():
+                target_folder = Path(self.service.workspace_root).resolve()
+            
+            tree = _scan_fs_tree(target_folder, max_depth=min(depth_param, 4))
+            self._send_json(200, {
+                "success": True,
+                "root_path": str(target_folder),
+                "root_name": target_folder.name,
+                "items_count": len(tree),
+                "tree": tree
+            })
+            return
+
+        # 12.2 REST API: File System Read Content
+        if path == "/api/fs/read":
+            file_param = query.get("path", [None])[0]
+            if not file_param:
+                self._send_json(400, {"success": False, "error": "Missing 'path' parameter"})
+                return
+            p = Path(file_param).resolve()
+            if not p.exists() or not p.is_file():
+                self._send_json(404, {"success": False, "error": f"Archivo no encontrado: {file_param}"})
+                return
+            try:
+                content = p.read_text(encoding="utf-8", errors="replace")[:250000]
+                lines = content.splitlines()
+                self._send_json(200, {
+                    "success": True,
+                    "filename": p.name,
+                    "path": str(p),
+                    "extension": p.suffix.lower(),
+                    "size_bytes": p.stat().st_size,
+                    "lines_count": len(lines),
+                    "content": content
+                })
+                return
+            except Exception as e:
+                self._send_json(500, {"success": False, "error": str(e)})
+                return
+
         # 13. REST API: AI Model Selector & Parameters
         if path == "/api/model/config":
             self._send_json(200, self.service.models.get_config())
@@ -561,6 +630,27 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             res = self.service.projects.switch_project(project_id)
             broadcast_sse("project_switched", res)
             self._send_json(200, res)
+            return
+
+        # 6b. REST API: Open Specific Folder on Disk
+        if path == "/api/fs/open-folder":
+            folder_str = body.get("folder", "")
+            if not folder_str:
+                self._send_json(400, {"success": False, "error": "Falta el parámetro 'folder'"})
+                return
+            p = Path(folder_str).resolve()
+            if not p.exists() or not p.is_dir():
+                self._send_json(404, {"success": False, "error": f"La carpeta no existe en disco: {folder_str}"})
+                return
+            self.service.workspace_root = p
+            tree = _scan_fs_tree(p, max_depth=3)
+            self._send_json(200, {
+                "success": True,
+                "root_path": str(p),
+                "root_name": p.name,
+                "items_count": len(tree),
+                "tree": tree
+            })
             return
 
         # 7. Model Selection & Tuning
