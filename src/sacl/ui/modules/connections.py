@@ -38,6 +38,7 @@ class ConnectionsModule:
     }
 
     TOOLS = [
+        ("agy", "Antigravity CLI (AGY)", "ai", ["agy", "--version"], ["agy", "models"]),
         ("git", "Git VCS", "vcs", ["git", "--version"], ["git", "config", "user.name"]),
         ("gh", "GitHub CLI", "vcs", ["gh", "--version"], ["gh", "auth", "status"]),
         ("python", "Python 3 Runtime", "runtime", ["python", "--version"], None),
@@ -332,6 +333,13 @@ class ConnectionsModule:
         bin_name = cmd[0]
         bin_path = shutil.which(bin_name)
         
+        # Fallback check for agy installed in standard local path
+        if not bin_path and tool_id == "agy":
+            agy_local = Path(r"C:\Users\Lucilfer\AppData\Local\agy\bin\agy.exe")
+            if agy_local.exists():
+                bin_path = str(agy_local)
+                cmd = [bin_path, "--version"]
+
         # Fallback check for npx-based CLI tools (like supabase)
         if not bin_path and tool_id == "supabase" and shutil.which("npx"):
             bin_name = "npx"
@@ -362,6 +370,8 @@ class ConnectionsModule:
                 account_info = "Listo"
 
                 # Smart inspection of active local OS/CLI sessions
+                if tool_id == "agy":
+                    account_info = "Modelos Activos: Gemini & Claude (Inferencia Soberana)"
                 if tool_id == "git":
                     try:
                         r_name = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True, timeout=2.0)
