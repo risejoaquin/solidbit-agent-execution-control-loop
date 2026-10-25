@@ -45,7 +45,7 @@ class ConnectionsModule:
         ("railway", "Railway CLI", "infra", ["railway", "--version"], ["railway", "whoami"]),
         ("supabase", "Supabase CLI", "database", ["supabase", "--version"], ["supabase", "projects", "list"]),
         ("jira", "Jira Integration", "governance", ["jira", "version"], None),
-        ("resend", "Resend Email Service", "notifications", None, None),
+        ("resend", "Resend CLI", "notifications", ["resend", "--version"], ["resend", "whoami"]),
         ("gcloud", "Google Cloud SDK", "cloud", ["gcloud", "--version"], ["gcloud", "auth", "list"]),
     ]
 
@@ -73,6 +73,18 @@ class ConnectionsModule:
     def open_browser_auth(self, tool_id: str) -> Dict[str, Any]:
         """Opens the official authentication portal or triggers native CLI browser OAuth."""
         # Check if tool has native CLI browser login
+        if tool_id == "resend" and shutil.which("resend"):
+            try:
+                subprocess.Popen(["resend", "open"], shell=True)
+                return {
+                    "success": True,
+                    "tool_id": tool_id,
+                    "browser_opened": True,
+                    "message": "Comando 'resend open' ejecutado. Se abrió el panel de Resend en el navegador.",
+                }
+            except Exception as exc:
+                logger.warning(f"Error launching resend open: {exc}")
+
         if tool_id == "railway" and shutil.which("railway"):
             try:
                 # Trigger native Railway CLI browser login
@@ -387,6 +399,18 @@ class ConnectionsModule:
                             account_info = f"Sesión Activa: {out_rw}"
                         else:
                             account_info = "Sesión CLI local (requiere refrescar con 'railway login')"
+                    except Exception:
+                        pass
+
+                elif tool_id == "resend":
+                    try:
+                        r_rs = subprocess.run(["resend", "whoami"], capture_output=True, text=True, shell=True, timeout=3.0)
+                        out_rs = r_rs.stdout.strip()
+                        if "not_authenticated" in out_rs or r_rs.returncode != 0:
+                            has_env = bool(os.environ.get("RESEND_API_KEY"))
+                            account_info = "Sesión Activa (vía RESEND_API_KEY)" if has_env else "CLI Instalado (ejecuta 'resend login')"
+                        else:
+                            account_info = "Sesión CLI Local Activa"
                     except Exception:
                         pass
 
