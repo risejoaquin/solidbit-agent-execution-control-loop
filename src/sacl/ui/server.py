@@ -82,8 +82,15 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_html(200, HTML_APPLICATION)
             return
 
-        # 2. Server-Sent Events (SSE) Live Stream: /api/events/stream
-        if path == "/api/events/stream":
+        # 1. Favicon Handler
+        if path == "/favicon.ico":
+            self.send_response(204)
+            self.send_header("Content-Type", "image/x-icon")
+            self.end_headers()
+            return
+
+        # 2. Server-Sent Events (SSE) Live Stream: /api/events or /api/events/stream
+        if path in ("/api/events", "/api/events/stream"):
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")
