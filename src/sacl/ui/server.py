@@ -709,6 +709,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             node_id = body.get("id", f"node-{int(time.time())}")
             label = body.get("label", node_id)
             action = body.get("action", "RUN_TESTS")
+            agent_role = body.get("agent_role", "Senior Coder AGY")
             deps = body.get("dependencies", [])
             gate = bool(body.get("gate_required", False))
             timeout = int(body.get("timeout_sec", 120))
@@ -716,11 +717,49 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 node_id=node_id,
                 label=label,
                 action=action,
+                agent_role=agent_role,
                 dependencies=deps,
                 gate_required=gate,
                 timeout_sec=timeout,
             )
             broadcast_sse("dag_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 9b. Campaign Designer: Update Node
+        if path == "/api/campaigns/designer/update-node":
+            node_id = body.get("id")
+            res = self.service.campaign_designer.update_node(
+                node_id=node_id,
+                label=body.get("label"),
+                action=body.get("action"),
+                agent_role=body.get("agent_role"),
+                dependencies=body.get("dependencies"),
+                gate_required=body.get("gate_required"),
+                timeout_sec=body.get("timeout_sec"),
+            )
+            broadcast_sse("dag_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 9c. Campaign Designer: Remove Node
+        if path == "/api/campaigns/designer/remove-node":
+            node_id = body.get("id")
+            res = self.service.campaign_designer.remove_node(node_id)
+            broadcast_sse("dag_updated", res)
+            self._send_json(200, res)
+            return
+
+        # 9d. Campaign Designer: Validate DAG
+        if path == "/api/campaigns/designer/validate":
+            res = self.service.campaign_designer.validate_dag()
+            self._send_json(200, res)
+            return
+
+        # 9e. Campaign Designer: Export Wave ZIP
+        if path == "/api/campaigns/designer/export-zip":
+            zip_name = body.get("filename")
+            res = self.service.campaign_designer.export_wave_zip(zip_name)
             self._send_json(200, res)
             return
 
@@ -795,7 +834,13 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path in ("/api/chat", "/api/chat/message"):
             prompt = body.get("prompt", "")
             model_id = body.get("model_id") or body.get("model")
-            res = self.service.chat.post_message(prompt, model_id=model_id)
+            msg_id = f"msg-bot-{len(self.service.chat.history)+1}"
+
+            def chunk_cb(token: str) -> None:
+                broadcast_sse("chat_token", {"message_id": msg_id, "token": token, "done": False})
+
+            res = self.service.chat.post_message(prompt, model_id=model_id, chunk_callback=chunk_cb)
+            broadcast_sse("chat_token", {"message_id": msg_id, "token": "", "done": True})
             broadcast_sse("chat_message", res)
             self._send_json(200, res)
             return

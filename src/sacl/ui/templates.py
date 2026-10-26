@@ -224,6 +224,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
         <span>Pipelines SDLC</span>
       </button>
+      <button id="dtab-designer" class="nav-pill flex items-center gap-1.5" onclick="switchSection('designer')">
+        <i data-lucide="git-fork" class="w-3.5 h-3.5 text-purple-400"></i>
+        <span>Studio DAG</span>
+        <span class="mono text-[10px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 font-bold">V1</span>
+      </button>
       <button id="dtab-github" class="nav-pill flex items-center gap-1.5" onclick="switchSection('github')">
         <i data-lucide="github" class="w-3.5 h-3.5 text-blue-400"></i>
         <span>GitHub Hub</span>
@@ -1052,7 +1057,103 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <!-- ========================================== -->
     <!-- SECTION 5: EXPLORADOR DE ARCHIVOS & REPOSITORIOS -->
     <!-- ========================================== -->
-    <div id="sec-projects" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
+        <!-- ========================================== -->
+    <!-- SECTION 4B: STUDIO VISUAL DE DAG & CAMPAÑAS -->
+    <!-- ========================================== -->
+    <div id="sec-designer" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+              <i data-lucide="git-fork" class="w-6 h-6 text-purple-400"></i>
+              <span>Studio Visual de DAG & Campañas de Agentes</span>
+            </h2>
+            <span class="mono text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">TOPOLOGÍA SOBERANA</span>
+          </div>
+          <p class="text-sm text-zinc-400 mt-1">Diseña, edita dependencias acíclicas, configura compuertas humanas y exporta paquetes Wave canónicos.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openAddNodeModal()" class="btn btn-primary text-xs px-3.5 py-2">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Agregar Agente</span>
+          </button>
+          <button onclick="validateCurrentDAG()" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Validar Grafo (Kahn)</span>
+          </button>
+          <button onclick="saveDagManifest()" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="save" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span>Guardar JSON</span>
+          </button>
+          <button onclick="exportWaveZip()" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="archive" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Exportar Wave ZIP</span>
+          </button>
+          <button onclick="launchVisualSprint()" class="btn btn-primary text-xs px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            <span>▶ Ejecutar Sprint</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Summary Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div class="p-3.5 rounded-xl bg-white/5 border bd flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold text-zinc-400">Total Nodos / Agentes</div>
+            <div id="designer-stat-nodes" class="text-base font-bold text-white mono">6</div>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border bd flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold text-zinc-400">Aciclicidad (DAG)</div>
+            <div id="designer-stat-status" class="text-xs font-bold text-emerald-400 mono">VERIFICADO (0 Ciclos)</div>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border bd flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold text-zinc-400">Compuertas Humanas</div>
+            <div id="designer-stat-gates" class="text-base font-bold text-amber-400 mono">1 HITL Activa</div>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border bd flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold text-zinc-400">Estándar Canónico</div>
+            <div class="text-xs font-bold text-zinc-200 mono">SACL-SPEC-PKG-v1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Canvas & Flow Visualizer -->
+      <div class="section-canvas p-6 space-y-5">
+        <div class="flex items-center justify-between border-b bd pb-3">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-white">Flujo Topológico de Ejecución (Orden Secuencial y Paralelo)</h3>
+          </div>
+          <div id="designer-topo-breadcrumb" class="text-xs mono text-zinc-400 truncate max-w-xl"></div>
+        </div>
+
+        <!-- Visual Node Cards Grid -->
+        <div id="designer-nodes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+<div id="sec-projects" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
@@ -1393,6 +1494,10 @@ HTML_APPLICATION = """<!DOCTYPE html>
       <i data-lucide="play-circle" class="w-4 h-4"></i>
       <span>Pipelines</span>
     </button>
+    <button id="mtab-designer" class="mobile-tab" onclick="switchSection('designer')">
+      <i data-lucide="git-fork" class="w-4 h-4 text-purple-400"></i>
+      <span>Studio</span>
+    </button>
     <button id="mtab-github" class="mobile-tab" onclick="switchSection('github')">
       <i data-lucide="github" class="w-4 h-4"></i>
       <span>GitHub</span>
@@ -1406,7 +1511,85 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <!-- ========================================== -->
   <!-- MODAL: DOCUMENTATION VIEWER -->
   <!-- ========================================== -->
-  <div id="doc-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
+    <!-- ========================================== -->
+  <!-- MODAL: AGREGAR / EDITAR NODO DE AGENTE -->
+  <!-- ========================================== -->
+  <div id="designer-node-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-[#27272a] shadow-2xl rounded-2xl">
+      <div class="p-5 border-b bd flex items-center justify-between bg-white/[0.02]">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="git-commit" class="w-5 h-5 text-purple-400"></i>
+          <h3 id="designer-modal-title" class="text-base font-bold text-white">Configurar Nodo de Agente en DAG</h3>
+        </div>
+        <button onclick="closeDesignerNodeModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs overflow-y-auto max-h-[70vh]">
+        <input type="hidden" id="node-edit-mode" value="add">
+        
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold uppercase tracking-wider text-[10px]">Identificador Único (ID)</label>
+          <input type="text" id="node-input-id" placeholder="node-nombre-agente" class="w-full px-3 py-2 rounded-lg bg-black/60 border bd text-zinc-200 mono text-xs focus:border-purple-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold uppercase tracking-wider text-[10px]">Etiqueta / Nombre Descriptivo</label>
+          <input type="text" id="node-input-label" placeholder="Ej: 3. Síntesis de Código con Coder AGY" class="w-full px-3 py-2 rounded-lg bg-black/60 border bd text-zinc-200 text-xs focus:border-purple-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-zinc-400 mb-1 font-semibold uppercase tracking-wider text-[10px]">Rol del Agente</label>
+            <select id="node-input-role" class="w-full px-3 py-2 rounded-lg bg-black/60 border bd text-zinc-200 text-xs focus:border-purple-500 focus:outline-none">
+              <option value="Architect Agent">Architect Agent</option>
+              <option value="Senior Coder AGY" selected>Senior Coder AGY</option>
+              <option value="QA Security Auditor">QA Security Auditor</option>
+              <option value="HITL Gate Sentinel">HITL Gate Sentinel</option>
+              <option value="Transport Worker">Transport Worker</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-zinc-400 mb-1 font-semibold uppercase tracking-wider text-[10px]">Acción Ejecutable</label>
+            <select id="node-input-action" class="w-full px-3 py-2 rounded-lg bg-black/60 border bd text-zinc-200 text-xs focus:border-purple-500 focus:outline-none">
+              <option value="WORKTREE_PROVISION">WORKTREE_PROVISION</option>
+              <option value="CONTRACT_VERIFY">CONTRACT_VERIFY</option>
+              <option value="AGENT_CODEGEN" selected>AGENT_CODEGEN</option>
+              <option value="RUN_TESTS">RUN_TESTS</option>
+              <option value="HUMAN_APPROVAL_GATE">HUMAN_APPROVAL_GATE</option>
+              <option value="STAGE_PREVIEW">STAGE_PREVIEW</option>
+              <option value="CUSTOM_SCRIPT">CUSTOM_SCRIPT</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-zinc-400 mb-1 font-semibold uppercase tracking-wider text-[10px]">Timeout (Segundos)</label>
+            <input type="number" id="node-input-timeout" value="120" class="w-full px-3 py-2 rounded-lg bg-black/60 border bd text-zinc-200 mono text-xs focus:border-purple-500 focus:outline-none">
+          </div>
+          <div class="flex items-center gap-2 pt-5">
+            <input type="checkbox" id="node-input-gate" class="w-4 h-4 rounded border-zinc-700 bg-black text-amber-500 focus:ring-0">
+            <label for="node-input-gate" class="text-zinc-300 font-medium cursor-pointer">Requiere Compuerta HITL</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-zinc-400 mb-1 font-semibold uppercase tracking-wider text-[10px]">Dependencias Previas</label>
+          <div id="node-dependencies-checklist" class="space-y-1.5 p-3 rounded-lg bg-black/40 border bd max-h-32 overflow-y-auto">
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t bd flex items-center justify-end gap-2.5 bg-white/[0.01]">
+        <button onclick="closeDesignerNodeModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
+        <button onclick="saveDesignerNode()" class="btn btn-primary text-xs px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold">Guardar Nodo</button>
+      </div>
+    </div>
+  </div>
+
+<div id="doc-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
     <div class="section-canvas w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden bg-[#030305] border-[#27272a] shadow-2xl">
       <div class="p-4 border-b bd flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
@@ -1738,7 +1921,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     // ==========================================
     function switchSection(secId) {
       currentSection = secId;
-      ['dashboard', 'database', 'gates', 'sdlc', 'projects', 'github', 'chat'].forEach(id => {
+      ['dashboard', 'database', 'gates', 'sdlc', 'projects', 'github', 'chat', 'designer'].forEach(id => {
         const el = document.getElementById('sec-' + id);
         const dtab = document.getElementById('dtab-' + id);
         const mtab = document.getElementById('mtab-' + id);
@@ -1765,6 +1948,8 @@ HTML_APPLICATION = """<!DOCTYPE html>
         viewTableRows('approvals');
       } else if (secId === 'github') {
         loadGitHubDashboard();
+      } else if (secId === 'designer') {
+        loadDesignerDAG();
       }
       lucide.createIcons();
     }
@@ -2955,9 +3140,370 @@ HTML_APPLICATION = """<!DOCTYPE html>
     // ==========================================
     // SSE INITIALIZER
     // ==========================================
-    function initSSE() {
+    
+    // ==========================================
+    // STUDIO VISUAL DE DAG & CAMPAÑAS JAVASCRIPT
+    // ==========================================
+    let currentDagState = null;
+
+    async function loadDesignerDAG() {
+      try {
+        const res = await fetch(`${API_BASE}/api/campaigns/designer`);
+        const data = await res.json();
+        currentDagState = data;
+        renderDesignerCanvas(data);
+      } catch (e) {
+        console.error('Error loading designer DAG:', e);
+      }
+    }
+    window.loadDesignerDAG = loadDesignerDAG;
+
+    function renderDesignerCanvas(dag) {
+      const container = document.getElementById('designer-nodes-container');
+      const statNodes = document.getElementById('designer-stat-nodes');
+      const statGates = document.getElementById('designer-stat-gates');
+      const breadcrumb = document.getElementById('designer-topo-breadcrumb');
+      if (!container || !dag) return;
+
+      const nodes = dag.nodes || [];
+      if (statNodes) statNodes.innerText = nodes.length;
+
+      let gateCount = 0;
+      let orderNames = [];
+
+      container.innerHTML = '';
+
+      nodes.forEach((node, idx) => {
+        if (node.gate_required) gateCount++;
+        orderNames.push(node.id);
+
+        const card = document.createElement('div');
+        card.className = 'section-canvas p-4 space-y-3 relative hover:border-purple-500/40 transition-all';
+        
+        let actionBadgeColor = 'bg-blue-500/10 text-blue-400 border-blue-500/25';
+        if (node.action === 'CONTRACT_VERIFY' || node.action === 'RUN_TESTS') {
+          actionBadgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25';
+        } else if (node.action === 'AGENT_CODEGEN') {
+          actionBadgeColor = 'bg-purple-500/10 text-purple-400 border-purple-500/25';
+        } else if (node.action === 'HUMAN_APPROVAL_GATE') {
+          actionBadgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/25';
+        }
+
+        const depsHtml = (node.dependencies && node.dependencies.length > 0)
+          ? node.dependencies.map(d => `<span class="px-1.5 py-0.5 rounded bg-black/60 border bd text-[10px] text-zinc-400 mono">↳ ${escapeHtml(d)}</span>`).join(' ')
+          : '<span class="text-[10px] text-zinc-500 mono italic">Raíz (Sin dependencias)</span>';
+
+        const gateHtml = node.gate_required
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+               <i data-lucide="shield-alert" class="w-3 h-3"></i> HITL Gate
+             </span>`
+          : '';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2 border-b bd pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-white/10 text-zinc-300 font-bold mono text-xs flex items-center justify-center">${idx + 1}</span>
+              <div>
+                <div class="text-xs font-bold text-white">${escapeHtml(node.label || node.id)}</div>
+                <div class="text-[10px] mono text-purple-400">${escapeHtml(node.agent_role || 'Senior Coder AGY')}</div>
+              </div>
+            </div>
+            ${gateHtml}
+          </div>
+
+          <div class="space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase font-bold text-zinc-500">Acción:</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold mono border ${actionBadgeColor}">${escapeHtml(node.action)}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase font-bold text-zinc-500">Timeout:</span>
+              <span class="text-zinc-300 mono text-[11px]">${node.timeout_sec || 120}s</span>
+            </div>
+            <div class="pt-1.5 border-t bd">
+              <div class="text-[10px] uppercase font-bold text-zinc-500 mb-1">Dependencias:</div>
+              <div class="flex flex-wrap gap-1">${depsHtml}</div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t bd flex items-center justify-end gap-2">
+            <button onclick="openEditNodeModal('${escapeHtml(node.id)}')" class="btn btn-secondary text-[11px] px-2.5 py-1">
+              <i data-lucide="edit-3" class="w-3 h-3"></i> Editar
+            </button>
+            <button onclick="deleteDagNode('${escapeHtml(node.id)}')" class="btn btn-secondary text-[11px] px-2.5 py-1 text-red-400 hover:text-red-300">
+              <i data-lucide="trash-2" class="w-3 h-3"></i> Eliminar
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      if (statGates) statGates.innerText = `${gateCount} HITL ${gateCount === 1 ? 'Activa' : 'Activas'}`;
+      if (breadcrumb) breadcrumb.innerText = orderNames.join(' ➔ ');
+      lucide.createIcons();
+    }
+
+    function openAddNodeModal() {
+      document.getElementById('designer-modal-title').innerText = 'Agregar Nuevo Agente / Nodo al DAG';
+      document.getElementById('node-edit-mode').value = 'add';
+      const idInput = document.getElementById('node-input-id');
+      idInput.value = 'node-' + Math.floor(Math.random() * 8999 + 1000);
+      idInput.removeAttribute('disabled');
+      document.getElementById('node-input-label').value = '';
+      document.getElementById('node-input-role').value = 'Senior Coder AGY';
+      document.getElementById('node-input-action').value = 'AGENT_CODEGEN';
+      document.getElementById('node-input-timeout').value = '120';
+      document.getElementById('node-input-gate').checked = false;
+
+      populateDepsChecklist();
+      document.getElementById('designer-node-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    window.openAddNodeModal = openAddNodeModal;
+
+    function openEditNodeModal(nodeId) {
+      if (!currentDagState || !currentDagState.nodes) return;
+      const node = currentDagState.nodes.find(n => n.id === nodeId);
+      if (!node) return;
+
+      document.getElementById('designer-modal-title').innerText = `Editar Nodo: ${node.id}`;
+      document.getElementById('node-edit-mode').value = 'edit';
+      const idInput = document.getElementById('node-input-id');
+      idInput.value = node.id;
+      idInput.setAttribute('disabled', 'true');
+      document.getElementById('node-input-label').value = node.label || '';
+      document.getElementById('node-input-role').value = node.agent_role || 'Senior Coder AGY';
+      document.getElementById('node-input-action').value = node.action || 'AGENT_CODEGEN';
+      document.getElementById('node-input-timeout').value = node.timeout_sec || 120;
+      document.getElementById('node-input-gate').checked = !!node.gate_required;
+
+      populateDepsChecklist(node.id, node.dependencies || []);
+      document.getElementById('designer-node-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    window.openEditNodeModal = openEditNodeModal;
+
+    function closeDesignerNodeModal() {
+      document.getElementById('designer-node-modal').classList.add('hidden');
+    }
+    window.closeDesignerNodeModal = closeDesignerNodeModal;
+
+    function populateDepsChecklist(excludeId = null, selectedDeps = []) {
+      const container = document.getElementById('node-dependencies-checklist');
+      if (!container || !currentDagState) return;
+
+      const candidates = (currentDagState.nodes || []).filter(n => n.id !== excludeId);
+      if (candidates.length === 0) {
+        container.innerHTML = '<div class="text-zinc-500 italic">No hay otros nodos disponibles para vincular.</div>';
+        return;
+      }
+
+      container.innerHTML = candidates.map(n => {
+        const isChecked = selectedDeps.includes(n.id) ? 'checked' : '';
+        return `
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="dep-chk-${escapeHtml(n.id)}" value="${escapeHtml(n.id)}" class="dep-node-chk w-3.5 h-3.5 rounded border-zinc-700 bg-black text-purple-500" ${isChecked}>
+            <label for="dep-chk-${escapeHtml(n.id)}" class="text-zinc-300 mono cursor-pointer">${escapeHtml(n.id)} <span class="text-zinc-500">(${escapeHtml(n.label || '')})</span></label>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function saveDesignerNode() {
+      const mode = document.getElementById('node-edit-mode').value;
+      const id = document.getElementById('node-input-id').value.trim();
+      const label = document.getElementById('node-input-label').value.trim() || id;
+      const agent_role = document.getElementById('node-input-role').value;
+      const action = document.getElementById('node-input-action').value;
+      const timeout_sec = parseInt(document.getElementById('node-input-timeout').value, 10) || 120;
+      const gate_required = document.getElementById('node-input-gate').checked;
+
+      const checkedBoxes = document.querySelectorAll('.dep-node-chk:checked');
+      const dependencies = Array.from(checkedBoxes).map(b => b.value);
+
+      if (!id) {
+        showToast('El ID del nodo es requerido', 'error');
+        return;
+      }
+
+      const endpoint = mode === 'edit'
+        ? `${API_BASE}/api/campaigns/designer/update-node`
+        : `${API_BASE}/api/campaigns/designer/add-node`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id, label, agent_role, action, timeout_sec, gate_required, dependencies
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(mode === 'edit' ? 'Nodo actualizado' : 'Nodo agregado al DAG', 'success');
+          closeDesignerNodeModal();
+          loadDesignerDAG();
+        } else {
+          showToast(`Error: ${data.error}`, 'error');
+        }
+      } catch (e) {
+        showToast(`Fallo de conexión al guardar nodo: ${e}`, 'error');
+      }
+    }
+    window.saveDesignerNode = saveDesignerNode;
+
+    async function deleteDagNode(nodeId) {
+      if (!confirm(`¿Eliminar nodo ${nodeId} del DAG?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/campaigns/designer/remove-node`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: nodeId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Nodo ${nodeId} eliminado`, 'info');
+          loadDesignerDAG();
+        } else {
+          showToast(`Error: ${data.error}`, 'error');
+        }
+      } catch (e) {
+        showToast(`Fallo al eliminar nodo: ${e}`, 'error');
+      }
+    }
+    window.deleteDagNode = deleteDagNode;
+
+    async function validateCurrentDAG() {
+      try {
+        const res = await fetch(`${API_BASE}/api/campaigns/designer/validate`, { method: 'POST' });
+        const data = await res.json();
+        if (data.is_valid) {
+          showToast(`DAG Válido: ${data.message}`, 'success');
+          const statStatus = document.getElementById('designer-stat-status');
+          if (statStatus) {
+            statStatus.innerText = 'VERIFICADO (0 Ciclos)';
+            statStatus.className = 'text-xs font-bold text-emerald-400 mono';
+          }
+        } else {
+          showToast(`Error en Grafo: ${data.error}`, 'error');
+          const statStatus = document.getElementById('designer-stat-status');
+          if (statStatus) {
+            statStatus.innerText = 'ERROR DE CICLO';
+            statStatus.className = 'text-xs font-bold text-red-400 mono';
+          }
+        }
+      } catch (e) {
+        showToast(`Fallo al validar DAG: ${e}`, 'error');
+      }
+    }
+    window.validateCurrentDAG = validateCurrentDAG;
+
+    async function saveDagManifest() {
+      try {
+        const res = await fetch(`${API_BASE}/api/campaigns/designer/save`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Manifiesto guardado: ${data.message}`, 'success');
+        } else {
+          showToast(`Error: ${data.error}`, 'error');
+        }
+      } catch (e) {
+        showToast(`Fallo al guardar manifiesto: ${e}`, 'error');
+      }
+    }
+    window.saveDagManifest = saveDagManifest;
+
+    async function exportWaveZip() {
+      try {
+        showToast('Empaquetando Wave ZIP canónico con SHA-256...', 'info');
+        const res = await fetch(`${API_BASE}/api/campaigns/designer/export-zip`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Éxito: ${data.filename} (${data.size_bytes} bytes)`, 'success');
+        } else {
+          showToast(`Error: ${data.error}`, 'error');
+        }
+      } catch (e) {
+        showToast(`Fallo al exportar Wave ZIP: ${e}`, 'error');
+      }
+    }
+    window.exportWaveZip = exportWaveZip;
+
+    function launchVisualSprint() {
+      showToast('Lanzando Sprint Topológico en Vivo...', 'info');
+      openTerminalDrawer();
+      executeAction('campaign_sprint');
+    }
+    window.launchVisualSprint = launchVisualSprint;
+
+    // Chat Token Streaming Handler
+    function handleChatTokenStream(data) {
+      const container = document.getElementById('chat-messages-container');
+      const typing = document.getElementById('chat-typing-indicator');
+      if (!container) return;
+
+      let bubble = document.getElementById('chat-streaming-bubble');
+      if (!bubble && data.token) {
+        if (typing) typing.classList.remove('hidden');
+        bubble = document.createElement('div');
+        bubble.id = 'chat-streaming-bubble';
+        bubble.className = 'space-y-1.5 toast-animate';
+        bubble.innerHTML = `
+          <div class="flex items-center gap-2 mono text-xs text-zinc-400">
+            <span class="text-purple-400 font-bold">agy&gt;</span>
+            <span class="text-zinc-400 text-[10px]">stream</span>
+          </div>
+          <div id="chat-streaming-body" class="p-3.5 rounded-xl bg-white/5 border bd text-xs text-zinc-200 leading-relaxed font-mono whitespace-pre-wrap"></div>
+        `;
+        container.appendChild(bubble);
+      }
+
+      if (bubble && data.token) {
+        const bodyEl = document.getElementById('chat-streaming-body');
+        if (bodyEl) bodyEl.textContent += data.token;
+        scrollChatToBottom();
+      }
+
+      if (data.done) {
+        if (typing) typing.classList.add('hidden');
+        if (bubble) {
+          const bodyEl = document.getElementById('chat-streaming-body');
+          if (bodyEl) {
+            bodyEl.innerHTML = formatMarkdownContent(bodyEl.textContent);
+          }
+          bubble.removeAttribute('id');
+          if (bodyEl) bodyEl.removeAttribute('id');
+        }
+        scrollChatToBottom();
+      }
+    }
+    window.handleChatTokenStream = handleChatTokenStream;
+
+
+function initSSE() {
       try {
         const evtSource = new EventSource(`${API_BASE}/api/events/stream`);
+
+        evtSource.addEventListener('terminal_log', (event) => {
+          try {
+            const d = JSON.parse(event.data);
+            if (d && d.line) {
+              appendTerminalLog(d.line);
+            }
+          } catch (e) {}
+        });
+
+        evtSource.addEventListener('chat_token', (event) => {
+          try {
+            const d = JSON.parse(event.data);
+            handleChatTokenStream(d);
+          } catch (e) {}
+        });
+
+        evtSource.addEventListener('dag_updated', () => {
+          loadDesignerDAG();
+        });
+
         evtSource.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);

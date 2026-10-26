@@ -12,7 +12,7 @@ import logging
 import os
 from pathlib import Path
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger("sacl.ui.modules.chat")
 
@@ -21,7 +21,11 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def query_agy_engine(prompt: str, model_id: Optional[str] = None) -> Optional[str]:
+def query_agy_engine(
+    prompt: str,
+    model_id: Optional[str] = None,
+    chunk_callback: Optional[Callable[[str], None]] = None,
+) -> Optional[str]:
     """Invokes the official Antigravity (agy) CLI binary to query real LLMs."""
     local_app = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
     agy_candidates = [
@@ -102,7 +106,7 @@ class ChatModule:
     def get_history(self) -> List[Dict[str, Any]]:
         return self.history
 
-    def post_message(self, prompt: str, model_id: Optional[str] = None) -> Dict[str, Any]:
+    def post_message(self, prompt: str, model_id: Optional[str] = None, chunk_callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
         """Processes user prompt via SACL commands or real AGY inference."""
         p_clean = (prompt or "").strip()
         if not p_clean:
@@ -192,7 +196,7 @@ class ChatModule:
                 assistant_text = "Reconciliación de procesos viejos ejecutada con éxito en SQLite WAL."
 
         # 6. Operational Command: APROBAR / AUTORIZAR
-        elif "APROBAR" in p_upper or "AUTORIZAR" in p_upper:
+        elif "COMPUERTA" in p_upper or "GATE" in p_upper or "APROBAR" in p_upper or "AUTORIZAR" in p_upper:
             if self.service and hasattr(self.service, "get_pending_gates"):
                 gates = self.service.get_pending_gates()
                 if gates:
@@ -215,7 +219,7 @@ class ChatModule:
 
         # 8. Natural Language & General Architecture Queries: CALL REAL AGY ENGINE!
         else:
-            agy_response = query_agy_engine(p_clean, model_id=model_id)
+            agy_response = query_agy_engine(p_clean, model_id=model_id, chunk_callback=chunk_callback)
             if agy_response:
                 assistant_text = agy_response
             else:
