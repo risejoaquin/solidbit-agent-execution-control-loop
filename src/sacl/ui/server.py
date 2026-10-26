@@ -813,7 +813,13 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             params = body.get("params", {})
             res = self.service.actions.execute(action_type, params=params)
             broadcast_sse("action_executed", res)
-            self._send_json(200, res)
+            is_success = res.get("success", False) or res.get("status") == "COMPLETED" or res.get("exit_code") == 0
+            response_payload = {
+                "success": is_success,
+                "execution": res,
+                **res,
+            }
+            self._send_json(200, response_payload)
             return
 
         # 18. GitHub Sync & Pull Request Actions

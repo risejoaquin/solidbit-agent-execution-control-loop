@@ -165,6 +165,7 @@ class ActionExecutionModule:
         logs.append(f"[{now_str}] [COMPLETE] ID: {exec_id} · Tiempo: {duration_total}s · Estado: {status}")
 
         record = {
+            "success": status == "COMPLETED" or exit_code == 0,
             "execution_id": exec_id,
             "action_type": action_type,
             "title": title,

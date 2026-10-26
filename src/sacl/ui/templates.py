@@ -2402,8 +2402,9 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({ action_type: actionType, params })
         });
         const data = await res.json();
-        if (data.success && data.execution) {
-          const exec = data.execution;
+        const exec = data.execution || data;
+        const isOk = data.success || (exec && (exec.status === 'COMPLETED' || exec.exit_code === 0));
+        if (isOk && exec) {
           showToast(`✓ ${exec.title}: COMPLETADO (Exit ${exec.exit_code})`, 'success');
           appendTerminalLog(`[EXIT_0] ${exec.title} completado en ${exec.duration_sec}s`);
           (exec.logs || []).forEach(l => appendTerminalLog(l));
