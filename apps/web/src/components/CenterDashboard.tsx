@@ -25,6 +25,7 @@ import type {
 } from '../types/orchestrator'
 import { LogTerminal } from './LogTerminal'
 import { AgentFleetProcessTable } from './AgentFleetProcessTable'
+import { ConnectedTechnologiesMatrix, type TechnologyItem } from './ConnectedTechnologiesMatrix'
 
 interface CenterDashboardProps {
   tasks: TaskItem[]
@@ -32,6 +33,8 @@ interface CenterDashboardProps {
   commits: CommitItem[]
   projects: Project[]
   events: ActivityEvent[]
+  connections?: TechnologyItem[]
+  onRefreshConnections?: () => void
   activeSprintTitle?: string
   activeSprintDesc?: string
   onOpenSprintModal: () => void
@@ -44,6 +47,8 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
   commits,
   projects,
   events,
+  connections = [],
+  onRefreshConnections,
   activeSprintTitle = 'Sprint 1 — MVP E-commerce (DR-INV-001 & DR-PAY-001)',
   activeSprintDesc = 'Flujo de venta atómica, contratos congelados SellableUnit y ledger de doble partida sin sobreventa.',
   onOpenSprintModal,
@@ -206,7 +211,9 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                 SPRINT ACTIVO
               </span>
               <span className="text-zinc-500 hidden sm:inline">&bull;</span>
-              <span className="text-zinc-400">24 Oct &rarr; 07 Nov 2026</span>
+              <span className="text-zinc-400">
+                {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} &rarr; {new Date(Date.now() + 14 * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
               <span className="text-zinc-500 hidden sm:inline">&bull;</span>
               <span className="text-zinc-400 font-semibold">SolidBit SDLC Metodología</span>
             </div>
@@ -462,6 +469,12 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
           </div>
         </div>
       </section>
+
+      {/* 3.5 CONNECTED TECHNOLOGIES MATRIX (LIVE HEALTH & ACCOUNTS) */}
+      <ConnectedTechnologiesMatrix
+        connections={connections}
+        onRefresh={onRefreshConnections}
+      />
 
       {/* 4. REAL AGENT PROCESS & FLEET TELEMETRY TABLE (RESPONSIVE HYBRID TABLE / CARDS) */}
       <AgentFleetProcessTable

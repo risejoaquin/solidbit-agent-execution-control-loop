@@ -386,7 +386,7 @@ class ConnectionsModule:
 
                 elif tool_id == "gh":
                     try:
-                        r_gh = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, shell=True, timeout=3.0)
+                        r_gh = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, timeout=3.0)
                         combined = r_gh.stdout + "\n" + r_gh.stderr
                         if "Logged in to" in combined or "account" in combined:
                             for line in combined.splitlines():
@@ -395,7 +395,7 @@ class ConnectionsModule:
                                     break
                             # Auto-export token to GITHUB_TOKEN if not already set
                             if not os.environ.get("GITHUB_TOKEN"):
-                                r_tok = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, shell=True, timeout=2.0)
+                                r_tok = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, timeout=2.0)
                                 token_val = r_tok.stdout.strip()
                                 if token_val:
                                     os.environ["GITHUB_TOKEN"] = token_val
@@ -404,7 +404,7 @@ class ConnectionsModule:
 
                 elif tool_id == "railway":
                     try:
-                        r_rw = subprocess.run(["railway", "whoami"], capture_output=True, text=True, shell=True, timeout=3.0)
+                        r_rw = subprocess.run(["railway", "whoami"], capture_output=True, text=True, timeout=3.0)
                         out_rw = r_rw.stdout.strip()
                         if r_rw.returncode == 0 and "Logged in as" in out_rw:
                             account_info = f"Sesión Activa: {out_rw}"
@@ -415,7 +415,7 @@ class ConnectionsModule:
 
                 elif tool_id == "resend":
                     try:
-                        r_rs = subprocess.run(["resend", "whoami"], capture_output=True, text=True, shell=True, timeout=3.0)
+                        r_rs = subprocess.run(["resend", "whoami"], capture_output=True, text=True, timeout=3.0)
                         out_rs = r_rs.stdout.strip()
                         if "not_authenticated" in out_rs or r_rs.returncode != 0:
                             has_env = bool(os.environ.get("RESEND_API_KEY"))

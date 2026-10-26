@@ -16,6 +16,7 @@ import { ProjectsSection } from './components/sections/ProjectsSection'
 import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
+import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
 
 export default function App() {
   const [currentSection, setCurrentSection] = useState<string>('dashboard')
@@ -26,6 +27,7 @@ export default function App() {
   // Dynamic state loaded strictly from backend APIs (Zero mocks, Zero hardcoding)
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [agents, setAgents] = useState<AgentItem[]>([])
+  const [connections, setConnections] = useState<TechnologyItem[]>([])
   const [commits, setCommits] = useState<CommitItem[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [events, setEvents] = useState<ActivityEvent[]>([])
@@ -41,13 +43,16 @@ export default function App() {
         setProjectName(ctxData.active_project.name)
       }
       if (ctxData.jira_backlog && ctxData.jira_backlog.length > 0) {
+        const now = new Date()
+        const sprintStart = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+        const sprintEnd = new Date(now.getTime() + 14 * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
         const dynamicTasks: TaskItem[] = ctxData.jira_backlog.map((t: any, i: number) => ({
           id: String(i + 1),
           title: t.title,
           key: t.key,
           agent: t.phase || 'SACL Core',
-          start: '24 Oct',
-          end: '07 Nov',
+          start: t.start_date || sprintStart,
+          end: t.due_date || sprintEnd,
           progress: t.status === 'COMPLETED' ? 100 : (t.status === 'IN_PROGRESS' ? 65 : 20),
           status: t.status === 'COMPLETED' ? 'Completada' : (t.status === 'En progreso' ? 'En progreso' : 'Pendiente'),
         }))
@@ -58,6 +63,7 @@ export default function App() {
       const connRes = await fetch('/api/connections')
       const connData = await connRes.json()
       if (connData.connections && connData.connections.length > 0) {
+        setConnections(connData.connections)
         const dynamicAgents: AgentItem[] = connData.connections.map((c: any, idx: number) => ({
           id: c.id,
           name: c.name,
@@ -176,6 +182,8 @@ export default function App() {
             <CenterDashboard
               tasks={tasks}
               agents={agents}
+              connections={connections}
+              onRefreshConnections={loadData}
               commits={commits}
               projects={projects}
               events={events}

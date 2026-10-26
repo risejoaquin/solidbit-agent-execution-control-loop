@@ -63,12 +63,12 @@ class DBInspectorModule:
         try:
             cur = conn.cursor()
             cur.execute(
-                f"""
+                """
                 SELECT event_id, event_type, severity, component, message, timestamp
                 FROM audit_events
                 ORDER BY timestamp DESC
-                LIMIT {limit};
-                """
+                LIMIT ?;
+                """, (limit,)
             )
             for row in cur.fetchall():
                 events.append(dict(row))
@@ -76,12 +76,12 @@ class DBInspectorModule:
             # Table might be empty or fallback to events
             try:
                 cur.execute(
-                    f"""
+                    """
                     SELECT event_id, event_type, payload_json, created_at as timestamp
                     FROM events
                     ORDER BY created_at DESC
-                    LIMIT {limit};
-                    """
+                    LIMIT ?;
+                    """, (limit,)
                 )
                 for row in cur.fetchall():
                     events.append(dict(row))

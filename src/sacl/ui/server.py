@@ -46,14 +46,39 @@ def broadcast_sse(event_type: str, data: Any) -> None:
                 _sse_clients.remove(dead)
 
 
-_operator_profile = {
-    "name": "Joaquin Vallejo",
-    "role": "Product Owner / Sovereign Authority",
-    "email": "risejoaquin@solidbit.io",
-    "secret": "sacl-sovereign-audit-secret-2026",
-    "signing_status": "AUTHENTICATED",
-    "last_login": "2026-10-26T02:00:00Z",
-}
+PROFILE_FILE = Path("config/operator_profile.json")
+
+def _load_operator_profile() -> Dict[str, Any]:
+    if PROFILE_FILE.exists():
+        try:
+            return json.loads(PROFILE_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    detected_name = os.environ.get("SACL_OPERATOR_NAME")
+    if not detected_name:
+        try:
+            p_user = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True, timeout=2)
+            if p_user.returncode == 0 and p_user.stdout.strip():
+                detected_name = p_user.stdout.strip()
+        except Exception:
+            pass
+    return {
+        "name": detected_name or "Joaquin Vallejo",
+        "role": os.environ.get("SACL_OPERATOR_ROLE", "Product Owner / Sovereign Authority"),
+        "email": os.environ.get("SACL_OPERATOR_EMAIL", "risejoaquin@solidbit.io"),
+        "secret": "sacl-sovereign-audit-secret-2026",
+        "signing_status": "AUTHENTICATED",
+        "last_login": datetime.now(timezone.utc).isoformat(),
+    }
+
+def _save_operator_profile(profile: Dict[str, Any]) -> None:
+    try:
+        PROFILE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PROFILE_FILE.write_text(json.dumps(profile, indent=2), encoding="utf-8")
+    except Exception as e:
+        logger.warning(f"Failed to persist operator profile: {e}")
+
+_operator_profile = _load_operator_profile()
 
 _agy_chat_history = [
     {
@@ -465,7 +490,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 conn = self.service._get_read_only_conn()
                 try:
                     cur = conn.cursor()
-                    cur.execute(f"SELECT * FROM {table_name} ORDER BY rowid DESC LIMIT {limit};")
+                    cur.execute(f"SELECT * FROM {table_name} ORDER BY rowid DESC LIMIT ?;", (limit,))
                     cols = [d[0] for d in cur.description] if cur.description else []
                     rows = [dict(zip(cols, r)) for r in cur.fetchall()]
                     self._send_json(200, {"success": True, "table": table_name, "columns": cols, "rows": rows, "count": len(rows)})
@@ -1097,7 +1122,6 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                         capture_output=True,
                         text=True,
                         timeout=25,
-                        shell=True,
                     )
                     reply_text = proc.stdout.strip()
                     if not reply_text and proc.stderr.strip():
@@ -1135,6 +1159,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             if email: _operator_profile["email"] = email
             if secret: _operator_profile["secret"] = secret
             broadcast_sse("profile_updated", _operator_profile)
+            _save_operator_profile(_operator_profile)
             self._send_json(200, {"success": True, "profile": _operator_profile})
             return
 

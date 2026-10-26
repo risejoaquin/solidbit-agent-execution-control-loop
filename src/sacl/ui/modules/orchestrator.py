@@ -78,6 +78,16 @@ class OrchestratorModule:
     def get_context(self) -> Dict[str, Any]:
         """Returns the dynamic orchestrator context: active project, git status, and discovered backlog."""
         project_name = self.workspace_root.name
+        if project_name in ("integration", "master", "main") or project_name.startswith("wt-"):
+            try:
+                p_url = subprocess.run(["git", "config", "--get", "remote.origin.url"], cwd=str(self.workspace_root), capture_output=True, text=True, timeout=2)
+                if p_url.returncode == 0 and p_url.stdout.strip():
+                    url_clean = p_url.stdout.strip().rstrip("/").removesuffix(".git")
+                    repo_n = url_clean.split("/")[-1]
+                    if repo_n:
+                        project_name = repo_n
+            except Exception:
+                pass
         branch = "main"
         commit_hash = "HEAD"
         is_clean = True
@@ -138,7 +148,7 @@ class OrchestratorModule:
             try:
                 proc = subprocess.run(
                     [acli_path, "auth", "status"],
-                    capture_output=True, text=True, timeout=3, shell=True
+                    capture_output=True, text=True, timeout=3
                 )
                 if proc.returncode == 0 and "Logged in" in (proc.stdout + proc.stderr):
                     return {
