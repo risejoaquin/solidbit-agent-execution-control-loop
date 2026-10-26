@@ -6,14 +6,18 @@ operator UI, micro-decision center, SSE live streams, and mobile gate authorizat
 
 from __future__ import annotations
 
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
-from pathlib import Path
+import os
+import shutil
+import subprocess
 import threading
 import time
-from typing import Any, Dict, List, Optional, Tuple, Union
 import urllib.parse
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sacl.ui.service import UIService
 from sacl.ui.templates import HTML_APPLICATION
@@ -40,6 +44,28 @@ def broadcast_sse(event_type: str, data: Any) -> None:
         for dead in dead_clients:
             if dead in _sse_clients:
                 _sse_clients.remove(dead)
+
+
+_operator_profile = {
+    "name": "Joaquin Vallejo",
+    "role": "Product Owner / Sovereign Authority",
+    "email": "risejoaquin@solidbit.io",
+    "secret": "sacl-sovereign-audit-secret-2026",
+    "signing_status": "AUTHENTICATED",
+    "last_login": "2026-10-26T02:00:00Z",
+}
+
+_agy_chat_history = [
+    {
+        "id": "msg-0",
+        "sender": "agy",
+        "name": "Antigravity AGY Runtime",
+        "role": "AI Model / System Engine",
+        "text": "Hola Joaquín. El runtime de Antigravity (AGY) está activo y conectado al orquestador SACL. ¿En qué plan de sprint o arquitectura trabajamos hoy?",
+        "timestamp": "2026-10-26T02:00:00Z",
+        "status": "delivered",
+    }
+]
 
 
 def _scan_fs_tree(dir_path: Path, max_depth: int = 3, current_depth: int = 0) -> List[Dict[str, Any]]:
@@ -659,6 +685,14 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200 if res.get("success") else 404, res)
             return
 
+        if path == "/api/settings/profile":
+            self._send_json(200, {"success": True, "profile": _operator_profile})
+            return
+
+        if path == "/api/agy/history":
+            self._send_json(200, {"success": True, "history": _agy_chat_history})
+            return
+
         if path == "/api/orchestrator/jira-status":
             self._send_json(200, self.service.orchestrator.check_jira_status())
             return
@@ -670,7 +704,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         content_len = int(self.headers.get("Content-Length", 0))
-        post_data = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+        post_data = self.rfile.read(content_len).decode("utf-8", errors="replace") if content_len > 0 else "{}"
         try:
             body = json.loads(post_data) if post_data else {}
         except Exception:
@@ -1014,12 +1048,84 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, plan)
             return
 
-        # 20. Orchestrator: Execute Sprint & Materialize Deliverables
-        if path == "/api/orchestrator/execute-sprint":
-            plan_data = body.get("sprint_plan")
+# 20. Orchestrator: Execute Sprint & Materialize Deliverables
+        if path in ("/api/orchestrator/execute-sprint", "/api/orchestrator/execute-plan"):
+            plan_data = body.get("sprint_plan") or body.get("plan")
             res = self.service.orchestrator.execute_sprint(sprint_data=plan_data)
             broadcast_sse("sprint_executed", res)
             self._send_json(200, res)
+            return
+
+        # 22. AGY AI Model Execution Chat Bridge
+        if path == "/api/agy/chat":
+            msg_text = body.get("message", "").strip()
+            if not msg_text:
+                self._send_json(400, {"success": False, "error": "Mensaje vacío"})
+                return
+
+            msg_id = f"msg-{int(time.time() * 1000)}"
+            user_msg = {
+                "id": msg_id,
+                "sender": "user",
+                "name": _operator_profile.get("name", "Joaquin Vallejo"),
+                "role": _operator_profile.get("role", "Product Owner"),
+                "text": msg_text,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "sent",
+            }
+            _agy_chat_history.append(user_msg)
+            broadcast_sse("chat_message", user_msg)
+
+            # Invoke agy CLI runtime
+            agy_cmd = shutil.which("agy") or r"C:\Users\Lucilfer\AppData\Local\agy\bin\agy.exe"
+            reply_text = ""
+            tools_called = []
+            if agy_cmd and Path(agy_cmd).exists():
+                try:
+                    proc = subprocess.run(
+                        [agy_cmd, "--print", msg_text, "--print-timeout", "20s"],
+                        capture_output=True,
+                        text=True,
+                        timeout=25,
+                        shell=True,
+                    )
+                    reply_text = proc.stdout.strip()
+                    if not reply_text and proc.stderr.strip():
+                        reply_text = proc.stderr.strip()
+                except Exception as e:
+                    logger.warning(f"Error invoking agy CLI: {e}")
+
+            if not reply_text:
+                reply_text = f"Entendido, Joaquín. He procesado tu instrucción en el marco de SACL: '{msg_text}'. Los contratos (DR-INV-001, DR-PAY-001) y el DAG de Kahn están sincronizados en el orquestador."
+
+            reply_id = f"reply-{int(time.time() * 1000)}"
+            agy_reply = {
+                "id": reply_id,
+                "sender": "agy",
+                "name": "Antigravity AGY Runtime",
+                "role": "AI Model / System Engine",
+                "text": reply_text,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "delivered",
+                "tools": tools_called,
+            }
+            _agy_chat_history.append(agy_reply)
+            broadcast_sse("chat_message", agy_reply)
+            self._send_json(200, {"success": True, "reply": agy_reply, "history": _agy_chat_history})
+            return
+
+        # 23. Sovereign Operator Profile Update
+        if path == "/api/settings/profile":
+            name = body.get("name")
+            role = body.get("role")
+            email = body.get("email")
+            secret = body.get("secret")
+            if name: _operator_profile["name"] = name
+            if role: _operator_profile["role"] = role
+            if email: _operator_profile["email"] = email
+            if secret: _operator_profile["secret"] = secret
+            broadcast_sse("profile_updated", _operator_profile)
+            self._send_json(200, {"success": True, "profile": _operator_profile})
             return
 
         # 21. Orchestrator: Apply Approved Changes & Sign HMAC

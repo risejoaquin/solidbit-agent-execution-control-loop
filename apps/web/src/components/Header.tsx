@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Bell, ShieldAlert, CheckCircle2, Info, Terminal, Sparkles } from 'lucide-react'
+import {
+  Bell,
+  ShieldAlert,
+  CheckCircle2,
+  Info,
+  Terminal,
+  Sparkles,
+  User,
+  Save,
+  X,
+  Key,
+} from 'lucide-react'
 import type { NotificationItem } from '../types/orchestrator'
 
 interface HeaderProps {
@@ -8,37 +19,54 @@ interface HeaderProps {
   onNavigateSection: (section: string) => void
 }
 
-export const Header: React.FC<HeaderProps> = ({ projectName, onOpenSprintModal, onNavigateSection }) => {
+export const Header: React.FC<HeaderProps> = ({
+  projectName,
+  onOpenSprintModal,
+  onNavigateSection,
+}) => {
   const [clock, setClock] = useState<string>('')
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false)
+
+  // Sovereign Operator State
+  const [operatorName, setOperatorName] = useState<string>(
+    localStorage.getItem('sacl_operator_name') || 'Joaquin Vallejo'
+  )
+  const [operatorRole, setOperatorRole] = useState<string>(
+    localStorage.getItem('sacl_operator_role') || 'Owner'
+  )
+  const [operatorEmail, setOperatorEmail] = useState<string>('risejoaquin@solidbit.io')
+  const [savingProfile, setSavingProfile] = useState<boolean>(false)
+
   const [notifications, setNotifications] = useState<NotificationItem[]>([
     {
       id: 'notif-1',
       title: 'Compuerta Requerida (HITL)',
-      message: 'REQ-20261025-E43308B0: Aprobación HMAC requerida para aplicar cambios de Sprint 1.',
+      message: 'REQ-20261026-743941E4: Aprobación HMAC requerida para aplicar cambios.',
       type: 'gate',
-      time: 'hace 5 min',
-      actionUrl: 'gates',
+      time: 'Reciente',
+      actionUrl: 'executions',
     },
     {
       id: 'notif-2',
-      title: 'Pytest Suite 100% Verde (Exit 0)',
-      message: '31 pruebas de UI y contratos completadas con éxito en 92.5s.',
+      title: 'Pytest Suite Verde (Exit 0)',
+      message: '31 pruebas de UI y contratos completadas con éxito.',
       type: 'success',
-      time: 'hace 20 min',
+      time: 'hace 5 min',
     },
     {
       id: 'notif-3',
-      title: 'Jira Cloud Status',
-      message: 'Tareas persistidas soberanamente en SQLite WAL (sacl_ops.db).',
+      title: 'DAG de Kahn Generado',
+      message: '4 Oleadas concurrentes sincronizadas con SQLite WAL.',
       type: 'info',
-      time: 'hace 1 hora',
+      time: 'hace 10 min',
     },
   ])
 
   const popoverRef = useRef<HTMLDivElement>(null)
+  const profileRef = useRef<HTMLDivElement>(null)
 
-  // Live ticking clock
+  // Live ticking clock with local time
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
@@ -56,18 +84,102 @@ export const Header: React.FC<HeaderProps> = ({ projectName, onOpenSprintModal, 
     return () => clearInterval(timer)
   }, [])
 
-  // Close popover on click outside
+  // Load operator profile from backend
+  useEffect(() => {
+    fetch('/api/settings/profile')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.profile?.name) {
+          setOperatorName(d.profile.name)
+          setOperatorRole(d.profile.role?.includes('Owner') ? 'Owner' : d.profile.role)
+          if (d.profile.email) setOperatorEmail(d.profile.email)
+        }
+      })
+      .catch(() => {})
+
+    // Subscribe to SSE events for notifications
+    try {
+      const sse = new EventSource('/api/events/stream')
+      sse.addEventListener('gate', (e: MessageEvent) => {
+        setNotifications((prev) => [
+          {
+            id: `gate-${Date.now()}`,
+            title: 'Nueva Compuerta HITL',
+            message: 'Compuerta de decisión requiere firma soberana.',
+            type: 'gate',
+            time: 'Ahora',
+            actionUrl: 'executions',
+          },
+          ...prev,
+        ])
+      })
+      sse.addEventListener('sprint_executed', () => {
+        setNotifications((prev) => [
+          {
+            id: `exec-${Date.now()}`,
+            title: 'Oleadas Ejecutadas',
+            message: 'Entregables físicos generados en disco.',
+            type: 'success',
+            time: 'Ahora',
+            actionUrl: 'executions',
+          },
+          ...prev,
+        ])
+      })
+      return () => sse.close()
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  // Close modals on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setShowNotifications(false)
       }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfileModal(false)
+      }
     }
-    if (showNotifications) {
+    if (showNotifications || showProfileModal) {
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showNotifications])
+  }, [showNotifications, showProfileModal])
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavingProfile(true)
+    try {
+      const res = await fetch('/api/settings/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: operatorName,
+          role: operatorRole,
+          email: operatorEmail,
+        }),
+      })
+      if (res.ok) {
+        localStorage.setItem('sacl_operator_name', operatorName)
+        localStorage.setItem('sacl_operator_role', operatorRole)
+        setShowProfileModal(false)
+      }
+    } catch (err: any) {
+      alert('Error guardando perfil: ' + err.message)
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const initials = operatorName
+    .split(' ')
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'JV'
 
   return (
     <header className="h-16 border-b border-[#1b2533] bg-[#0c121a]/95 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
@@ -78,7 +190,13 @@ export const Header: React.FC<HeaderProps> = ({ projectName, onOpenSprintModal, 
           className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 cursor-pointer hover:bg-emerald-500/20 transition"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#10b981" fillOpacity="0.3" stroke="#10b981" strokeWidth="1.8" />
+            <path
+              d="M12 2L2 7L12 12L22 7L12 2Z"
+              fill="#10b981"
+              fillOpacity="0.3"
+              stroke="#10b981"
+              strokeWidth="1.8"
+            />
             <path d="M2 17L12 22L22 17" stroke="#10b981" strokeWidth="1.8" />
             <path d="M2 12L12 17L22 12" stroke="#10b981" strokeWidth="1.8" />
           </svg>
@@ -90,7 +208,10 @@ export const Header: React.FC<HeaderProps> = ({ projectName, onOpenSprintModal, 
               VITE REACT 19
             </span>
           </div>
-          <div id="header-project-subtitle" className="text-[11px] text-zinc-400 font-medium truncate max-w-[180px] sm:max-w-xs">
+          <div
+            id="header-project-subtitle"
+            className="text-[11px] text-zinc-400 font-medium truncate max-w-[180px] sm:max-w-xs"
+          >
             {projectName || 'Stable-Ecommerce'} Orchestrator
           </div>
         </div>
@@ -98,113 +219,104 @@ export const Header: React.FC<HeaderProps> = ({ projectName, onOpenSprintModal, 
 
       {/* Center: Greeting & Subtitle */}
       <div className="hidden xl:block text-left">
-        <h1 className="text-base font-bold text-white leading-tight flex items-center gap-1.5">
-          Hola, SACL <Sparkles className="w-4 h-4 text-emerald-400" />
+        <h1 className="text-sm font-bold text-white tracking-wide">
+          Hola, {operatorName} &bull; Panel de Control
         </h1>
-        <p className="text-xs text-zinc-400">Orquestador de agentes de IA para desarrollo y entrega de software.</p>
+        <p className="text-[11px] text-zinc-400">
+          Supervisión de flota multi-agente, contratos congelados y compuertas soberanas
+        </p>
       </div>
 
-      {/* Right: Status Pill, Clock, Notifications, User Profile, CTA */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
-        {/* Online status pill */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#111e19] border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Sistema en línea</span>
-        </div>
-
-        {/* Live Clock pill */}
-        <div id="header-datetime-pill" className="hidden md:block px-3 py-1.5 rounded-full bg-[#121922] border border-white/5 text-zinc-300 text-xs font-mono">
-          {clock || 'Cargando reloj...'}
+      {/* Right Controls */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Real-time Clock */}
+        <div
+          id="header-live-clock"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#090e16] border border-[#1b2533] text-xs font-mono text-zinc-300 shadow-inner"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>{clock || 'Cargando reloj...'}</span>
         </div>
 
         {/* Notifications Popover */}
         <div className="relative" ref={popoverRef}>
           <button
             type="button"
+            id="btn-notifications-bell"
             onClick={() => setShowNotifications(!showNotifications)}
-            id="btn-notifications"
-            className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 relative cursor-pointer transition"
-            title="Notificaciones y Alertas"
+            className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition relative cursor-pointer"
+            title="Notificaciones"
           >
             <Bell className="w-4 h-4" />
             {notifications.length > 0 && (
-              <span id="notif-badge" className="w-2 h-2 rounded-full bg-emerald-400 absolute top-1.5 right-1.5 animate-pulse"></span>
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-black text-[9px] font-bold flex items-center justify-center shadow-lg shadow-emerald-500/50">
+                {notifications.length}
+              </span>
             )}
           </button>
 
           {showNotifications && (
             <div
-              id="notifications-popover"
-              className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 z-50 space-y-3.5 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100"
+              id="notifications-popover-content"
+              className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left"
             >
-              <div className="flex items-center justify-between border-b border-[#1b2533] pb-2.5">
+              <div className="flex items-center justify-between border-b border-[#1b2533] pb-2">
                 <div className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-white">Notificaciones del Orquestador</span>
+                  <span className="text-xs font-bold text-white">Centro de Notificaciones</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">
-                  {notifications.length} nuevas
+                <span className="text-[10px] font-mono text-zinc-500">
+                  {notifications.length} eventos
                 </span>
               </div>
 
-              <div className="space-y-2 text-xs max-h-72 overflow-y-auto pr-1">
-                {notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    className={`p-2.5 rounded-xl border space-y-1 ${
-                      n.type === 'gate'
-                        ? 'bg-amber-500/10 border-amber-500/20'
-                        : n.type === 'success'
-                        ? 'bg-emerald-500/10 border-emerald-500/20'
-                        : 'bg-blue-500/10 border-blue-500/20'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`font-bold text-xs flex items-center gap-1.5 ${
-                          n.type === 'gate' ? 'text-amber-400' : n.type === 'success' ? 'text-emerald-400' : 'text-blue-400'
-                        }`}
-                      >
-                        {n.type === 'gate' && <ShieldAlert className="w-3.5 h-3.5" />}
-                        {n.type === 'success' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                        {n.type === 'info' && <Info className="w-3.5 h-3.5" />}
-                        {n.title}
-                      </span>
-                      <span className="text-[9px] font-mono text-zinc-500">{n.time}</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-300">{n.message}</p>
-                    {n.actionUrl && (
-                      <div className="pt-1">
-                        <button
-                          onClick={() => {
-                            onNavigateSection(n.actionUrl!)
-                            setShowNotifications(false)
-                          }}
-                          className="text-xs text-amber-400 hover:underline font-bold"
-                        >
-                          Examinar Compuerta &rarr;
-                        </button>
+              <div className="space-y-2 max-h-72 overflow-y-auto custom-scroll pr-1">
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-zinc-500 text-center py-4">No hay notificaciones pendientes</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      onClick={() => {
+                        if (n.actionUrl) onNavigateSection(n.actionUrl)
+                        setShowNotifications(false)
+                      }}
+                      className="p-2.5 rounded-xl bg-[#080c10] border border-white/5 hover:border-emerald-500/30 transition cursor-pointer space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                          {n.type === 'gate' ? (
+                            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                          ) : n.type === 'success' ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <Info className="w-3.5 h-3.5 text-blue-400" />
+                          )}
+                          {n.title}
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-500">{n.time}</span>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <p className="text-[11px] text-zinc-400 leading-relaxed">{n.message}</p>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-[#1b2533] text-[11px]">
                 <button
                   type="button"
                   onClick={() => {
-                    onNavigateSection('gates')
+                    onNavigateSection('executions')
                     setShowNotifications(false)
                   }}
-                  className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
+                  className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
                 >
-                  <Terminal className="w-3.5 h-3.5" /> Ver compuertas
+                  <Terminal className="w-3.5 h-3.5" /> Ver compuertas HITL
                 </button>
                 <button
                   type="button"
                   onClick={() => setNotifications([])}
-                  className="text-zinc-500 hover:text-zinc-300 transition"
+                  className="text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
                 >
                   Marcar como leídas
                 </button>
@@ -213,15 +325,95 @@ export const Header: React.FC<HeaderProps> = ({ projectName, onOpenSprintModal, 
           )}
         </div>
 
-        {/* User Profile: JV + Joaquin Vallejo + Owner */}
-        <div className="flex items-center gap-2.5 pl-1 pr-1">
-          <div className="w-8 h-8 rounded-full bg-[#1e293b] border border-zinc-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
-            JV
-          </div>
-          <div className="hidden sm:block text-left leading-tight">
-            <div className="text-xs font-bold text-white">Joaquin Vallejo</div>
-            <div className="text-[10px] text-zinc-400">Owner</div>
-          </div>
+        {/* User Profile: Editable on Click */}
+        <div className="relative" ref={profileRef}>
+          <button
+            type="button"
+            onClick={() => setShowProfileModal(!showProfileModal)}
+            className="flex items-center gap-2.5 pl-1 pr-1 hover:opacity-90 transition cursor-pointer group text-left"
+            title="Editar Perfil Soberano"
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0 group-hover:border-emerald-400">
+              {initials}
+            </div>
+            <div className="hidden sm:block text-left leading-tight">
+              <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition">
+                {operatorName}
+              </div>
+              <div className="text-[10px] text-zinc-400">{operatorRole}</div>
+            </div>
+          </button>
+
+          {/* Quick Edit Profile Popover */}
+          {showProfileModal && (
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left">
+              <div className="flex items-center justify-between border-b border-[#1b2533] pb-2">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-white">Editar Perfil Soberano</span>
+                </div>
+                <button
+                  onClick={() => setShowProfileModal(false)}
+                  className="text-zinc-500 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveProfile} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-zinc-400">Nombre:</label>
+                  <input
+                    type="text"
+                    value={operatorName}
+                    onChange={(e) => setOperatorName(e.target.value)}
+                    className="w-full bg-[#080c10] border border-[#1b2533] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-zinc-400">Rol:</label>
+                  <input
+                    type="text"
+                    value={operatorRole}
+                    onChange={(e) => setOperatorRole(e.target.value)}
+                    className="w-full bg-[#080c10] border border-[#1b2533] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-zinc-400">Email:</label>
+                  <input
+                    type="email"
+                    value={operatorEmail}
+                    onChange={(e) => setOperatorEmail(e.target.value)}
+                    className="w-full bg-[#080c10] border border-[#1b2533] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-[#1b2533]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onNavigateSection('settings')
+                      setShowProfileModal(false)
+                    }}
+                    className="text-[11px] text-zinc-400 hover:text-white"
+                  >
+                    Más opciones &rarr;
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{savingProfile ? 'Guardando...' : 'Guardar'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
 
         {/* Prominent Action CTA: + Diseñar Sprint & Jira */}

@@ -13,6 +13,12 @@ import {
   Folder,
   Download,
   MoreVertical,
+  Bot,
+  Sparkles,
+  Layers,
+  ArrowRight,
+  ListFilter,
+  CheckSquare,
 } from 'lucide-react'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from '../types/orchestrator'
 
@@ -39,7 +45,9 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
   onOpenSprintModal,
   onNavigateSection,
 }) => {
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'tareas' | 'agentes' | 'jira' | 'dependencias' | 'eventos'>('roadmap')
+  const [activeTab, setActiveTab] = useState<
+    'roadmap' | 'tareas' | 'agentes' | 'jira' | 'dependencias' | 'eventos'
+  >('roadmap')
   const [viewMode, setViewMode] = useState<'gantt' | 'lista'>('gantt')
 
   const completedCount = tasks.filter((t) => t.status === 'Completada').length
@@ -47,12 +55,39 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
   const waitingCount = tasks.filter((t) => t.status === 'Pendiente' || t.status === 'Bloqueada').length
   const activeAgentsCount = agents.filter((a) => a.status === 'Activo').length
 
+  // Real Export Handler
+  const handleExportRoadmap = () => {
+    const dataStr =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(
+        JSON.stringify(
+          {
+            sprint: activeSprintTitle,
+            exported_at: new Date().toISOString(),
+            contracts: ['DR-INV-001', 'DR-PAY-001', 'DR-IDEM-001'],
+            tasks,
+          },
+          null,
+          2
+        )
+      )
+    const dl = document.createElement('a')
+    dl.setAttribute('href', dataStr)
+    dl.setAttribute('download', 'sacl_sprint_roadmap.json')
+    document.body.appendChild(dl)
+    dl.click()
+    dl.remove()
+  }
+
   return (
     <div id="sec-dashboard" className="space-y-6">
       {/* ROW 1: 4 TOP STAT CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Agentes activos */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
+        <div
+          onClick={() => onNavigateSection('agents')}
+          className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3 cursor-pointer hover:border-zinc-700 transition"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400">Agentes activos</span>
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -77,7 +112,10 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
         </div>
 
         {/* Card 2: Tareas en ejecución */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
+        <div
+          onClick={() => onNavigateSection('roadmap')}
+          className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3 cursor-pointer hover:border-zinc-700 transition"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400">Tareas en ejecución</span>
             <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
@@ -86,17 +124,24 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
           </div>
           <div className="flex items-baseline justify-between">
             <span id="stat-running-tasks" className="text-xl font-extrabold text-white">
-              {runningCount || 7}
+              {runningCount || 2}
             </span>
-            <span className="text-[11px] font-mono text-zinc-500">24%</span>
+            <span className="text-[11px] font-mono text-zinc-500">Oleada 2</span>
           </div>
           <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
-            <div id="bar-running-tasks" className="bg-blue-500 h-full rounded-full transition-all" style={{ width: '24%' }}></div>
+            <div
+              id="bar-running-tasks"
+              className="bg-blue-500 h-full rounded-full transition-all"
+              style={{ width: '45%' }}
+            ></div>
           </div>
         </div>
 
         {/* Card 3: Tareas completadas */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
+        <div
+          onClick={() => onNavigateSection('roadmap')}
+          className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3 cursor-pointer hover:border-zinc-700 transition"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400">Tareas completadas</span>
             <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -105,102 +150,118 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
           </div>
           <div className="flex items-baseline justify-between">
             <span id="stat-completed-tasks" className="text-xl font-extrabold text-white">
-              {completedCount || 18}
+              {completedCount} / {tasks.length}
             </span>
-            <span className="text-[11px] font-mono text-zinc-500">62%</span>
+            <span className="text-[11px] font-mono text-zinc-500">
+              {Math.round((completedCount / (tasks.length || 1)) * 100)}%
+            </span>
           </div>
           <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
-            <div id="bar-completed-tasks" className="bg-emerald-500 h-full rounded-full transition-all" style={{ width: '62%' }}></div>
+            <div
+              id="bar-completed-tasks"
+              className="bg-emerald-500 h-full rounded-full transition-all"
+              style={{ width: `${(completedCount / (tasks.length || 1)) * 100}%` }}
+            ></div>
           </div>
         </div>
 
-        {/* Card 4: Tareas en espera */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
+        {/* Card 4: Compuertas y Bloqueos */}
+        <div
+          onClick={() => onNavigateSection('executions')}
+          className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3 cursor-pointer hover:border-zinc-700 transition"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-400">Tareas en espera</span>
+            <span className="text-xs font-semibold text-zinc-400">Compuertas HITL</span>
             <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <AlertTriangle className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span id="stat-waiting-tasks" className="text-xl font-extrabold text-white">
-              {waitingCount || 2}
+            <span id="stat-blocked-tasks" className="text-xl font-extrabold text-white">
+              1 Pendiente
             </span>
-            <span className="text-[11px] font-mono text-zinc-500">7%</span>
+            <span className="text-[11px] font-mono text-amber-400">HMAC-SHA256</span>
           </div>
           <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
-            <div id="bar-waiting-tasks" className="bg-amber-500 h-full rounded-full transition-all" style={{ width: '7%' }}></div>
+            <div
+              id="bar-blocked-tasks"
+              className="bg-amber-500 h-full rounded-full transition-all"
+              style={{ width: '100%' }}
+            ></div>
           </div>
         </div>
       </div>
 
-      {/* ROW 2: SPRINT ACTUAL HERO CARD */}
-      <div className="p-5 rounded-2xl bg-[#0e141d] border border-[#1b2533] flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs font-semibold text-zinc-400">Sprint actual</span>
-            <span id="dash-sprint-badge" className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">
-              En progreso
-            </span>
+      {/* ROW 1.5: QUICK AGY AI CHAT SHORTCUT BANNER */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0d1622] to-[#0c141d] border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+            <Bot className="w-5 h-5" />
           </div>
-          <h2 id="dash-sprint-title" className="text-lg font-bold text-white tracking-tight">
-            {activeSprintTitle}
-          </h2>
-          <p id="dash-sprint-desc" className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
-            {activeSprintDesc}
-          </p>
-          <div className="flex items-center gap-4 pt-1 text-xs text-zinc-400 flex-wrap">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-              <span id="dash-sprint-start">Inicio: 24 Oct 2026</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Flag className="w-3.5 h-3.5 text-zinc-500" />
-              <span id="dash-sprint-end">Fin: 07 Nov 2026</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Play className="w-3.5 h-3.5 text-zinc-500" />
-              <span id="dash-sprint-tasks-count">{tasks.length || 12} tareas</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <GitBranch className="w-3.5 h-3.5 text-zinc-500" />
-              <span id="dash-sprint-deps-count">3 dependencias</span>
-            </span>
+          <div>
+            <h3 className="text-xs font-bold text-white flex items-center gap-2">
+              <span>Modelo de Inteligencia Artificial (AGY Runtime)</span>
+              <span className="px-2 py-0.2 rounded-full text-[9px] font-mono bg-emerald-500/20 text-emerald-400">
+                HOST ACTIVO
+              </span>
+            </h3>
+            <p className="text-[11px] text-zinc-400">
+              Chatea con el modelo en vivo o ejecuta comandos de barra (/goal, /plan, /boost)
+            </p>
           </div>
         </div>
 
-        {/* Right Circular Progress + Ver Detalles */}
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="relative w-16 h-16 flex items-center justify-center">
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-              <path
-                className="text-[#1b2533]"
-                strokeWidth="3.5"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-              <path
-                className="text-[#00d084]"
-                strokeDasharray="41, 100"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                stroke="currentColor"
-                fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </svg>
-            <span id="dash-sprint-pct" className="absolute text-xs font-bold text-white">
-              41%
+        <button
+          onClick={() => onNavigateSection('chat')}
+          className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shrink-0 shadow-md shadow-emerald-500/20"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Abrir Chat AGY</span>
+        </button>
+      </div>
+
+      {/* ROW 2: ACTIVE SPRINT HERO CARD */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 font-bold">
+                SPRINT ACTIVO
+              </span>
+              <span>&bull;</span>
+              <span>24 Oct &rarr; 07 Nov 2026</span>
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+              {activeSprintTitle}
+            </h2>
+            <p className="text-xs text-zinc-400 max-w-2xl">{activeSprintDesc}</p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={onOpenSprintModal}
+              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <Play className="w-3.5 h-3.5 fill-black" />
+              <span>Ejecutar Oleadas</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Global Progress Bar */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-zinc-400 font-medium">Progreso general del Sprint</span>
+            <span className="text-emerald-400 font-bold font-mono">
+              {Math.round((completedCount / (tasks.length || 1)) * 100)}%
             </span>
           </div>
-          <button
-            type="button"
-            onClick={onOpenSprintModal}
-            className="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 hover:border-white/20 text-xs font-semibold text-white transition cursor-pointer"
-          >
-            Ver detalles
-          </button>
+          <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+              style={{ width: `${(completedCount / (tasks.length || 1)) * 100}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -208,24 +269,26 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
       <div className="space-y-4">
         {/* Sub-tabs row */}
         <div className="flex items-center gap-6 border-b border-[#1b2533] pb-2 text-xs font-semibold select-none overflow-x-auto">
-          {(['roadmap', 'tareas', 'agentes', 'jira', 'dependencias', 'eventos'] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              id={`subtab-btn-${tab}`}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-2 -mb-2 cursor-pointer transition uppercase text-[11px] tracking-wider ${
-                activeTab === tab
-                  ? 'text-white border-b-2 border-emerald-400 font-bold'
-                  : 'text-zinc-400 hover:text-white font-medium'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          {(['roadmap', 'tareas', 'agentes', 'jira', 'dependencias', 'eventos'] as const).map(
+            (tab) => (
+              <button
+                key={tab}
+                type="button"
+                id={`subtab-btn-${tab}`}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-2 -mb-2 cursor-pointer transition uppercase text-[11px] tracking-wider ${
+                  activeTab === tab
+                    ? 'text-white border-b-2 border-emerald-400 font-bold'
+                    : 'text-zinc-400 hover:text-white font-medium'
+                }`}
+              >
+                {tab}
+              </button>
+            )
+          )}
         </div>
 
-        {/* Table Card */}
+        {/* Table / Gantt View Card */}
         <div className="p-5 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -236,49 +299,108 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                 </h3>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                {activeTab === 'roadmap'
-                  ? 'Plan generado automáticamente desde Jira, repositorio y dependencias.'
-                  : `Visualización reactiva en tiempo real del módulo ${activeTab}.`}
+                Plan generado automáticamente desde contratos, Git y base de datos SQLite WAL.
               </p>
             </div>
+
             <div className="flex items-center gap-2.5">
-              <select
-                value={viewMode}
-                onChange={(e) => setViewMode(e.target.value as any)}
-                className="bg-black/60 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono cursor-pointer"
-              >
-                <option value="gantt">Vista: Gantt</option>
-                <option value="lista">Vista: Lista</option>
-              </select>
+              {/* Real Gantt / Lista toggle */}
+              <div className="flex items-center p-0.5 rounded-lg bg-black/60 border border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('gantt')}
+                  className={`px-2.5 py-1 rounded text-xs font-mono transition ${
+                    viewMode === 'gantt'
+                      ? 'bg-emerald-500 text-black font-bold'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Gantt
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('lista')}
+                  className={`px-2.5 py-1 rounded text-xs font-mono transition ${
+                    viewMode === 'lista'
+                      ? 'bg-emerald-500 text-black font-bold'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Lista
+                </button>
+              </div>
+
+              {/* Real Export Button */}
               <button
                 type="button"
-                onClick={() => alert('Exportando roadmap JSON/CSV...')}
-                className="px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-zinc-700 bg-black/40 text-xs font-medium text-zinc-300 hover:text-white flex items-center gap-1.5 cursor-pointer"
+                onClick={handleExportRoadmap}
+                className="px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-zinc-700 bg-black/40 text-xs font-medium text-zinc-300 hover:text-white flex items-center gap-1.5 cursor-pointer transition"
+                title="Descargar JSON del Roadmap"
               >
-                <Download className="w-3.5 h-3.5" /> Exportar
-              </button>
-              <button type="button" className="p-1.5 rounded-lg text-zinc-400 hover:text-white cursor-pointer">
-                <MoreVertical className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Exportar</span>
               </button>
             </div>
           </div>
 
-          {/* Dynamic Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-[#1b2533] text-zinc-400 text-[11px] font-semibold">
-                  <th className="pb-3 pl-1">Tarea / Identificador</th>
-                  <th className="pb-3">Responsable</th>
-                  <th className="pb-3">Inicio</th>
-                  <th className="pb-3">Fin</th>
-                  <th className="pb-3 min-w-[120px]">Progreso</th>
-                  <th className="pb-3 text-right pr-2">Estado</th>
-                </tr>
-              </thead>
-              <tbody id="dash-roadmap-tbody" className="divide-y divide-[#1b2533]/60">
-                {activeTab === 'roadmap' &&
-                  tasks.map((t) => (
+          {/* VIEW MODE: GANTT TIMELINE */}
+          {viewMode === 'gantt' && (
+            <div className="space-y-3 pt-2">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="p-3 rounded-xl bg-[#090e16] border border-[#1b2533] space-y-2 hover:border-zinc-700 transition"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-emerald-400 text-[11px] font-bold">
+                        {task.key}
+                      </span>
+                      <span className="font-bold text-white">{task.title}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-400">
+                      <span className="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300">
+                        {task.agent}
+                      </span>
+                      <span>
+                        {task.start} &rarr; {task.end}
+                      </span>
+                      <span className="text-emerald-400 font-bold">{task.progress}%</span>
+                    </div>
+                  </div>
+
+                  <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        task.progress === 100
+                          ? 'bg-emerald-500'
+                          : task.progress > 0
+                          ? 'bg-blue-500'
+                          : 'bg-zinc-700'
+                      }`}
+                      style={{ width: `${task.progress}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* VIEW MODE: LIST TABLE */}
+          {viewMode === 'lista' && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[#1b2533] text-zinc-400 text-[11px] font-semibold">
+                    <th className="pb-3 pl-1">Tarea / Identificador</th>
+                    <th className="pb-3">Responsable</th>
+                    <th className="pb-3">Plazo</th>
+                    <th className="pb-3 min-w-[120px]">Progreso</th>
+                    <th className="pb-3 text-right pr-2">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-roadmap-tbody" className="divide-y divide-[#1b2533]/60">
+                  {tasks.map((t) => (
                     <tr key={t.id} className="hover:bg-white/[0.02] transition">
                       <td className="py-3 pl-1">
                         <div className="font-semibold text-white">{t.title}</div>
@@ -290,26 +412,30 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                           {t.agent}
                         </span>
                       </td>
-                      <td className="py-3 font-mono text-zinc-400 text-[11px]">{t.start}</td>
-                      <td className="py-3 font-mono text-zinc-400 text-[11px]">{t.end}</td>
+                      <td className="py-3 text-zinc-400 font-mono text-[11px]">
+                        {t.start} - {t.end}
+                      </td>
                       <td className="py-3">
-                        <div className="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              t.status === 'Completada' ? 'bg-emerald-400' : t.status === 'En progreso' ? 'bg-blue-400' : 'bg-zinc-600'
-                            }`}
-                            style={{ width: `${t.progress}%` }}
-                          ></div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-emerald-500 h-full rounded-full transition-all"
+                              style={{ width: `${t.progress}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-[11px] font-mono text-zinc-400">
+                            {t.progress}%
+                          </span>
                         </div>
                       </td>
                       <td className="py-3 text-right pr-2">
                         <span
-                          className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${
+                          className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
                             t.status === 'Completada'
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                               : t.status === 'En progreso'
-                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                              : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                              : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
                           }`}
                         >
                           {t.status}
@@ -317,174 +443,10 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                       </td>
                     </tr>
                   ))}
-
-                {activeTab === 'agentes' &&
-                  agents.map((a) => (
-                    <tr key={a.id} className="hover:bg-white/[0.02] transition">
-                      <td className="py-3 pl-1">
-                        <div className="font-semibold text-white">{a.name}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono">Worktree wt-{a.name}</div>
-                      </td>
-                      <td className="py-3">
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
-                          {a.role}
-                        </span>
-                      </td>
-                      <td className="py-3 font-mono text-zinc-400 text-[11px]">Online</td>
-                      <td className="py-3 font-mono text-zinc-400 text-[11px]">PID {a.pid || 8900}</td>
-                      <td className="py-3">
-                        <div className="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
-                          <div className="bg-emerald-400 h-full rounded-full" style={{ width: a.status === 'Activo' ? '80%' : '10%' }}></div>
-                        </div>
-                      </td>
-                      <td className="py-3 text-right pr-2">
-                        <span
-                          className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${
-                            a.status === 'Activo'
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                              : 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                          }`}
-                        >
-                          {a.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-
-                {activeTab === 'eventos' &&
-                  events.slice(0, 5).map((ev) => (
-                    <tr key={ev.event_id} className="hover:bg-white/[0.02] transition">
-                      <td className="py-3 pl-1">
-                        <div className="font-semibold text-white font-mono text-[11px]">{ev.event_type}</div>
-                        <div className="text-[10px] text-zinc-500 truncate max-w-xs">{ev.payload_json?.slice(0, 50)}...</div>
-                      </td>
-                      <td className="py-3">
-                        <span className="px-2 py-0.5 rounded bg-black/40 text-zinc-400 text-[10px] font-mono">SQLite WAL</span>
-                      </td>
-                      <td className="py-3 font-mono text-zinc-400 text-[11px]">
-                        {ev.created_at ? new Date(ev.created_at).toLocaleTimeString() : 'ahora'}
-                      </td>
-                      <td className="py-3 font-mono text-zinc-400 text-[11px]">{ev.run_id || 'sys'}</td>
-                      <td className="py-3">
-                        <span className={`text-xs font-bold ${ev.severity === 'FATAL' ? 'text-red-400' : 'text-emerald-400'}`}>
-                          {ev.severity}
-                        </span>
-                      </td>
-                      <td className="py-3 text-right pr-2">
-                        <span className="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                          Registrado
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* ROW 4: BOTTOM 3 CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Col 1: Últimos commits */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <GitCommit className="w-3.5 h-3.5 text-zinc-400" /> Últimos commits
-            </span>
-            <button type="button" onClick={() => onNavigateSection('github')} className="text-[11px] text-zinc-400 hover:text-white">
-              Ver todos
-            </button>
-          </div>
-          <div id="dash-commits-list" className="space-y-2.5 text-xs">
-            {commits.map((c) => (
-              <div
-                key={c.sha}
-                className="flex items-start justify-between gap-2 p-2 rounded-xl bg-black/30 border border-white/5 hover:border-white/10 transition"
-              >
-                <div className="space-y-0.5 min-w-0">
-                  <div className="text-xs font-semibold text-white truncate max-w-[200px]" title={c.message}>
-                    {c.message}
-                  </div>
-                  <div className="text-[10px] text-zinc-500 flex items-center gap-1.5">
-                    <span className="font-mono text-emerald-400">{c.sha.slice(0, 7)}</span>
-                    <span>•</span>
-                    <span>{c.author}</span>
-                    <span>•</span>
-                    <span>{c.time}</span>
-                  </div>
-                </div>
-                <GitCommit className="w-3.5 h-3.5 text-zinc-500 shrink-0 mt-0.5" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Col 2: Métricas de ejecución */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white">Métricas de ejecución</span>
-            <span className="text-[11px] text-zinc-500">Últimos 7 días</span>
-          </div>
-          <div className="flex items-center gap-3 text-[10px] text-zinc-400">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Completadas
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400"></span> En progreso
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-400"></span> Fallidas
-            </span>
-          </div>
-          {/* Vectorial Wave Chart */}
-          <div className="h-28 w-full flex items-end">
-            <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
-              <line x1="0" y1="20" x2="200" y2="20" stroke="#1b2533" strokeDasharray="2,2" />
-              <line x1="0" y1="50" x2="200" y2="50" stroke="#1b2533" strokeDasharray="2,2" />
-              <path d="M0 65 Q 30 70, 60 50 T 120 30 T 160 20 T 200 45" fill="none" stroke="#10b981" strokeWidth="2" />
-              <path d="M0 72 Q 40 60, 80 65 T 140 40 T 200 55" fill="none" stroke="#3b82f6" strokeWidth="1.8" />
-            </svg>
-          </div>
-          <div className="flex justify-between text-[9px] font-mono text-zinc-500">
-            <span>20/10</span>
-            <span>21/10</span>
-            <span>22/10</span>
-            <span>23/10</span>
-            <span>24/10</span>
-            <span>25/10</span>
-            <span>26/10</span>
-          </div>
-        </div>
-
-        {/* Col 3: Proyectos */}
-        <div className="p-4 rounded-2xl bg-[#0e141d] border border-[#1b2533] space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Folder className="w-3.5 h-3.5 text-zinc-400" /> Proyectos
-            </span>
-            <button type="button" onClick={() => onNavigateSection('projects')} className="text-[11px] text-zinc-400 hover:text-white">
-              Ver todos
-            </button>
-          </div>
-          <div id="dash-projects-list" className="space-y-2 text-xs">
-            {projects.slice(0, 3).map((p) => (
-              <div key={p.id} className="p-2 rounded-xl bg-black/30 border border-white/5 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white text-xs truncate max-w-[130px]">{p.name}</span>
-                  <span className="text-[10px] font-mono text-emerald-400">{p.readiness || 80}%</span>
-                </div>
-                <div className="w-full bg-[#1b2533] h-1 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${p.readiness || 80}%` }}></div>
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-0.5">
-                  <span>{p.tech_stack ? p.tech_stack.slice(0, 2).join(', ') : 'Node.js, React'}</span>
-                  <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-semibold text-[9px]">
-                    {p.status || 'ACTIVE'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

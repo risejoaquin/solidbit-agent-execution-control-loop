@@ -395,7 +395,7 @@ class OrchestratorModule:
                 conn.execute(
                     """
                     INSERT OR REPLACE INTO jobs (job_id, status, priority, created_at, updated_at, metadata_json)
-                    VALUES (?, 'READY_FOR_SPRINT', ?, ?, ?, ?);
+                    VALUES (?, 'RECEIVED', ?, ?, ?, ?);
                     """,
                     (ticket_key, 1 if priority == "CRITICAL" else 2, timestamp, timestamp, meta_json)
                 )

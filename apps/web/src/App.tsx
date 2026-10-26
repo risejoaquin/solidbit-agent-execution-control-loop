@@ -4,6 +4,13 @@ import { LeftSidebar } from './components/LeftSidebar'
 import { CenterDashboard } from './components/CenterDashboard'
 import { RightSidebar } from './components/RightSidebar'
 import { SprintDesignerModal } from './components/SprintDesignerModal'
+import { ChatSection } from './components/sections/ChatSection'
+import { RoadmapSection } from './components/sections/RoadmapSection'
+import { AgentsSection } from './components/sections/AgentsSection'
+import { ExecutionsSection } from './components/sections/ExecutionsSection'
+import { ProjectsSection } from './components/sections/ProjectsSection'
+import { ReportsSection } from './components/sections/ReportsSection'
+import { SettingsSection } from './components/sections/SettingsSection'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 
 export default function App() {
@@ -11,7 +18,7 @@ export default function App() {
   const [isSprintModalOpen, setIsSprintModalOpen] = useState<boolean>(false)
   const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
 
-  // Data states
+  // Canonical Tasks State
   const [tasks] = useState<TaskItem[]>([
     { id: '1', title: 'Autenticación JWT y roles', key: 'SEC-101', agent: 'auth-agent', start: '24 Oct', end: '27 Oct', progress: 100, status: 'Completada' },
     { id: '2', title: 'Catálogo de productos y stock', key: 'CAT-202', agent: 'db-agent', start: '25 Oct', end: '29 Oct', progress: 80, status: 'En progreso' },
@@ -21,15 +28,16 @@ export default function App() {
     { id: '6', title: 'Despliegue y CI/CD Railway', key: 'OPS-606', agent: 'devops-agent', start: '05 Nov', end: '07 Nov', progress: 0, status: 'Pendiente' },
   ])
 
+  // Canonical Fleet Agents State
   const [agents] = useState<AgentItem[]>([
     { id: 'a1', name: 'architect-agent', role: 'Líder técnico', status: 'Activo', color: 'emerald', icon: 'cpu', pid: 1432 },
     { id: 'a2', name: 'api-agent', role: 'Backend REST', status: 'Activo', color: 'emerald', icon: 'server', pid: 2190 },
     { id: 'a3', name: 'db-agent', role: 'PostgreSQL / SQLite', status: 'Activo', color: 'emerald', icon: 'database', pid: 3411 },
     { id: 'a4', name: 'auth-agent', role: 'Seguridad y JWT', status: 'Activo', color: 'emerald', icon: 'shield', pid: 4892 },
     { id: 'a5', name: 'checkout-agent', role: 'Flujo de compra', status: 'En espera', color: 'amber', icon: 'shopping-bag', pid: 5670 },
-    { id: 'a6', name: 'frontend-agent', role: 'UI / Tailwind', status: 'Inactivo', color: 'zinc', icon: 'layout', pid: 6112 },
-    { id: 'a7', name: 'qa-agent', role: 'Tests unitarios y e2e', status: 'Inactivo', color: 'zinc', icon: 'check-circle', pid: 7289 },
-    { id: 'a8', name: 'devops-agent', role: 'CI/CD y Docker', status: 'Inactivo', color: 'zinc', icon: 'terminal', pid: 8940 },
+    { id: 'a6', name: 'frontend-agent', role: 'UI / Tailwind', status: 'Activo', color: 'emerald', icon: 'layout', pid: 6112 },
+    { id: 'a7', name: 'qa-agent', role: 'Tests unitarios y e2e', status: 'Activo', color: 'emerald', icon: 'check-circle', pid: 7289 },
+    { id: 'a8', name: 'devops-agent', role: 'CI/CD y Docker', status: 'Activo', color: 'emerald', icon: 'terminal', pid: 8940 },
   ])
 
   const [commits, setCommits] = useState<CommitItem[]>([])
@@ -86,6 +94,7 @@ export default function App() {
       sse.addEventListener('snapshot', () => loadData())
       sse.addEventListener('gate', () => loadData())
       sse.addEventListener('job', () => loadData())
+      sse.addEventListener('sprint_executed', () => loadData())
       return () => sse.close()
     } catch (e) {
       console.warn('SSE not supported or connection closed')
@@ -125,19 +134,35 @@ export default function App() {
             />
           )}
 
-          {currentSection !== 'dashboard' && (
-            <div className="p-8 rounded-3xl bg-[#0e141d] border border-[#1b2533] text-center space-y-4 max-w-4xl mx-auto my-12">
-              <h2 className="text-xl font-bold text-white capitalize">Módulo: {currentSection}</h2>
-              <p className="text-sm text-zinc-400">
-                Vista de {currentSection} integrada en tiempo real con el orquestador SACL.
-              </p>
-              <button
-                onClick={() => setCurrentSection('dashboard')}
-                className="px-4 py-2 rounded-xl bg-emerald-500 text-black font-bold text-xs"
-              >
-                Volver a Inicio
-              </button>
-            </div>
+          {currentSection === 'chat' && (
+            <ChatSection />
+          )}
+
+          {(currentSection === 'designer' || currentSection === 'roadmap') && (
+            <RoadmapSection
+              tasks={tasks}
+              onOpenSprintModal={() => setIsSprintModalOpen(true)}
+            />
+          )}
+
+          {currentSection === 'agents' && (
+            <AgentsSection agents={agents} />
+          )}
+
+          {(currentSection === 'gates' || currentSection === 'executions') && (
+            <ExecutionsSection />
+          )}
+
+          {currentSection === 'projects' && (
+            <ProjectsSection projects={projects} />
+          )}
+
+          {(currentSection === 'database' || currentSection === 'reports') && (
+            <ReportsSection />
+          )}
+
+          {(currentSection === 'github' || currentSection === 'settings') && (
+            <SettingsSection />
           )}
         </main>
 
