@@ -224,6 +224,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
         <span>Pipelines SDLC</span>
       </button>
+      <button id="dtab-github" class="nav-pill flex items-center gap-1.5" onclick="switchSection('github')">
+        <i data-lucide="github" class="w-3.5 h-3.5 text-blue-400"></i>
+        <span>GitHub Hub</span>
+        <span id="nav-github-prs-badge" class="mono text-[10px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 font-bold">4 PRs</span>
+      </button>
       <button id="dtab-projects" class="nav-pill flex items-center gap-1.5" onclick="switchSection('projects')">
         <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i>
         <span>Repos & Docs</span>
@@ -689,125 +694,21 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
       </div>
 
-      <!-- SECTION: GESTIÓN DE DATOS EN VIVO (SQLITE WAL DIRECT EXPLORER) -->
-      <div class="section-canvas p-6 md:p-8 space-y-5 bg-gradient-to-br from-[#030305] to-[#030305] border-emerald-500/25">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <i data-lucide="database" class="w-5 h-5 text-emerald-400"></i>
-              <h2 class="text-base font-bold text-white tracking-tight">Gestión de Almacenamiento & Telemetría SQLite WAL</h2>
-              <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold">LIVE SYNC</span>
-            </div>
-            <p class="text-xs text-zinc-400">Inspecciona y administra los registros soberanos sin salir del dashboard.</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <button onclick="checkDbIntegrity()" class="btn btn-secondary text-xs px-3 py-1.5">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
-              <span>PRAGMA integrity_check</span>
-            </button>
-            <button onclick="executeWalCheckpoint()" class="btn btn-secondary text-xs px-3 py-1.5">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-blue-400"></i>
-              <span>PRAGMA wal_checkpoint</span>
-            </button>
-            <button onclick="switchSection('database')" class="btn btn-primary text-xs px-3.5 py-1.5">
-              <span>Abrir Explorador Completo &rarr;</span>
-            </button>
-          </div>
+      <!-- SOBERANÍA & RESUMEN DE ALMACENAMIENTO (MINIMALISTA) -->
+      <div class="p-4 rounded-xl bg-black border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-zinc-400">Base de Datos: <code class="mono text-white font-bold">sacl_ops.db</code> (SQLite WAL, PRAGMA OK)</span>
         </div>
-
-        <!-- Table Selector Buttons with Counters -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          <button onclick="loadHudEmbeddedTable('approvals')" class="item-card p-3 text-left hover:border-emerald-500/50 cursor-pointer">
-            <div class="text-xs text-zinc-400 mono">approvals</div>
-            <div class="text-lg font-bold mono text-white mt-1" id="tbl-cnt-approvals">6</div>
-            <div class="text-[10px] text-emerald-400">Compuertas</div>
+        <div class="flex items-center gap-2">
+          <button onclick="switchSection('database')" class="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Explorar Tablas WAL</span>
           </button>
-          <button onclick="loadHudEmbeddedTable('runs')" class="item-card p-3 text-left hover:border-emerald-500/50 cursor-pointer">
-            <div class="text-xs text-zinc-400 mono">runs</div>
-            <div class="text-lg font-bold mono text-white mt-1" id="tbl-cnt-runs">12</div>
-            <div class="text-[10px] text-blue-400">Ejecuciones</div>
+          <button onclick="switchSection('github')" class="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5">
+            <i data-lucide="github" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span>Ver Pull Requests</span>
           </button>
-          <button onclick="loadHudEmbeddedTable('events')" class="item-card p-3 text-left hover:border-emerald-500/50 cursor-pointer">
-            <div class="text-xs text-zinc-400 mono">events</div>
-            <div class="text-lg font-bold mono text-white mt-1" id="tbl-cnt-events">18</div>
-            <div class="text-[10px] text-purple-400">Auditoría WAL</div>
-          </button>
-          <button onclick="loadHudEmbeddedTable('errors')" class="item-card p-3 text-left hover:border-emerald-500/50 cursor-pointer">
-            <div class="text-xs text-zinc-400 mono">errors</div>
-            <div class="text-lg font-bold mono text-white mt-1" id="tbl-cnt-errors">12</div>
-            <div class="text-[10px] text-red-400">Forenses</div>
-          </button>
-          <button onclick="loadHudEmbeddedTable('leases')" class="item-card p-3 text-left hover:border-emerald-500/50 cursor-pointer">
-            <div class="text-xs text-zinc-400 mono">leases</div>
-            <div class="text-lg font-bold mono text-white mt-1" id="tbl-cnt-leases">1</div>
-            <div class="text-[10px] text-amber-400">Singleton Lock</div>
-          </button>
-          <button onclick="loadHudEmbeddedTable('jobs')" class="item-card p-3 text-left hover:border-emerald-500/50 cursor-pointer">
-            <div class="text-xs text-zinc-400 mono">jobs</div>
-            <div class="text-lg font-bold mono text-white mt-1" id="tbl-cnt-jobs">2</div>
-            <div class="text-[10px] text-zinc-400">Trabajos</div>
-          </button>
-        </div>
-
-        <!-- Embedded Quick Table Rows Inspector on HUD -->
-        <div class="p-4 rounded-xl bg-black/50 border bd space-y-3">
-          <div class="flex items-center justify-between text-xs mono">
-            <span class="text-zinc-400 font-semibold" id="hud-embedded-table-title">Registros Recientes: approvals</span>
-            <span class="text-emerald-400">SQLite WAL Direct Query</span>
-          </div>
-          <div class="overflow-x-auto custom-scroll max-h-[220px]">
-            <table class="w-full text-left text-xs mono">
-              <thead class="bg-black/60 sticky top-0">
-                <tr class="border-b bd text-zinc-400 font-semibold" id="hud-embedded-table-headers">
-                  <th class="py-2 px-3">Approval ID</th>
-                  <th class="py-2 px-3">Acción</th>
-                  <th class="py-2 px-3">Estado</th>
-                  <th class="py-2 px-3">Operador</th>
-                  <th class="py-2 px-3">Fecha UTC</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-white/5" id="hud-embedded-table-body">
-                <tr><td colspan="5" class="py-4 text-center text-zinc-500">Cargando registros SQLite...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- LEDGER DE AUDITORÍA EN VIVO (WAL) -->
-      <div class="section-canvas p-6 space-y-4">
-        <div class="flex items-center justify-between border-b bd pb-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="scroll-text" class="w-4 h-4 text-emerald-400"></i>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-white">Ledger de Auditoría en Tiempo Real</h3>
-          </div>
-          <span class="mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">WAL LIVE</span>
-        </div>
-
-        <div id="live-audit-feed-container" class="space-y-2.5 max-h-[320px] overflow-y-auto custom-scroll pr-1">
-          <div class="p-3 rounded-lg bg-black/40 border bd space-y-1">
-            <div class="flex items-center justify-between text-[11px] mono">
-              <span class="text-emerald-400 font-bold">STALE_LOCK_RECLAIMED</span>
-              <span class="text-zinc-500">08:09:45</span>
-            </div>
-            <div class="text-xs text-zinc-300">Lease SUPERVISOR_SINGLETON renovado tras crash de PID 21140.</div>
-          </div>
-          <div class="p-3 rounded-lg bg-black/40 border bd space-y-1">
-            <div class="text-[11px] mono flex items-center justify-between">
-              <span class="text-red-400 font-bold">DIRTY_ROOT_SAFETY_HALT</span>
-              <span class="text-zinc-500">08:09:33</span>
-            </div>
-            <div class="text-xs text-zinc-300">78 cambios detectados en repo primario. Reset destructivo prevenido.</div>
-          </div>
-          <div class="p-3 rounded-lg bg-black/40 border bd space-y-1">
-            <div class="text-[11px] mono flex items-center justify-between">
-              <span class="text-amber-400 font-bold">GATE_HALTED</span>
-              <span class="text-zinc-500">08:09:33</span>
-            </div>
-            <div class="text-xs text-zinc-300">Compuerta JOB-GATE-001 requiere aprobación humana antes de staging.</div>
-          </div>
         </div>
       </div>
 
@@ -1266,6 +1167,109 @@ HTML_APPLICATION = """<!DOCTYPE html>
     </div>
 
     <!-- ========================================== -->
+    <!-- SECTION: GITHUB ENGINEERING HUB (LIVE GH CLI) -->
+    <!-- ========================================== -->
+    <div id="sec-github" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="github" class="w-6 h-6 text-white"></i>
+            <h2 class="text-2xl font-bold tracking-tight text-white">GitHub Engineering Hub</h2>
+            <span class="mono text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 font-bold" id="gh-sync-badge">Sincronizado</span>
+          </div>
+          <p class="text-sm text-zinc-400 mt-1">Supervisión en vivo de Pull Requests, ramas remotas, commits y workflows de GitHub Actions.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="syncGitHubRepo()" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span>Sincronizar (git fetch)</span>
+          </button>
+          <a href="https://github.com/risejoaquin/solidbit-agent-execution-control-loop" target="_blank" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span>Ver en GitHub</span>
+          </a>
+          <button onclick="openNewPrModal()" class="btn btn-primary text-xs px-3.5 py-2 font-bold">
+            <i data-lucide="git-pull-request" class="w-3.5 h-3.5"></i>
+            <span>+ Nuevo PR</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- GitHub Metadata Strip -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="item-card p-4 space-y-1">
+          <span class="text-xs text-zinc-400">Repositorio Activo:</span>
+          <div class="text-sm font-bold mono text-white truncate" id="gh-meta-repo">risejoaquin/solidbit-agent-execution-control-loop</div>
+          <div class="text-xs text-emerald-400 font-semibold" id="gh-meta-user">Identidad: @risejoaquin</div>
+        </div>
+        <div class="item-card p-4 space-y-1">
+          <span class="text-xs text-zinc-400">Rama Actual:</span>
+          <div class="text-sm font-bold mono text-emerald-400 truncate" id="gh-meta-branch">sacl-implementation-impl-20261007-203727-e69378</div>
+          <div class="text-xs text-zinc-500" id="gh-meta-tracking">Al día con origin</div>
+        </div>
+        <div class="item-card p-4 space-y-1">
+          <span class="text-xs text-zinc-400">Estado de Archivos:</span>
+          <div class="text-sm font-bold mono text-emerald-400" id="gh-meta-clean">Working Tree Limpio</div>
+          <div class="text-xs text-zinc-500">0 cambios sin commitear</div>
+        </div>
+        <div class="item-card p-4 space-y-1">
+          <span class="text-xs text-zinc-400">Commits Ahead / Behind:</span>
+          <div class="text-sm font-bold mono text-white" id="gh-meta-counts">0 Ahead / 0 Behind</div>
+          <div class="text-xs text-zinc-500">Totalmente sincronizado</div>
+        </div>
+      </div>
+
+      <!-- Main GitHub Grid: PRs on Left, Commits & Actions on Right -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- PRs Panel (2 cols) -->
+        <div class="lg:col-span-2 section-canvas p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="git-pull-request" class="w-4 h-4 text-blue-400"></i>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Pull Requests Activos</h3>
+            </div>
+            <span class="text-xs mono text-zinc-400" id="gh-prs-count">Cargando PRs...</span>
+          </div>
+          <div id="gh-prs-list" class="space-y-3">
+            <div class="p-6 text-center text-zinc-500 text-xs">Cargando Pull Requests desde GitHub API...</div>
+          </div>
+        </div>
+
+        <!-- Commits & Workflows Column (1 col) -->
+        <div class="space-y-6">
+          <!-- Recent Commits -->
+          <div class="section-canvas p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="git-commit" class="w-4 h-4 text-emerald-400"></i>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Commits Recientes</h3>
+              </div>
+              <span class="text-xs mono text-zinc-500">Git Log</span>
+            </div>
+            <div id="gh-commits-list" class="space-y-2.5 max-h-[360px] overflow-y-auto custom-scroll pr-1">
+              <div class="p-4 text-center text-zinc-500 text-xs">Cargando commits...</div>
+            </div>
+          </div>
+
+          <!-- GitHub Actions Workflows -->
+          <div class="section-canvas p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="play" class="w-4 h-4 text-purple-400"></i>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">GitHub Actions CI/CD</h3>
+              </div>
+              <span class="text-xs mono text-zinc-500">gh run list</span>
+            </div>
+            <div id="gh-runs-list" class="space-y-2.5">
+              <div class="p-4 text-center text-zinc-500 text-xs">Cargando workflows...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
     <div id="sec-chat" class="flex flex-col h-[calc(100vh-8.5rem)] md:h-[calc(100vh-5rem)] max-w-5xl mx-auto w-full px-3 md:px-6 pb-2 hidden">
       <div class="flex items-center justify-between py-2.5 border-b bd shrink-0 mb-3">
         <div class="flex items-center gap-2.5">
@@ -1388,6 +1392,10 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <button id="mtab-sdlc" class="mobile-tab" onclick="switchSection('sdlc')">
       <i data-lucide="play-circle" class="w-4 h-4"></i>
       <span>Pipelines</span>
+    </button>
+    <button id="mtab-github" class="mobile-tab" onclick="switchSection('github')">
+      <i data-lucide="github" class="w-4 h-4"></i>
+      <span>GitHub</span>
     </button>
     <button id="mtab-chat" class="mobile-tab" onclick="switchSection('chat')">
       <i data-lucide="terminal" class="w-4 h-4"></i>
@@ -1730,7 +1738,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     // ==========================================
     function switchSection(secId) {
       currentSection = secId;
-      ['dashboard', 'database', 'gates', 'sdlc', 'projects', 'chat'].forEach(id => {
+      ['dashboard', 'database', 'gates', 'sdlc', 'projects', 'github', 'chat'].forEach(id => {
         const el = document.getElementById('sec-' + id);
         const dtab = document.getElementById('dtab-' + id);
         const mtab = document.getElementById('mtab-' + id);
@@ -1755,10 +1763,195 @@ HTML_APPLICATION = """<!DOCTYPE html>
       } else if (secId === 'database') {
         loadDbDashboard();
         viewTableRows('approvals');
+      } else if (secId === 'github') {
+        loadGitHubDashboard();
       }
       lucide.createIcons();
     }
     window.switchSection = switchSection;
+
+    // ==========================================
+    // GITHUB ENGINEERING HUB JAVASCRIPT
+    // ==========================================
+    async function loadGitHubDashboard() {
+      try {
+        const sRes = await fetch('/api/github/status');
+        if (sRes.ok) {
+          const s = await sRes.json();
+          const rEl = document.getElementById('gh-meta-repo');
+          if (rEl) rEl.textContent = s.repo;
+          const bEl = document.getElementById('gh-meta-branch');
+          if (bEl) bEl.textContent = s.branch;
+          const uEl = document.getElementById('gh-meta-user');
+          if (uEl) uEl.textContent = 'Identidad: @' + s.user;
+          const cEl = document.getElementById('gh-meta-clean');
+          if (cEl) cEl.textContent = s.is_clean ? 'Working Tree Limpio' : 'Cambios Pendientes';
+          const cntEl = document.getElementById('gh-meta-counts');
+          if (cntEl) cntEl.textContent = s.ahead + ' Ahead / ' + s.behind + ' Behind';
+          const badge = document.getElementById('gh-sync-badge');
+          if (badge) badge.textContent = s.status_label;
+        }
+
+        const prRes = await fetch('/api/github/prs');
+        if (prRes.ok) {
+          const pData = await prRes.json();
+          const prs = pData.prs || [];
+          const cntBadge = document.getElementById('nav-github-prs-badge');
+          if (cntBadge) cntBadge.textContent = prs.length + ' PRs';
+          const countEl = document.getElementById('gh-prs-count');
+          if (countEl) countEl.textContent = prs.length + ' Pull Requests Abiertos';
+          
+          const listEl = document.getElementById('gh-prs-list');
+          if (listEl) {
+            if (prs.length === 0) {
+              listEl.innerHTML = '<div class="p-8 text-center text-zinc-500 text-xs">No hay Pull Requests pendientes en este repositorio.</div>';
+            } else {
+              listEl.innerHTML = prs.map(pr => `
+                <div class="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-blue-500/40 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold mono ${pr.isDraft ? 'bg-zinc-800 text-zinc-300 border border-zinc-700' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">
+                        ${pr.isDraft ? 'BORRADOR' : 'ABIERTO'}
+                      </span>
+                      <span class="mono text-xs text-zinc-400 font-bold">#${pr.number}</span>
+                      <h4 class="text-sm font-semibold text-white tracking-tight">${pr.title}</h4>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-zinc-400 mono">
+                      <span class="text-blue-400">rama: ${pr.headRefName}</span>
+                      <span>•</span>
+                      <span>Actualizado: ${new Date(pr.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <a href="${pr.url}" target="_blank" class="btn btn-secondary text-xs px-3.5 py-1.5 shrink-0 flex items-center gap-1.5">
+                    <span>Ver en GitHub</span>
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                </div>
+              `).join('');
+            }
+          }
+        }
+
+        const cRes = await fetch('/api/github/commits?limit=8');
+        if (cRes.ok) {
+          const cData = await cRes.json();
+          const commits = cData.commits || [];
+          const listEl = document.getElementById('gh-commits-list');
+          if (listEl) {
+            listEl.innerHTML = commits.map(c => `
+              <div class="p-2.5 rounded-lg bg-black/60 border border-white/5 flex items-start justify-between gap-2 text-xs">
+                <div class="space-y-0.5 truncate">
+                  <div class="font-medium text-white truncate">${c.message}</div>
+                  <div class="text-[11px] text-zinc-400 mono flex items-center gap-2">
+                    <span class="text-emerald-400 font-bold">@${c.author}</span>
+                    <span>•</span>
+                    <span>${c.time}</span>
+                  </div>
+                </div>
+                <span class="mono text-[10px] px-2 py-0.5 rounded bg-white/10 text-zinc-300 shrink-0 font-bold">${c.sha}</span>
+              </div>
+            `).join('');
+          }
+        }
+
+        const rRes = await fetch('/api/github/runs?limit=5');
+        if (rRes.ok) {
+          const rData = await rRes.json();
+          const runs = rData.runs || [];
+          const listEl = document.getElementById('gh-runs-list');
+          if (listEl) {
+            listEl.innerHTML = runs.map(r => `
+              <div class="p-2.5 rounded-lg bg-black/60 border border-white/5 flex items-center justify-between gap-2 text-xs">
+                <div class="truncate">
+                  <div class="font-medium text-white truncate">${r.name}</div>
+                  <div class="text-[10px] text-zinc-400 mono">${r.headBranch}</div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold mono ${r.conclusion === 'success' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                    ${r.conclusion || r.status}
+                  </span>
+                  <a href="${r.url}" target="_blank" class="text-zinc-400 hover:text-white p-1">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </a>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error cargando GitHub Dashboard:', err);
+      }
+    }
+    window.loadGitHubDashboard = loadGitHubDashboard;
+
+    async function syncGitHubRepo() {
+      showToast('Sincronizando con origin (git fetch)...', 'info');
+      try {
+        const res = await fetch('/api/github/sync', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Repositorio sincronizado con éxito con origin.', 'success');
+          loadGitHubDashboard();
+        } else {
+          showToast('Error sincronizando repositorio: ' + data.output, 'error');
+        }
+      } catch (e) {
+        showToast('Fallo de conexión al sincronizar.', 'error');
+      }
+    }
+    window.syncGitHubRepo = syncGitHubRepo;
+
+    function openNewPrModal() {
+      const modal = document.getElementById('modal-new-pr');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+    window.openNewPrModal = openNewPrModal;
+
+    function closeNewPrModal() {
+      const modal = document.getElementById('modal-new-pr');
+      if (modal) modal.classList.add('hidden');
+    }
+    window.closeNewPrModal = closeNewPrModal;
+
+    async function submitNewPr() {
+      const title = document.getElementById('new-pr-title').value.trim();
+      const body = document.getElementById('new-pr-body').value.trim();
+      const base = document.getElementById('new-pr-base').value.trim() || 'main';
+      const draft = document.getElementById('new-pr-draft').checked;
+
+      if (!title) {
+        showToast('Ingresa un título para el Pull Request', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-new-pr');
+      if (btn) btn.disabled = true;
+      showToast('Creando Pull Request en GitHub...', 'info');
+
+      try {
+        const res = await fetch('/api/github/pr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, body, base, draft })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Pull Request creado exitosamente en GitHub!', 'success');
+          closeNewPrModal();
+          loadGitHubDashboard();
+        } else {
+          showToast('Error al crear PR: ' + (data.error || 'falló gh pr create'), 'error');
+        }
+      } catch (err) {
+        showToast('Error de conexión al crear PR', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+    window.submitNewPr = submitNewPr;
+
 
     // ==========================================
     // TOAST NOTIFIER (HIGH VISIBILITY)
@@ -3357,5 +3550,48 @@ HTML_APPLICATION = """<!DOCTYPE html>
     window.switchEcosystemProject = switchEcosystemProject;
 
   </script>
+  <!-- ========================================== -->
+  <!-- MODAL: NUEVO PULL REQUEST -->
+  <!-- ========================================== -->
+  <div id="modal-new-pr" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-black border border-white/20 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="git-pull-request" class="w-5 h-5 text-blue-400"></i>
+          <h3 class="text-base font-bold text-white">Crear Nuevo Pull Request</h3>
+        </div>
+        <button onclick="closeNewPrModal()" class="text-zinc-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-zinc-400 font-semibold mb-1">Título del PR</label>
+          <input type="text" id="new-pr-title" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white font-mono" placeholder="feat: descripción del cambio">
+        </div>
+        <div>
+          <label class="block text-zinc-400 font-semibold mb-1">Descripción / Notas</label>
+          <textarea id="new-pr-body" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white font-mono h-24" placeholder="Detalles de la implementación, tickets relacionados..."></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3 font-mono">
+          <div>
+            <label class="block text-zinc-400 font-semibold mb-1">Rama Base (Target)</label>
+            <input type="text" id="new-pr-base" value="main" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-300">
+          </div>
+          <div class="flex items-center gap-2 pt-6">
+            <input type="checkbox" id="new-pr-draft" checked class="w-4 h-4 rounded text-blue-500 bg-zinc-900 border-zinc-700">
+            <label for="new-pr-draft" class="text-zinc-300 font-sans">Crear como Draft</label>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+        <button onclick="closeNewPrModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
+        <button onclick="submitNewPr()" id="btn-submit-new-pr" class="btn btn-primary text-xs px-5 py-2 font-bold">
+          <span>Crear Pull Request en GitHub</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>"""

@@ -516,6 +516,32 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(500, {"success": False, "error": str(e)})
                 return
 
+        # 12.3 REST API: GitHub Status, PRs, Commits & Runs
+        if path == "/api/github/status":
+            from sacl.ui.modules import github as gh_mod
+            self._send_json(200, gh_mod.get_github_status())
+            return
+
+        if path == "/api/github/prs":
+            from sacl.ui.modules import github as gh_mod
+            prs = gh_mod.get_pull_requests()
+            self._send_json(200, {"prs": prs, "count": len(prs)})
+            return
+
+        if path == "/api/github/commits":
+            from sacl.ui.modules import github as gh_mod
+            limit = int(query.get("limit", [10])[0])
+            commits = gh_mod.get_recent_commits(limit=limit)
+            self._send_json(200, {"commits": commits, "count": len(commits)})
+            return
+
+        if path == "/api/github/runs":
+            from sacl.ui.modules import github as gh_mod
+            limit = int(query.get("limit", [6])[0])
+            runs = gh_mod.get_actions_runs(limit=limit)
+            self._send_json(200, {"runs": runs, "count": len(runs)})
+            return
+
         # 13. REST API: AI Model Selector & Parameters
         if path == "/api/model/config":
             self._send_json(200, self.service.models.get_config())
@@ -787,6 +813,25 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             params = body.get("params", {})
             res = self.service.actions.execute(action_type, params=params)
             broadcast_sse("action_executed", res)
+            self._send_json(200, res)
+            return
+
+        # 18. GitHub Sync & Pull Request Actions
+        if path == "/api/github/sync":
+            from sacl.ui.modules import github as gh_mod
+            res = gh_mod.sync_origin()
+            broadcast_sse("github_synced", res)
+            self._send_json(200, res)
+            return
+
+        if path == "/api/github/pr":
+            from sacl.ui.modules import github as gh_mod
+            title = body.get("title", "feat: automated update from SACL orchestrator")
+            pr_body = body.get("body", "Created via SACL Web Executive HUD")
+            base = body.get("base", "main")
+            draft = body.get("draft", True)
+            res = gh_mod.create_pull_request(title=title, body=pr_body, base=base, draft=draft)
+            broadcast_sse("github_pr_created", res)
             self._send_json(200, res)
             return
 
