@@ -150,3 +150,59 @@ def test_ui_server_chat_api(running_server):
         assert res["success"] is True
         assert "compuerta" in res["assistant_message"]["content"].lower()
 
+
+def test_ui_server_orchestrator_api(running_server):
+    host, port, *_ = running_server
+
+    # 1. GET /api/orchestrator/context
+    url = f"http://{host}:{port}/api/orchestrator/context"
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req) as resp:
+        assert resp.status == 200
+        data = json.loads(resp.read().decode("utf-8"))
+        assert "active_project" in data
+        assert "jira_backlog" in data
+        assert len(data["jira_backlog"]) >= 5
+
+    # 2. POST /api/orchestrator/auto-plan
+    post_url = f"http://{host}:{port}/api/orchestrator/auto-plan"
+    payload = json.dumps({"jira_key": "SOLID-106", "mode": "waves"}).encode("utf-8")
+    post_req = urllib.request.Request(
+        post_url, data=payload, headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(post_req) as resp:
+        assert resp.status == 200
+        plan = json.loads(resp.read().decode("utf-8"))
+        assert plan["jira_ticket"]["key"] == "SOLID-106"
+        assert len(plan["roles"]) >= 4
+        assert len(plan["waves"]) >= 3
+
+    # 3. POST /api/orchestrator/execute-sprint
+    exec_url = f"http://{host}:{port}/api/orchestrator/execute-sprint"
+    exec_payload = json.dumps({"sprint_plan": plan}).encode("utf-8")
+    exec_req = urllib.request.Request(
+        exec_url, data=exec_payload, headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(exec_req) as resp:
+        assert resp.status == 200
+        exec_res = json.loads(resp.read().decode("utf-8"))
+        assert exec_res.get("success") is True or exec_res.get("status") == "COMPLETED"
+
+    # 4. POST /api/orchestrator/apply-changes
+    apply_url = f"http://{host}:{port}/api/orchestrator/apply-changes"
+    apply_payload = json.dumps({
+        "approval_id": "REQ-SERVER-TEST",
+        "operator": "LUCILFER",
+        "justification": "Test deployment gate approval"
+    }).encode("utf-8")
+    apply_req = urllib.request.Request(
+        apply_url, data=apply_payload, headers={"Content-Type": "application/json"}
+    )
+    with urllib.request.urlopen(apply_req) as resp:
+        assert resp.status == 200
+        apply_res = json.loads(resp.read().decode("utf-8"))
+        assert apply_res["success"] is True
+        assert apply_res["jira_ticket"] == "SOLID-106"
+        assert "hmac-sha256:" in apply_res["hmac_signature"]
+
+

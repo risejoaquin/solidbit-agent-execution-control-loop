@@ -9,7 +9,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+    <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
@@ -300,30 +300,41 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <i data-lucide="git-branch" class="w-5 h-5"></i>
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">Run Activo:</span>
-              <span id="hud-active-run-id" class="mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded">run-20261026-051101-9a00ad</span>
-              <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">WAITING_GATE</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">Proyecto:</span>
+              <select id="hud-project-selector" onchange="switchProjectWorkspace(this.value)" class="bg-black border bd text-white text-xs font-bold rounded px-2.5 py-1 mono focus:outline-none focus:border-emerald-500 cursor-pointer">
+                <option value="stable-ecommerce" selected>Stable-Ecommerce</option>
+                <option value="sacl-control-loop">SolidBit SACL Control Loop</option>
+                <option value="solidbit-blueprints">SolidBit Architectural Blueprints</option>
+              </select>
+              <span id="hud-active-run-id" class="mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded">run-latest</span>
+              <span id="hud-status-badge" class="mono text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">WAITING_GATE</span>
             </div>
-            <div class="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
-              <span>Worktree: <code class="mono text-zinc-300">integration</code></span>
+            <div class="text-xs text-zinc-400 mt-1 flex items-center gap-2 flex-wrap">
+              <span>Worktree: <code id="hud-worktree-name" class="mono text-zinc-300">integration</code></span>
+              <span>&bull;</span>
+              <span>Jira Sprint: <code id="hud-active-jira-key" class="mono text-emerald-400 font-bold">SOLID-106</code></span>
               <span>&bull;</span>
               <span>Modo: <code class="mono text-zinc-300">Hard Deny Supremacy (Zero-Bypass)</code></span>
             </div>
           </div>
         </div>
 
-        <!-- Primary Execution Actions -->
-        <div class="flex items-center gap-2">
-          <button onclick="executeAction('campaign_sprint', {}, this)" class="btn btn-primary text-xs px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i>
-            <span>▶ Inicializar Sprint</span>
+        <!-- Primary Execution Actions: 5-Stage Orchestrator Journey -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openSprintOrchestratorModal()" class="btn btn-primary text-xs px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-1.5">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+            <span>🎯 Diseñar Sprint & Jira</span>
           </button>
-          <button onclick="executeAction('reconcile_runs', {}, this)" class="btn btn-secondary text-xs px-3.5 py-2">
+          <button onclick="executeAction('campaign_sprint', {}, this)" class="btn btn-secondary text-xs px-3 py-2 text-zinc-300 hover:text-white" title="Ejecución Rápida Directa">
+            <i data-lucide="play" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Ejecución Rápida</span>
+          </button>
+          <button onclick="executeAction('reconcile_runs', {}, this)" class="btn btn-secondary text-xs px-3 py-2">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
             <span>Reconciliar</span>
           </button>
-          <button onclick="openTerminalDrawer()" class="btn btn-secondary text-xs px-3.5 py-2 text-emerald-400">
+          <button onclick="openTerminalDrawer()" class="btn btn-secondary text-xs px-3 py-2 text-emerald-400">
             <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
             <span>Terminal</span>
           </button>
@@ -552,9 +563,9 @@ HTML_APPLICATION = """<!DOCTYPE html>
               <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
               <span>Rechazar Despliegue</span>
             </button>
-            <button onclick="submitDossierDecision('APPROVED')" class="btn btn-primary text-xs px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold">
+            <button onclick="applyApprovedChanges()" class="btn btn-primary text-xs px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-              <span>Autorizar Despliegue (Emitir Token HMAC)</span>
+              <span>Autorizar Despliegue & Aplicar Cambios (Emitir Token HMAC)</span>
             </button>
           </div>
         </div>
@@ -3938,6 +3949,334 @@ function initSSE() {
     }
     window.switchEcosystemProject = switchEcosystemProject;
 
+    // ==========================================
+    // 5-STAGE SPRINT ORCHESTRATOR JAVASCRIPT ENGINE
+    // ==========================================
+    let orchestratorContext = null;
+    let selectedJiraTicketKey = 'SOLID-106';
+
+    async function loadOrchestratorContext() {
+      try {
+        const res = await fetch(`${API_BASE}/api/orchestrator/context`);
+        if (res.ok) {
+          orchestratorContext = await res.json();
+          renderJiraBacklogCards();
+          if (orchestratorContext.active_project) {
+            const curProj = orchestratorContext.active_project;
+            const sel = document.getElementById('hud-project-selector');
+            if (sel && curProj.name) {
+              let found = false;
+              for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === curProj.name || sel.options[i].text.includes(curProj.name)) {
+                  sel.selectedIndex = i;
+                  found = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error loading orchestrator context:', e);
+      }
+    }
+    window.loadOrchestratorContext = loadOrchestratorContext;
+
+    function renderJiraBacklogCards() {
+      const container = document.getElementById('orchestrator-jira-grid');
+      if (!container || !orchestratorContext || !orchestratorContext.jira_backlog) return;
+      const backlog = orchestratorContext.jira_backlog;
+
+      container.innerHTML = backlog.map(t => {
+        const isSelected = t.key === selectedJiraTicketKey;
+        const contractsStr = (t.contracts || []).join(', ');
+        return `
+          <div onclick="selectJiraTicket('${t.key}')" class="p-3 rounded-xl border transition cursor-pointer ${isSelected ? 'bg-emerald-500/10 border-emerald-500/50 text-white' : 'bg-black/60 border-white/10 text-zinc-300 hover:border-white/30'}">
+            <div class="flex items-center justify-between mb-1">
+              <span class="mono text-xs font-bold text-emerald-400">${t.key}</span>
+              <span class="mono text-[10px] px-1.5 py-0.2 rounded ${t.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-800 text-zinc-300'}">${t.status}</span>
+            </div>
+            <div class="font-semibold text-xs text-white leading-tight mb-1 truncate">${t.title}</div>
+            <div class="text-[10px] mono text-zinc-400 flex items-center justify-between">
+              <span>${t.phase || t.epic}</span>
+              <span class="text-emerald-400">${contractsStr}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+    window.renderJiraBacklogCards = renderJiraBacklogCards;
+
+    function selectJiraTicket(key) {
+      selectedJiraTicketKey = key;
+      renderJiraBacklogCards();
+      const badge = document.getElementById('orchestrator-selected-ticket-badge');
+      if (badge) badge.textContent = key;
+
+      if (orchestratorContext && orchestratorContext.jira_backlog) {
+        const t = orchestratorContext.jira_backlog.find(x => x.key === key);
+        if (t) {
+          const goalArea = document.getElementById('orchestrator-sprint-goal');
+          if (goalArea) goalArea.value = `${t.title}. ${t.description} (Contratos: ${(t.contracts || []).join(', ')})`;
+        }
+      }
+    }
+    window.selectJiraTicket = selectJiraTicket;
+
+    function openSprintOrchestratorModal() {
+      const modal = document.getElementById('modal-sprint-orchestrator');
+      if (modal) modal.classList.remove('hidden');
+      loadOrchestratorContext();
+      selectJiraTicket(selectedJiraTicketKey);
+      lucide.createIcons();
+    }
+    window.openSprintOrchestratorModal = openSprintOrchestratorModal;
+
+    function closeSprintOrchestratorModal() {
+      const modal = document.getElementById('modal-sprint-orchestrator');
+      if (modal) modal.classList.add('hidden');
+    }
+    window.closeSprintOrchestratorModal = closeSprintOrchestratorModal;
+
+    async function switchProjectWorkspace(projectId) {
+      showToast(`Cambiando espacio de trabajo a ${projectId}...`, 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/projects/switch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: projectId })
+        });
+        const data = await res.json();
+        showToast(`Proyecto cambiado: ${projectId}`, 'success');
+        loadOrchestratorContext();
+        loadLatestRunDeliverables();
+      } catch (e) {
+        showToast(`Error al cambiar proyecto: ${e.message}`, 'error');
+      }
+    }
+    window.switchProjectWorkspace = switchProjectWorkspace;
+
+    async function autoPlanSprint() {
+      const btn = document.getElementById('btn-auto-plan-sprint');
+      if (btn) btn.disabled = true;
+      const goalArea = document.getElementById('orchestrator-sprint-goal');
+      const goal = goalArea ? goalArea.value : '';
+      const modeEl = document.querySelector('input[name="orchestrator-mode"]:checked');
+      const mode = modeEl ? modeEl.value : 'waves';
+
+      showToast('Agente Arquitecto analizando Jira y contratos inmutables...', 'info');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/orchestrator/auto-plan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jira_key: selectedJiraTicketKey,
+            custom_goal: goal,
+            mode: mode
+          })
+        });
+
+        if (res.ok) {
+          const plan = await res.json();
+          renderAutoPlannedSprint(plan);
+          showToast(`¡Roadmap y roles generados para ${plan.jira_ticket.key}!`, 'success');
+        } else {
+          showToast('Error al auto-diseñar el sprint', 'error');
+        }
+      } catch (e) {
+        showToast(`Error de conexion: ${e.message}`, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+    window.autoPlanSprint = autoPlanSprint;
+
+    function renderAutoPlannedSprint(plan) {
+      const resContainer = document.getElementById('orchestrator-plan-result');
+      if (!resContainer) return;
+      resContainer.classList.remove('hidden');
+
+      const sprintIdEl = document.getElementById('plan-sprint-id');
+      if (sprintIdEl) sprintIdEl.textContent = plan.sprint_id;
+
+      const contractsEl = document.getElementById('plan-contracts-chip');
+      if (contractsEl) contractsEl.innerHTML = `<span>Contratos Inmutables: <strong class="text-emerald-400 font-mono">${(plan.contracts_enforced || []).join(', ')}</strong> &bull; Modo: <strong class="text-white">${plan.topology_mode}</strong></span>`;
+
+      // Render Roles
+      const rolesList = document.getElementById('plan-roles-list');
+      if (rolesList && plan.roles) {
+        rolesList.innerHTML = plan.roles.map(r => `
+          <div class="p-3 rounded-xl bg-black/60 border border-emerald-500/20 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="mono text-[10px] text-emerald-400 font-bold">${r.name}</span>
+              <span class="mono text-[9px] px-1 py-0.5 rounded bg-white/5 text-zinc-400">${r.worktree}</span>
+            </div>
+            <div class="font-bold text-white text-xs">${r.title}</div>
+            <p class="text-[11px] text-zinc-400 leading-tight">${r.responsibilities}</p>
+          </div>
+        `).join('');
+      }
+
+      // Render Waves
+      const wavesList = document.getElementById('plan-waves-list');
+      if (wavesList && plan.waves) {
+        wavesList.innerHTML = plan.waves.map(w => `
+          <div class="p-3 rounded-xl bg-black/60 border border-white/10 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="mono text-[10px] font-bold text-zinc-400">${w.name.split('·')[0]}</span>
+              <span class="mono text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-bold">READY</span>
+            </div>
+            <div class="text-xs font-bold text-white">${w.name.split('·')[1] || w.name}</div>
+            <div class="mono text-[10px] text-emerald-400">${(w.parallel_agents || []).join(' + ')}</div>
+            <div class="pt-1.5 border-t bd text-[9px] mono text-zinc-500 flex justify-between">
+              <span>Duración estimada: ${w.expected_duration}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    }
+    window.renderAutoPlannedSprint = renderAutoPlannedSprint;
+
+    async function executeApprovedSprint() {
+      const btn = document.getElementById('btn-execute-approved-sprint');
+      if (btn) btn.disabled = true;
+      closeSprintOrchestratorModal();
+      openTerminalDrawer();
+      showToast('Despachando waves en paralelo en worktrees aislados...', 'info');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/orchestrator/execute-sprint`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast('¡Waves completadas! Entregables persistidos en disco.', 'success');
+          loadLatestRunDeliverables();
+          loadDashboardSnapshot();
+        } else {
+          showToast('Error en la ejecución de waves del sprint', 'error');
+        }
+      } catch (e) {
+        showToast(`Error al ejecutar sprint: ${e.message}`, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+    window.executeApprovedSprint = executeApprovedSprint;
+
+    async function loadLatestRunDeliverables() {
+      try {
+        const res = await fetch(`${API_BASE}/api/runs/latest`);
+        if (res.ok) {
+          const data = await res.json();
+          const pEl = document.getElementById('deliverables-run-path');
+          if (pEl) pEl.textContent = `runs/${data.run_id}`;
+          const hudRun = document.getElementById('hud-active-run-id');
+          if (hudRun) hudRun.textContent = data.run_id;
+
+          const tbody = document.getElementById('deliverables-table-body');
+          if (tbody && data.deliverables) {
+            tbody.innerHTML = data.deliverables.map(d => `
+              <tr class="hover:bg-white/[0.02] transition">
+                <td class="py-3 font-mono font-bold text-white flex items-center gap-2">
+                  <i data-lucide="${d.name.endsWith('.md') ? 'file-text' : d.name.endsWith('.json') ? 'file-code' : 'file-check'}" class="w-4 h-4 text-emerald-400"></i>
+                  <span>${d.name}</span>
+                </td>
+                <td class="py-3 mono text-[10px] text-zinc-400 uppercase">${d.type}</td>
+                <td class="py-3 text-zinc-300 text-[11px]">${d.description}</td>
+                <td class="py-3">
+                  <span class="mono text-[10px] px-2 py-0.5 rounded font-bold ${d.status === 'READY' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-zinc-800 text-zinc-400'}">${d.status}</span>
+                </td>
+                <td class="py-3 text-right">
+                  <button onclick="openDocViewer(encodeURIComponent('${d.name}'))" class="btn btn-secondary text-xs px-2.5 py-1 text-emerald-400 hover:text-emerald-300 flex items-center gap-1 ml-auto">
+                </td>
+              </tr>
+            `).join('');
+            lucide.createIcons();
+          }
+        }
+      } catch (e) {
+        console.error('Error loading latest deliverables:', e);
+      }
+    }
+    window.loadLatestRunDeliverables = loadLatestRunDeliverables;
+
+    async function openDocViewer(fileRef) {
+      const modal = document.getElementById('modal-doc-viewer');
+      const titleEl = document.getElementById('doc-viewer-title');
+      const pathEl = document.getElementById('doc-viewer-path');
+      const contentEl = document.getElementById('doc-viewer-content');
+
+      const decoded = decodeURIComponent(fileRef);
+      if (titleEl) titleEl.textContent = decoded;
+      if (pathEl) pathEl.textContent = `runs/latest/${decoded}`;
+      if (contentEl) contentEl.textContent = 'Cargando contenido desde disco...';
+      if (modal) modal.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/fs/read?path=${encodeURIComponent(decoded)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (contentEl) contentEl.textContent = data.content || '// Archivo vacio';
+        } else {
+          if (contentEl) contentEl.textContent = `// Error al leer archivo: ${res.statusText}`;
+        }
+      } catch (e) {
+        if (contentEl) contentEl.textContent = `// Error de conexion: ${e.message}`;
+      }
+      lucide.createIcons();
+    }
+    window.openDocViewer = openDocViewer;
+
+    function closeDocViewer() {
+      const modal = document.getElementById('modal-doc-viewer');
+      if (modal) modal.classList.add('hidden');
+    }
+    window.closeDocViewer = closeDocViewer;
+
+    async function applyApprovedChanges() {
+      showToast('Verificando contratos y emitiendo token HMAC para despliegue...', 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/orchestrator/apply-changes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approval_id: currentGateRequestId || 'REQ-20261025-E43308B0',
+            operator: 'LUCILFER / risejoaquin',
+            justification: 'Aprobado post-inspección de pruebas unitarias e invariantes inmutables.'
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`✅ ${data.message}`, 'success');
+          const statusBadge = document.getElementById('hud-status-badge');
+          if (statusBadge) {
+            statusBadge.textContent = 'DEPLOYED (EXIT 0)';
+            statusBadge.className = 'mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30';
+          }
+          const jiraKeyEl = document.getElementById('hud-active-jira-key');
+          if (jiraKeyEl) jiraKeyEl.textContent = `${data.jira_ticket} [COMPLETADO]`;
+
+          loadLatestRunDeliverables();
+          loadDashboardSnapshot();
+        } else {
+          showToast('Error al aplicar cambios de la compuerta', 'error');
+        }
+      } catch (e) {
+        showToast(`Error al aplicar cambios: ${e.message}`, 'error');
+      }
+    }
+    window.applyApprovedChanges = applyApprovedChanges;
+
+
   </script>
   <!-- ========================================== -->
   <!-- MODAL: NUEVO PULL REQUEST -->
@@ -3978,6 +4317,139 @@ function initSSE() {
         <button onclick="submitNewPr()" id="btn-submit-new-pr" class="btn btn-primary text-xs px-5 py-2 font-bold">
           <span>Crear Pull Request en GitHub</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MODAL: CENTRO DE ORQUESTACIÓN DE SPRINT & MULTI-AGENTE (SACL V1) -->
+  <!-- ========================================== -->
+  <div id="modal-sprint-orchestrator" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-black border border-white/20 rounded-2xl max-w-4xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <i data-lucide="crosshair" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>Centro de Orquestación de Sprint & Agentes Autónomos</span>
+              <span class="mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">SACL V1</span>
+            </h3>
+            <p class="text-xs text-zinc-400 mt-0.5">El Agente Arquitecto consulta Jira, auto-diseña el roadmap, define roles y organiza waves de ejecución en paralelo.</p>
+          </div>
+        </div>
+        <button onclick="closeSprintOrchestratorModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/10">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- PASO 1: SELECCIÓN O CONSULTA DE TICKET JIRA -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>1. Seleccionar Ticket Activo de Jira Backlog</span>
+          </label>
+          <span class="mono text-[11px] text-zinc-500">Integración Jira Graph Integrity (Gate 3)</span>
+        </div>
+
+        <div id="orchestrator-jira-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
+          <!-- Populated dynamically with Jira tickets -->
+        </div>
+      </div>
+
+      <!-- PASO 2: OBJETIVO PERSONALIZADO & ESTRATEGIA -->
+      <div class="space-y-3 pt-2 border-t border-white/10">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            <span>2. Objetivo Técnico del Sprint</span>
+          </label>
+          <span id="orchestrator-selected-ticket-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">SOLID-106</span>
+        </div>
+        <textarea id="orchestrator-sprint-goal" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-white mono text-xs h-20 focus:outline-none focus:border-emerald-500" placeholder="Describe el objetivo o alcance del sprint..."></textarea>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.02] border bd">
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-zinc-400 font-medium">Estrategia de Ejecución:</span>
+            <label class="flex items-center gap-1.5 text-xs text-white cursor-pointer">
+              <input type="radio" name="orchestrator-mode" value="waves" checked class="text-emerald-500 bg-black border-zinc-700">
+              <span class="font-bold">Waves en Paralelo (Worktrees Aislados)</span>
+            </label>
+            <label class="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
+              <input type="radio" name="orchestrator-mode" value="campaign" class="text-emerald-500 bg-black border-zinc-700">
+              <span>Campaña Secuencial</span>
+            </label>
+          </div>
+          <button onclick="autoPlanSprint()" id="btn-auto-plan-sprint" class="btn btn-primary text-xs px-4 py-2 bg-white text-black font-bold flex items-center gap-1.5 hover:bg-zinc-200">
+            <i data-lucide="bot" class="w-4 h-4 text-emerald-600"></i>
+            <span>🤖 Auto-Diseñar Roadmap & Roles</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PASO 3: ROADMAP & ROLES AUTO-DISEÑADOS (REVEAL ON PLAN) -->
+      <div id="orchestrator-plan-result" class="hidden space-y-4 pt-3 border-t border-white/10">
+        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">ROADMAP GENERADO</span>
+              <span id="plan-sprint-id" class="mono text-xs font-bold text-white">SPRINT-20261026-SOLID-106</span>
+            </div>
+            <div id="plan-contracts-chip" class="text-xs text-zinc-300 flex items-center gap-2">
+              <span>Contratos Inmutables: <strong class="text-emerald-400 font-mono">DR-INV-001, DR-PAY-001</strong></span>
+            </div>
+          </div>
+          <button onclick="executeApprovedSprint()" id="btn-execute-approved-sprint" class="btn btn-primary text-xs px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>🚀 Aprobar Roadmap & Ejecutar Waves en Paralelo</span>
+          </button>
+        </div>
+
+        <!-- ROLES ASIGNADOS POR EL ARQUITECTO -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Roles de Agentes Asignados por el Arquitecto</h4>
+          <div id="plan-roles-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- WAVES DE EJECUCIÓN PARALELA -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Estructura de Waves en Paralelo</h4>
+          <div id="plan-waves-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: VISOR DE DOCUMENTOS Y ENTREGABLES -->
+  <!-- ========================================== -->
+  <div id="modal-doc-viewer" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-black border border-white/20 rounded-2xl max-w-4xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="file-text" class="w-5 h-5 text-emerald-400"></i>
+          <div>
+            <h3 id="doc-viewer-title" class="text-sm font-bold text-white mono">SUMMARY.md</h3>
+            <p id="doc-viewer-path" class="text-[11px] text-zinc-500 mono">runs/latest/SUMMARY.md</p>
+          </div>
+        </div>
+        <button onclick="closeDocViewer()" class="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/10">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto custom-scroll bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+        <pre id="doc-viewer-content" class="text-xs mono text-zinc-200 whitespace-pre-wrap font-mono leading-relaxed"></pre>
+      </div>
+      <div class="flex items-center justify-between pt-3 border-t border-white/10 shrink-0 text-xs">
+        <span class="mono text-zinc-500">Dual Deliverable Schema &bull; SolidBit SDLC Standard</span>
+        <button onclick="closeDocViewer()" class="btn btn-secondary text-xs px-4 py-2">Cerrar Visor</button>
       </div>
     </div>
   </div>

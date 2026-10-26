@@ -39,6 +39,7 @@ from sacl.ui.modules.email_gateway import EmailGatewayModule
 from sacl.ui.modules.evidence import EvidenceModule
 from sacl.ui.modules.gates import GatesModule
 from sacl.ui.modules.models import ModelsModule
+from sacl.ui.modules.orchestrator import OrchestratorModule
 from sacl.ui.modules.projects import ProjectsModule
 from sacl.ui.modules.recovery import RecoveryModule
 from sacl.ui.modules.roadmap import RoadmapModule
@@ -96,6 +97,7 @@ class UIService:
         self.roadmap = RoadmapModule()
         self.telemetry = TelemetryModule()
         self.campaign_designer = CampaignDesignerModule(self.workspace_root)
+        self.orchestrator = OrchestratorModule(self, workspace_root=self.workspace_root)
         self.actions = ActionExecutionModule(self, workspace_root=self.workspace_root)
         self.chat = ChatModule(self)
         self.email_gateway = EmailGatewayModule(

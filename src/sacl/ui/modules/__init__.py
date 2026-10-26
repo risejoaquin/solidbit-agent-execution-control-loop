@@ -14,6 +14,7 @@ from sacl.ui.modules.email_gateway import EmailGatewayModule
 from sacl.ui.modules.evidence import EvidenceModule
 from sacl.ui.modules.gates import GatesModule
 from sacl.ui.modules.models import ModelsModule
+from sacl.ui.modules.orchestrator import OrchestratorModule
 from sacl.ui.modules.projects import ProjectsModule
 from sacl.ui.modules.recovery import RecoveryModule
 from sacl.ui.modules.roadmap import RoadmapModule
@@ -30,6 +31,7 @@ __all__ = [
     "EvidenceModule",
     "GatesModule",
     "ModelsModule",
+    "OrchestratorModule",
     "ProjectsModule",
     "RecoveryModule",
     "RoadmapModule",

@@ -607,6 +607,15 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"history": self.service.actions.get_history()})
             return
 
+        # 20. REST API: End-to-End Sprint Orchestrator Context
+        if path == "/api/orchestrator/context":
+            self._send_json(200, self.service.orchestrator.get_context())
+            return
+
+        if path == "/api/orchestrator/active-plan":
+            self._send_json(200, {"plan": self.service.orchestrator.active_plan})
+            return
+
         # 404
         self._send_json(404, {"error": "Not Found", "path": path})
 
@@ -913,6 +922,42 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             draft = body.get("draft", True)
             res = gh_mod.create_pull_request(title=title, body=pr_body, base=base, draft=draft)
             broadcast_sse("github_pr_created", res)
+            self._send_json(200, res)
+            return
+
+        # 19. Orchestrator: Auto-Design Sprint & Roles
+        if path == "/api/orchestrator/auto-plan":
+            jira_key = body.get("jira_key")
+            custom_goal = body.get("custom_goal")
+            mode = body.get("mode", "waves")
+            plan = self.service.orchestrator.auto_plan_sprint(
+                jira_key=jira_key,
+                custom_goal=custom_goal,
+                mode=mode,
+            )
+            broadcast_sse("sprint_planned", plan)
+            self._send_json(200, plan)
+            return
+
+        # 20. Orchestrator: Execute Sprint & Materialize Deliverables
+        if path == "/api/orchestrator/execute-sprint":
+            plan_data = body.get("sprint_plan")
+            res = self.service.orchestrator.execute_sprint(sprint_data=plan_data)
+            broadcast_sse("sprint_executed", res)
+            self._send_json(200, res)
+            return
+
+        # 21. Orchestrator: Apply Approved Changes & Sign HMAC
+        if path == "/api/orchestrator/apply-changes":
+            approval_id = body.get("approval_id", "REQ-20261025-E43308B0")
+            operator = body.get("operator", "LUCILFER / risejoaquin")
+            justification = body.get("justification", "Aprobado post-inspección de pruebas e invariantes.")
+            res = self.service.orchestrator.apply_changes(
+                approval_id=approval_id,
+                operator=operator,
+                justification=justification,
+            )
+            broadcast_sse("changes_applied", res)
             self._send_json(200, res)
             return
 

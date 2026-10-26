@@ -266,3 +266,44 @@ def test_chat_module():
     assert clear_res["success"] is True
     assert len(chat.get_history()) == 1
 
+
+def test_orchestrator_module(tmp_path: Path):
+    from sacl.ui.modules.orchestrator import OrchestratorModule
+
+    mod = OrchestratorModule(workspace_root=tmp_path)
+    ctx = mod.get_context()
+    assert "active_project" in ctx
+    assert len(ctx["jira_backlog"]) >= 5
+    assert any(t["key"] == "SOLID-106" for t in ctx["jira_backlog"])
+
+    # Auto-plan sprint for SOLID-106
+    plan = mod.auto_plan_sprint(jira_key="SOLID-106")
+    assert plan["sprint_id"].startswith("SPRINT-")
+    assert plan["jira_ticket"]["key"] == "SOLID-106"
+    assert "DR-INV-001" in plan["contracts_enforced"]
+    assert len(plan["roles"]) >= 4
+    assert len(plan["waves"]) >= 3
+    assert len(plan["dag_nodes"]) >= 4
+
+    # Execute sprint and verify physical files materialized
+    exec_res = mod.execute_sprint(plan)
+    assert exec_res["status"] == "COMPLETED" or exec_res.get("success") is True
+    runs_dir = tmp_path / "runs"
+    assert runs_dir.exists()
+    runs = list(runs_dir.glob("run-*"))
+    assert len(runs) >= 1
+    latest_run = runs[0]
+    assert (latest_run / "SUMMARY.md").exists()
+    assert (latest_run / "SUMMARY.json").exists()
+    assert (latest_run / "evidence" / "invariants_audit.json").exists()
+
+    # Apply approved changes & sign HMAC
+    apply_res = mod.apply_changes(approval_id="REQ-TEST-GATE", operator="LUCILFER")
+    assert apply_res["success"] is True
+    assert apply_res["status"] == "CHANGES_APPLIED"
+    assert "hmac-sha256:" in apply_res["hmac_signature"]
+    assert apply_res["jira_ticket"] == "SOLID-106"
+    assert apply_res["jira_status"] == "COMPLETED"
+    assert (latest_run / "evidence" / "deployment_signature.json").exists()
+
+
