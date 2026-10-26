@@ -1,87 +1,124 @@
 import React, { useState, useEffect } from 'react'
 import {
-  Play,
+  ShieldAlert,
   CheckCircle2,
   Clock,
-  ShieldAlert,
   Key,
-  FileText,
-  Terminal,
-  Download,
-  AlertTriangle,
+  RotateCcw,
+  Plus,
   Loader2,
-  ExternalLink,
+  FileCheck2,
+  AlertTriangle,
+  Send,
 } from 'lucide-react'
 
 export const ExecutionsSection: React.FC = () => {
+  const [pendingGates, setPendingGates] = useState<any[]>([])
+  const [selectedGate, setSelectedGate] = useState<any>(null)
+  const [dossier, setDossier] = useState<any>(null)
   const [runs, setRuns] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [operatorName, setOperatorName] = useState('Joaquin Vallejo')
   const [justification, setJustification] = useState(
-    'Aprobado por el Product Owner tras verificación empírica de 31/31 tests y contratos inmutables.'
+    'Aprobado por el Product Owner tras verificación empírica de pruebas unitarias y contratos congelados.'
   )
-  const [signedToken, setSignedToken] = useState<string | null>(null)
-  const [selectedRun, setSelectedRun] = useState<any>(null)
+  const [decidedResult, setDecidedResult] = useState<any>(null)
 
-  const loadRuns = async () => {
+  const loadData = async () => {
     try {
-      const res = await fetch('/api/db/rows?table=runs&limit=6')
+      const res = await fetch('/api/gates/pending')
       const data = await res.json()
-      if (data.rows && data.rows.length > 0) {
-        setRuns(data.rows)
-        setSelectedRun(data.rows[0])
-      } else {
-        // Fallback default run
-        const defaultRun = {
-          run_id: 'run-20261026-021435',
-          job_id: 'JOB-SOLID-301',
-          project: 'Stable-Ecommerce',
-          status: 'WAITING_HUMAN_APPROVAL_GATE',
-          started_at: '2026-10-26T02:14:35Z',
-          reconciled_verdict: 'PASS',
+      if (data && data.gates) {
+        setPendingGates(data.gates)
+        if (data.gates.length > 0) {
+          setSelectedGate(data.gates[0])
+          loadDossier(data.gates[0].request_id)
         }
-        setRuns([defaultRun])
-        setSelectedRun(defaultRun)
       }
-    } catch {
-      // fallback
+    } catch (e) {
+      console.warn('Error loading pending gates:', e)
+    }
+
+    try {
+      const rRes = await fetch('/api/db/rows?table=runs&limit=8')
+      const rData = await rRes.json()
+      if (rData && rData.rows) {
+        setRuns(rData.rows)
+      }
+    } catch (e) {
+      console.warn('Error loading runs from SQLite:', e)
+    }
+
+    try {
+      const pRes = await fetch('/api/settings/profile')
+      const pData = await pRes.json()
+      if (pData.profile?.name) setOperatorName(pData.profile.name)
+    } catch {}
+  }
+
+  const loadDossier = async (reqId: string) => {
+    try {
+      const res = await fetch(`/api/gates/dossier?request_id=${encodeURIComponent(reqId)}`)
+      const data = await res.json()
+      if (data && data.has_gate) {
+        setDossier(data)
+      }
+    } catch (e) {
+      console.warn('Error loading dossier:', e)
     }
   }
 
   useEffect(() => {
-    loadRuns()
-    fetch('/api/settings/profile')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.profile?.name) setOperatorName(d.profile.name)
-      })
-      .catch(() => {})
+    loadData()
   }, [])
 
-  const handleSignHmac = async () => {
+  const handleDecision = async (decision: 'APPROVED' | 'REJECTED') => {
+    if (!selectedGate) return
     setLoading(true)
     try {
-      const res = await fetch('/api/orchestrator/apply-changes', {
+      const res = await fetch('/api/gates/decide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          approval_id: 'REQ-20261026-743941E4',
-          operator: operatorName,
+          request_id: selectedGate.request_id,
+          decision,
+          approver_id: operatorName,
           justification,
+          channel: 'WEB_DECISION_SHELL',
         }),
       })
       const data = await res.json()
-      if (res.ok) {
-        setSignedToken(data.signature || 'hmac-sha256-verified-po-pass')
-        alert('Compuerta Soberana APROBADA y firmada con HMAC-SHA256 por el Product Owner!')
-        loadRuns()
+      if (res.ok && data.success) {
+        setDecidedResult(data)
+        alert(`Decisión ${decision} registrada exitosamente en SQLite approvals!`)
+        loadData()
       } else {
-        alert('Error: ' + (data.error || 'Fallo de firma HMAC'))
+        alert('Error: ' + (data.error || 'No se pudo registrar la decisión'))
       }
     } catch (e: any) {
       alert('Error de red: ' + e.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateNewGate = async () => {
+    try {
+      const res = await fetch('/api/gates/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DEPLOY_STAGING_PREVIEW',
+          reason: 'Verificación de preview build con contratos DR-INV-001 y DR-PAY-001.',
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(`Nueva compuerta ${data.request_id} creada en SQLite sacl_ops.db!`)
+        loadData()
+      }
+    } catch (e: any) {
+      alert('Error creando compuerta: ' + e.message)
     }
   }
 
@@ -92,147 +129,152 @@ export const ExecutionsSection: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
-              Historial de Ejecuciones & Compuertas Soberanas (HITL)
+              Compuertas de Decisión Humana (HITL) & Historial de Corridas
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/30">
-              Auditoría SQLite WAL sacl_ops.db
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30">
+              {pendingGates.length} Compuertas Pendientes
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Inspección de corridas, entregables generados en disco y autorización criptográfica HMAC-SHA256
+            Gobernanza Soberana: autorización humana obligatoria para compuertas de despliegue y mutaciones
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
-            onClick={loadRuns}
-            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 transition"
+            onClick={handleCreateNewGate}
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
           >
-            Actualizar Corridas
+            <Plus className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Crear Compuerta</span>
           </button>
-        </div>
-      </div>
-
-      {/* Human-In-The-Loop (HITL) Decision Gate Card */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-amber-500/30 space-y-5 shadow-2xl relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1b2533] pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white">
-                  Compuerta Soberana HITL: Despliegue de Preview en Railway
-                </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
-                  ESPERANDO FIRMA DEL PO
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400">
-                Gate ID: REQ-20261026-743941E4 &bull; Invariantes DR-INV-001 &bull; Pytest 31/31 Exit 0
-              </p>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <span className="text-[10px] font-mono text-zinc-400 block">Operador Soberano</span>
-            <span className="text-xs font-bold text-emerald-400 font-mono">{operatorName}</span>
-          </div>
-        </div>
-
-        {/* Gate evidence checklist */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-            <span className="text-[10px] font-mono text-zinc-500">Invariante DR-INV-001</span>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Cero Sobreventa PASS</span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-            <span className="text-[10px] font-mono text-zinc-500">Invariante DR-PAY-001</span>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Doble Partida PASS</span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-            <span className="text-[10px] font-mono text-zinc-500">Suite Pytest Completa</span>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>31/31 Tests PASS (Exit 0)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Justification input */}
-        <div className="space-y-2">
-          <label className="text-[11px] font-mono text-zinc-400">
-            Justificación Soberana del Product Owner:
-          </label>
-          <input
-            type="text"
-            value={justification}
-            onChange={(e) => setJustification(e.target.value)}
-            className="w-full bg-[#080c10] border border-[#1b2533] rounded-2xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/60"
-          />
-        </div>
-
-        {/* Action Button & Receipt */}
-        {!signedToken ? (
           <button
-            onClick={handleSignHmac}
-            disabled={loading}
-            className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/10"
+            onClick={loadData}
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
-            <span>Firmar y Aplicar Cambios Soberanos (HMAC-SHA256)</span>
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Actualizar</span>
           </button>
-        ) : (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>COMPUERTA APROBADA Y REGISTRADA EN SQLITE WAL</span>
-            </div>
-            <div className="text-[10px] font-mono text-zinc-400 break-all">
-              Token de firma: <span className="text-white">{signedToken}</span>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Runs History Table */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4">
-        <h2 className="text-sm font-bold text-white">Corridas Registradas en sacl_ops.db</h2>
+      {/* Active HITL Gate Decision Dossier */}
+      {selectedGate ? (
+        <div className="p-6 rounded-3xl bg-[#0e141d] border border-amber-500/40 space-y-5 shadow-2xl relative">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1b2533] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-white">
+                    Compuerta: {selectedGate.action}
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                    {selectedGate.status}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  ID: {selectedGate.request_id} &bull; Alcance: {selectedGate.scope}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[10px] font-mono text-zinc-500 block">Autoridad Requerida</span>
+              <span className="text-xs font-bold text-emerald-400 font-mono">{operatorName}</span>
+            </div>
+          </div>
+
+          {/* Real Dossier checklist from backend */}
+          {dossier?.decision_checklist && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {dossier.decision_checklist.map((chk: any) => (
+                <div key={chk.id} className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
+                  <span className="text-[10px] font-mono text-zinc-500">{chk.name}</span>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{chk.status}</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 line-clamp-2">{chk.details}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Justification input */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-mono text-zinc-400">
+              Justificación de Decisión Humana (Se registrará en SQLite approvals):
+            </label>
+            <input
+              type="text"
+              value={justification}
+              onChange={(e) => setJustification(e.target.value)}
+              className="w-full bg-[#080c10] border border-[#1b2533] rounded-2xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500/60 font-sans"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => handleDecision('APPROVED')}
+              disabled={loading}
+              className="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/10"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
+              <span>Aprobar y Emitir Token Soberano (POST /api/gates/decide)</span>
+            </button>
+
+            <button
+              onClick={() => handleDecision('REJECTED')}
+              disabled={loading}
+              className="px-6 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold text-xs transition cursor-pointer"
+            >
+              Rechazar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="p-8 rounded-3xl bg-[#0e141d] border border-[#1b2533] text-center space-y-2">
+          <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+          <h3 className="text-sm font-bold text-white">Cero Compuertas Pendientes</h3>
+          <p className="text-xs text-zinc-400">
+            Todas las acciones y despliegues están al día en la tabla approvals de SQLite sacl_ops.db.
+          </p>
+        </div>
+      )}
+
+      {/* Real Runs from SQLite table */}
+      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+          <h2 className="text-sm font-bold text-white">Historial de Corridas (Tabla 'runs' en SQLite WAL)</h2>
+          <span className="text-xs text-zinc-400 font-mono">{runs.length} registradas</span>
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-[#1b2533] text-[11px] font-mono text-zinc-400">
-                <th className="pb-3 pl-2">Run ID</th>
-                <th className="pb-3">Job ID</th>
-                <th className="pb-3">Proyecto</th>
-                <th className="pb-3">Fecha Inicio</th>
-                <th className="pb-3">Veredicto QA</th>
-                <th className="pb-3 pr-2">Estado</th>
+              <tr className="border-b border-[#1b2533] text-[10px] text-zinc-500">
+                <th className="pb-2 pl-2">Run ID</th>
+                <th className="pb-2">Job ID</th>
+                <th className="pb-2">Proyecto</th>
+                <th className="pb-2">Veredicto</th>
+                <th className="pb-2">Inicio</th>
+                <th className="pb-2 pr-2">Estado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1b2533]/50">
-              {runs.map((r, idx) => (
-                <tr key={idx} className="hover:bg-white/[0.02] transition">
-                  <td className="py-3 pl-2 font-mono text-blue-400 font-bold">{r.run_id}</td>
-                  <td className="py-3 font-mono text-zinc-300">{r.job_id}</td>
-                  <td className="py-3 text-white font-medium">{r.project || 'Stable-Ecommerce'}</td>
-                  <td className="py-3 text-zinc-500 text-[11px] font-mono">{r.started_at || 'Reciente'}</td>
-                  <td className="py-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      {r.reconciled_verdict || 'PASS'}
-                    </span>
-                  </td>
-                  <td className="py-3 pr-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300">
+            <tbody className="divide-y divide-[#1b2533]/40">
+              {runs.map((r, i) => (
+                <tr key={r.run_id || i} className="hover:bg-white/[0.02]">
+                  <td className="py-2.5 pl-2 font-bold text-blue-400">{r.run_id}</td>
+                  <td className="py-2.5 text-zinc-300">{r.job_id}</td>
+                  <td className="py-2.5 text-white">{r.project || r.project_id}</td>
+                  <td className="py-2.5 text-emerald-400">{r.reconciled_verdict || 'PASS'}</td>
+                  <td className="py-2.5 text-zinc-500 text-[11px]">{r.started_at}</td>
+                  <td className="py-2.5 pr-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-800 text-zinc-300">
                       {r.status}
                     </span>
                   </td>

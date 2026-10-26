@@ -3,62 +3,77 @@ import {
   FolderGit2,
   GitBranch,
   CheckCircle2,
-  AlertCircle,
-  RefreshCw,
+  RotateCcw,
   Terminal,
-  ShieldCheck,
+  FileCode,
+  FileText,
+  ChevronRight,
   ExternalLink,
 } from 'lucide-react'
-import type { Project } from '../../types/orchestrator'
 
-interface ProjectsSectionProps {
-  projects: Project[]
-}
+export const ProjectsSection: React.FC = () => {
+  const [projectsList, setProjectsList] = useState<any[]>([])
+  const [activeProjId, setActiveProjId] = useState<string>('')
+  const [fsTree, setFsTree] = useState<any[]>([])
+  const [docContent, setDocContent] = useState<string | null>(null)
+  const [selectedDocName, setSelectedDocName] = useState<string>('')
 
-export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects: initialProjects }) => {
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
-  const [preflightOutput, setPreflightOutput] = useState<string | null>(null)
-  const [runningPreflight, setRunningPreflight] = useState(false)
-
-  const repoList = [
-    {
-      name: 'Stable-Ecommerce',
-      path: 'runs/impl-20261007-203727-e69378/worktrees/integration',
-      branch: 'sacl-implementation-impl-20261007-203727-e69378',
-      contracts: ['DR-INV-001', 'DR-PAY-001'],
-      isClean: true,
-      role: 'Principal E-commerce Storefront & Inventory',
-    },
-    {
-      name: 'FULL-METAL-CASH',
-      path: 'C:/Users/Lucilfer/Documents/FULL-METAL-CASH',
-      branch: 'main',
-      contracts: ['DR-PAY-001', 'DR-REC-001'],
-      isClean: true,
-      role: 'POS & Cash Management Engine',
-    },
-    {
-      name: 'solidbit-agent-execution-control-loop',
-      path: 'C:/Users/Lucilfer/Documents/SolidBit-SACL',
-      branch: 'main',
-      contracts: ['DR-IDEM-001', 'DR-AUTH-001'],
-      isClean: true,
-      role: 'Host Multi-Agent Orchestrator (SACL Core)',
-    },
-  ]
-
-  const handleRunPreflight = async () => {
-    setRunningPreflight(true)
+  const loadData = async () => {
     try {
-      const res = await fetch('/api/orchestrator/context')
+      const res = await fetch('/api/projects')
       const data = await res.json()
-      setPreflightOutput(
-        `[PREFLIGHT PASS]\n- Repositorio activo: ${data.active_project?.name}\n- Rama Git: ${data.active_project?.branch}\n- Hash Commit: ${data.active_project?.commit}\n- Estado Worktree: ${data.active_project?.is_clean ? 'LIMPIO (0 archivos sucios)' : 'ARCHIVOS SIN COMMITEAR'}\n- Conexión Jira: ${data.jira_connection?.status}`
-      )
+      if (data && data.projects) {
+        setProjectsList(data.projects)
+        setActiveProjId(data.active_project || (data.projects[0]?.id ?? ''))
+      }
+    } catch (e) {
+      console.warn('Error loading projects:', e)
+    }
+
+    try {
+      const treeRes = await fetch('/api/fs/tree')
+      const treeData = await treeRes.json()
+      if (treeData && treeData.tree) {
+        setFsTree(treeData.tree)
+      }
+    } catch (e) {
+      console.warn('Error loading fs tree:', e)
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const handleSwitchProject = async (projId: string) => {
+    try {
+      const res = await fetch('/api/projects/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setActiveProjId(projId)
+        loadData()
+      } else {
+        alert('Error cambiando proyecto: ' + (data.error || 'No permitido'))
+      }
     } catch (e: any) {
-      setPreflightOutput(`Error de preflight: ${e.message}`)
-    } finally {
-      setRunningPreflight(false)
+      alert('Error de red: ' + e.message)
+    }
+  }
+
+  const handleViewDoc = async (docPath: string, docName: string) => {
+    try {
+      setSelectedDocName(docName)
+      const res = await fetch(`/api/projects/doc?doc_path=${encodeURIComponent(docPath)}`)
+      const data = await res.json()
+      if (data && data.content) {
+        setDocContent(data.content)
+      }
+    } catch (e: any) {
+      alert('Error leyendo documento: ' + e.message)
     }
   }
 
@@ -69,76 +84,142 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects: init
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
-              Gestor Multi-Repositorio & Worktrees de Proyecto
+              Gestor de Espacios de Trabajo & Repositorios (/api/projects)
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              3 Repositorios SolidBit
+              {projectsList.length} Proyectos Descubiertos
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Aislamiento estricto de ramas y verificación de invariante Dirty-Root antes de mutación
+            Gestión física del árbol de trabajo, navegación de archivos y ejecución de scripts locales
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleRunPreflight}
-            disabled={runningPreflight}
-            className="px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-500/10"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>{runningPreflight ? 'Verificando...' : 'Ejecutar Preflight'}</span>
-          </button>
-        </div>
+        <button
+          onClick={loadData}
+          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Escanear Proyectos</span>
+        </button>
       </div>
 
-      {/* Preflight Terminal Output */}
-      {preflightOutput && (
-        <div className="p-4 rounded-3xl bg-[#090e16] border border-emerald-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold">
-            <Terminal className="w-4 h-4" />
-            <span>Resultado de Preflight Soberano</span>
-          </div>
-          <pre className="font-mono text-xs text-zinc-300 whitespace-pre-wrap">
-            {preflightOutput}
-          </pre>
-        </div>
-      )}
-
-      {/* Projects Cards */}
+      {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {repoList.map((repo, idx) => (
-          <div
-            key={idx}
-            className="p-5 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 hover:border-zinc-700 transition"
-          >
-            <div className="flex items-start justify-between">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <FolderGit2 className="w-5 h-5" />
+        {projectsList.map((p) => {
+          const isActive = p.id === activeProjId || p.is_active
+          return (
+            <div
+              key={p.id}
+              className={`p-5 rounded-3xl transition space-y-4 border ${
+                isActive
+                  ? 'bg-[#121a26] border-emerald-500/50 shadow-lg shadow-emerald-500/5'
+                  : 'bg-[#0e141d] border-[#1b2533] hover:border-zinc-700'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <FolderGit2 className="w-5 h-5" />
+                </div>
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                    isActive
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold'
+                      : 'bg-zinc-800 text-zinc-400'
+                  }`}
+                >
+                  {isActive ? 'PROYECTO ACTIVO' : 'DISPONIBLE'}
+                </span>
               </div>
-              <span className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <CheckCircle2 className="w-3 h-3" />
-                Worktree Limpio
-              </span>
-            </div>
 
-            <div>
-              <h3 className="text-sm font-bold text-white">{repo.name}</h3>
-              <p className="text-[11px] text-zinc-400 mt-0.5">{repo.role}</p>
-            </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">{p.name}</h3>
+                <p className="text-[11px] font-mono text-zinc-400 truncate mt-0.5" title={p.path}>
+                  {p.path}
+                </p>
+              </div>
 
-            <div className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1.5 font-mono text-[11px]">
-              <div className="flex items-center justify-between text-zinc-400">
-                <span>Rama:</span>
-                <span className="text-white truncate max-w-[150px]">{repo.branch}</span>
-              </div>
-              <div className="flex items-center justify-between text-zinc-400">
-                <span>Contratos:</span>
-                <span className="text-emerald-400">{repo.contracts.join(', ')}</span>
-              </div>
+              {/* Detected scripts from package.json/Makefile */}
+              {p.detected_scripts && p.detected_scripts.length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t border-[#1b2533]">
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase">Scripts Detectados:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {p.detected_scripts.slice(0, 3).map((sc: string) => (
+                      <span key={sc} className="px-2 py-0.5 rounded-md bg-black/40 border border-white/5 text-[10px] font-mono text-zinc-300">
+                        {sc}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!isActive && (
+                <button
+                  onClick={() => handleSwitchProject(p.id)}
+                  className="w-full py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-white font-medium transition cursor-pointer"
+                >
+                  Activar este Proyecto
+                </button>
+              )}
             </div>
+          )
+        })}
+      </div>
+
+      {/* Workspace Files Tree */}
+      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+          <div className="flex items-center gap-2">
+            <Terminal className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-bold text-white">Árbol Físico de Archivos (/api/fs/tree)</h2>
           </div>
-        ))}
+          <span className="text-xs text-zinc-400 font-mono">{fsTree.length} elementos raíz</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* File list */}
+          <div className="p-3 rounded-2xl bg-[#070b10] border border-[#1b2533] max-h-80 overflow-y-auto custom-scroll space-y-1 font-mono text-xs">
+            {fsTree.map((item) => (
+              <div
+                key={item.path}
+                onClick={() => {
+                  if (item.extension === '.md' || item.extension === '.json') {
+                    handleViewDoc(item.path, item.name)
+                  }
+                }}
+                className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 cursor-pointer text-zinc-300 transition"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  {item.is_dir ? (
+                    <FolderGit2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  ) : (
+                    <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  )}
+                  <span className="truncate">{item.name}</span>
+                </div>
+                {!item.is_dir && (
+                  <span className="text-[10px] text-zinc-500 shrink-0">{item.size_bytes} B</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Document Preview */}
+          <div className="p-4 rounded-2xl bg-[#070b10] border border-[#1b2533] max-h-80 overflow-y-auto custom-scroll">
+            {docContent ? (
+              <div className="space-y-2">
+                <span className="text-xs font-mono font-bold text-emerald-400 block border-b border-white/5 pb-1">
+                  {selectedDocName}
+                </span>
+                <pre className="font-mono text-xs text-zinc-300 whitespace-pre-wrap">{docContent}</pre>
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500 font-mono py-8 text-center">
+                Haz clic en cualquier archivo .md o .json del árbol para previsualizar su contenido.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

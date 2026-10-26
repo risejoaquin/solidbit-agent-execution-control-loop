@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Cpu,
   Server,
@@ -11,64 +11,73 @@ import {
   Activity,
   AlertTriangle,
   Play,
-  Square,
-  RefreshCw,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react'
-import type { AgentItem } from '../../types/orchestrator'
 
-interface AgentsSectionProps {
-  agents: AgentItem[]
+interface ConnectionItem {
+  id: string
+  name: string
+  category: string
+  status: string
+  version?: string
+  account_info?: string
+  last_checked?: string
+  error_message?: string
 }
 
-export const AgentsSection: React.FC<AgentsSectionProps> = ({ agents }) => {
-  const [selectedAgent, setSelectedAgent] = useState<AgentItem>(agents[0])
-  const [agentLogs, setAgentLogs] = useState<Record<string, string[]>>({
-    a1: [
-      '[02:00:15] [INIT] architect-agent iniciado en worktree integration (PID: 1432)',
-      '[02:00:16] [PREFLIGHT] Git worktree limpio verificado. Hash: 3b2a62d',
-      '[02:00:17] [DAG] Sintetizando dependencias acíclicas de Kahn para Sprint SOLID-301',
-      '[02:00:18] [AUDIT] 2 contratos inmutables congelados: DR-INV-001, DR-PAY-001',
-    ],
-    a2: [
-      '[02:01:02] [REST] api-agent escuchando en puerto 8765 (PID: 2190)',
-      '[02:01:04] [IDEM] Llaves de idempotencia DR-IDEM-001 registradas',
-      '[02:01:06] [DISPATCH] Oleada 2 despachada a worktree coder-alpha',
-    ],
-    a3: [
-      '[02:00:45] [SQLITE] db-agent conectado a SQLite WAL sacl_ops.db (PID: 3411)',
-      '[02:00:46] [CONSTRAINTS] 22 estados canónicos validados en tabla jobs',
-      '[02:00:48] [CHECKPOINT] WAL checkpoint completado. 0 páginas pendientes.',
-    ],
-    a4: [
-      '[02:01:20] [AUTH] auth-agent verificando llaves HMAC-SHA256 (PID: 4892)',
-      '[02:01:22] [SECURITY] Hard Deny Supremacy ACTIVO. Cero bypass.',
-    ],
-  })
+export const AgentsSection: React.FC = () => {
+  const [connections, setConnections] = useState<ConnectionItem[]>([])
+  const [selectedConn, setSelectedConn] = useState<ConnectionItem | null>(null)
+  const [actionHistory, setActionHistory] = useState<any[]>([])
+  const [testingId, setTestingId] = useState<string | null>(null)
 
-  const getAgentIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'cpu':
-        return <Cpu className="w-5 h-5" />
-      case 'server':
-        return <Server className="w-5 h-5" />
-      case 'database':
-        return <Database className="w-5 h-5" />
-      case 'shield':
-        return <Shield className="w-5 h-5" />
-      case 'shopping-bag':
-        return <ShoppingBag className="w-5 h-5" />
-      case 'layout':
-        return <Layout className="w-5 h-5" />
-      case 'check-circle':
-        return <CheckCircle2 className="w-5 h-5" />
-      default:
-        return <Terminal className="w-5 h-5" />
+  const loadData = async () => {
+    try {
+      const res = await fetch('/api/connections')
+      const data = await res.json()
+      if (data && data.connections) {
+        setConnections(data.connections)
+        if (!selectedConn && data.connections.length > 0) {
+          setSelectedConn(data.connections[0])
+        }
+      }
+    } catch (e) {
+      console.warn('Error loading connections:', e)
+    }
+
+    try {
+      const actRes = await fetch('/api/actions/history')
+      const actData = await actRes.json()
+      if (actData && actData.history) {
+        setActionHistory(actData.history)
+      }
+    } catch (e) {
+      console.warn('Error loading action history:', e)
     }
   }
 
-  const logs = agentLogs[selectedAgent?.id] || [
-    `[INFO] Agente ${selectedAgent?.name} listo en espera de asignación de oleada.`,
-  ]
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const handleTestConnection = async (connId: string) => {
+    setTestingId(connId)
+    try {
+      const res = await fetch('/api/connections/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ connection_id: connId }),
+      })
+      const data = await res.json()
+      alert(`Resultado prueba ${connId}: ${data.status} - ${data.message || data.error || 'OK'}`)
+      loadData()
+    } catch (e: any) {
+      alert('Error probando conexión: ' + e.message)
+    } finally {
+      setTestingId(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -77,33 +86,35 @@ export const AgentsSection: React.FC<AgentsSectionProps> = ({ agents }) => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
-              Gestión de Flota de Agentes Autónomos (SACL Fleet)
+              Agentes, Runtimes & Conexiones de Infraestructura
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              8 Agentes Especializados
+              {connections.length} Herramientas Conectadas
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Supervisión concurrente de procesos, aislamiento en ramas Git y defensa contra reciclaje de PID
+            Supervisión directa de CLIs locales (AGY, Git, GitHub, Railway, Supabase, Atlassian, Resend)
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-black/40 border border-[#1b2533] text-xs font-mono text-zinc-300">
-            <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Heartbeat: 100% Saludable</span>
-          </span>
-        </div>
+        <button
+          onClick={loadData}
+          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Actualizar Estado</span>
+        </button>
       </div>
 
-      {/* Agents Fleet Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {agents.map((agent) => {
-          const isSelected = selectedAgent?.id === agent.id
+      {/* Real Connections Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {connections.map((conn) => {
+          const isSelected = selectedConn?.id === conn.id
+          const isOk = conn.status === 'connected'
           return (
             <div
-              key={agent.id}
-              onClick={() => setSelectedAgent(agent)}
+              key={conn.id}
+              onClick={() => setSelectedConn(conn)}
               className={`p-4 rounded-3xl cursor-pointer transition-all border ${
                 isSelected
                   ? 'bg-[#121a26] border-emerald-500/60 shadow-lg shadow-emerald-500/5'
@@ -111,82 +122,97 @@ export const AgentsSection: React.FC<AgentsSectionProps> = ({ agents }) => {
               }`}
             >
               <div className="flex items-start justify-between">
-                <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                    agent.color === 'emerald'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : agent.color === 'amber'
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-                  }`}
-                >
-                  {getAgentIcon(agent.icon)}
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  {conn.id === 'agy' ? (
+                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                  ) : conn.category === 'vcs' ? (
+                    <Terminal className="w-5 h-5 text-blue-400" />
+                  ) : conn.category === 'cloud' ? (
+                    <Server className="w-5 h-5 text-purple-400" />
+                  ) : (
+                    <Database className="w-5 h-5 text-emerald-400" />
+                  )}
                 </div>
 
                 <span
                   className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
-                    agent.status === 'Activo'
+                    isOk
                       ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                      : agent.status === 'En espera'
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                      : 'bg-zinc-800 text-zinc-500'
+                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                   }`}
                 >
-                  {agent.status}
+                  {isOk ? 'CONECTADO' : 'PENDIENTE'}
                 </span>
               </div>
 
               <div className="mt-3">
-                <h3 className="text-xs font-bold text-white font-mono">{agent.name}</h3>
-                <p className="text-[11px] text-zinc-400">{agent.role}</p>
+                <h3 className="text-xs font-bold text-white font-mono">{conn.name}</h3>
+                <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                  {conn.account_info || `Versión: ${conn.version || 'Local'}`}
+                </p>
               </div>
 
               <div className="mt-3 pt-3 border-t border-[#1b2533] flex items-center justify-between text-[10px] font-mono text-zinc-500">
-                <span>PID: {agent.pid}</span>
-                <span className="text-emerald-400">Lock: ACTIVO</span>
+                <span>Categoría: {conn.category}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleTestConnection(conn.id)
+                  }}
+                  disabled={testingId === conn.id}
+                  className="text-emerald-400 hover:underline cursor-pointer"
+                >
+                  {testingId === conn.id ? 'Probando...' : 'Test CLI'}
+                </button>
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Selected Agent Live Console Inspector */}
-      {selectedAgent && (
-        <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#1b2533] pb-4">
-            <div className="flex items-center gap-3">
-              <Terminal className="w-4 h-4 text-emerald-400" />
-              <div>
-                <h2 className="text-sm font-bold text-white font-mono">
-                  Consola de Telemetría: {selectedAgent.name} (PID: {selectedAgent.pid})
-                </h2>
-                <p className="text-[11px] text-zinc-400">
-                  Flujo de registros en tiempo real en worktrees/integration
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => alert(`Enviando señal SIGTERM segura a ${selectedAgent.name} (PID: ${selectedAgent.pid})`)}
-                className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-mono flex items-center gap-1.5 transition"
-              >
-                <Square className="w-3 h-3" />
-                <span>Detener Proceso</span>
-              </button>
-            </div>
+      {/* Real Actions Executed Table */}
+      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-bold text-white">Historial de Acciones de Agentes (/api/actions/history)</h2>
           </div>
-
-          <div className="p-4 rounded-2xl bg-[#070b10] border border-[#1b2533] font-mono text-xs text-zinc-300 space-y-2 max-h-60 overflow-y-auto custom-scroll">
-            {logs.map((line, idx) => (
-              <div key={idx} className="leading-relaxed">
-                <span className="text-emerald-400 select-none">&gt; </span>
-                <span>{line}</span>
-              </div>
-            ))}
-          </div>
+          <span className="text-xs text-zinc-400 font-mono">{actionHistory.length} ejecuciones</span>
         </div>
-      )}
+
+        <div className="overflow-x-auto">
+          {actionHistory.length === 0 ? (
+            <p className="text-xs text-zinc-500 py-3 font-mono">No hay ejecuciones de acciones registradas aún.</p>
+          ) : (
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-[#1b2533] text-[10px] text-zinc-500">
+                  <th className="pb-2">Execution ID</th>
+                  <th className="pb-2">Acción</th>
+                  <th className="pb-2">Duración</th>
+                  <th className="pb-2">Exit Code</th>
+                  <th className="pb-2 pr-2">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#1b2533]/40">
+                {actionHistory.map((act, i) => (
+                  <tr key={act.execution_id || i} className="hover:bg-white/[0.02]">
+                    <td className="py-2.5 font-bold text-blue-400">{act.execution_id}</td>
+                    <td className="py-2.5 text-white">{act.title || act.action_type}</td>
+                    <td className="py-2.5 text-zinc-400">{act.duration_sec}s</td>
+                    <td className="py-2.5 text-emerald-400">{act.exit_code}</td>
+                    <td className="py-2.5 pr-2">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        {act.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

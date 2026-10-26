@@ -3,12 +3,14 @@ import {
   User,
   ShieldCheck,
   Key,
-  Server,
-  Cloud,
+  GitBranch,
+  RefreshCw,
+  GitPullRequest,
   CheckCircle2,
   AlertTriangle,
   Save,
-  Lock,
+  Server,
+  Cloud,
 } from 'lucide-react'
 
 export const SettingsSection: React.FC = () => {
@@ -16,26 +18,38 @@ export const SettingsSection: React.FC = () => {
   const [operatorRole, setOperatorRole] = useState('Product Owner / Sovereign Authority')
   const [operatorEmail, setOperatorEmail] = useState('risejoaquin@solidbit.io')
   const [secretKey, setSecretKey] = useState('sacl-sovereign-audit-secret-2026')
+  const [ghStatus, setGhStatus] = useState<any>(null)
+  const [prs, setPrs] = useState<any[]>([])
   const [saved, setSaved] = useState(false)
-  const [jiraStatus, setJiraStatus] = useState<any>({ authenticated: false, message: 'Verificando...' })
+  const [syncing, setSyncing] = useState(false)
+
+  const loadData = async () => {
+    try {
+      const pRes = await fetch('/api/settings/profile')
+      const pData = await pRes.json()
+      if (pData.profile) {
+        if (pData.profile.name) setOperatorName(pData.profile.name)
+        if (pData.profile.role) setOperatorRole(pData.profile.role)
+        if (pData.profile.email) setOperatorEmail(pData.profile.email)
+        if (pData.profile.secret) setSecretKey(pData.profile.secret)
+      }
+    } catch {}
+
+    try {
+      const ghRes = await fetch('/api/github/status')
+      const ghData = await ghRes.json()
+      setGhStatus(ghData)
+    } catch {}
+
+    try {
+      const prRes = await fetch('/api/github/prs')
+      const prData = await prRes.json()
+      if (prData.prs) setPrs(prData.prs)
+    } catch {}
+  }
 
   useEffect(() => {
-    fetch('/api/settings/profile')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.profile) {
-          if (d.profile.name) setOperatorName(d.profile.name)
-          if (d.profile.role) setOperatorRole(d.profile.role)
-          if (d.profile.email) setOperatorEmail(d.profile.email)
-          if (d.profile.secret) setSecretKey(d.profile.secret)
-        }
-      })
-      .catch(() => {})
-
-    fetch('/api/orchestrator/jira-status')
-      .then((r) => r.json())
-      .then((d) => setJiraStatus(d))
-      .catch(() => {})
+    loadData()
   }, [])
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -56,31 +70,92 @@ export const SettingsSection: React.FC = () => {
         localStorage.setItem('sacl_operator_role', operatorRole)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
-        alert('Perfil del Product Owner guardado exitosamente en SACL!')
+        alert('Perfil guardado exitosamente en backend SACL!')
       }
     } catch (e: any) {
       alert('Error guardando perfil: ' + e.message)
     }
   }
 
+  const handleSyncGit = async () => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/github/sync', { method: 'POST' })
+      const data = await res.json()
+      alert(`Sincronización Git: ${data.message || 'Rama al día con origin'}`)
+      loadData()
+    } catch (e: any) {
+      alert('Error sincronizando Git: ' + e.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0e141d] border border-[#1b2533]">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
-              Configuración & Identidad Soberana del Operador
+              Configuración de Gobernanza & Conexión GitHub
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              Gobernanza SolidBit SDLC
+              SolidBit SDLC Standards
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Gestión de credenciales de firma criptográfica HMAC-SHA256 y guardas de infraestructura
+            Gestión de identidad soberana, credenciales HMAC y estado del repositorio remoto
           </p>
         </div>
+
+        <button
+          onClick={handleSyncGit}
+          disabled={syncing}
+          className="px-4 py-2 rounded-2xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${syncing ? 'animate-spin' : ''}`} />
+          <span>{syncing ? 'Sincronizando...' : 'Sync Git Remoto'}</span>
+        </button>
       </div>
+
+      {/* GitHub Repository Live Status from /api/github/status */}
+      {ghStatus && (
+        <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+            <div className="flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-sm font-bold text-white">Estado del Repositorio Git (/api/github/status)</h2>
+            </div>
+            <span
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                !ghStatus.dirty
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              }`}
+            >
+              {!ghStatus.dirty ? 'WORKTREE LIMPIO' : 'CAMBIOS SIN COMMITEAR'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+            <div className="p-3 rounded-2xl bg-[#090e16] border border-[#1b2533] space-y-1">
+              <span className="text-[10px] text-zinc-500">Rama Activa:</span>
+              <div className="text-white font-bold truncate">{ghStatus.branch || 'main'}</div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-[#090e16] border border-[#1b2533] space-y-1">
+              <span className="text-[10px] text-zinc-500">Último Commit SHA:</span>
+              <div className="text-emerald-400 font-bold">{ghStatus.last_commit || 'HEAD'}</div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-[#090e16] border border-[#1b2533] space-y-1">
+              <span className="text-[10px] text-zinc-500">Pull Requests Activos:</span>
+              <div className="text-blue-400 font-bold">{prs.length} detectados</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Operator Identity Form */}
       <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-5 shadow-xl">
@@ -89,9 +164,9 @@ export const SettingsSection: React.FC = () => {
             <User className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white">Perfil del Operador Soberano</h2>
+            <h2 className="text-sm font-bold text-white">Perfil Soberano & Credenciales HMAC (/api/settings/profile)</h2>
             <p className="text-xs text-zinc-400">
-              Identidad utilizada para autorizar compuertas HITL y firmar despliegues
+              Configuración persistida en el servidor SACL para validación de decisiones humanas
             </p>
           </div>
         </div>
@@ -146,41 +221,9 @@ export const SettingsSection: React.FC = () => {
             className="px-5 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/10"
           >
             <Save className="w-4 h-4" />
-            <span>{saved ? 'Guardado Exitosamente!' : 'Guardar Perfil Soberano'}</span>
+            <span>{saved ? 'Guardado en Backend!' : 'Guardar Perfil'}</span>
           </button>
         </form>
-      </div>
-
-      {/* Infrastructure Guardrails Status */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-[#1b2533] pb-3">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Guardas de Seguridad en Producción (Zero-Unauthorized Deploy)</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="p-3.5 rounded-2xl bg-[#090e16] border border-[#1b2533] space-y-1">
-            <span className="text-[10px] font-mono text-zinc-500">Railway Staging Guard</span>
-            <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>autoDeploy: OFF (Verificado)</span>
-            </div>
-            <p className="text-[11px] text-zinc-400">
-              Imposible desplegar a producción sin token HMAC firmado por el PO.
-            </p>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-[#090e16] border border-[#1b2533] space-y-1">
-            <span className="text-[10px] font-mono text-zinc-500">Atlassian / Jira CLI Status</span>
-            <div className="flex items-center gap-1.5 text-amber-400 font-bold">
-              <AlertTriangle className="w-4 h-4" />
-              <span>{jiraStatus.message || 'CLI Local Disponible'}</span>
-            </div>
-            <p className="text-[11px] text-zinc-400">
-              Sincronización respaldada en SQLite WAL local mientras se inicia sesión remota.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   )
