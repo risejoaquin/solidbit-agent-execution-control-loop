@@ -421,7 +421,43 @@ HTML_APPLICATION = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- COMPUERTA DE GOBERNANZA HUMANA ACTIVA (HITL) -->
+            <!-- ==================== RESULTADOS & ENTREGABLES DE LA EJECUCIÓN (ARCHIVOS EN DISCO) ==================== -->
+      <div id="run-deliverables-panel" class="section-canvas p-5 md:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b bd pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+              <i data-lucide="folder-check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-white">Resultados & Entregables de la Ejecución (Persistidos en Disco)</h3>
+              <p class="text-[11px] text-zinc-400">Directorio de artefactos: <code id="deliverables-run-path" class="mono text-emerald-400 text-[11px]">runs/run-20261026-061640-4acf9d</code></p>
+            </div>
+          </div>
+          <button onclick="loadLatestRunDeliverables()" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-zinc-400"></i>
+            <span>Actualizar Entregables</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b bd text-zinc-400 text-[10px] uppercase mono">
+                <th class="pb-2.5">Archivo / Entregable</th>
+                <th class="pb-2.5">Tipo</th>
+                <th class="pb-2.5">Descripción Técnica</th>
+                <th class="pb-2.5">Estado</th>
+                <th class="pb-2.5 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="deliverables-table-body" class="divide-y divide-white/5">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+<!-- COMPUERTA DE GOBERNANZA HUMANA ACTIVA (HITL) -->
       <div id="active-gate-container" class="section-canvas p-5 md:p-6 space-y-5 border-amber-500/30 bg-black">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b bd pb-4">
           <div class="flex items-center gap-3">
@@ -1714,11 +1750,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      loadDashboardSnapshot(); loadHudEmbeddedTable('approvals'); loadHudEmbeddedTable('approvals');
+      loadDashboardSnapshot(); loadLatestRunDeliverables(); loadHudEmbeddedTable('approvals'); loadHudEmbeddedTable('approvals');
       loadDbDashboard();
       loadProjects(); loadFsTree(); loadFsTree();
       loadChatHistory();
-      loadActionHistory();
+      loadActionHistory(); loadLatestRunDeliverables();
       initSSE();
     });
 

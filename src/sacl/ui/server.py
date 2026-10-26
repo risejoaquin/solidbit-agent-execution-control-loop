@@ -489,6 +489,36 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # 12.1b REST API: Latest Run Deliverables & Results
+        if path == "/api/runs/latest":
+            runs_root = self.service.workspace_root / "runs"
+            if not runs_root.exists():
+                self._send_json(200, {"success": True, "has_runs": False, "deliverables": []})
+                return
+            all_runs = sorted([d for d in runs_root.iterdir() if d.is_dir()], key=lambda d: d.stat().st_mtime, reverse=True)
+            if not all_runs:
+                self._send_json(200, {"success": True, "has_runs": False, "deliverables": []})
+                return
+            latest = all_runs[0]
+            delivs = []
+            for f in [latest / "SUMMARY.md", latest / "SUMMARY.json", latest / "evidence" / "invariants_audit.json", latest / "logs" / "pytest_execution.log"]:
+                if f.exists():
+                    delivs.append({
+                        "name": f.name,
+                        "path": str(f),
+                        "rel_path": f.relative_to(self.service.workspace_root).as_posix(),
+                        "size_bytes": f.stat().st_size,
+                        "type": "markdown" if f.suffix == ".md" else ("json" if f.suffix == ".json" else "log")
+                    })
+            self._send_json(200, {
+                "success": True,
+                "has_runs": True,
+                "run_id": latest.name,
+                "run_path": str(latest),
+                "deliverables": delivs
+            })
+            return
+
         # 12.2 REST API: File System Read Content
         if path == "/api/fs/read":
             file_param = query.get("path", [None])[0]
