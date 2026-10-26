@@ -291,435 +291,241 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <!-- ========================================== -->
     <!-- SECTION 1: OPERACIONES HUD & DASHBOARD EJECUTIVO -->
     <!-- ========================================== -->
-    <div id="sec-dashboard" class="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div id="sec-dashboard" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
 
-      <!-- ==================== ECOSYSTEM PROJECT SWITCHER (CENTRO UNIFICADO) ==================== -->
-      <div class="section-canvas p-4 md:p-5 bg-black border border-white/10 rounded-2xl space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
-          <div class="flex items-center gap-2.5">
-            <i data-lucide="folder-git-2" class="w-5 h-5 text-white"></i>
-            <div>
-              <h2 class="text-sm font-bold text-white tracking-wide">Espacios de Trabajo del Ecosistema SolidBit</h2>
-              <p class="text-xs text-zinc-400">Selecciona el repositorio activo para gestionar codigo, compuertas y herramientas</p>
-            </div>
+      <!-- TOP RUN CONTROL BAR (Temporal / LangGraph Standard) -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.03] border bd">
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+            <i data-lucide="git-branch" class="w-5 h-5"></i>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] mono px-2.5 py-1 rounded-full bg-white/10 text-white font-semibold flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Workspace Activo
-            </span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
-          <button onclick="switchEcosystemProject('~/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration', 'Stable-Ecommerce (Integration)')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-emerald-500/40 hover:border-emerald-400 text-left transition-all flex items-center justify-between group">
-            <div class="space-y-0.5 truncate">
-              <div class="text-xs font-bold text-white group-hover:text-emerald-300 flex items-center gap-1.5">
-                <i data-lucide="git-pull-request" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span class="truncate">Stable-Ecommerce</span>
-              </div>
-              <div class="text-[10px] text-zinc-400 mono">worktrees/integration</div>
-            </div>
-            <span class="text-[10px] mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-400/10">ACTIVO</span>
-          </button>
-
-          <button onclick="switchEcosystemProject('~/Documents/FULL-METAL-CASH', 'FULL-METAL-CASH')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
-            <div class="space-y-0.5 truncate">
-              <div class="text-xs font-bold text-white group-hover:text-blue-300 flex items-center gap-1.5">
-                <i data-lucide="credit-card" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span class="truncate">FULL-METAL-CASH</span>
-              </div>
-              <div class="text-[10px] text-zinc-400 mono">Pasarela Pagos & Ledgers</div>
-            </div>
-            <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
-          </button>
-
-          <button onclick="switchEcosystemProject('~/Documents/POS', 'SolidPOS')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
-            <div class="space-y-0.5 truncate">
-              <div class="text-xs font-bold text-white group-hover:text-amber-300 flex items-center gap-1.5">
-                <i data-lucide="store" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span class="truncate">SolidPOS (Punto de Venta)</span>
-              </div>
-              <div class="text-[10px] text-zinc-400 mono">Punto Venta & Offline POS</div>
-            </div>
-            <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
-          </button>
-
-          <button onclick="switchEcosystemProject('~/Documents/solidbit-agent-execution-control-loop', 'SACL Core Engine')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
-            <div class="space-y-0.5 truncate">
-              <div class="text-xs font-bold text-white group-hover:text-purple-300 flex items-center gap-1.5">
-                <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
-                <span class="truncate">SACL Core Engine</span>
-              </div>
-              <div class="text-[10px] text-zinc-400 mono">risejoaquin/solidbit-sacl</div>
-            </div>
-            <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- ==================== CICLO DE EJECUCION MULTI-AGENTE 2026 (ROLES POR FASE) ==================== -->
-      <div class="section-canvas p-4 md:p-6 bg-black border border-white/10 rounded-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-white/10 pb-3">
-          <div class="flex items-center gap-2.5">
-            <i data-lucide="bot" class="w-5 h-5 text-white"></i>
-            <div>
-              <h2 class="text-sm font-bold text-white tracking-wide">Ciclo de Ejecucion Multi-Agente 2026 &bull; Roles por Fase</h2>
-              <p class="text-xs text-zinc-400">Arquitectura de 4 capas inspirada en frameworks de estado y suspension HITL</p>
-            </div>
-          </div>
-          <span class="text-[10px] mono px-2.5 py-1 rounded bg-white/10 text-white font-semibold">DAG ACICLICO ACTIVO</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <!-- Fase 1: Architect Agent -->
-          <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Fase 1</span>
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            </div>
-            <div class="text-xs font-bold text-white">Architect Agent</div>
-            <div class="text-[11px] text-zinc-400 leading-relaxed">Valida contratos DR-INV-001, DR-PAY-001 y OpenAPI. Enforces Hard Deny pre-ejecucion.</div>
-            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
-              <span>Skill: spec-enforcer</span>
-              <span class="text-emerald-400 font-bold">VERIFIED</span>
-            </div>
-          </div>
-
-          <!-- Fase 2: Senior Coder -->
-          <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Fase 2</span>
-              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            </div>
-            <div class="text-xs font-bold text-white">Senior Coder (AGY)</div>
-            <div class="text-[11px] text-zinc-400 leading-relaxed">Confinado en Git Worktrees efimeros (wt-*). Ejecuta agy.exe sin riesgo de dirty-root.</div>
-            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
-              <span>Skill: worktree-coder</span>
-              <span class="text-amber-400 font-bold">ACTIVE</span>
-            </div>
-          </div>
-
-          <!-- Fase 3: Independent QA -->
-          <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Fase 3</span>
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            </div>
-            <div class="text-xs font-bold text-white">Independent QA</div>
-            <div class="text-[11px] text-zinc-400 leading-relaxed">Auditoria read-only determinista (690 tests). DONE_REVIEW_REQUIRED nunca es PASS.</div>
-            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
-              <span>Skill: zero-bypass-qa</span>
-              <span class="text-emerald-400 font-bold">PASSED</span>
-            </div>
-          </div>
-
-          <!-- Fase 4: Deployment Sentinel -->
-          <div class="p-3.5 rounded-xl bg-white/5 border border-emerald-500/30 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold uppercase mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Fase 4</span>
-              <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            </div>
-            <div class="text-xs font-bold text-white">Deployment Sentinel</div>
-            <div class="text-[11px] text-zinc-400 leading-relaxed">Suspension HITL (human_gate). Emite token HMAC 15m y notifica por Resend.</div>
-            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] mono text-zinc-400">
-              <span>Skill: hitl-sentinel</span>
-              <span class="text-amber-400 font-bold">GATE WAITING</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- HERO STATUS BANNER WITH LIVE PROGRESS PANEL -->
-      <div class="section-canvas p-6 md:p-8 relative overflow-hidden bg-gradient-to-br from-[#030305] via-[#030305] to-[#020204]">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div class="space-y-3">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 text-xs font-bold mono flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                SISTEMA OPERACIONAL
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-white/5 text-zinc-300 border bd text-xs font-mono">
-                commit 439b48c
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/25 text-xs font-mono font-semibold">
-                branch sacl-implementation-e69378
-              </span>
-            </div>
-
-            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Ecosistema Operacional Soberano
-            </h1>
-
-            <p class="text-sm text-zinc-400 max-w-2xl leading-relaxed">
-              Orquestación autónoma de ciclo de vida de software bajo <span class="text-zinc-200 font-semibold">Hard Deny Supremacy</span>.
-              Invariantes <code class="mono text-emerald-400">DR-INV-001</code> y <code class="mono text-emerald-400">DR-PAY-001</code> verificados con cero tolerancia a bypass.
-            </p>
-          </div>
-
-          <!-- Direct Execution Actions -->
-          <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3 shrink-0">
-            <button onclick="executeActionWithProgress('reconcile_runs', this)" class="btn btn-secondary px-4 py-3 text-xs">
-              <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i>
-              <span>Reconciliar Procesos</span>
-            </button>
-            <button onclick="executeActionWithProgress('test_suite', this)" class="btn btn-secondary px-4 py-3 text-xs">
-              <i data-lucide="check-square" class="w-4 h-4 text-purple-400"></i>
-              <span>Correr Tests (29)</span>
-            </button>
-            <button onclick="switchSection('database')" class="btn btn-secondary px-4 py-3 text-xs">
-              <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
-              <span>Ver Base de Datos</span>
-            </button>
-            <button onclick="openTerminalDrawer()" class="btn btn-primary px-4 py-3 text-xs">
-              <i data-lucide="terminal" class="w-4 h-4 fill-black"></i>
-              <span>Terminal Monospace</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- In-Banner Live Execution Progress Monitor (Animates visibly when clicking actions) -->
-        <div id="hero-action-progress-container" class="mt-6 pt-5 border-t bd hidden space-y-3">
-          <div class="flex items-center justify-between text-xs font-mono">
-            <span id="hero-progress-label" class="text-emerald-400 font-bold flex items-center gap-2">
-              <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-              <span>Ejecutando proceso...</span>
-            </span>
-            <span id="hero-progress-pct" class="text-zinc-400">0%</span>
-          </div>
-          <div class="w-full h-2 rounded-full bg-black/60 overflow-hidden border bd">
-            <div id="hero-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300" style="width: 0%"></div>
-          </div>
-          <div class="grid grid-cols-4 gap-2 text-[10px] mono text-zinc-400 pt-1" id="hero-progress-steps">
-            <div class="p-2 rounded bg-black/40 border bd text-center" id="prog-step-1">1. Contratos OK</div>
-            <div class="p-2 rounded bg-black/40 border bd text-center" id="prog-step-2">2. Locks SQLite</div>
-            <div class="p-2 rounded bg-black/40 border bd text-center" id="prog-step-3">3. Pytest 29/29</div>
-            <div class="p-2 rounded bg-black/40 border bd text-center" id="prog-step-4">4. WAL Sync</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EXECUTIVE TELEMETRY & KPI MATRIX (4 HIGH-VISIBILITY CARDS) -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="section-canvas p-5 space-y-2 border-emerald-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-zinc-400 font-medium">Tasa de Éxito SDLC</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          </div>
-          <div class="text-2xl md:text-3xl font-extrabold text-white mono">100.0%</div>
-          <div class="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-            <span>29/29 tests pasando sin fallos</span>
-          </div>
-        </div>
-
-        <div class="section-canvas p-5 space-y-2 border-blue-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-zinc-400 font-medium">Contratos Inmutables</span>
-            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-          </div>
-          <div class="text-2xl md:text-3xl font-extrabold text-white mono">4/4</div>
-          <div class="text-[11px] text-blue-400 flex items-center gap-1 font-mono">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-            <span>DR-INV, DR-PAY, DR-IDEM, DR-REC</span>
-          </div>
-        </div>
-
-        <div class="section-canvas p-5 space-y-2 border-purple-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-zinc-400 font-medium">Latencia Promedio</span>
-            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-          </div>
-          <div class="text-2xl md:text-3xl font-extrabold text-white mono">0.34s</div>
-          <div class="text-[11px] text-purple-400 flex items-center gap-1 font-mono">
-            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-            <span>Cold-start y reconciliación</span>
-          </div>
-        </div>
-
-        <div class="section-canvas p-5 space-y-2 border-amber-500/20 bg-gradient-to-br from-[#020204] to-[#030305]">
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-zinc-400 font-medium">Salud SQLite WAL</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          </div>
-          <div class="text-2xl md:text-3xl font-extrabold text-emerald-400 mono">100% OK</div>
-          <div class="text-[11px] text-zinc-400 flex items-center gap-1 font-mono">
-            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>PRAGMA: 0 páginas corruptas</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION: DECISION INTELLIGENCE DOSSIER (TOMA DE DECISIONES CON INFORMACIÓN COMPLETA) -->
-      <div class="section-canvas p-6 md:p-8 space-y-6 border-amber-500/40 bg-gradient-to-br from-[#181512] via-[#141318] to-[#030305]" id="active-gate-panel">
-        
-        <!-- Dossier Header -->
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b bd pb-4">
-          <div class="space-y-1">
+          <div>
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-400 mono">Centro de Inteligencia & Toma de Decisiones Soberanas</span>
-              <span id="gate-request-id-pill" class="mono text-[10px] px-2 py-0.5 rounded bg-black/50 border bd text-zinc-300">REQ-20261025-E43308B0</span>
+              <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">Run Activo:</span>
+              <span id="hud-active-run-id" class="mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded">run-20261026-051101-9a00ad</span>
+              <span class="mono text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">WAITING_GATE</span>
             </div>
-            <h2 class="text-xl md:text-2xl font-bold text-white mono" id="gate-action-title">DEPLOY_STAGING_PREVIEW</h2>
-            <p class="text-xs text-zinc-400 max-w-2xl" id="gate-reason-desc">
-              Despliegue efímero en Railway de preview build con contratos verificados. Decisión requerida antes de aplicar cambios a staging.
-            </p>
-          </div>
-
-          <!-- Risk & Blast Radius Badges -->
-          <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <div class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-2">
-              <span class="text-[10px] text-zinc-400 uppercase font-bold">Riesgo:</span>
-              <span class="text-xs font-bold text-emerald-400 mono">BAJO (Staging Aislado)</span>
-            </div>
-            <div class="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center gap-2">
-              <span class="text-[10px] text-zinc-400 uppercase font-bold">Blast Radius:</span>
-              <span class="text-xs font-bold text-blue-400 mono">2 archivos</span>
-            </div>
-            <div class="px-3 py-1.5 rounded-lg bg-white/5 border bd flex items-center gap-1.5 text-xs text-zinc-300 mono">
-              <i data-lucide="clock" class="w-3.5 h-3.5 text-zinc-400"></i>
-              <span>TTL: 7 días restantes</span>
+            <div class="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
+              <span>Worktree: <code class="mono text-zinc-300">integration</code></span>
+              <span>&bull;</span>
+              <span>Modo: <code class="mono text-zinc-300">Hard Deny Supremacy (Zero-Bypass)</code></span>
             </div>
           </div>
         </div>
 
-        <!-- Dossier Dynamic Body (Morphs on approval or rejection) -->
-        <div id="active-gate-container" class="space-y-6">
-
-          <!-- Information Tabs for Decision Making -->
-          <div class="space-y-4">
-            <div class="flex items-center gap-2 border-b bd pb-2.5">
-              <button onclick="switchDossierTab('checklist')" id="dossier-tab-btn-checklist" class="nav-pill active text-xs flex items-center gap-1.5">
-                <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span>Matriz de Verificación (5/5)</span>
-              </button>
-              <button onclick="switchDossierTab('diff')" id="dossier-tab-btn-diff" class="nav-pill text-xs flex items-center gap-1.5">
-                <i data-lucide="file-diff" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>Diff de Código en Vivo</span>
-              </button>
-              <button onclick="switchDossierTab('audit')" id="dossier-tab-btn-audit" class="nav-pill text-xs flex items-center gap-1.5">
-                <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
-                <span>Trazabilidad Soberana</span>
-              </button>
-            </div>
-
-            <!-- TAB 1: VERIFICATION CHECKLIST -->
-            <div id="dossier-panel-checklist" class="space-y-2.5">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="p-3.5 rounded-xl bg-black/40 border border-emerald-500/20 flex items-start gap-3">
-                  <div class="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
-                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
-                  </div>
-                  <div>
-                    <div class="text-xs font-bold text-white mono">Invariante DR-INV-001 (Inventario Atómico)</div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">Verificado. Cero colisiones de stock o ventas duplicadas.</div>
-                  </div>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-black/40 border border-emerald-500/20 flex items-start gap-3">
-                  <div class="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
-                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
-                  </div>
-                  <div>
-                    <div class="text-xs font-bold text-white mono">Invariante DR-PAY-001 (Doble Partida)</div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">Verificado. Suma cero balanceada en transacciones contables.</div>
-                  </div>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-black/40 border border-emerald-500/20 flex items-start gap-3">
-                  <div class="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
-                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
-                  </div>
-                  <div>
-                    <div class="text-xs font-bold text-white mono">Suite de Pruebas Automatizadas (Pytest)</div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">29/29 tests unitarios e integración en VERDE (100% Pass).</div>
-                  </div>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-black/40 border border-emerald-500/20 flex items-start gap-3">
-                  <div class="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
-                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
-                  </div>
-                  <div>
-                    <div class="text-xs font-bold text-white mono">Escaneo de Secretos & Hard Deny</div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">0 llaves privadas o credenciales expuestas en commit.</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="p-3 rounded-lg bg-white/5 border bd flex items-center justify-between text-xs text-zinc-300">
-                <span class="flex items-center gap-2">
-                  <i data-lucide="undo-2" class="w-4 h-4 text-emerald-400"></i>
-                  <span>Plan de Reversión Inmediata (Rollback): Reversión atómica disponible con 1 clic (<code class="mono text-zinc-300">git revert 439b48c</code>)</span>
-                </span>
-                <span class="text-emerald-400 font-bold mono">LISTO</span>
-              </div>
-            </div>
-
-            <!-- TAB 2: LIVE CODE DIFF -->
-            <div id="dossier-panel-diff" class="p-4 rounded-xl bg-black/60 border bd font-mono text-xs overflow-x-auto text-zinc-300 space-y-1 hidden">
-              <div class="text-emerald-400 font-bold">--- a/railway.json</div>
-              <div class="text-emerald-400 font-bold">+++ b/railway.json</div>
-              <div class="text-zinc-500">@@ -12,6 +12,9 @@</div>
-              <div>  "deploy": {</div>
-              <div class="text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.5 rounded">+   "previewEnv": "pr-staging-preview",</div>
-              <div class="text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.5 rounded">+   "invariantsEnforcement": "STRICT",</div>
-              <div class="text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.5 rounded">+   "operatorAttribution": "LUCILFER / @risejoaquin"</div>
-              <div>  }</div>
-              <div class="text-emerald-400 font-bold mt-2">--- a/services/web-storefront/package.json</div>
-              <div class="text-zinc-500">@@ -4,4 +4,4 @@</div>
-              <div class="text-red-400 font-semibold bg-red-500/10 px-1 py-0.5 rounded">-   "version": "1.1.0",</div>
-              <div class="text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.5 rounded">+   "version": "1.2.0-preview",</div>
-            </div>
-
-            <!-- TAB 3: AUDIT TRAIL -->
-            <div id="dossier-panel-audit" class="p-4 rounded-xl bg-black/60 border bd font-mono text-xs text-zinc-300 space-y-2 hidden">
-              <div class="flex justify-between"><span class="text-zinc-500">Operador Autorizado:</span><span class="text-white font-bold">LUCILFER / risejoaquin (@risejoaquin)</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">Firma Criptográfica:</span><span class="text-emerald-400 font-bold">HMAC-SHA256 (Inmutable)</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">Almacenamiento:</span><span class="text-zinc-300">SQLite approvals table (sacl_ops.db)</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">Destino de Despliegue:</span><span class="text-blue-400 font-bold">Railway PR Preview Isolation</span></div>
-            </div>
-          </div>
-
-          <!-- Decision Execution Buttons -->
-          <div class="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 border-t bd">
-            <button onclick="quickRejectFromCard()" id="btn-gate-reject" class="btn btn-danger text-xs px-5 py-2.5 w-full sm:w-auto">
-              <i data-lucide="x-circle" class="w-4 h-4"></i>
-              <span class="font-bold">Rechazar / Veto Soberano</span>
-            </button>
-            <button onclick="quickApproveFromCard()" id="btn-gate-approve" class="btn btn-success text-xs px-7 py-2.5 shadow-xl font-bold btn-gate-approve-action w-full sm:w-auto">
-              <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
-              <span>Autorizar Despliegue Soberano</span>
-            </button>
-          </div>
-
+        <!-- Primary Execution Actions -->
+        <div class="flex items-center gap-2">
+          <button onclick="executeAction('campaign_sprint', {}, this)" class="btn btn-primary text-xs px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            <span>▶ Inicializar Sprint</span>
+          </button>
+          <button onclick="executeAction('reconcile_runs', {}, this)" class="btn btn-secondary text-xs px-3.5 py-2">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Reconciliar</span>
+          </button>
+          <button onclick="openTerminalDrawer()" class="btn btn-secondary text-xs px-3.5 py-2 text-emerald-400">
+            <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+            <span>Terminal</span>
+          </button>
         </div>
-
       </div>
 
-      <!-- SOBERANÍA & RESUMEN DE ALMACENAMIENTO (MINIMALISTA) -->
-      <div class="p-4 rounded-xl bg-black border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span class="text-zinc-400">Base de Datos: <code class="mono text-white font-bold">sacl_ops.db</code> (SQLite WAL, PRAGMA OK)</span>
+      <!-- COMPACT METRICS CHIPS ROW (Cero ruido, alta densidad) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
+          <span class="text-[11px] text-zinc-400 uppercase font-semibold">SDLC Test Suite</span>
+          <span class="mono text-xs font-bold text-emerald-400">29/29 PASS</span>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="switchSection('database')" class="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5">
-            <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Explorar Tablas WAL</span>
+        <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
+          <span class="text-[11px] text-zinc-400 uppercase font-semibold">Contratos Inmutables</span>
+          <span class="mono text-xs font-bold text-white">4/4 DR-INV</span>
+        </div>
+        <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
+          <span class="text-[11px] text-zinc-400 uppercase font-semibold">Persistencia SQLite</span>
+          <span class="mono text-xs font-bold text-emerald-400">WAL INTEGRITY OK</span>
+        </div>
+        <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
+          <span class="text-[11px] text-zinc-400 uppercase font-semibold">Túnel Universal</span>
+          <span class="mono text-xs font-bold text-blue-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> ONLINE
+          </span>
+        </div>
+      </div>
+
+      <!-- PIPELINE TOPOLÓGICO DE FASES (Temporal / Airflow Standard Flow) -->
+      <div class="section-canvas p-5 md:p-6 space-y-4">
+        <div class="flex items-center justify-between border-b bd pb-3">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="git-merge" class="w-4 h-4 text-emerald-400"></i>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-white">Grafo de Ejecución Topológica Multi-Agente (DAG 2026)</h3>
+          </div>
+          <span class="mono text-[11px] text-zinc-400">Topological Sort: Linear Pipeline</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <!-- Fase 1 -->
+          <div class="p-3.5 rounded-xl bg-black/60 border border-emerald-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="mono text-[10px] text-zinc-400 font-bold uppercase">Fase 1 &bull; Arquitectura</span>
+              <span class="mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">VERIFIED</span>
+            </div>
+            <div class="text-xs font-bold text-white">spec-enforcer</div>
+            <div class="text-[11px] text-zinc-400">Contratos DR-INV-001 & Schemas</div>
+            <div class="pt-2 border-t bd text-[10px] mono text-zinc-500 flex justify-between">
+              <span>Duración: 0.08s</span>
+              <span>Exit 0</span>
+            </div>
+          </div>
+
+          <!-- Fase 2 -->
+          <div class="p-3.5 rounded-xl bg-black/60 border border-blue-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="mono text-[10px] text-zinc-400 font-bold uppercase">Fase 2 &bull; Síntesis</span>
+              <span class="mono text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">COMPLETED</span>
+            </div>
+            <div class="text-xs font-bold text-white">worktree-coder (AGY)</div>
+            <div class="text-[11px] text-zinc-400">Aislamiento Git en integration</div>
+            <div class="pt-2 border-t bd text-[10px] mono text-zinc-500 flex justify-between">
+              <span>Duración: 0.15s</span>
+              <span>Exit 0</span>
+            </div>
+          </div>
+
+          <!-- Fase 3 -->
+          <div class="p-3.5 rounded-xl bg-black/60 border border-emerald-500/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="mono text-[10px] text-zinc-400 font-bold uppercase">Fase 3 &bull; Calidad</span>
+              <span class="mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">PASSED</span>
+            </div>
+            <div class="text-xs font-bold text-white">zero-bypass-qa</div>
+            <div class="text-[11px] text-zinc-400">29 Tests Unitarios & RLS</div>
+            <div class="pt-2 border-t bd text-[10px] mono text-zinc-500 flex justify-between">
+              <span>Duración: 0.22s</span>
+              <span>Exit 0</span>
+            </div>
+          </div>
+
+          <!-- Fase 4 -->
+          <div class="p-3.5 rounded-xl bg-black/60 border border-amber-500/40 space-y-2 shadow-[0_0_15px_rgba(245,158,11,0.08)]">
+            <div class="flex items-center justify-between">
+              <span class="mono text-[10px] text-amber-400 font-bold uppercase">Fase 4 &bull; Sentinel</span>
+              <span class="mono text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold animate-pulse">GATE WAITING</span>
+            </div>
+            <div class="text-xs font-bold text-white">hitl-sentinel</div>
+            <div class="text-[11px] text-zinc-400">Compuerta DEPLOY_STAGING</div>
+            <div class="pt-2 border-t bd text-[10px] mono text-amber-400 flex justify-between">
+              <span>TTL: 14m 20s</span>
+              <span>Firma HMAC</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPUERTA DE GOBERNANZA HUMANA ACTIVA (HITL) -->
+      <div id="active-gate-container" class="section-canvas p-5 md:p-6 space-y-5 border-amber-500/30 bg-black">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b bd pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white mono" id="gate-action-title">DEPLOY_STAGING_PREVIEW</h3>
+                <span class="mono text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">REQ-20261025-E43308B0</span>
+              </div>
+              <p class="text-xs text-zinc-400 mt-0.5">El agente ha completado la síntesis. Se requiere micro-decisión humana para desplegar el preview efímero.</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs mono text-zinc-400">Radio de impacto: <strong class="text-white">Preview Aislado (Railway)</strong></span>
+          </div>
+        </div>
+
+        <!-- Dossier Navigation Tabs -->
+        <div class="flex items-center gap-2 border-b bd pb-2 text-xs">
+          <button id="dossier-tab-btn-checklist" class="nav-pill active flex items-center gap-1.5" onclick="switchDossierTab('checklist')">
+            <i data-lucide="check-square" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Checklist Técnico</span>
           </button>
-          <button onclick="switchSection('github')" class="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5">
-            <i data-lucide="github" class="w-3.5 h-3.5 text-blue-400"></i>
-            <span>Ver Pull Requests</span>
+          <button id="dossier-tab-btn-diff" class="nav-pill flex items-center gap-1.5" onclick="switchDossierTab('diff')">
+            <i data-lucide="file-diff" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span>Inspección de Git Diff</span>
           </button>
+          <button id="dossier-tab-btn-audit" class="nav-pill flex items-center gap-1.5" onclick="switchDossierTab('audit')">
+            <i data-lucide="history" class="w-3.5 h-3.5 text-zinc-400"></i>
+            <span>Traza de Auditoría</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: Checklist -->
+        <div id="dossier-panel-checklist" class="space-y-2.5 text-xs">
+          <div class="p-3 rounded-xl bg-white/[0.02] border bd flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span class="text-zinc-200">Invariante de Inventario DR-INV-001 (Zero-Oversell SellableUnit)</span>
+            </div>
+            <span class="mono text-emerald-400 font-bold">PASS</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border bd flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span class="text-zinc-200">Invariante de Pago DR-PAY-001 (Ledger de Doble Partida)</span>
+            </div>
+            <span class="mono text-emerald-400 font-bold">PASS</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/[0.02] border bd flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span class="text-zinc-200">Aislamiento de Worktree Git (sin mutación en main)</span>
+            </div>
+            <span class="mono text-emerald-400 font-bold">PASS</span>
+          </div>
+        </div>
+
+        <!-- TAB 2: Live Code Diff -->
+        <div id="dossier-panel-diff" class="hidden text-xs mono space-y-2">
+          <div class="p-3 rounded-xl bg-black border bd text-zinc-300 overflow-x-auto max-h-48 custom-scroll">
+            <div class="text-emerald-400">+++ src/sacl/ui/modules/actions.py (Exit code parsing fix)</div>
+            <div class="text-emerald-400">+ "success": status == "COMPLETED" or exit_code == 0</div>
+            <div class="text-emerald-400">+++ src/sacl/ui/server.py (Response envelope)</div>
+            <div class="text-emerald-400">+ self._send_json(200, {"success": True, "execution": res})</div>
+            <div class="text-zinc-500">@@ Contratos inmutables preservados al 100% @@</div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Audit Trail -->
+        <div id="dossier-panel-audit" class="hidden text-xs mono space-y-1.5 text-zinc-400">
+          <div class="p-2.5 rounded-lg bg-black border bd flex items-center justify-between">
+            <span>2026-10-25 18:31:01 &bull; Proceso despachado por LUCILFER</span>
+            <span class="text-emerald-400">SPAWNED</span>
+          </div>
+          <div class="p-2.5 rounded-lg bg-black border bd flex items-center justify-between">
+            <span>2026-10-25 18:31:02 &bull; Preflight y Dirty-Root Invariant verificado</span>
+            <span class="text-emerald-400">VERIFIED</span>
+          </div>
+        </div>
+
+        <!-- Decision Buttons -->
+        <div class="pt-4 border-t bd flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="text-xs text-zinc-400 mono">
+            Operador autenticado: <strong class="text-white">LUCILFER / risejoaquin</strong>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button onclick="submitDossierDecision('REJECTED')" class="btn btn-secondary text-xs px-4 py-2 text-red-400 hover:text-red-300 hover:border-red-500/40">
+              <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+              <span>Rechazar Despliegue</span>
+            </button>
+            <button onclick="submitDossierDecision('APPROVED')" class="btn btn-primary text-xs px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>Autorizar Despliegue (Emitir Token HMAC)</span>
+            </button>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- ========================================== -->
     <div id="sec-database" class="p-4 md:p-8 max-w-7xl mx-auto space-y-6 hidden">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b bd pb-4">
         <div>
