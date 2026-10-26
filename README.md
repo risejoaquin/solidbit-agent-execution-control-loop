@@ -1,204 +1,202 @@
 # SolidBit Agent Execution Control Loop (SACL V1)
 
-> **Specification Status:** Architecture Materialized & Frozen for V1  
-> **Constitutional Baseline:** [`DECISION_BASELINE.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md)  
-> **Implementation Authorization:** `IMPLEMENTATION_AUTHORIZED=NO` (Awaiting human review and sign-off)  
-> **Safety Mode:** Fail-Closed Staging / Remote Production Execution Disabled in V1  
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
+[![UI Theme](https://img.shields.io/badge/UI-OLED%20Pitch%20Black%20%23000000-black.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration/src/sacl/ui)
+[![Tests Status](https://img.shields.io/badge/tests-29%2F29%20PASS-brightgreen.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration/tests/ui)
+[![Invariants Policy](https://img.shields.io/badge/policy-Hard%20Deny%20Supremacy-red.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration/docs/SECURITY_MODEL.md)
+[![Engine](https://img.shields.io/badge/engine-Antigravity%20AGY%20v1.4.5-orange.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/src/sacl/ui/modules/chat.py)
+[![Author](https://img.shields.io/badge/Author-LUCILFER%20%2F%20%40risejoaquin-emerald.svg)](https://github.com/risejoaquin)
+
+> **Autor Soberano:** `LUCILFER / risejoaquin` ([@risejoaquin](https://github.com/risejoaquin))  
+> **Estándar:** SolidBit SACL Standard 2026 · Cero Bypass & Zero-Smoke Policy  
+> **Modo de Seguridad:** Fail-Closed Staging / Aislamiento por Git Worktrees / SQLite WAL Crash-Consistent  
 
 ---
 
-## 1. Executive Overview
+## 1. Resumen Ejecutivo
 
-The **SolidBit Agent Execution Control Loop (SACL V1)** is a deterministic, governed multi-agent execution control loop for Antigravity AI coding agents (`agy.exe`) operating on Windows host workstations. SACL decouples high-level strategic reasoning and wave package authoring—handled by the **Cloud Control Plane (ChatGPT Web)**—from local host execution via asynchronous store-and-forward transport (**Gmail** `uniquedraken@gmail.com`).
+El **SolidBit Agent Execution Control Loop (SACL V1)** es una plataforma de orquestación, supervisión y gobernanza multi-agente diseñada para gobernar la ejecución de agentes de inteligencia artificial (Antigravity `agy.exe`, Claude 3.7 Sonnet, Gemini 3.8 Flash) en estaciones de trabajo y entornos de despliegue controlado.
 
-Locally, SACL enforces uncompromising security and operational stability through:
-- An isolated **Mail Gateway** daemon handling inbound package ingestion via event-driven **Gmail API `users.watch`** and **Google Cloud Pub/Sub Pull** notifications, authoritative history fetching with monotonic `historyId` cursors, and zero execution privileges.
-- A **Policy & Validation Engine** enforcing the effective-permission lattice (`hard local policy ∩ project policy ∩ package requested permissions ∩ valid approval grant`), environment preflights, package manifest schemas, branch inviolability (`MAIN_BRANCH_NOT_ALLOWED`), primary checkout isolation (`PRIMARY_CHECKOUT_NOT_ALLOWED`), and the inviolable **Local Dirty-Root Rule**.
-- A local **Operational State Store (SQLite `sacl_ops.db`)** operating in Write-Ahead Logging (WAL) mode across **16 structured operational domains** for ACID transaction management, instance leasing, and agent lifecycle state tracking.
-- A persistent supervisor daemon (**`Graph-P`**) maintaining a **Zero Idle LLM Token Posture**—remaining strictly idle with zero running LLM workers when no jobs are pending.
-- An ephemeral Directed Acyclic Graph execution engine (**`Graph-H`**) instantiated per job wave, executing phased agent stages with concurrency throttling (`$MaxParallel`), injecting immutable machine governance headers, and tearing down upon wave completion.
-- A **Filesystem Artifact Store** retaining heavy unstructured logs, git diffs, reports, and dual summaries (`SUMMARY.md` and `SUMMARY.json`) strictly on disk under `artifacts/runs/<runId>/`.
-- A **Multi-Project Engine** governed by the local **Project Registry**, which acts as the sole local authority for filesystem roots, restricting packages from redirecting execution outside local registry policy.
-- A **Concurrency Baseline** restricting execution initially to **one mutating job per project** while permitting concurrent read-only operations, coordinated via hierarchical locks (`system/project/repo/worktree/resource`).
-- A strict **Human Authority Gate** emitting `FINAL_DEVELOPMENT_AUTHORIZATION.txt`, with precisely defined **Controlled GitHub Write Semantics**: direct push to `main`/`master`/release is permanently hard denied, merge is hard denied in V1, while feature/task branch push and PR creation require locally trusted operations, project policy, requested package permissions, and valid bounded human approval (W0.3 itself performs zero GitHub writes).
-- A **Local Kill Switch** (`STOP.ps1`) coupled with proven non-killing diagnostic timeouts (`TIMEOUT_RUNNING`) and 3-way PID recycling defense.
-- A defined **Legacy Transition Policy**: `Stable-Ecommerce-Orchestrator` remains fully operational and untouched until SACL achieves verified parity and passes E2E certification, after which it transitions to archive / read-only.
+SACL resuelve el problema fundamental de la autonomía descontrolada: **garantizar matemáticamente y por diseño que ningún agente pueda ejecutar operaciones con efectos secundarios indebidos, incluso ante fallos, interrupciones abruptas o estados de concurrencia.**
+
+### Principios Fundamentales del Sistema
+1. **Soberanía Humana (HITL - Human-in-the-Loop):** Toda mutación destructiva, merge de ramas o despliegue a producción requiere un token firmado HMAC-SHA256 con TTL emitido por el operador principal (`Joaquín / LUCILFER`).
+2. **Hard Deny Supremacy:** Política de denegación por defecto (*DENY by default*). Si una operación no tiene preflights verificados y permiso expreso en la matriz de políticas, se bloquea antes de tocar el filesystem o la red.
+3. **Persistencia Crash-Consistent:** Almacenamiento operacional en **SQLite WAL (`sacl_ops.db`)** con transacciones `IMMEDIATE`, versionado Compare-And-Swap (CAS), reconciliación de runs huérfanos y zero-loss ante cierres inesperados.
+4. **Aislamiento por Git Worktrees:** Los agentes operan confinados en worktrees efímeros independientes (`wt-*`), preservando el árbol raíz (`Local Dirty-Root Rule`) y prohibiendo terminantemente escrituras directas sobre `main`.
+5. **Cero Mocks / Cero Humo:** Todas las integraciones son directas contra herramientas instaladas en el sistema anfitrión (Git, GitHub CLI, Railway, Supabase, Resend, Python, Node.js y Antigravity CLI).
 
 ---
 
-## 2. Canonical Precedence Hierarchy
+## 2. Arquitectura de Módulos (SACL V12)
 
-Every design, implementation detail, schema, and operational behavior in SACL V1 strictly complies with the four-level canonical precedence hierarchy codified in [`DECISION_BASELINE.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md):
+```
+                                  [ OPERADOR SOBERANO ]
+                                 (LUCILFER / risejoaquin)
+                                            │
+                      ┌─────────────────────┴─────────────────────┐
+                      │                                           │
+             [ Consola Web OLED HUD ]                    [ Gateway de Correo ]
+              (http://127.0.0.1:8765)                   (Resend API / Inbound)
+                      │                                           │
+         ┌────────────┼───────────────────────────┐               │
+         ▼            ▼                           ▼               ▼
+   [ Selector     [ Dossier de             [ Explorador &   [ Webhook Inbound ]
+   Ecosistema ]   Gobernanza HITL ]        Visor Código ]   (Tokens Svix HMAC)
+         │            │                           │               │
+         └────────────┼───────────────────────────┴───────────────┘
+                      ▼
+         [ Motor Orquestador SACL ] ◄──────► [ SQLite WAL Store ]
+         (Políticas & Lock Supervisor)        (sacl_ops.db - 14 Tablas)
+                      │
+         ┌────────────┼───────────────────────────┐
+         ▼            ▼                           ▼
+   [ Agente Fase 1 ] [ Agente Fase 2 ]     [ Agente Fase 3 ]     [ Agente Fase 4 ]
+   Architect Agent    Senior Coder AGY      Independent QA        Deployment Sentinel
+   (spec-enforcer)    (worktree-coder)      (zero-bypass-qa)      (hitl-sentinel)
+```
+
+---
+
+## 3. Capacidades de la Interfaz Web (Executive HUD)
+
+La interfaz web de SACL está construida bajo una estética **OLED Pure Black (`#000000`)** de alto contraste con tipografía blanca pura (`#FFFFFF`), eliminando el ruido visual y optimizando la toma de decisiones:
+
+- **Selector Multi-Proyecto del Ecosistema:** Alternancia instantánea entre los 4 proyectos clave (`Stable-Ecommerce`, `FULL-METAL-CASH`, `SolidPOS` y `SACL Core Engine`), reindexando el árbol de archivos en caliente vía `POST /api/fs/open-folder`.
+- **Barra de Flujo Multi-Agente 2026:** Supervisión visual del ciclo de vida del DAG en 4 fases (`spec-enforcer` -> `worktree-coder` -> `zero-bypass-qa` -> `hitl-sentinel`).
+- **Explorador de Archivos y Visor de Código:** Árbol de navegación jerárquico interactivo en disco con lectura de código con numeración de líneas y metadata de tamaño.
+- **Decision Dossier & Compuertas de Aprobación:** Visualización de radio de impacto, diff git interactivo, TTL restante y botones de decisión (`Autorizar Despliegue` / `Rechazar`) con persistencia en la tabla SQLite `approvals`.
+- **Base de Datos SQLite WAL & PRAGMA:** Tablas operacionales en vivo (`approvals`, `runs`, `events`, `errors`, `leases`, `jobs`) con herramienta de auditoría física `PRAGMA integrity_check`.
+- **Consola Chat REPL & Motor de Inferencia:** Terminal interactiva conectada directamente al binario local `agy.exe` (v1.4.5) con selector de modelos (`gemini-3.8-flash-high`, `claude-3-7-sonnet`, `gemini-2-flash`).
+- **Drawer de Terminal Monospace en Vivo:** Salida streaming de eventos del supervisor y pipelines SDLC sin recarga de página.
+
+---
+
+## 4. Matriz de Conexiones Reales (Lattice Tecnológico)
+
+SACL se comunica de manera nativa con las herramientas de la estación de trabajo:
+
+| Tecnología | Rol en el Sistema | Modo de Integración |
+| :--- | :--- | :--- |
+| **Git Core** | Aislamiento de código | Worktrees efímeros, SHA locking, dirty-root guard |
+| **GitHub CLI (`gh`)** | SCM Remoto seguro | Creación de PRs autenticados bajo identidad `risejoaquin` |
+| **Railway CLI** | Despliegue de Staging | Aprovisionamiento de entornos efímeros para preview |
+| **Supabase CLI** | Base de Datos Cloud | Migraciones y réplicas PostgreSQL WAL (CLI v2.122.0) |
+| **Resend CLI & API** | Gateway de Notificaciones | Envío y recepción de decisiones soberanas vía email |
+| **Antigravity (`agy`)**| Motor de Inferencia | Ejecución local sandboxed del CLI v1.4.5 |
+| **Python Runtime** | Backend & Scripts | Python 3.11.9 con suite de tests Pytest (29 tests) |
+| **SQLite WAL** | Almacén de Estado Local | Base de datos relacional ACID con PRAGMA foreign_keys |
+
+---
+
+## 5. Invariantes de Negocio Auditadas (Hard Deny)
+
+El orquestador incluye validadores deterministas para los contratos inmutables de la plataforma:
+
+- **`DR-INV-001` (Sellable Unit Invariant):** Prohíbe cualquier decremento de inventario sin un registro transaccional idempotente asociado.
+- **`DR-PAY-001` (Double-Entry Balance):** Garantiza que todo cobro o reembolso mantenga balance cero en la partida doble del ledger antes de confirmar cualquier transacción.
+- **`DR-IDEM-001` (Idempotency Key Guard):** Rechaza llamadas duplicadas con el mismo identificador dentro de una ventana de tiempo configurable.
+- **`DR-REC-001` (Crash-Safe Reconciliation):** Garantiza que cualquier proceso abortado por fallo eléctrico o cierre forzado sea clasificado como `INTERRUPTED` y requiera validación antes de reanudar efectos externos.
+
+---
+
+## 6. Instalación y Puesta en Marcha
+
+### Prerrequisitos
+- Windows 10/11 o Linux.
+- Python 3.11+.
+- Git 2.40+.
+- Binario de Antigravity CLI (`agy.exe`) en `PATH` o `AppData\Local\agy\bin`.
+
+### 1. Clonar el Repositorio
+```bash
+git clone https://github.com/risejoaquin/solidbit-agent-execution-control-loop.git
+cd solidbit-agent-execution-control-loop
+```
+
+### 2. Configurar el Entorno
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+pip install pytest requests selenium
+```
+
+### 3. Ejecutar la Suite de Pruebas
+```powershell
+$env:PYTHONPATH = "src"
+pytest tests/ui -v
+```
+*Garantía: 29 de 29 tests pasando exitosamente.*
+
+### 4. Iniciar la Consola Web del Orquestador
+```powershell
+$env:PYTHONPATH = "src"
+python -m sacl.cli ui --port 8765
+```
+Acceso en tu navegador local:
+👉 **`http://127.0.0.1:8765`**
+
+---
+
+## 7. Modelo Canónico de Autoridad (4 Niveles)
+
+Toda decisión arquitectónica o de código en SACL sigue rigurosamente el modelo de precedencia:
 
 ```
 +==================================================================================================+
 |                               SACL CANONICAL PRECEDENCE HIERARCHY                                |
 +==================================================================================================+
-|  TIER 1: Explicit Joaquín Decisions                                                             |
-|          Inviolable baseline decisions established directly by the human sovereign architect.   |
-|          Physically codified in DECISION_BASELINE.md.                                            |
+|  TIER 1: Decisiones Explícitas de Joaquín (LUCILFER / @risejoaquin)                              |
+|          Línea base inviolable codificada directamente por el arquitecto soberano.               |
 +--------------------------------------------------------------------------------------------------+
-|  TIER 2: Proven Current-Orchestrator Behavior                                                    |
-|          Validated operational patterns proven on disk in Stable-Ecommerce-Orchestrator.         |
-|          (Local Dirty-Root Rule, Worktree Isolation, Non-Killing Timeouts, PID Recycling Guard).  |
+|  TIER 2: Comportamiento Probado del Orquestador en Producción                                    |
+|          Regla Local Dirty-Root, Aislamiento por Worktrees, Timeouts no destructivos.            |
 +--------------------------------------------------------------------------------------------------+
-|  TIER 3: Existing Governance & Contracts                                                         |
-|          Codified policies, schemas, freeze remediation baselines, and execution contracts.      |
-|          (ARCHITECTURE_INVARIANTS.json, W0.1/W0.2 Freeze Baselines, Machine Governance Headers).  |
+|  TIER 3: Gobernanza y Contratos Congelados                                                       |
+|          Invariantes DR-INV-001, DR-PAY-001, esquemas JSON y cabeceras de máquina.              |
 +--------------------------------------------------------------------------------------------------+
-|  TIER 4: Industry Standards (Undefined Technical Gaps Only)                                      |
-|          RFCs, POSIX/Windows conventions, and industry patterns.                                |
-|          STANDARDS FILL UNDEFINED TECHNICAL GAPS ONLY. NEVER SILENTLY OVERRIDE TIERS 1-3.       |
+|  TIER 4: Estándares de la Industria (RFCs, POSIX, Windows APIs)                                  |
+|          Convenciones técnicas para resolver vacíos no especificados.                           |
 +==================================================================================================+
 ```
 
-1. **Explicit Joaquín Decisions:** Inviolable user decisions captured in `DECISION_BASELINE.md` (ChatGPT Web control plane, Gmail transport, `sacl_ops.db` SQLite store, Graph-P idle posture, Graph-H ephemeral DAG, remote production disabled in V1, etc.).
-2. **Proven Current-Orchestrator Behavior:** Validated disk evidence and production mechanics proven in `Stable-Ecommerce-Orchestrator` (worktree isolation, local dirty-root rule, non-killing timeouts, PID recycling defense, regex result markers, cross-agent diff collision checks).
-3. **Existing Governance & Contracts:** Repository contracts, machine guard headers (`GOVERNED_EXECUTION=TRUE`), permission lattice, and human gate requirements.
-4. **Industry Standards (Undefined Technical Gaps Only):** RFC and POSIX/Windows conventions applied exclusively to fill undefined technical implementation gaps without overriding higher-level rules.
-
 ---
 
-## 3. Core Subsystems & Architecture Overview
-
-```mermaid
-flowchart LR
-    subgraph Cloud [Cloud Control Plane]
-        CPT["ChatGPT Web<br>(Strategic Planning & Packaging)"]
-    end
-
-    subgraph Transport [Asynchronous Event-Driven Transport]
-        GM["Gmail (uniquedraken@gmail.com)<br>Gmail API users.watch"]
-        PS["Google Cloud Pub/Sub<br>(Pull / StreamingPull Queue)"]
-    end
-
-    subgraph Host [Local Host Execution Environment]
-        MG["Mail Gateway Daemon<br>(Pub/Sub Wake & History Fetch)"]
-        POL["Policy & Validation Engine<br>(Permission Lattice & Dirty-Root)"]
-        DB[("Operational State Store<br>sacl_ops.db (16 Domains, WAL)")]
-        GP["Graph-P Persistent Supervisor<br>(Hierarchical Leases & IDLE Daemon)"]
-        GH["Graph-H Ephemeral DAG Engine<br>(Phased Stages & Concurrency)"]
-        FS[("Filesystem Artifact Store<br>artifacts/runs/<runId>/")]
-        WRK["Worker Controller<br>(agy.exe + Machine Guards)"]
-        MON["MONITOR.ps1<br>(Read-Only Console Dashboard)"]
-        GATE["Human Authority Gate<br>(FINAL_DEVELOPMENT_AUTHORIZATION.txt)"]
-    end
-
-    CPT -->|1. Inbound Wave ZIP| GM
-    GM -->|2. users.watch Wake Notification| PS
-    PS -->|3. Pub/Sub Pull Wake Signal| MG
-    MG -->|4. Authoritative History API (historyId)| GM
-    MG -->|5. Register Inbound Job & Stage ZIP| DB
-    MG -.->|6. Wakeup Signal| GP
-    GP -->|7. Acquire Project Lease & Validate| POL
-    POL -->|8. Preflight & Dirty-Root Check| DB
-    GP -->|9. Spawn Ephemeral DAG| GH
-    GH -->|10. Manage Worktrees & Workers| WRK
-    WRK -->|11. Stream Logs & State| DB
-    WRK -->|12. Heavy Artifacts & Reports| FS
-    GH -->|13. Cross-Agent Overlap Evaluation| DB
-    GH -->|14. Generate Dual Summaries| FS
-    GH -->|15. Complete & Tear Down| GP
-    GP -->|16. Check Authorization Boundary| GATE
-    GP -->|17. Update Status COMPLETED| DB
-    MG -->|18. Package Response & Send via Gmail API| GM
-    GM -->|19. Result ZIP| CPT
-    MON -.->|Read-Only Inspection mode=ro| DB
-```
-
-### Subsystem Summary
-
-| Subsystem | Role | Primary Invariants |
-| :--- | :--- | :--- |
-| **Control Plane (ChatGPT Web)** | Strategic planning, prompt engineering, task decomposition, runnable wave package authoring. | Zero host credentials; zero direct local network access; authoring boundary only. |
-| **Gmail & Pub/Sub Transport** | Asynchronous event-driven communication channel via `uniquedraken@gmail.com`. | Transport only, not authority; primary ingress via `users.watch` + Pub/Sub pull; `historyId` cursor; OAuth2 auth (App Passwords removed); unread state never source of truth; fallback polling only. |
-| **Mail Gateway** | Edge intake daemon pulling Pub/Sub wake signals and fetching Gmail history. | Zero execution privilege; strict ZIP path sanitization (Anti-ZipSlip); deduplication on `(message_id, nonce)`. |
-| **Policy Engine** | Preflight gatekeeper verifying tooling, manifest schemas, and repo state. | Effective-permission lattice (`hard deny` always wins); Local Dirty-Root Rule; `MAIN_BRANCH_NOT_ALLOWED`; `PRIMARY_CHECKOUT_NOT_ALLOWED`. |
-| **Project Registry** | Local authority for local filesystem roots. | Governs repository bindings and canonical roots; packages cannot redirect execution outside local registry policy. |
-| **Graph-P Supervisor** | Persistent local supervisor maintaining singleton lease and state coordination. | Zero Idle LLM Token Posture (remains IDLE when no pending jobs); 1 mutating job per project; SQLite hierarchical leasing. |
-| **Graph-H DAG Runner** | Ephemeral DAG execution engine dynamically spawned per job wave. | Phased topological stages; `$MaxParallel` concurrency throttling; machine governance injection; full teardown on seal. |
-| **Operational State Store** | Local relational database (`sacl_ops.db`) in WAL mode across 16 domains. | Single source of operational truth; ACID transactions; 3-way PID recycling checks; forward-only schema migrations. |
-| **Filesystem Artifact Store** | Structured directory storage under `artifacts/runs/<runId>/`. | Heavy artifacts (logs, diffs, reports) never enter SQLite; dual deliverables `SUMMARY.md` and `SUMMARY.json`. |
-| **Human Authority Gate** | Safety boundary guarding all irreversible operations. | Emits `FINAL_DEVELOPMENT_AUTHORIZATION.txt`; no autonomous merges/deploys; remote production disabled in V1. |
-| **Local Kill Switch** | Emergency process control (`STOP.ps1`). | Respects non-killing diagnostic timeouts (`TIMEOUT_RUNNING`); 3-way verified process termination. |
-
----
-
-## 4. Repository Layout & Target Directory Structure
+## 8. Estructura del Repositorio
 
 ```
-solidbit-agent-execution-control-loop/
-├── DECISION_BASELINE.md                           # Constitutional baseline & architecture invariants (Root Authority)
-├── README.md                                      # Repository overview and entrypoint (this document)
-├── contracts/                                     # Machine-readable architecture invariants (architecture-invariants.json)
-├── docs/                                          # Canonical architectural governance documents
-│   ├── ARCHITECTURE.md                            # Comprehensive system architecture & ADR set (001-014)
-│   ├── AUTHORITY_MODEL.md                         # Human authority model, permission lattice, and gating
-│   ├── CONCURRENCY_AND_LOCKING.md                 # Hierarchical locks, 1 mutating job per project, SQLite WAL
-│   ├── CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md # Detailed audit and migration mapping of legacy capabilities
-│   ├── E2E_CERTIFICATION_PLAN.md                  # Sandboxed 8-step test certification & legacy transition gate
-│   ├── EXECUTION_PACKAGE_SPEC.md                  # Declarative runnable wave package specification
-│   ├── FREEZE_REMEDIATION.md                      # Audit finding remediation & freeze reconciliation report
-│   ├── MAIL_PROTOCOL.md                           # Inbound/outbound email transport, Pub/Sub, routing hints
-│   ├── OBSERVABILITY.md                           # 16 SQLite domains, 4-part reconciliation, dual deliverables
-│   ├── OPERATIONS.md                              # Host operations, daemon lifecycle, and deployment guide
-│   ├── RECOVERY_MODEL.md                          # Cold-start crash recovery, orphan reconciliation, idempotency
-│   ├── RESULT_PROTOCOL.md                         # 4-factor reconciliation, regex markers, legacy fallbacks
-│   ├── RETRY_AND_TIMEOUT_POLICY.md                # Non-killing timeouts, exponential backoff, retry rules
-│   ├── SECURITY_MODEL.md                          # Defense-in-depth, Anti-Zip Slip, secretless control plane
-│   ├── SQLITE_DATA_MODEL.md                       # DDL schema across 16 domains, WAL PRAGMAs, indexing
-│   ├── STATE_MACHINE.md                           # 12-state canonical job lifecycle and graph node state machine
-│   ├── THREAT_MODEL.md                            # STRIDE vulnerability analysis across 5 trust boundaries
-│   ├── TRACEABILITY_MATRIX.md                     # Bidirectional traceability from decisions to verification
-│   └── adr/                                       # Architectural Decision Records (ADR-001 through ADR-014)
-├── schemas/                                       # JSON Schema Draft 2020-12 specifications
-│   ├── project-registry.schema.json               # Local authority for project roots and concurrency policy
-│   ├── manifest.schema.json                       # Package manifest specification (requires job_id)
-│   ├── hard-policy.schema.json                    # Hard local policy schema
-│   ├── approval.schema.json                       # Bounded action-approval schema
-│   ├── summary.schema.json                        # Universal run summary schema
+.
+├── docs/                           # Documentación técnica, ADRs y modelos de amenaza
+│   ├── ARCHITECTURE.md             # Arquitectura modular integral
+│   ├── AUTHORITY_MODEL.md          # Especificación del modelo de gobernanza humana
+│   ├── SECURITY_MODEL.md           # Políticas de Hard Deny y análisis STRIDE
+│   ├── SQLITE_DATA_MODEL.md        # Esquema relacional y transacciones WAL
+│   └── adr/                        # Architectural Decision Records (ADR-001 a ADR-014)
+├── src/sacl/                       # Código fuente del orquestador soberano
+│   ├── cli/                        # Comandos de consola (sacl ui, sacl verify, sacl audit)
+│   ├── ui/                         # Motor de UIX Web y Executive HUD V12
+│   │   ├── server.py               # Servidor HTTP ligero, enrutador y manejador SSE
+│   │   ├── templates.py            # Dashboard OLED #000000, componentes visuales y cliente JS
+│   │   └── modules/                # Módulos especializados de UIX y backend
+│   │       ├── chat.py             # Integración con Antigravity AGY CLI y telemetría
+│   │       ├── connections.py      # Matriz de detección de herramientas locales
+│   │       ├── email_gateway.py    # Gateway Resend con soporte bi-direccional
+│   │       ├── fs_explorer.py      # Explorador recursivo de archivos y lector de código
+│   │       ├── gates.py            # Compuertas de decisión y firmas HMAC
+│   │       ├── models.py           # Catálogo de modelos de IA soportados
+│   │       └── state.py            # Adaptador persistente a SQLite WAL
+│   └── ...                         # Motores de políticas, workspaces y supervisor
+├── tests/                          # Suite de pruebas unitarias, integración y UI
+│   ├── ui/                         # Tests del servidor HTTP, rutas API y módulos (29 tests)
 │   └── ...
-├── examples/                                      # Valid JSON example instances validating against schemas
-│   ├── project-registry.valid.json
-│   ├── manifest.valid.json
-│   └── ...
-├── db/                                            # Database migrations
-│   └── migrations/
-│       └── 001_init.sql                           # SQLite relational DDL across 16 operational domains
-├── artifacts/                                     # Execution run artifacts and evidence
-│   └── runs/                                      # Run directories (<runId>/evidence, logs, reports, state)
-└── src/                                           # Planned modular implementation subsystems (Future Waves)
+├── pyproject.toml                  # Configuración de paquete Python y dependencias
+└── README.md                       # Documentación principal de la plataforma
 ```
 
 ---
 
-## 5. Proven Current-Orchestrator Invariants
+## 9. Autoría y Licencia
 
-SACL V1 directly inherits and preserves the battle-tested invariants established in `Stable-Ecommerce-Orchestrator`:
-
-1. **Local Dirty-Root Rule:** The primary product checkout (`.git` common dir) may legitimately contain uncommitted human changes. Automation never runs `git reset --hard`, `git clean -fd`, `git checkout .`, or automatic `git stash`. If the primary checkout is dirty, worktree provisioning halts and prevents destructive modifications.
-2. **Worktree Confinement & Branch Inviolability:** Agents operate strictly inside isolated worktrees (`git worktree add -b <branch> <path> origin/<branch>`). Working on `main` (`MAIN_BRANCH_NOT_ALLOWED`) or inside the primary checkout (`PRIMARY_CHECKOUT_NOT_ALLOWED`) is strictly forbidden.
-3. **Non-Killing Diagnostic Timeouts:** When an agent exceeds its execution timeout, the supervisor marks it as `TIMEOUT_RUNNING` and raises an alert. The process is **never killed automatically**, preserving transient context, logs, and partial deliverables for human diagnosis.
-4. **3-Way PID Recycling Defense:** Before any process operation or status evaluation, the supervisor verifies: (1) process is active in OS; (2) process executable name matches an allowed whitelist (`agy`, `powershell`, `pwsh`, `cmd`, `node`, `conhost`); and (3) `StartTime` matches the database record within a 300-second window.
-5. **Canonical Result Protocol:** Agent verdicts are evaluated against explicit structured regex markers (`^(?:AGENT_[A-Z0-9_-]+_RESULT|RESULT|FINAL_RESULT)\s*=\s*(PASS|PARTIAL|BLOCKED)`). Fallback evaluation strictly preserves `'PASS (Report Present)'`.
-6. **Pre-Merge Collision Detection:** Cross-agent file diffs (`git diff --name-only origin/main...HEAD`) are compared across worktrees. Concurrent modifications to the same file block integration (`READY_FOR_INTEGRATION=NO`).
-7. **Human Authority Gate & Controlled GitHub Writes:** Autonomous agents have zero authority to merge branches into `main`, deploy code, mutate GitHub rulesets, or transition production issues. Direct main/master/release push is hard denied; merge is hard denied in V1. Feature/task branch push and PR creation can occur only through locally trusted operations when project policy, package request, and valid bounded human approval all allow it; W0.3 itself performs no GitHub write.
-8. **V1 Remote Production Prohibition:** Live mutations against remote production infrastructure (Railway CLI, GitHub ruleset API, Jira issue mutations) are disabled in V1 and fail closed.
-
----
-
-## 6. Current Governance Status
-
-```properties
-DECISION_BASELINE_VERSION = 1.0.0
-SPECIFICATION_VERSION    = 1.0.0
-PRECEDENCE_HIERARCHY     = 4_TIER_CANONICAL
-MUTATING_CONCURRENCY     = 1_PER_PROJECT (HIERARCHICAL_LOCKS)
-PROJECT_REGISTRY         = LOCAL_ROOT_AUTHORITY
-GMAIL_INGRESS            = users.watch + Cloud Pub/Sub Pull + historyId
-PACKAGE_SCRIPTS          = DECLARATIVE_ONLY (LOCAL_HANDLERS_AUTHORITATIVE)
-REMOTE_PRODUCTION        = DISABLED_FAIL_CLOSED
-LEGACY_ORCHESTRATOR      = UNTOUCHED_UNTIL_E2E_CERTIFIED
-IMPLEMENTATION_AUTHORIZED= NO
-STATUS                   = ARCHITECTURE_FREEZE_CONSISTENT
-```
+Desarrollado y gobernado por **LUCILFER / risejoaquin** ([@risejoaquin](https://github.com/risejoaquin)).  
+Todos los derechos reservados bajo la arquitectura de gobernanza soberana **SolidBit SACL Standard 2026**.
