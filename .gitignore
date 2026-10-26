@@ -89,3 +89,6 @@ worktrees/
 src/.sacl_ui_secret
 
 scratch/
+
+packages/
+runs/
