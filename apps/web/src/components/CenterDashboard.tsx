@@ -193,18 +193,21 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
   }
 
   return (
-    <div id="sec-dashboard" className="space-y-6 max-w-7xl mx-auto">
+    <div id="sec-dashboard" className="space-y-5 sm:space-y-6 max-w-7xl mx-auto">
       {/* 1. SPRINT HERO BANNER (CLEAN & TECHNICAL) */}
-      <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#0c121a] border border-[#1b2533] space-y-4 shadow-xl">
+      <section
+        aria-label="Información del Sprint Activo"
+        className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#0c121a] border border-[#1b2533] space-y-4 shadow-xl"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5 flex-1">
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
                 SPRINT ACTIVO
               </span>
-              <span className="text-zinc-500">&bull;</span>
+              <span className="text-zinc-500 hidden sm:inline">&bull;</span>
               <span className="text-zinc-400">24 Oct &rarr; 07 Nov 2026</span>
-              <span className="text-zinc-500">&bull;</span>
+              <span className="text-zinc-500 hidden sm:inline">&bull;</span>
               <span className="text-zinc-400 font-semibold">SolidBit SDLC Metodología</span>
             </div>
 
@@ -218,8 +221,9 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
           <div className="flex items-center gap-2.5 shrink-0">
             <button
+              type="button"
               onClick={onOpenSprintModal}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-[0.99]"
             >
               <Layers className="w-3.5 h-3.5 text-emerald-400" />
               <span>Diseñador Kahn</span>
@@ -235,102 +239,113 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
               {Math.round((completedCount / (tasks.length || 1)) * 100)}%
             </span>
           </div>
-          <div className="h-1.5 w-full bg-[#070a0e] rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-[#070a0e] rounded-full overflow-hidden">
             <div
               className="h-full bg-emerald-500 rounded-full transition-all duration-500 shadow-sm"
               style={{ width: `${(completedCount / (tasks.length || 1)) * 100}%` }}
             />
           </div>
         </div>
-      </div>
+      </section>
 
       {/* 2. TECHNICAL MISSION CONTROL BAR (DISPARADORES REALES DE EJECUCIÓN) */}
-      <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#0d1520] to-[#0a1017] border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+      <section
+        aria-label="Panel de Control de Misión Multi-Agente"
+        className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#0d1520] to-[#0a1017] border border-emerald-500/30 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xl"
+      >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
             <Play className="w-5 h-5 fill-emerald-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-white font-mono uppercase tracking-wide">
                 Control de Ejecución Multi-Agente
               </span>
-              <span className="px-2 py-0.2 rounded-full text-[9px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
                 MOTOR REAL ACTIVO
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-zinc-400 mt-0.5">
               Despacho inmediato de procesos, aislamiento en worktrees y verificación de invariantes en disco.
             </p>
           </div>
         </div>
 
-        {/* 3 Real Executable Actions */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* 3 Real Executable Actions with Fitts's Law touch compliance */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:flex items-center gap-2.5">
           <button
+            type="button"
             onClick={() => handleExecuteRealAction('campaign_sprint')}
             disabled={executingAction !== null}
-            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-extrabold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-lg shadow-emerald-500/20"
+            className="w-full lg:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-[0.99]"
           >
             {executingAction === 'campaign_sprint' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Play className="w-3.5 h-3.5 fill-black" />
+              <Play className="w-4 h-4 fill-black" />
             )}
             <span>Lanzar Oleada Kahn</span>
           </button>
 
           <button
+            type="button"
             onClick={() => handleExecuteRealAction('test_suite')}
             disabled={executingAction !== null}
-            className="px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 disabled:opacity-50 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+            className="w-full lg:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 disabled:opacity-50 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-[0.99]"
           >
             {executingAction === 'test_suite' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
             ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+              <CheckCircle2 className="w-4 h-4 text-blue-400" />
             )}
             <span>Correr Pytest (QA)</span>
           </button>
 
           <button
+            type="button"
             onClick={() => handleExecuteRealAction('security_audit')}
             disabled={executingAction !== null}
-            className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 disabled:opacity-50 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+            className="w-full lg:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 disabled:opacity-50 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-[0.99]"
           >
             {executingAction === 'security_audit' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
             ) : (
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
             )}
             <span>Auditar Invariantes</span>
           </button>
         </div>
-      </div>
+      </section>
 
       {/* 2.5 LIVE EXECUTION FEEDBACK BANNER (IF EXECUTED) */}
       {lastExecutionResult && (
-        <div className="p-4 rounded-2xl bg-[#090e16] border border-blue-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-md">
+        <div
+          role="status"
+          aria-live="polite"
+          className="p-4 rounded-2xl bg-[#090e16] border border-blue-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-md animate-fade-in"
+        >
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
             <div>
-              <div className="text-white font-bold flex items-center gap-2">
+              <div className="text-white font-bold flex flex-wrap items-center gap-2">
                 <span>{lastExecutionResult.title || 'Ejecución Soberana Completada'}</span>
-                <span className="px-1.5 py-0.2 rounded bg-black/60 text-emerald-400 text-[10px]">
+                <span className="px-1.5 py-0.5 rounded bg-black/60 text-emerald-400 text-[10px] font-bold">
                   EXIT {lastExecutionResult.exit_code ?? 0}
                 </span>
               </div>
-              <span className="text-[11px] text-zinc-400">
+              <span className="text-[11px] text-zinc-400 block mt-0.5">
                 ID: {lastExecutionResult.execution_id} &bull; Duración: {lastExecutionResult.duration_sec || 0.8}s &bull; Worktree: integration
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-[11px]">
+          <div className="flex items-center justify-between sm:justify-end gap-3 text-[11px]">
             <span className="text-emerald-400 font-bold">● Sincronizado en SQLite WAL</span>
             <button
+              type="button"
               onClick={() => setLastExecutionResult(null)}
-              className="text-zinc-500 hover:text-white"
+              className="px-2 py-1 rounded text-zinc-400 hover:text-white hover:bg-white/5 transition"
             >
               Cerrar
             </button>
@@ -338,12 +353,12 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
         </div>
       )}
 
-      {/* 3. CORE METRICS (4 CLEAN HIGH-CONTRAST CARDS) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 3. CORE METRICS (4 CLEAN HIGH-CONTRAST CARDS: 2 COLS ON MOBILE, 4 ON DESKTOP) */}
+      <section aria-label="Métricas Principales" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Metric 1: Flota de Agentes */}
         <div
           onClick={() => onNavigateSection('agents')}
-          className="p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-emerald-500/40 transition group"
+          className="p-3.5 sm:p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-emerald-500/40 transition group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400 group-hover:text-zinc-200 transition">
@@ -354,12 +369,12 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-lg sm:text-xl font-extrabold text-white font-mono">
+            <span className="text-base sm:text-xl font-extrabold text-white font-mono">
               {activeAgentsCount > 0 ? activeAgentsCount : 5} / {agents.length > 0 ? agents.length : 5}
             </span>
             <span className="text-[10px] font-mono text-emerald-400">Activos</span>
           </div>
-          <div className="w-full bg-[#1b2533] h-1 rounded-full overflow-hidden">
+          <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
             <div
               className="bg-emerald-500 h-full rounded-full transition-all"
               style={{ width: '100%' }}
@@ -370,7 +385,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
         {/* Metric 2: Tareas en Ejecución */}
         <div
           onClick={() => onNavigateSection('roadmap')}
-          className="p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-blue-500/40 transition group"
+          className="p-3.5 sm:p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-blue-500/40 transition group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400 group-hover:text-zinc-200 transition">
@@ -381,12 +396,12 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-lg sm:text-xl font-extrabold text-white font-mono">
+            <span className="text-base sm:text-xl font-extrabold text-white font-mono">
               {executingAction ? '1 Proceso' : `${runningCount || 1}`}
             </span>
             <span className="text-[10px] font-mono text-blue-400">Oleadas Kahn</span>
           </div>
-          <div className="w-full bg-[#1b2533] h-1 rounded-full overflow-hidden">
+          <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
             <div
               className="bg-blue-500 h-full rounded-full transition-all"
               style={{ width: `${executingAction ? 100 : 60}%` }}
@@ -397,7 +412,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
         {/* Metric 3: Tareas Completadas */}
         <div
           onClick={() => onNavigateSection('roadmap')}
-          className="p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-emerald-500/40 transition group"
+          className="p-3.5 sm:p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-emerald-500/40 transition group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400 group-hover:text-zinc-200 transition">
@@ -408,14 +423,14 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-lg sm:text-xl font-extrabold text-white font-mono">
+            <span className="text-base sm:text-xl font-extrabold text-white font-mono">
               {completedCount} / {tasks.length}
             </span>
             <span className="text-[10px] font-mono text-zinc-500">
               {Math.round((completedCount / (tasks.length || 1)) * 100)}%
             </span>
           </div>
-          <div className="w-full bg-[#1b2533] h-1 rounded-full overflow-hidden">
+          <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
             <div
               className="bg-emerald-500 h-full rounded-full transition-all"
               style={{ width: `${(completedCount / (tasks.length || 1)) * 100}%` }}
@@ -426,7 +441,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
         {/* Metric 4: Compuertas HITL Soberanas */}
         <div
           onClick={() => onNavigateSection('executions')}
-          className="p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-amber-500/40 transition group"
+          className="p-3.5 sm:p-4 rounded-2xl bg-[#0c121a] border border-[#1b2533] space-y-2.5 cursor-pointer hover:border-amber-500/40 transition group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-400 group-hover:text-zinc-200 transition">
@@ -437,18 +452,18 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-lg sm:text-xl font-extrabold text-white font-mono">
+            <span className="text-base sm:text-xl font-extrabold text-white font-mono">
               1 Pendiente
             </span>
             <span className="text-[10px] font-mono text-amber-400">HMAC-SHA256</span>
           </div>
-          <div className="w-full bg-[#1b2533] h-1 rounded-full overflow-hidden">
+          <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
             <div className="bg-amber-500 h-full rounded-full transition-all" style={{ width: '100%' }} />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 4. REAL AGENT PROCESS & FLEET TELEMETRY TABLE */}
+      {/* 4. REAL AGENT PROCESS & FLEET TELEMETRY TABLE (RESPONSIVE HYBRID TABLE / CARDS) */}
       <AgentFleetProcessTable
         processes={processes}
         onExecuteAgent={(id) => handleExecuteRealAction('campaign_sprint', id)}
@@ -456,7 +471,10 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
       />
 
       {/* 5. ROADMAP & GANTT EXECUTION CARD */}
-      <div className="p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#0c121a] border border-[#1b2533] space-y-4 shadow-xl">
+      <section
+        aria-label="Plan de Trabajo del Sprint"
+        className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#0c121a] border border-[#1b2533] space-y-4 shadow-xl"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1b2533] pb-4">
           <div>
             <div className="flex items-center gap-2">
@@ -476,7 +494,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setViewMode('gantt')}
-                className={`px-3 py-1 rounded-lg text-xs font-mono transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
                   viewMode === 'gantt'
                     ? 'bg-emerald-500 text-black font-bold'
                     : 'text-zinc-400 hover:text-white'
@@ -487,7 +505,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setViewMode('lista')}
-                className={`px-3 py-1 rounded-lg text-xs font-mono transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition cursor-pointer ${
                   viewMode === 'lista'
                     ? 'bg-emerald-500 text-black font-bold'
                     : 'text-zinc-400 hover:text-white'
@@ -523,7 +541,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                     <span className="font-mono text-emerald-400 text-[11px] font-bold shrink-0">
                       {task.key}
                     </span>
-                    <span className="font-bold text-white">{task.title}</span>
+                    <span className="font-bold text-white text-xs sm:text-sm">{task.title}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px] font-mono text-zinc-400">
                     <span className="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300">
@@ -553,66 +571,115 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
           </div>
         )}
 
-        {/* View Mode: List */}
+        {/* View Mode: List (Responsive Hybrid: Table on Desktop, Cards on Mobile) */}
         {viewMode === 'lista' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-[#1b2533] text-zinc-400 text-[11px] font-semibold">
-                  <th className="pb-3 pl-1">Tarea / Identificador</th>
-                  <th className="pb-3">Responsable</th>
-                  <th className="pb-3">Plazo</th>
-                  <th className="pb-3 min-w-[120px]">Progreso</th>
-                  <th className="pb-3 text-right pr-2">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1b2533]/60">
-                {tasks.map((t) => (
-                  <tr key={t.id} className="hover:bg-white/[0.02] transition">
-                    <td className="py-3 pl-1">
-                      <div className="font-semibold text-white">{t.title}</div>
-                      <div className="text-[10px] font-mono text-emerald-400">{t.key}</div>
-                    </td>
-                    <td className="py-3">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16231d] border border-emerald-500/30 text-emerald-400 text-[11px] font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                        {t.agent}
-                      </span>
-                    </td>
-                    <td className="py-3 text-zinc-400 font-mono text-[11px]">
-                      {t.start} - {t.end}
-                    </td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-emerald-500 h-full rounded-full transition-all"
-                            style={{ width: `${t.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-[11px] font-mono text-zinc-400">{t.progress}%</span>
-                      </div>
-                    </td>
-                    <td className="py-3 text-right pr-2">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
-                          t.status === 'Completada'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                            : t.status === 'En progreso'
-                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
-                            : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                    </td>
+          <>
+            {/* Desktop Table View (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto custom-scroll">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[#1b2533] text-zinc-400 text-[11px] font-semibold">
+                    <th className="pb-3 pl-1">Tarea / Identificador</th>
+                    <th className="pb-3">Responsable</th>
+                    <th className="pb-3">Plazo</th>
+                    <th className="pb-3 min-w-[120px]">Progreso</th>
+                    <th className="pb-3 text-right pr-2">Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#1b2533]/60">
+                  {tasks.map((t) => (
+                    <tr key={t.id} className="hover:bg-white/[0.02] transition">
+                      <td className="py-3 pl-1">
+                        <div className="font-semibold text-white">{t.title}</div>
+                        <div className="text-[10px] font-mono text-emerald-400">{t.key}</div>
+                      </td>
+                      <td className="py-3">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16231d] border border-emerald-500/30 text-emerald-400 text-[11px] font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                          {t.agent}
+                        </span>
+                      </td>
+                      <td className="py-3 text-zinc-400 font-mono text-[11px]">
+                        {t.start} - {t.end}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-emerald-500 h-full rounded-full transition-all"
+                              style={{ width: `${t.progress}%` }}
+                            />
+                          </div>
+                          <span className="text-[11px] font-mono text-zinc-400">{t.progress}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 text-right pr-2">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                            t.status === 'Completada'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              : t.status === 'En progreso'
+                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                              : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                          }`}
+                        >
+                          {t.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Stacked Cards (< 768px) */}
+            <div className="block md:hidden space-y-2.5">
+              {tasks.map((t) => (
+                <div
+                  key={t.id}
+                  className="p-3 rounded-xl bg-[#080d14] border border-[#1b2533] space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-white text-xs block">{t.title}</span>
+                      <span className="text-[10px] font-mono text-emerald-400">{t.key}</span>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold shrink-0 ${
+                        t.status === 'Completada'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                          : t.status === 'En progreso'
+                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                          : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                      }`}
+                    >
+                      {t.status}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between text-[11px] text-zinc-400 font-mono gap-1">
+                    <span className="text-zinc-300">{t.agent}</span>
+                    <span>{t.start} &rarr; {t.end}</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                      <span>Progreso</span>
+                      <span className="text-emerald-400 font-bold">{t.progress}%</span>
+                    </div>
+                    <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-full rounded-full transition-all"
+                        style={{ width: `${t.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
-      </div>
+      </section>
 
       {/* 6. HIGH-DENSITY STRUCTURED LOG TERMINAL (INCORPORATED NATIVELY) */}
       <LogTerminal

@@ -1,14 +1,35 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --bg-main: #080c10;
+    --bg-card: #0c121a;
+    --border-card: #1b2533;
+    --text-primary: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-blue: #3b82f6;
+    --accent-rose: #f43f5e;
+  }
+
   body {
-    background-color: #080c10;
-    color: #f4f4f5;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+  }
+
+  /* Accessible Visible Focus Rings (WCAG 2.2 AA) */
+  :focus-visible {
+    outline: 2px solid var(--accent-emerald) !important;
+    outline-offset: 2px !important;
   }
 }
 
-/* Custom sleek scrollbar */
+/* Custom sleek high-contrast scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -22,4 +43,39 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #2a3749;
+}
+
+/* Custom internal container scrollbar */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #1b2533 #0c121a;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS Safe Area Padding for mobile screens */
+.safe-area-pb {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.safe-area-pt {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* Touch Target Minimum (Fitts's Law: >= 44x44px for primary touch controls) */
+@media (max-width: 768px) {
+  .touch-target-min {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prefers Reduced Motion (WCAG 2.2 Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
