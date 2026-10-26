@@ -3929,12 +3929,113 @@ function initSSE() {
     let orchestratorContext = null;
     let selectedJiraTicketKey = 'SOLID-106';
 
+    function toggleSprintDesignTab(tab) {
+      const btnBacklog = document.getElementById('tab-btn-sprint-backlog');
+      const btnNew = document.getElementById('tab-btn-sprint-new');
+      const contentBacklog = document.getElementById('tab-content-sprint-backlog');
+      const contentNew = document.getElementById('tab-content-sprint-new');
+
+      if (tab === 'new') {
+        if (btnNew) { btnNew.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-white border border-white/20'; }
+        if (btnBacklog) { btnBacklog.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'; }
+        if (contentNew) contentNew.classList.remove('hidden');
+        if (contentBacklog) contentBacklog.classList.add('hidden');
+      } else {
+        if (btnBacklog) { btnBacklog.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-white border border-white/20'; }
+        if (btnNew) { btnNew.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'; }
+        if (contentBacklog) contentBacklog.classList.remove('hidden');
+        if (contentNew) contentNew.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+    window.toggleSprintDesignTab = toggleSprintDesignTab;
+
+    async function createAndSyncSprint() {
+      const title = document.getElementById('sprint-new-title')?.value.trim();
+      if (!title) {
+        showToast('Ingrese el título u objetivo del sprint', 'error');
+        return;
+      }
+      const key = document.getElementById('sprint-new-key')?.value.trim() || undefined;
+      const tasksStr = document.getElementById('sprint-new-tasks')?.value || '';
+      const criteriaStr = document.getElementById('sprint-new-criteria')?.value || '';
+      const priority = document.getElementById('sprint-new-priority')?.value || 'HIGH';
+
+      const tasks = tasksStr.split(String.fromCharCode(10)).map(s => s.trim()).filter(Boolean);
+      const criteria = criteriaStr.split(String.fromCharCode(10)).map(s => s.trim()).filter(Boolean);
+
+      showToast('Persistiendo sprint y sincronizando con Jira / SQLite WAL...', 'info');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/orchestrator/create-sprint`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title,
+            goals: title,
+            key: key,
+            tasks: tasks,
+            acceptance_criteria: criteria,
+            priority: priority,
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`¡Sprint ${data.ticket.key} creado y persistido con éxito!`, 'success');
+          await loadOrchestratorContext();
+          selectJiraTicket(data.ticket.key);
+          toggleSprintDesignTab('backlog');
+          queryAndVerifySprint(data.ticket.key);
+        } else {
+          showToast('Error al crear el sprint', 'error');
+        }
+      } catch (e) {
+        showToast(`Error de conexión: ${e.message}`, 'error');
+      }
+    }
+    window.createAndSyncSprint = createAndSyncSprint;
+
+    async function queryAndVerifySprint(key) {
+      if (!key) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/orchestrator/query-sprint?key=${encodeURIComponent(key)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const tKeyEl = document.getElementById('persisted-ticket-key');
+          const tStorageEl = document.getElementById('persisted-ticket-storage');
+          if (tKeyEl) tKeyEl.textContent = data.ticket.key;
+          if (tStorageEl) {
+            tStorageEl.textContent = `${data.source === 'sqlite_wal' ? 'SQLite sacl_ops.db' : 'Memoria & SQLite WAL'} (Estado: ${data.ticket.status})`;
+          }
+          showToast(`Datos persistidos de ${key} verificados (Fuente: ${data.source})`, 'info');
+        }
+      } catch (e) {
+        console.error('Error querying sprint:', e);
+      }
+    }
+    window.queryAndVerifySprint = queryAndVerifySprint;
+
     async function loadOrchestratorContext() {
       try {
         const res = await fetch(`${API_BASE}/api/orchestrator/context`);
         if (res.ok) {
           orchestratorContext = await res.json();
           renderJiraBacklogCards();
+
+          // Update Jira connection banner
+          if (orchestratorContext.jira_connection) {
+            const jc = orchestratorContext.jira_connection;
+            const badge = document.getElementById('jira-auth-badge');
+            const desc = document.getElementById('jira-status-desc');
+            if (badge) {
+              badge.textContent = jc.status;
+              badge.className = `mono text-[9px] px-1.5 py-0.5 rounded font-bold ${jc.authenticated ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`;
+            }
+            if (desc) {
+              desc.textContent = jc.message;
+            }
+          }
           if (orchestratorContext.active_project) {
             const curProj = orchestratorContext.active_project;
             const sel = document.getElementById('hud-project-selector');
@@ -4319,18 +4420,93 @@ function initSSE() {
         </button>
       </div>
 
-      <!-- PASO 1: SELECCIÓN O CONSULTA DE TICKET JIRA -->
+      <!-- JIRA & SQLITE WAL STATUS BANNER -->
+      <div id="orchestrator-jira-status-banner" class="p-3 rounded-xl bg-black/60 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400 shrink-0"></i>
+          <div>
+            <div class="font-bold text-white flex items-center gap-2">
+              <span>Sincronización Jira / SQLite WAL</span>
+              <span id="jira-auth-badge" class="mono text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">SQLITE LOCAL FIRST</span>
+            </div>
+            <p id="jira-status-desc" class="text-[11px] text-zinc-400">Atlassian CLI instalado (C:\Tools\Atlassian\acli.EXE). Tareas se persisten soberanamente en SQLite WAL local.</p>
+          </div>
+        </div>
+        <button type="button" onclick="loadOrchestratorContext()" class="btn btn-secondary text-[11px] px-2.5 py-1 text-zinc-300 hover:text-white shrink-0">
+          <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refrescar
+        </button>
+      </div>
+
+      <!-- TABS: SELECCIONAR DE BACKLOG VS DISEÑAR NUEVO SPRINT -->
       <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <label class="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span>1. Seleccionar Ticket Activo de Jira Backlog</span>
-          </label>
-          <span class="mono text-[11px] text-zinc-500">Integración Jira Graph Integrity (Gate 3)</span>
+        <div class="flex items-center justify-between border-b border-white/10 pb-2">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="toggleSprintDesignTab('backlog')" id="tab-btn-sprint-backlog" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/10 text-white border border-white/20">
+              📋 1. Seleccionar Ticket de Backlog
+            </button>
+            <button type="button" onclick="toggleSprintDesignTab('new')" id="tab-btn-sprint-new" class="px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent">
+              ✨ + Diseñar Nuevo Sprint & Tareas
+            </button>
+          </div>
+          <span class="mono text-[10px] text-zinc-500">SolidBit SDLC Etapas 1 a 3</span>
         </div>
 
-        <div id="orchestrator-jira-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
-          <!-- Populated dynamically with Jira tickets -->
+        <!-- TAB CONTENT: BACKLOG EXISTENTE -->
+        <div id="tab-content-sprint-backlog" class="space-y-2.5">
+          <div id="orchestrator-jira-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
+            <!-- Populated dynamically with Jira tickets -->
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: DISEÑAR NUEVO SPRINT -->
+        <div id="tab-content-sprint-new" class="hidden space-y-3 p-3.5 rounded-xl bg-black/60 border border-emerald-500/30 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2">
+              <label class="block text-zinc-400 mb-1 font-semibold">Título del Sprint / Objetivo Principal:</label>
+              <input type="text" id="sprint-new-title" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white mono text-xs focus:outline-none focus:border-emerald-400" placeholder="Implementación de doble partida y reservas sellable">
+            </div>
+            <div>
+              <label class="block text-zinc-400 mb-1 font-semibold">Clave / ID del Ticket:</label>
+              <input type="text" id="sprint-new-key" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white mono text-xs focus:outline-none focus:border-emerald-400" placeholder="SOLID-201">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-zinc-400 mb-1 font-semibold">Tareas Específicas a Ejecutar (una por línea):</label>
+              <textarea id="sprint-new-tasks" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white mono text-xs focus:outline-none focus:border-emerald-400 custom-scroll" placeholder="1. Verificar tabla ledger en SQLite WAL&#10;2. Implementar adaptadores DR-IDEM-001&#10;3. Suite de tests unitarios"></textarea>
+            </div>
+            <div>
+              <label class="block text-zinc-400 mb-1 font-semibold">Criterios de Aceptación (Acceptance Criteria):</label>
+              <textarea id="sprint-new-criteria" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white mono text-xs focus:outline-none focus:border-emerald-400 custom-scroll" placeholder="- 100% de tests de integración en verde&#10;- Cero colisiones en reservas de stock&#10;- Token HMAC firmado por operador"></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+            <div class="flex items-center gap-3">
+              <span class="text-zinc-400 font-semibold">Prioridad:</span>
+              <select id="sprint-new-priority" class="bg-zinc-950 border border-zinc-800 rounded-lg p-1.5 text-white mono text-xs">
+                <option value="CRITICAL">CRITICAL (P0 - Bloqueante)</option>
+                <option value="HIGH" selected>HIGH (P1 - Estándar)</option>
+                <option value="MEDIUM">MEDIUM (P2 - Mejora)</option>
+              </select>
+            </div>
+            <button type="button" onclick="createAndSyncSprint()" class="btn btn-primary text-xs px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold flex items-center gap-1.5 shadow">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>💾 Crear Sprint & Sincronizar (Jira / SQLite WAL)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VERIFICACIÓN DE DATOS PERSISTIDOS (PASO 3) -->
+        <div id="orchestrator-persisted-box" class="p-2.5 rounded-xl bg-white/[0.02] border border-white/10 flex items-center justify-between text-[11px] mono text-zinc-400">
+          <div class="flex items-center gap-2">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Persistencia Verificada: <strong id="persisted-ticket-key" class="text-white">SOLID-106</strong> (<span id="persisted-ticket-storage" class="text-emerald-400">SQLite WAL & Memoria</span>)</span>
+          </div>
+          <button type="button" onclick="queryAndVerifySprint(selectedJiraTicketKey)" class="text-emerald-400 hover:underline flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3 h-3"></i> Validar Datos Persistidos
+          </button>
         </div>
       </div>
 

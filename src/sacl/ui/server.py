@@ -624,6 +624,19 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"plan": self.service.orchestrator.active_plan})
             return
 
+        if path == "/api/orchestrator/query-sprint":
+            key = query.get("key", [None])[0] or query.get("id", [None])[0]
+            if not key:
+                self._send_json(400, {"success": False, "error": "Falta el parámetro 'key' o 'id'"})
+                return
+            res = self.service.orchestrator.query_sprint_data(key)
+            self._send_json(200 if res.get("success") else 404, res)
+            return
+
+        if path == "/api/orchestrator/jira-status":
+            self._send_json(200, self.service.orchestrator.check_jira_status())
+            return
+
         # 404
         self._send_json(404, {"error": "Not Found", "path": path})
 
@@ -939,6 +952,26 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             res = gh_mod.create_pull_request(title=title, body=pr_body, base=base, draft=draft)
             broadcast_sse("github_pr_created", res)
             self._send_json(200, res)
+            return
+
+        # 18b. Orchestrator: Create/Update Sprint & Sync Jira or SQLite WAL
+        if path == "/api/orchestrator/create-sprint":
+            title = body.get("title", "")
+            if not title:
+                self._send_json(400, {"success": False, "error": "Falta el título del sprint"})
+                return
+            ticket = self.service.orchestrator.create_or_update_sprint(
+                title=title,
+                goals=body.get("goals", ""),
+                tasks=body.get("tasks"),
+                dependencies=body.get("dependencies"),
+                acceptance_criteria=body.get("acceptance_criteria"),
+                priority=body.get("priority", "HIGH"),
+                contracts=body.get("contracts"),
+                key=body.get("key"),
+            )
+            broadcast_sse("sprint_created", ticket)
+            self._send_json(200, {"success": True, "ticket": ticket})
             return
 
         # 19. Orchestrator: Auto-Design Sprint & Roles

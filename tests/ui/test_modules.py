@@ -276,7 +276,27 @@ def test_orchestrator_module(tmp_path: Path):
     assert len(ctx["jira_backlog"]) >= 5
     assert any(t["key"] == "SOLID-106" for t in ctx["jira_backlog"])
 
-    # Auto-plan sprint for SOLID-106
+    # Step 1 & 2: Create custom sprint & sync to Jira / SQLite WAL
+    created = mod.create_or_update_sprint(
+        title="Microservicios de Pagos con Idempotencia",
+        goals="Garantizar doble partida DR-PAY-001 y cero sobrecargos en SQLite WAL",
+        tasks=["Definir tabla ledger", "Implementar RPC con llaves de idempotencia"],
+        acceptance_criteria=["0 colisiones en concurrencia", "100% tests en verde"],
+        priority="CRITICAL",
+        contracts=["DR-PAY-001", "DR-IDEM-001"],
+        key="SOLID-200"
+    )
+    assert created["key"] == "SOLID-200"
+    assert "DR-PAY-001" in created["contracts"]
+    assert created["jira_sync"]["status"] in ("LOCAL_PERSISTED", "JIRA_CLOUD_SYNCED")
+
+    # Step 3: Query and verify persisted sprint data
+    queried = mod.query_sprint_data("SOLID-200")
+    assert queried["success"] is True
+    assert queried["ticket"]["key"] == "SOLID-200"
+    assert queried["ticket"]["priority"] == "CRITICAL"
+
+    # Step 4 & 5: Auto-plan sprint for SOLID-106 (or SOLID-200)
     plan = mod.auto_plan_sprint(jira_key="SOLID-106")
     assert plan["sprint_id"].startswith("SPRINT-")
     assert plan["jira_ticket"]["key"] == "SOLID-106"

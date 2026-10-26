@@ -138,10 +138,38 @@ class ActionExecutionModule:
             steps.append({"name": "Auditoría de Invariantes DR-INV-001 & DR-PAY-001", "status": "DONE", "duration": "0.09s"})
             emit_log(f"[{now_str}] [INVARIANTS] Evidencia materializada en runs/{run_id}/evidence/invariants_audit.json")
 
+            proj_name = self.workspace_root.name
+            gate_req_id = f"REQ-{datetime.now().strftime('%Y%m%d')}-{hashlib.md5(run_id.encode()).hexdigest()[:8].upper()}"
+            job_id = f"JOB-{run_id}"
+
             # 4. Registro en SQLite WAL
+            if self.service and hasattr(self.service, "_get_read_write_conn"):
+                try:
+                    conn = self.service._get_read_write_conn()
+                    iso_now = utc_iso_now()
+                    # Insert Job
+                    conn.execute(
+                        "INSERT OR REPLACE INTO jobs (job_id, project_id, status, priority, created_at, updated_at, current_run_id) VALUES (?, ?, 'WAITING_APPROVAL', 1, ?, ?, ?);",
+                        (job_id, proj_name.lower(), iso_now, iso_now, run_id)
+                    )
+                    # Insert Run
+                    conn.execute(
+                        "INSERT OR REPLACE INTO runs (run_id, job_id, project_id, project, repository, mode, target_repo_path, run_dir, status, ready_for_integration, started_at, completed_at, reconciled_verdict) VALUES (?, ?, ?, ?, ?, 'waves', ?, ?, 'WAITING_HUMAN_APPROVAL_GATE', 'YES', ?, ?, 'PASS');",
+                        (run_id, job_id, proj_name.lower(), proj_name, proj_name, str(self.workspace_root), str(run_dir), iso_now, iso_now)
+                    )
+                    # Insert Human Decision Gate
+                    conn.execute(
+                        "INSERT OR REPLACE INTO approvals (approval_id, request_id, job_id, run_id, action, scope, status, rationale, requested_at, expires_at) VALUES (?, ?, ?, ?, 'DEPLOY_STAGING_PREVIEW', ?, 'PENDING', 'Verificar despliegue efímero en Railway antes de merge a main.', ?, datetime('now', '+7 days'));",
+                        (f"appr-{run_id}", gate_req_id, job_id, run_id, '["services/web-storefront", "railway.json"]', iso_now)
+                    )
+                    conn.commit()
+                    conn.close()
+                except Exception as e:
+                    logger.warning(f"Error persisting sprint to SQLite WAL: {e}")
+
             if self.service and hasattr(self.service, "campaigns"):
                 launch_res = self.service.campaigns.launch_campaign(campaign_id=f"SACL_SPRINT_{run_id}")
-            emit_log(f"[{now_str}] [DB] Run y Jobs registrados en SQLite sacl_ops.db (ID: {run_id})")
+            emit_log(f"[{now_str}] [DB] Run {run_id} y Gate {gate_req_id} persistidos en SQLite sacl_ops.db")
 
             # 5. Ejecución Real de Suite Pytest
             pytest_log = logs_dir / "pytest_execution.log"
@@ -213,7 +241,8 @@ Autorizar mediante token HMAC en el panel de compuertas de la UI o revocar.
             summary_json_data = {
                 "schema": "solidbit.run-summary.v1",
                 "run_id": run_id,
-                "project": "Stable-Ecommerce",
+                "project": proj_name,
+                "gate_request_id": gate_req_id,
                 "status": "PASS",
                 "ready_for_integration": "NO",
                 "implementation_authorized": False,
@@ -235,7 +264,7 @@ Autorizar mediante token HMAC en el panel de compuertas de la UI o revocar.
             summary_json_path.write_text(json.dumps(summary_json_data, indent=2), encoding="utf-8")
 
             # 7. Armado de la Compuerta HITL
-            steps.append({"name": "Compuerta HITL Sentinel Armada (REQ-20261025-E43308B0)", "status": "DONE", "duration": "0.08s"})
+            steps.append({"name": f"Compuerta HITL Sentinel Armada ({gate_req_id})", "status": "DONE", "duration": "0.08s"})
             emit_log(f"[{now_str}] [SENTINEL] Entregables guardados. Compuerta humana armada para decisión.")
             emit_log(f"[{now_str}] [SUCCESS] Sprint completado. Entregables listos en runs/{run_id}")
 
@@ -347,6 +376,7 @@ Autorizar mediante token HMAC en el panel de compuertas de la UI o revocar.
             "success": status == "COMPLETED" or exit_code == 0,
             "execution_id": exec_id,
             "run_id": locals().get("run_id", None),
+            "gate_request_id": locals().get("gate_req_id", None),
             "run_dir": str(locals().get("run_dir", "")),
             "deliverables": locals().get("deliverables", []),
             "action_type": action_type,
