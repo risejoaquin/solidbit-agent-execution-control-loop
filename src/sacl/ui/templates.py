@@ -1074,7 +1074,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
               <i data-lucide="list-tree" class="w-3.5 h-3.5 text-amber-400"></i>
               <span>Estructura de Archivos</span>
             </span>
-            <span id="fs-tree-item-count" class="mono text-[10px] text-zinc-500">Cargando...</span>
+            <span id="fs-tree-item-count-sub" class="mono text-[10px] text-zinc-500">Cargando...</span>
           </div>
 
           <div id="fs-tree-container" class="flex-1 overflow-y-auto max-h-[580px] custom-scroll space-y-0.5 pr-1">
@@ -1523,11 +1523,15 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      loadDashboardSnapshot(); loadLatestRunDeliverables(); loadHudEmbeddedTable('approvals'); loadHudEmbeddedTable('approvals');
+      loadDashboardSnapshot();
+      loadLatestRunDeliverables();
+      loadHudEmbeddedTable('approvals');
       loadDbDashboard();
-      loadProjects(); loadFsTree(); loadFsTree();
+      loadProjects();
+      loadFsTree();
       loadChatHistory();
-      loadActionHistory(); loadLatestRunDeliverables(); loadIndustryDashboardData();
+      loadActionHistory();
+      loadIndustryDashboardData();
       initSSE();
     });
 
@@ -3616,143 +3620,6 @@ function initSSE() {
 
   
     // ==========================================
-    // DECISION DOSSIER & PROGRESS ENGINE (V7)
-    // ==========================================
-    function switchDossierTab(tabName) {
-      document.querySelectorAll('#dossier-tab-btn-checklist, #dossier-tab-btn-diff, #dossier-tab-btn-audit').forEach(b => {
-        b.classList.remove('active');
-      });
-      const activeBtn = document.getElementById('dossier-tab-btn-' + tabName);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      document.getElementById('dossier-panel-checklist').classList.add('hidden');
-      document.getElementById('dossier-panel-diff').classList.add('hidden');
-      document.getElementById('dossier-panel-audit').classList.add('hidden');
-
-      const target = document.getElementById('dossier-panel-' + tabName);
-      if (target) target.classList.remove('hidden');
-    }
-    window.switchDossierTab = switchDossierTab;
-
-    async function executeWalCheckpoint() {
-      showToast('Ejecutando PRAGMA wal_checkpoint(TRUNCATE)...', 'info');
-      try {
-        const res = await fetch(`${API_BASE}/api/db/checkpoint`);
-        const data = await res.json();
-        if (data.success) {
-          showToast(`WAL Checkpoint: ${data.checkpointed_pages} páginas sincronizadas a disco`, 'success');
-          loadDbDashboard();
-          loadDashboardSnapshot();
-        } else {
-          showToast('Fallo en checkpoint: ' + (data.error || 'error'), 'error');
-        }
-      } catch (e) {
-        showToast('Error de red al ejecutar checkpoint: ' + e.message, 'error');
-      }
-    }
-    window.executeWalCheckpoint = executeWalCheckpoint;
-
-    async function loadHudEmbeddedTable(tableName) {
-      const titleEl = document.getElementById('hud-embedded-table-title');
-      const headersEl = document.getElementById('hud-embedded-table-headers');
-      const bodyEl = document.getElementById('hud-embedded-table-body');
-      if (!bodyEl) return;
-
-      if (titleEl) titleEl.innerText = `Registros Recientes: ${tableName}`;
-      bodyEl.innerHTML = '<tr><td colspan="5" class="py-3 text-center text-zinc-500">Cargando registros...</td></tr>';
-
-      try {
-        const res = await fetch(`${API_BASE}/api/db/rows?table=${tableName}&limit=8`);
-        const data = await res.json();
-        if (data.success && data.rows && data.rows.length > 0) {
-          const cols = data.columns.slice(0, 5);
-          if (headersEl) {
-            headersEl.innerHTML = cols.map(c => `<th class="py-2 px-3 uppercase text-[11px]">${c}</th>`).join('');
-          }
-          bodyEl.innerHTML = data.rows.map(r => `
-            <tr class="hover:bg-white/5 transition-colors">
-              ${cols.map(c => {
-                let v = r[c];
-                if (typeof v === 'object' && v !== null) v = JSON.stringify(v);
-                if (v === null || v === undefined) v = '<span class="text-zinc-600">NULL</span>';
-                else if (v === 'APPROVED' || v === 'COMPLETED' || v === 'DONE') v = `<span class="text-emerald-400 font-bold">${v}</span>`;
-                else if (v === 'PENDING') v = `<span class="text-amber-400 font-bold">${v}</span>`;
-                else if (v === 'REJECTED' || v === 'FAILED') v = `<span class="text-red-400 font-bold">${v}</span>`;
-                return `<td class="py-2 px-3 truncate max-w-[140px]">${v}</td>`;
-              }).join('')}
-            </tr>
-          `).join('');
-        } else {
-          bodyEl.innerHTML = '<tr><td colspan="5" class="py-3 text-center text-zinc-500">Tabla vacía (0 registros).</td></tr>';
-        }
-      } catch (e) {
-        bodyEl.innerHTML = `<tr><td colspan="5" class="py-3 text-center text-red-400">Error: ${e.message}</td></tr>`;
-      }
-    }
-    window.loadHudEmbeddedTable = loadHudEmbeddedTable;
-
-    async function executeActionWithProgress(actionType, btn) {
-      const container = document.getElementById('hero-action-progress-container');
-      const bar = document.getElementById('hero-progress-bar');
-      const pct = document.getElementById('hero-progress-pct');
-      const label = document.getElementById('hero-progress-label');
-      const step1 = document.getElementById('prog-step-1');
-      const step2 = document.getElementById('prog-step-2');
-      const step3 = document.getElementById('prog-step-3');
-      const step4 = document.getElementById('prog-step-4');
-
-      if (container) container.classList.remove('hidden');
-
-      if (bar) bar.style.width = '25%';
-      if (pct) pct.innerText = '25%';
-      if (label) label.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fase 1/4: Inspección de Contratos DR-INV-001 & DR-PAY-001...</span>';
-      if (step1) step1.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
-      lucide.createIcons();
-
-      await new Promise(r => setTimeout(r, 350));
-
-      if (bar) bar.style.width = '55%';
-      if (pct) pct.innerText = '55%';
-      if (label) label.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fase 2/4: Verificación de Singleton Leases & WAL Mode...</span>';
-      if (step2) step2.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
-      lucide.createIcons();
-
-      await new Promise(r => setTimeout(r, 350));
-
-      if (bar) bar.style.width = '85%';
-      if (pct) pct.innerText = '85%';
-      if (label) label.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Fase 3/4: Despacho de Suite Pytest (29 tests)...</span>';
-      if (step3) step3.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
-      lucide.createIcons();
-
-      await executeAction(actionType, {}, btn);
-
-      if (bar) bar.style.width = '100%';
-      if (pct) pct.innerText = '100%';
-      if (label) label.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400 stroke-[3]"></i><span class="text-emerald-400 font-bold">¡Completado con Éxito (EXIT 0)!</span>';
-      if (step4) step4.className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-center font-bold';
-      lucide.createIcons();
-
-      loadHudEmbeddedTable('approvals');
-
-      setTimeout(() => {
-        if (container) container.classList.add('hidden');
-        if (bar) bar.style.width = '0%';
-        if (step1) step1.className = 'p-2 rounded bg-black/40 border bd text-center';
-        if (step2) step2.className = 'p-2 rounded bg-black/40 border bd text-center';
-        if (step3) step3.className = 'p-2 rounded bg-black/40 border bd text-center';
-        if (step4) step4.className = 'p-2 rounded bg-black/40 border bd text-center';
-      }, 5000);
-    }
-    window.executeActionWithProgress = executeActionWithProgress;
-
-  
-    // ==========================================
-    // FILE SYSTEM EXPLORER & CODE VIEWER ENGINE (V8)
-    // ==========================================
-    
-
-  
     async function switchEcosystemProject(folderPath, projectName) {
       showToast(`Cambiando espacio de trabajo a ${projectName}...`, 'info');
       try {
