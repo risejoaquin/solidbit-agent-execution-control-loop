@@ -1,23 +1,42 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "sacl"
-version = "0.1.0"
-description = "SolidBit Agent Execution Control Loop (SACL V1) Core Engine"
+version = "1.2.0"
+description = "SolidBit Agent Execution Control Loop (SACL) - Deterministic Control Plane for Autonomous AI Coding Agents"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Proprietary" }
+license = { text = "Apache-2.0" }
 authors = [
-    { name = "SolidBit Core Team" }
+    { name = "Joaquín Vallejo", email = "joaquin@solidbit.dev" },
+    { name = "SolidBit Core Team", email = "core@solidbit.dev" }
+]
+keywords = [
+    "autonomous-agents",
+    "control-loop",
+    "agentic-ai",
+    "git-worktrees",
+    "dag-orchestration",
+    "governance",
+    "sqlite-wal",
+    "antigravity"
 ]
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Security",
 ]
 dependencies = [
     "jsonschema>=4.20.0",
@@ -26,7 +45,27 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+    "mypy>=1.9.0",
 ]
+ui = [
+    "requests>=2.31.0",
+    "selenium>=4.18.0",
+]
+all = [
+    "sacl[dev,ui]",
+]
+
+[project.scripts]
+sacl = "sacl.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/risejoaquin/solidbit-agent-execution-control-loop"
+Documentation = "https://github.com/risejoaquin/solidbit-agent-execution-control-loop#readme"
+Repository = "https://github.com/risejoaquin/solidbit-agent-execution-control-loop.git"
+"Bug Tracker" = "https://github.com/risejoaquin/solidbit-agent-execution-control-loop/issues"
+Changelog = "https://github.com/risejoaquin/solidbit-agent-execution-control-loop/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -38,3 +77,19 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    ".pytest_cache",
+    "runs",
+    "scratch",
+    "apps/web/dist",
+    "apps/web/node_modules"
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

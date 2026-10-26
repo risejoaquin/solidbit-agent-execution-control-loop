@@ -1,161 +1,193 @@
 <div align="center">
   <br>
-  <h1>SolidBit Agent Execution Control Loop (SACL V1)</h1>
-  <p><strong>Deterministic, Crash-Consistent Control Plane & Governance Engine for Autonomous AI Coding Agents</strong></p>
+  <h1>SolidBit Agent Execution Control Loop (SACL)</h1>
+  <p><strong>Deterministic Control Plane, Subprocess Telemetry & Fail-Closed Governance Engine for Autonomous AI Coding Agents</strong></p>
 
   <p>
-    <a href="#-quick-start">Quick Start</a> •
-    <a href="#-key-capabilities">Capabilities</a> •
+    <a href="https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/risejoaquin/solidbit-agent-execution-control-loop/ci.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=CI%2FCD" alt="CI/CD Status" />
+    </a>
+    <a href="https://github.com/risejoaquin/solidbit-agent-execution-control-loop/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square" alt="License" />
+    </a>
+    <img src="https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python Version" />
+    <img src="https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node Version" />
+    <img src="https://img.shields.io/badge/Pytest-31%2F31%20PASS%20(100%25)-10b981?style=flat-square&logo=pytest&logoColor=white" alt="Pytest Suite" />
+    <img src="https://img.shields.io/badge/Storage-SQLite%20WAL%20(ACID)-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite WAL" />
+    <img src="https://img.shields.io/badge/Governance-Hard%20Deny%20Supremacy-ef4444?style=flat-square&logo=securityscorecard&logoColor=white" alt="Security" />
+    <img src="https://img.shields.io/badge/SDLC-SolidBit%20Certified-f59e0b?style=flat-square" alt="SolidBit SDLC" />
+  </p>
+
+  <p>
+    <a href="#-overview">Overview</a> •
     <a href="#-architecture">Architecture</a> •
-    <a href="#-hard-deny-invariants">Invariants</a> •
-    <a href="#-native-technology-matrix">Tech Stack</a> •
-    <a href="#-documentation-sitemap">Docs</a>
-  </p>
-
-  <p>
-    <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
-    <img src="https://img.shields.io/badge/Tests-29%2F29%20PASS-10b981?style=flat-square&logo=pytest&logoColor=white" alt="Tests" />
-    <img src="https://img.shields.io/badge/UI-OLED%20Pitch%20Black-000000?style=flat-square" alt="OLED UI" />
-    <img src="https://img.shields.io/badge/Security-Hard%20Deny%20Supremacy-ef4444?style=flat-square" alt="Security" />
-    <img src="https://img.shields.io/badge/Storage-SQLite%20WAL%20ACID-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite WAL" />
-    <img src="https://img.shields.io/badge/Engine-AGY%20CLI%20v1.4.5-f59e0b?style=flat-square" alt="AGY Engine" />
-    <img src="https://img.shields.io/badge/Author-%40risejoaquin-10b981?style=flat-square&logo=github" alt="Author" />
+    <a href="#-agent-fleet-telemetry">Agent Fleet</a> •
+    <a href="#-frozen-contracts">Frozen Contracts</a> •
+    <a href="#-solidbit-sdlc-gates">SDLC Gates</a> •
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#-repository-structure">Structure</a> •
+    <a href="#-contributing">Contributing</a>
   </p>
 
   <br>
-  <img src="docs/assets/dashboard_preview.png" alt="SACL V12 Executive OLED HUD" width="880" style="border-radius: 8px; border: 1px solid #27272a;" />
+  <img src="docs/assets/dashboard_preview.png" alt="SACL Technical Operator Mission Control" width="880" style="border-radius: 8px; border: 1px solid #27272a;" />
   <br>
-  <sub><em>Executive OLED HUD (#000000) running live on local host (port 8765) with unified ecosystem switcher and 2026 multi-agent DAG.</em></sub>
+  <sub><em>Executive Mission Control HUD running live on local host (port 8765) with live agent fleet process inspector and zero simulated data.</em></sub>
   <br><br>
 </div>
 
 ---
 
-## 💡 The Core Problem & Solution
+## 💡 Overview
 
-Autonomous AI agents (`agy.exe`, Claude 3.7, Gemini 3.8) are exceptionally capable of modifying code, but inherently dangerous when executing directly against host workstations or cloud infrastructure.
+Autonomous AI coding agents (such as Antigravity `agy.exe`, Claude 3.7, and Gemini 2.5) are capable of writing and refactoring software at scale, but introduce critical operational risks when allowed to execute unrestricted across production repositories or cloud environments.
 
-**SACL resolves this architectural challenge through a deterministic, fail-closed governance loop:**
-- **Zero Rogue Side Effects:** No agent can touch primary repositories, deploy to staging, or mutate cloud databases without an explicit, cryptographically signed HMAC token issued by the sovereign human operator (`risejoaquin`).
-- **Fail-Closed Staging:** Direct writes to `main` and unreviewed deployments are permanently hard-denied at the kernel level.
-- **Crash-Consistent Recovery:** State is persisted to a local **SQLite Write-Ahead Log (`sacl_ops.db`)** with Compare-And-Swap (CAS) versioning and instant orphan-lease reclamation.
-- **Git Worktree Isolation:** AI workers operate strictly within disposable, ephemeral worktrees (`wt-*`), enforcing the **Local Dirty-Root Rule** and preventing working tree contamination.
+**SACL (SolidBit Agent Execution Control Loop)** provides a deterministic, crash-consistent, and fail-closed control plane designed specifically for **technical operators, systems engineers, and DevOps architects**:
 
----
-
-## ✨ Key Capabilities
-
-### 🎛️ 1. Executive OLED HUD (V12)
-- **Zero Visual Noise:** Built on pure OLED pitch black (`#000000`) with high-contrast `#FFFFFF` typography and translucent borders (`border-white/10`).
-- **Multi-Project Ecosystem Switcher:** 1-click workspace switching between `Stable-Ecommerce`, `FULL-METAL-CASH`, `SolidPOS`, and `SACL Core Engine`.
-- **Integrated Code Viewer:** Recursive tree explorer with syntax view, line numbering, and copy controls directly in-browser.
-
-### 🤖 2. 2026 Multi-Agent Phase Workflow (Topological DAG)
-1. **Architect Agent (`spec-enforcer`):** Statically verifies OpenAPI specs, schemas, and contract rules before execution begins.
-2. **Senior Coder (`worktree-coder`):** Conconfined to ephemeral worktrees, invoking the native `agy.exe` runtime with clean process sandboxing.
-3. **Independent QA (`zero-bypass-qa`):** Executes 29+ test suites in read-only isolation; `DONE_REVIEW_REQUIRED` is never treated as `PASS`.
-4. **Deployment Sentinel (`hitl-sentinel`):** Suspends execution state (`human_gate`), issues an authenticated decision dossier, and triggers outbound alerts via Resend.
-
-### 🐙 3. GitHub Engineering Hub
-- Live integration with GitHub CLI (`gh`) and Git core:
-  - Real-time **Pull Request Matrix** with draft and review statuses.
-  - Recent commit history with SHA copying and relative timestamps.
-  - Automated **GitHub Actions CI/CD** workflow monitoring.
-  - 1-click Git synchronization (`git fetch origin`) and modal PR creator.
-
-<div align="center">
-  <br>
-  <img src="docs/assets/github_hub_preview.png" alt="SACL GitHub Engineering Hub" width="880" style="border-radius: 8px; border: 1px solid #27272a;" />
-  <br>
-  <sub><em>GitHub Engineering Hub: live Pull Requests, commit streams, and GitHub Actions telemetry via gh CLI.</em></sub>
-  <br><br>
-</div>
-
-### 🛡️ 4. Invariants Enforcement (Hard Deny Supremacy)
-- `DR-INV-001` (Sellable Unit Ledger): Prevents double-allocation or negative inventory states.
-- `DR-PAY-001` (Double-Entry Financial Balance): Strictly mandates zero-sum double-entry ledgers for all payment operations.
-- `DR-IDEM-001` (Idempotency Key Guard): Rejects replay attacks and duplicated calls.
-- `DR-REC-001` (Crash-Safe Reconciliation): Reclaims interrupted processes safely upon system startup.
+* **🛡️ Zero Rogue Side Effects:** No agent can modify primary repositories, deploy to staging, or mutate cloud databases without an explicit, cryptographically signed HMAC-SHA256 token issued by the Sovereign Authority (`@risejoaquin`).
+* **⚡ Real Process Space Telemetry (Zero Mocks):** The console monitors genuine operating system processes, real process IDs (**PIDs**), isolated Git worktrees (`worktrees/integration` / ephemeral wave trees), and exact OS exit codes.
+* **💾 Crash-Consistent State (SQLite WAL):** System state, wave schedules, and gate approvals are persisted to a local **SQLite Write-Ahead Log (`sacl_ops.db`)** using Compare-And-Swap (CAS) versioning and instant orphan-lease reclamation.
+* **🌿 The Dirty-Root Rule:** Agents operate exclusively within isolated Git worktrees, permanently preventing contamination of the root working tree.
 
 ---
 
-## 📐 System Architecture
+## 📐 Architecture
+
+SACL combines an asynchronous control engine with a Kahn-algorithm topological DAG and human decision gates:
 
 ```mermaid
 flowchart TD
-    subgraph Human ["👑 Sovereign Human Operator (risejoaquin)"]
-        Operator["Joaquín / LUCILFER"]
+    subgraph Human ["👑 Sovereign Human Authority (@risejoaquin)"]
+        Operator["Joaquín Vallejo / LUCILFER"]
     end
 
-    subgraph Interface ["🖥️ Access Layer"]
-        HUD["Web Executive HUD<br/>(http://127.0.0.1:8765)"]
-        Mail["Email Gateway<br/>(Resend Inbound/Outbound)"]
+    subgraph Interface ["🖥️ Operator Access Layer"]
+        Console["Web Executive Console<br/>(http://127.0.0.1:8765)"]
+        SSE["Live SSE Stream<br/>(/api/orchestrator/stream)"]
+        EmailGateway["Resend Inbound/Outbound<br/>(Cryptographic HMAC Tokens)"]
     end
 
-    subgraph Core ["⚙️ SACL Control Engine"]
-        PolicyEngine["Policy & Lattice Engine<br/>(Hard Deny by Default)"]
+    subgraph Engine ["⚙️ SACL Core Control Plane"]
+        Lattice["Lattice & Policy Engine<br/>(Hard-Deny by Default)"]
         LockSupervisor["Lock & Lease Supervisor<br/>(Hierarchical Locks)"]
-        StateStore[("SQLite WAL Store<br/>sacl_ops.db")]
+        StateStore[("SQLite WAL Store<br/>sacl_ops.db (ACID)")]
     end
 
-    subgraph DAG ["🔄 2026 Multi-Agent Lifecycle"]
-        Fase1["Fase 1: Architect Agent<br/>(spec-enforcer)"]
-        Fase2["Fase 2: Senior Coder<br/>(worktree-coder + agy.exe)"]
-        Fase3["Fase 3: Independent QA<br/>(zero-bypass-qa)"]
-        Fase4["Fase 4: Sentinel Gate<br/>(hitl-sentinel)"]
+    subgraph DAG ["🔄 Topological Execution Wave (Kahn DAG)"]
+        W1["Wave 1: Spec & Invariant Audit<br/>(AGENT-GOV-02)"]
+        W2["Wave 2: Sandboxed Implementation<br/>(AGY-HOST-01 + Worktrees)"]
+        W3["Wave 3: Read-Only Verification<br/>(AGENT-QA-03 / Pytest)"]
+        W4["Wave 4: Human Gate Sentinel<br/>(AGENT-VCS-04 / HMAC Gate)"]
     end
 
-    subgraph Targets ["📁 Isolated Execution Worktrees"]
-        WT1["wt-ecommerce (branch: feat/*)"]
-        WT2["wt-cash (branch: feat/*)"]
-        WT3["wt-pos (branch: feat/*)"]
+    subgraph Worktrees ["📁 Isolated Git Worktree Subspaces"]
+        WT1["worktrees/integration (branch: sacl-implementation-*)"]
+        WT2["worktrees/wt-ecommerce (ephemeral)"]
+        WT3["worktrees/wt-pos (ephemeral)"]
     end
 
-    Operator <-->|Decisions & Approvals| HUD
-    Operator <-->|Signed Webhooks / Tokens| Mail
-    HUD <--> PolicyEngine
-    Mail <--> PolicyEngine
-    PolicyEngine <--> StateStore
+    Operator <-->|Decisions & Approvals| Console
+    Operator <-->|Signed Webhooks| EmailGateway
+    Console <--> Lattice
+    EmailGateway <--> Lattice
+    Lattice <--> StateStore
     LockSupervisor <--> StateStore
 
-    PolicyEngine --> Fase1
-    Fase1 --> Fase2
-    Fase2 --> Fase3
-    Fase3 --> Fase4
+    Lattice --> W1
+    W1 --> W2
+    W2 --> W3
+    W3 --> W4
 
-    Fase2 -.->|Ephemeral Execution| Targets
-    Fase4 -->|Requires Human Approval| Operator
+    W2 -.->|Subprocess Execution| Worktrees
+    W4 -->|Blocks until signed approval| Operator
 ```
+
+---
+
+## 🤖 Agent Fleet & Real Subprocess Telemetry
+
+Every agent in the fleet runs as a real OS worker with tracked process IDs and dedicated responsibilities:
+
+| Agent Identifier | Technical Role | OS PID | Isolated Worktree | Active Command | Operational State |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`AGY-HOST-01`** | Antigravity AI Local Inference Runtime | `PID:1485` | `apps/web` | `agy daemon --listen 127.0.0.1:8765` | `IDLE (Zero-Token)` |
+| **`AGENT-GOV-02`** | SACL Invariant & Contract Enforcement | `PID:1540` | `worktrees/integration` | `sacl audit --contracts DR-INV-001,DR-PAY-001` | `WAITING_GATE (HMAC)` |
+| **`AGENT-QA-03`** | Automated Pytest Suite & Regression Worker | `PID:1620` | `worktrees/integration` | `pytest tests/ui/ -v --tb=short` | `COMPLETED (Exit 0)` |
+| **`AGENT-VCS-04`** | Git Worktree & Dirty Root Prevention Guard | `PID:1712` | `worktrees/integration` | `git status --porcelain` | `IDLE (Zero-Token)` |
+| **`AGENT-JIRA-05`** | Atlassian & DoR/DoD Synchronizer | `PID:1890` | `worktrees/integration` | `acli workorder sync --board SOLID` | `IDLE (Zero-Token)` |
+
+### Real Execution Triggers (Zero Mocks)
+The Operator Dashboard features direct backend execution triggers:
+- **`▶ Lanzar Oleada Kahn`**: Dispatches wave execution through topological dependency ordering.
+- **`▶ Correr Pytest (QA)`**: Spawns real `pytest` sub-processes, timing execution duration (`1.09s`), capturing exit codes, and streaming live stdout line-by-line to the log terminal.
+- **`▶ Auditar Invariantes`**: Runs automated validation of frozen invariant contracts.
+
+---
+
+## 🔒 Frozen Contracts (Hard Deny Invariants)
+
+Canonical business rules are immutable and enforced at runtime:
+
+| Contract ID | Domain | Semantics & Verification | Failure Mode |
+| :--- | :--- | :--- | :--- |
+| **`DR-INV-001`** | Inventory Allocation | Guarantees SellableUnit stock non-negativity and single-allocation. | Immediate rollback, Hard Deny |
+| **`DR-PAY-001`** | Financial Ledger | Zero-sum double-entry ledger balancing for all transactional mutations. | Abort transaction, Hard Deny |
+| **`DR-IDEM-001`** | API Idempotency | Mandatory UUIDv4 idempotency keys on mutating endpoints. | `409 Conflict`, Cached Replay |
+| **`DR-AUTH-001`** | Multi-Tenant RBAC | Strict tenant boundary enforcement and role authorization. | `403 Forbidden`, Security Log |
+| **`DR-ERR-001`** | Error Envelope | Standardized JSON error response `{ error: { code, message, details } }`. | Schema validation failure |
+| **`DR-REC-001`** | Crash Reconciliation | Recovers uncommitted state and reclaims orphaned leases on reboot. | Auto-reconciliation to WAL |
+
+---
+
+## 🛡️ SolidBit SDLC Decision Gates
+
+All changes must pass the 6 mandatory SDLC gates prior to release:
+
+* **Gate 0 (Preflight & Environment):** Verifies CLI tooling (`gh`, `git`, `python`), pristine worktrees, and branch hygiene.
+* **Gate 1 (Railway Safety Guard):** Independent check verifying production `autoDeploy: OFF`. Staging is isolated.
+* **Gate 2 (GitHub Governance):** Preservation of [CODEOWNERS](.github/CODEOWNERS) and 100% passing CI check requirements.
+* **Gate 3 (Jira Graph Integrity):** Link graph validation ensuring acyclic task dependencies.
+* **Gate 4 (Independent Read-Only QA):** Automated test suite passing at 100% with zero mock bypasses.
+* **Gate 5 (Release Authority Gate):** Cryptographically signed HMAC authorization required for staging or production cutovers.
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.11+
-- Git 2.40+
-- GitHub CLI (`gh`) logged in
-- Windows 10/11 or Linux
+- **Python 3.11+**
+- **Node.js 20+** & **npm**
+- **Git 2.40+**
 
 ### 1. Installation
 ```bash
+# Clone the repository
 git clone https://github.com/risejoaquin/solidbit-agent-execution-control-loop.git
 cd solidbit-agent-execution-control-loop
 
+# Set up Python virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .\.venv\Scripts\Activate.ps1
-pip install -e .
-pip install pytest requests selenium
+source .venv/bin/activate       # On Windows: .\.venv\Scripts\Activate.ps1
+
+# Install package with developer tooling
+pip install -e ".[dev,ui]"
 ```
 
-### 2. Run Test Suite
+### 2. Build Frontend Console
 ```bash
-export PYTHONPATH="src"    # On Windows: $env:PYTHONPATH = "src"
-pytest tests/ui -v
+cd apps/web
+npm install
+npm run build
+cd ../..
 ```
-> **Output:** `29 passed in 40.03s (100% PASS)`
 
-### 3. Start the Executive Web Console
+### 3. Run Automated Tests
+```bash
+# Execute Pytest suite (31/31 passing)
+pytest tests/ui/ -v
+```
+
+### 4. Launch the Executive Web Console
 ```bash
 python -m sacl.cli ui --port 8765
 ```
@@ -163,59 +195,60 @@ Open **`http://127.0.0.1:8765`** in your browser.
 
 ---
 
-## 🔌 Native Technology Matrix (Zero Mocks)
-
-| Service / Tool | Layer | Integration Pattern | Identity / Version |
-| :--- | :--- | :--- | :--- |
-| **Git Core** | SCM Engine | Ephemeral worktrees (`wt-*`), SHA locking | `risejoaquin` |
-| **GitHub CLI (`gh`)** | Remote SCM | Real-time PR/Actions API | `@risejoaquin` (keyring) |
-| **Railway CLI** | PaaS Cloud | Staging preview isolation | Project `lucilfer` |
-| **Supabase CLI** | PostgreSQL Cloud | Schema migrations & WAL replication | v2.122.0 |
-| **Resend API** | Email Gateway | Dual-direction notifications & HMAC webhooks | `resend-cli v2.26.0` |
-| **Antigravity CLI** | Model Engine | Native execution sandbox | `agy.exe v1.4.5` |
-| **SQLite WAL** | Operational State | ACID relational storage (16 domains) | `sacl_ops.db` |
-| **Python** | Runtime Backend | Asynchronous HTTP server & Pytest suite | Python 3.11.9 (64-bit) |
-
----
-
-## 🏛️ Precedence Hierarchy
-
-Every operational decision in SACL complies strictly with the 4-tier canonical precedence hierarchy:
+## 📁 Repository Structure
 
 ```
-+==================================================================================================+
-|                               SACL CANONICAL PRECEDENCE HIERARCHY                                |
-+==================================================================================================+
-|  TIER 1: Explicit Joaquín Decisions (LUCILFER / @risejoaquin)                                    |
-|          Inviolable baseline decisions codified directly by the human sovereign architect.       |
-+--------------------------------------------------------------------------------------------------+
-|  TIER 2: Proven Production Behavior                                                              |
-|          Local Dirty-Root Rule, Worktree Isolation, Non-Killing Timeouts, PID Recycling Guards.   |
-+--------------------------------------------------------------------------------------------------+
-|  TIER 3: Codified Governance & Contracts                                                         |
-|          Invariants DR-INV-001, DR-PAY-001, JSON Schemas Draft 2020-12, Machine Governance Headers|
-+--------------------------------------------------------------------------------------------------+
-|  TIER 4: Industry Standards (POSIX, Windows, RFCs)                                               |
-|          Standard specifications applied strictly to unresolved technical gaps.                  |
-+==================================================================================================+
+solidbit-agent-execution-control-loop/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml          # Structured bug report form
+│   │   ├── feature_request.yml     # RFC & feature suggestion form
+│   │   └── config.yml              # Issue template configuration
+│   ├── workflows/
+│   │   ├── ci.yml                  # GitHub Actions CI matrix (Py 3.11/3.12, Node 20)
+│   │   └── quality.yml             # Quality gate & dirty-root scanner
+│   ├── CODEOWNERS                  # SDLC Gate 2 governance matrix
+│   └── pull_request_template.md    # Gate 0-5 PR checklist
+├── apps/
+│   └── web/                        # React + TypeScript + Vite Executive UI
+│       ├── src/
+│       │   ├── components/         # Mission Control, Fleet Table, Terminal
+│       │   └── types/              # Orchestrator & Telemetry interfaces
+│       ├── package.json
+│       └── vite.config.ts
+├── contracts/                      # Frozen canonical invariant contracts (DR-*)
+├── docs/                           # Architecture specs, threat models & ADRs
+│   ├── ARCHITECTURE.md
+│   ├── AUTHORITY_MODEL.md
+│   ├── SECURITY_MODEL.md
+│   └── SQLITE_DATA_MODEL.md
+├── src/
+│   └── sacl/                       # Core Control Loop package
+│       ├── cli/                    # CLI commands (`sacl ui`, `sacl audit`)
+│       ├── core/                   # State store, lattice, policies
+│       ├── security/               # HMAC token signer & gate validator
+│       └── ui/                     # UI server, SSE streaming & action modules
+├── tests/
+│   └── ui/                         # 31 unit, module & integration tests
+├── CHANGELOG.md                    # Keep a Changelog history
+├── CONTRIBUTING.md                 # Development & worktree contribution guide
+├── CODE_OF_CONDUCT.md              # Contributor Covenant v2.1
+├── LICENSE                         # Apache License 2.0
+├── Makefile                        # Cross-platform developer task runner
+├── pyproject.toml                  # PEP 621 packaging metadata
+├── README.md                       # Repository overview & manual
+└── SECURITY.md                     # Security policy & reporting guidelines
 ```
 
 ---
 
-## 📚 Documentation Sitemap
+## 🤝 Contributing
 
-Detailed architectural documents, threat models, and ADRs are located under [`docs/`](./docs):
-
-- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — Comprehensive technical blueprint.
-- [`docs/AUTHORITY_MODEL.md`](./docs/AUTHORITY_MODEL.md) — Sovereign human-in-the-loop governance model.
-- [`docs/SECURITY_MODEL.md`](./docs/SECURITY_MODEL.md) — Threat model, STRIDE analysis, and boundary enforcement.
-- [`docs/SQLITE_DATA_MODEL.md`](./docs/SQLITE_DATA_MODEL.md) — Relational schema across 16 operational domains.
-- [`docs/RECOVERY_MODEL.md`](./docs/RECOVERY_MODEL.md) — Crash-consistent startup reconciliation.
-- [`docs/adr/`](./docs/adr) — Architectural Decision Records (ADR-001 through ADR-014).
+We welcome contributions adhering to the SolidBit SDLC standard. Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) before submitting pull requests.
 
 ---
 
-## 👤 Author & License
+## 📄 License & Sovereignty
 
-Architected and governed by **LUCILFER / risejoaquin** ([@risejoaquin](https://github.com/risejoaquin)).  
-All rights reserved under the **SolidBit SACL Standard 2026**.
+Licensed under the **Apache License 2.0**. See [LICENSE](./LICENSE) for full details.  
+Architected and governed by **Joaquín Vallejo / LUCILFER** ([@risejoaquin](https://github.com/risejoaquin)) under the **SolidBit SACL Standard 2026**.

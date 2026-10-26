@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🛡️ Security Vulnerability Reporting
+    url: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/security/policy
+    about: Please report security vulnerabilities privately according to our security policy.
+  - name: 💬 SolidBit Engineering Discussions
+    url: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/discussions
+    about: Discuss architecture, ideas, and questions with the core team.
