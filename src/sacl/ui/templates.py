@@ -307,7 +307,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
-          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration', 'Stable-Ecommerce (Integration)')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-emerald-500/40 hover:border-emerald-400 text-left transition-all flex items-center justify-between group">
+          <button onclick="switchEcosystemProject('~/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration', 'Stable-Ecommerce (Integration)')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-emerald-500/40 hover:border-emerald-400 text-left transition-all flex items-center justify-between group">
             <div class="space-y-0.5 truncate">
               <div class="text-xs font-bold text-white group-hover:text-emerald-300 flex items-center gap-1.5">
                 <i data-lucide="git-pull-request" class="w-3.5 h-3.5 text-emerald-400"></i>
@@ -318,7 +318,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <span class="text-[10px] mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-400/10">ACTIVO</span>
           </button>
 
-          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/FULL-METAL-CASH', 'FULL-METAL-CASH')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
+          <button onclick="switchEcosystemProject('~/Documents/FULL-METAL-CASH', 'FULL-METAL-CASH')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
             <div class="space-y-0.5 truncate">
               <div class="text-xs font-bold text-white group-hover:text-blue-300 flex items-center gap-1.5">
                 <i data-lucide="credit-card" class="w-3.5 h-3.5 text-blue-400"></i>
@@ -329,7 +329,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
           </button>
 
-          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/POS', 'SolidPOS')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
+          <button onclick="switchEcosystemProject('~/Documents/POS', 'SolidPOS')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
             <div class="space-y-0.5 truncate">
               <div class="text-xs font-bold text-white group-hover:text-amber-300 flex items-center gap-1.5">
                 <i data-lucide="store" class="w-3.5 h-3.5 text-amber-400"></i>
@@ -340,7 +340,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <span class="text-[10px] mono text-zinc-400 group-hover:text-white">&rarr; Abrir</span>
           </button>
 
-          <button onclick="switchEcosystemProject('C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop', 'SACL Core Engine')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
+          <button onclick="switchEcosystemProject('~/Documents/solidbit-agent-execution-control-loop', 'SACL Core Engine')" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-left transition-all flex items-center justify-between group">
             <div class="space-y-0.5 truncate">
               <div class="text-xs font-bold text-white group-hover:text-purple-300 flex items-center gap-1.5">
                 <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
@@ -1478,11 +1478,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <div>
           <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Accesos Rápidos a Carpetas Locales:</div>
           <div class="space-y-1.5">
-            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
               <span class="mono text-[11px] truncate">worktrees/integration (Espacio de Trabajo Activo)</span>
               <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
             </button>
-            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
               <span class="mono text-[11px] truncate">Stable-Ecommerce-Orchestrator (Raíz de Proyecto)</span>
               <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
             </button>
@@ -1572,11 +1572,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <div>
           <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Accesos Rápidos a Carpetas Locales:</div>
           <div class="space-y-1.5">
-            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
               <span class="mono text-[11px] truncate">worktrees/integration (Espacio de Trabajo Activo)</span>
               <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
             </button>
-            <button onclick="setOpenFolderPreset('C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
+            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
               <span class="mono text-[11px] truncate">Stable-Ecommerce-Orchestrator (Raíz de Proyecto)</span>
               <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
             </button>

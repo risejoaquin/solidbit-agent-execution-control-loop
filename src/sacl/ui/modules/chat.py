@@ -23,8 +23,10 @@ def utc_now() -> str:
 
 def query_agy_engine(prompt: str, model_id: Optional[str] = None) -> Optional[str]:
     """Invokes the official Antigravity (agy) CLI binary to query real LLMs."""
+    local_app = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
     agy_candidates = [
-        r"C:\Users\Lucilfer\AppData\Local\agy\bin\agy.exe",
+        str(Path(local_app) / "agy" / "bin" / "agy.exe"),
+        str(Path.home() / "AppData" / "Local" / "agy" / "bin" / "agy.exe"),
         "agy",
     ]
     agy_path = None

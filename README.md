@@ -1,10 +1,10 @@
 # SolidBit Agent Execution Control Loop (SACL V1)
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
-[![UI Theme](https://img.shields.io/badge/UI-OLED%20Pitch%20Black%20%23000000-black.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration/src/sacl/ui)
-[![Tests Status](https://img.shields.io/badge/tests-29%2F29%20PASS-brightgreen.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration/tests/ui)
-[![Invariants Policy](https://img.shields.io/badge/policy-Hard%20Deny%20Supremacy-red.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration/docs/SECURITY_MODEL.md)
-[![Engine](https://img.shields.io/badge/engine-Antigravity%20AGY%20v1.4.5-orange.svg)](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/src/sacl/ui/modules/chat.py)
+[![UI Theme](https://img.shields.io/badge/UI-OLED%20Pitch%20Black%20%23000000-black.svg)](./src/sacl/ui)
+[![Tests Status](https://img.shields.io/badge/tests-29%2F29%20PASS-brightgreen.svg)](./tests/ui)
+[![Invariants Policy](https://img.shields.io/badge/policy-Hard%20Deny%20Supremacy-red.svg)](./docs/SECURITY_MODEL.md)
+[![Engine](https://img.shields.io/badge/engine-Antigravity%20AGY%20v1.4.5-orange.svg)](./src/sacl/ui/modules/chat.py)
 [![Author](https://img.shields.io/badge/Author-LUCILFER%20%2F%20%40risejoaquin-emerald.svg)](https://github.com/risejoaquin)
 
 > **Autor Soberano:** `LUCILFER / risejoaquin` ([@risejoaquin](https://github.com/risejoaquin))  

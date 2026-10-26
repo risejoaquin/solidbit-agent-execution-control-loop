@@ -335,7 +335,8 @@ class ConnectionsModule:
         
         # Fallback check for agy installed in standard local path
         if not bin_path and tool_id == "agy":
-            agy_local = Path(r"C:\Users\Lucilfer\AppData\Local\agy\bin\agy.exe")
+            local_app = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+            agy_local = Path(local_app) / "agy" / "bin" / "agy.exe"
             if agy_local.exists():
                 bin_path = str(agy_local)
                 cmd = [bin_path, "--version"]
