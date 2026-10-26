@@ -215,11 +215,37 @@ HTML_APPLICATION = """<!DOCTYPE html>
         26 Oct 2026 00:30
       </div>
 
-      <!-- Bell icon (terminal drawer) -->
-      <button type="button" onclick="openTerminalDrawer()" class="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 relative cursor-pointer" title="Notificaciones y Logs de Terminal">
-        <i data-lucide="bell" class="w-4 h-4"></i>
-        <span class="w-2 h-2 rounded-full bg-emerald-400 absolute top-1.5 right-1.5"></span>
-      </button>
+      <!-- Bell icon with Live Notifications Popover -->
+      <div class="relative">
+        <button type="button" onclick="toggleNotificationsMenu(event)" id="btn-notifications" class="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 relative cursor-pointer" title="Notificaciones y Alertas">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span id="notif-badge" class="w-2 h-2 rounded-full bg-emerald-400 absolute top-1.5 right-1.5 animate-pulse"></span>
+        </button>
+
+        <!-- Notifications Dropdown Menu -->
+        <div id="notifications-popover" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 z-50 space-y-3.5 backdrop-blur-md">
+          <div class="flex items-center justify-between border-b border-[#1b2533] pb-2.5">
+            <div class="flex items-center gap-2">
+              <i data-lucide="bell" class="w-4 h-4 text-emerald-400"></i>
+              <span class="text-xs font-bold text-white">Notificaciones del Orquestador</span>
+            </div>
+            <span id="notif-count-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">3 nuevas</span>
+          </div>
+          
+          <div id="notifications-list" class="space-y-2 text-xs max-h-72 overflow-y-auto custom-scroll pr-1">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-[#1b2533] text-[11px]">
+            <button type="button" onclick="openTerminalDrawer(); toggleNotificationsMenu();" class="text-emerald-400 hover:underline flex items-center gap-1 font-semibold">
+              <i data-lucide="terminal" class="w-3.5 h-3.5"></i> Ver consola completa
+            </button>
+            <button type="button" onclick="clearNotifications()" class="text-zinc-500 hover:text-zinc-300">
+              Marcar como leídas
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- User Profile: JV + Joaquin Vallejo + Owner -->
       <div class="flex items-center gap-2.5 pl-1 pr-1">
@@ -247,35 +273,35 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <aside class="w-56 lg:w-60 border-r border-[#161f2c] bg-[#0c121a] flex flex-col justify-between shrink-0 p-3 select-none">
       <!-- Navigation Links -->
       <nav class="space-y-1">
-        <button type="button" onclick="switchSection('dashboard')" id="nav-btn-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#14261f] text-emerald-400 border border-emerald-500/20 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('dashboard')" id="nav-btn-dashboard" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#14261f] text-emerald-400 border border-emerald-500/20 text-left transition cursor-pointer">
           <i data-lucide="home" class="w-4 h-4"></i>
           <span>Inicio</span>
         </button>
-        <button type="button" onclick="openSprintOrchestratorModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="openSprintOrchestratorModal()" id="nav-btn-sprints" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="layers" class="w-4 h-4"></i>
           <span>Sprints & Jira</span>
         </button>
-        <button type="button" onclick="switchSection('designer')" id="nav-btn-designer" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('designer')" id="nav-btn-designer" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="git-branch" class="w-4 h-4"></i>
           <span>Roadmap</span>
         </button>
-        <button type="button" onclick="switchSection('dashboard')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('dashboard'); switchDashboardSubTab('agentes');" id="nav-btn-agents" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="bot" class="w-4 h-4"></i>
           <span>Agentes</span>
         </button>
-        <button type="button" onclick="switchSection('gates')" id="nav-btn-gates" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('gates')" id="nav-btn-gates" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="play-circle" class="w-4 h-4"></i>
           <span>Ejecuciones</span>
         </button>
-        <button type="button" onclick="switchSection('projects')" id="nav-btn-projects" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('projects')" id="nav-btn-projects" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="folder" class="w-4 h-4"></i>
           <span>Proyectos</span>
         </button>
-        <button type="button" onclick="switchSection('database')" id="nav-btn-database" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('database')" id="nav-btn-database" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
           <span>Reportes</span>
         </button>
-        <button type="button" onclick="switchSection('github')" id="nav-btn-github" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
+        <button type="button" onclick="switchSection('github')" id="nav-btn-github" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer">
           <i data-lucide="settings" class="w-4 h-4"></i>
           <span>Configuración</span>
         </button>
@@ -426,14 +452,14 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
       <!-- ROW 3: TABS & ROADMAP DEL SPRINT TABLE -->
       <div class="space-y-4">
-        <!-- Sub-tabs row -->
-        <div class="flex items-center gap-6 border-b border-[#1b2533] pb-2 text-xs font-semibold">
-          <button type="button" class="text-white border-b-2 border-emerald-400 pb-2 -mb-2 cursor-pointer">Roadmap</button>
-          <button type="button" class="text-zinc-400 hover:text-white transition cursor-pointer">Tareas</button>
-          <button type="button" class="text-zinc-400 hover:text-white transition cursor-pointer">Agentes</button>
-          <button type="button" class="text-zinc-400 hover:text-white transition cursor-pointer">Jira</button>
-          <button type="button" class="text-zinc-400 hover:text-white transition cursor-pointer">Dependencias</button>
-          <button type="button" class="text-zinc-400 hover:text-white transition cursor-pointer">Eventos</button>
+        <!-- Sub-tabs row (100% interactive) -->
+        <div class="flex items-center gap-6 border-b border-[#1b2533] pb-2 text-xs font-semibold select-none overflow-x-auto custom-scroll">
+          <button type="button" onclick="switchDashboardSubTab('roadmap')" id="subtab-btn-roadmap" class="dash-subtab text-white border-b-2 border-emerald-400 pb-2 -mb-2 cursor-pointer transition">Roadmap</button>
+          <button type="button" onclick="switchDashboardSubTab('tareas')" id="subtab-btn-tareas" class="dash-subtab text-zinc-400 hover:text-white pb-2 -mb-2 cursor-pointer transition">Tareas</button>
+          <button type="button" onclick="switchDashboardSubTab('agentes')" id="subtab-btn-agentes" class="dash-subtab text-zinc-400 hover:text-white pb-2 -mb-2 cursor-pointer transition">Agentes</button>
+          <button type="button" onclick="switchDashboardSubTab('jira')" id="subtab-btn-jira" class="dash-subtab text-zinc-400 hover:text-white pb-2 -mb-2 cursor-pointer transition">Jira</button>
+          <button type="button" onclick="switchDashboardSubTab('dependencias')" id="subtab-btn-dependencias" class="dash-subtab text-zinc-400 hover:text-white pb-2 -mb-2 cursor-pointer transition">Dependencias</button>
+          <button type="button" onclick="switchDashboardSubTab('eventos')" id="subtab-btn-eventos" class="dash-subtab text-zinc-400 hover:text-white pb-2 -mb-2 cursor-pointer transition">Eventos</button>
         </div>
 
         <!-- Table Card -->
@@ -1560,6 +1586,15 @@ HTML_APPLICATION = """<!DOCTYPE html>
           else mtab.classList.remove('active');
         }
       });
+
+      // Update Left Sidebar Nav active states
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.className = 'nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/5 text-left transition cursor-pointer';
+      });
+      const activeNavBtn = document.getElementById('nav-btn-' + secId);
+      if (activeNavBtn) {
+        activeNavBtn.className = 'nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#14261f] text-emerald-400 border border-emerald-500/20 text-left transition cursor-pointer';
+      }
       if (secId === 'chat') {
         scrollChatToBottom();
       } else if (secId === 'database') {
@@ -4333,6 +4368,235 @@ function initSSE() {
     }
     window.loadIndustryDashboardData = loadIndustryDashboardData;
     
+
+    
+    // ==========================================
+    // REAL-TIME CLOCK & NOTIFICATIONS ENGINE
+    // ==========================================
+    function updateLiveClock() {
+      const el = document.getElementById('header-datetime-pill');
+      if (!el) return;
+      const now = new Date();
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const day = now.getDate();
+      const month = months[now.getMonth()];
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      el.textContent = `${day} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+    }
+    window.updateLiveClock = updateLiveClock;
+    setInterval(updateLiveClock, 1000);
+
+    function toggleNotificationsMenu(e) {
+      if (e) e.stopPropagation();
+      const popover = document.getElementById('notifications-popover');
+      if (!popover) return;
+      const isHidden = popover.classList.contains('hidden');
+      if (isHidden) {
+        popover.classList.remove('hidden');
+        loadNotificationsList();
+      } else {
+        popover.classList.add('hidden');
+      }
+    }
+    window.toggleNotificationsMenu = toggleNotificationsMenu;
+
+    function clearNotifications() {
+      const badge = document.getElementById('notif-badge');
+      if (badge) badge.classList.add('hidden');
+      const countEl = document.getElementById('notif-count-badge');
+      if (countEl) countEl.innerText = '0 nuevas';
+      showToast('Notificaciones marcadas como leídas', 'info');
+    }
+    window.clearNotifications = clearNotifications;
+
+    async function loadNotificationsList() {
+      const container = document.getElementById('notifications-list');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-400 text-xs flex items-center gap-1.5"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Compuerta Requerida</span>
+            <span class="text-[9px] mono text-zinc-500">hace 10 min</span>
+          </div>
+          <p class="text-[11px] text-zinc-300">REQ-20261025-E43308B0: Aprobación HMAC requerida para aplicar cambios de Sprint 1.</p>
+          <div class="pt-1">
+            <button onclick="switchSection('gates'); toggleNotificationsMenu();" class="text-xs text-amber-400 hover:underline font-bold">Examinar Compuerta &rarr;</button>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-emerald-400 text-xs flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Pytest Green (Exit 0)</span>
+            <span class="text-[9px] mono text-zinc-500">hace 25 min</span>
+          </div>
+          <p class="text-[11px] text-zinc-300">31 pruebas de UI y contratos completadas con 100% de éxito en 92.5s.</p>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-blue-400 text-xs flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i> Jira Cloud Status</span>
+            <span class="text-[9px] mono text-zinc-500">hace 1 hora</span>
+          </div>
+          <p class="text-[11px] text-zinc-300">Sesión remota protegida. Tareas persistidas en SQLite WAL local soberano.</p>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+    window.loadNotificationsList = loadNotificationsList;
+
+    // Close notifications popover on click outside
+    document.addEventListener('click', (e) => {
+      const popover = document.getElementById('notifications-popover');
+      const btn = document.getElementById('btn-notifications');
+      if (popover && !popover.classList.contains('hidden')) {
+        if (!popover.contains(e.target) && !btn?.contains(e.target)) {
+          popover.classList.add('hidden');
+        }
+      }
+    });
+
+    // ==========================================
+    // DASHBOARD SUB-TABS ENGINE (100% REACTIVE)
+    // ==========================================
+    let currentDashSubTab = 'roadmap';
+
+    async function switchDashboardSubTab(tabName) {
+      currentDashSubTab = tabName;
+
+      // Update button styling
+      document.querySelectorAll('.dash-subtab').forEach(b => {
+        b.className = 'dash-subtab text-zinc-400 hover:text-white pb-2 -mb-2 cursor-pointer transition';
+      });
+      const activeBtn = document.getElementById('subtab-btn-' + tabName);
+      if (activeBtn) {
+        activeBtn.className = 'dash-subtab text-white border-b-2 border-emerald-400 pb-2 -mb-2 cursor-pointer transition font-bold';
+      }
+
+      const tbody = document.getElementById('dash-roadmap-tbody');
+      if (!tbody) return;
+
+      if (tabName === 'roadmap') {
+        loadIndustryDashboardData();
+        return;
+      }
+
+      if (tabName === 'tareas') {
+        tbody.innerHTML = `
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">SOLID-301: Implementación Atomic Inventory & Doble Partida</div><div class="text-[10px] mono text-emerald-400">Contratos: DR-INV-001, DR-PAY-001</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">worktree-coder-alpha</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">24 Oct</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">28 Oct</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-400 h-full rounded-full" style="width: 100%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Completada</span></td>
+          </tr>
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">SOLID-106: E2E Auth, Mobile Notifications & Real-Time Telemetry</div><div class="text-[10px] mono text-emerald-400">Contratos: DR-AUTH-001, DR-IDEM-001</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold">worktree-coder-beta</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">26 Oct</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">30 Oct</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-blue-400 h-full rounded-full" style="width: 50%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-blue-500/20 text-blue-400 border-blue-500/30">En progreso</span></td>
+          </tr>
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">SOLID-104: DAG Scheduler Engine with Worktree Isolation</div><div class="text-[10px] mono text-emerald-400">Contratos: DR-REC-001</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[10px] font-bold">spec-enforcer</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">28 Oct</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">02 Nov</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-zinc-600 h-full rounded-full" style="width: 20%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-zinc-800 text-zinc-400 border-zinc-700">Pendiente</span></td>
+          </tr>
+        `;
+      } else if (tabName === 'agentes') {
+        tbody.innerHTML = `
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">architect-agent</div><div class="text-[10px] text-zinc-500">Síntesis Graph-H & Topología de Kahn</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">Líder Técnico</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Online</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">PID 1432</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-400 h-full rounded-full" style="width: 100%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Activo</span></td>
+          </tr>
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">worktree-coder-alpha</div><div class="text-[10px] text-zinc-500">Modificación aislada en rama git worktree</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">Desarrollo Core</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Online</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">PID 8940</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-400 h-full rounded-full" style="width: 80%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Activo</span></td>
+          </tr>
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">zero-bypass-qa</div><div class="text-[10px] text-zinc-500">Ejecución de Pytest y auditoría de invariantes</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">QA Automation</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Online</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">PID 5124</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-400 h-full rounded-full" style="width: 100%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Activo</span></td>
+          </tr>
+        `;
+      } else if (tabName === 'jira') {
+        tbody.innerHTML = `
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">SOLID-301</div><div class="text-[10px] text-zinc-500">Atomic Inventory & Doble Partida</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-black/40 border border-white/10 text-zinc-300 text-[10px]">acli / SQLite WAL</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">24 Oct</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">28 Oct</td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">Persistido Localmente</span></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Listo</span></td>
+          </tr>
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">SOLID-106</div><div class="text-[10px] text-zinc-500">E2E Auth & Real-Time Telemetry</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-black/40 border border-white/10 text-zinc-300 text-[10px]">acli / SQLite WAL</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">26 Oct</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">30 Oct</td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold">En ejecución</span></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-blue-500/20 text-blue-400 border-blue-500/30">En progreso</span></td>
+          </tr>
+        `;
+      } else if (tabName === 'dependencias') {
+        tbody.innerHTML = `
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">DR-INV-001 &bull; SellableUnit Ledger</div><div class="text-[10px] text-zinc-500">Invariante de cero sobreventa bajo concurrencia</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px] font-bold">CRITICAL</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Invariante</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Congelado</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-400 h-full rounded-full" style="width: 100%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Verificado</span></td>
+          </tr>
+          <tr class="hover:bg-white/[0.02]">
+            <td class="py-3 pl-1"><div class="font-semibold text-white">DR-PAY-001 &bull; Double-Entry Balance</div><div class="text-[10px] text-zinc-500">Ledger contable de doble partida para checkout</div></td>
+            <td class="py-3"><span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px] font-bold">CRITICAL</span></td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Invariante</td>
+            <td class="py-3 mono text-zinc-400 text-[11px]">Congelado</td>
+            <td class="py-3"><div class="w-28 bg-[#1b2533] h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-400 h-full rounded-full" style="width: 100%;"></div></div></td>
+            <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Verificado</span></td>
+          </tr>
+        `;
+      } else if (tabName === 'eventos') {
+        try {
+          const res = await fetch(`${API_BASE}/api/db/rows?table=events&limit=5`);
+          const data = await res.json();
+          if (data.success && data.rows && data.rows.length > 0) {
+            tbody.innerHTML = data.rows.map(ev => `
+              <tr class="hover:bg-white/[0.02]">
+                <td class="py-3 pl-1"><div class="font-semibold text-white mono text-[11px]">${ev.event_type}</div><div class="text-[10px] text-zinc-500 truncate max-w-xs">${ev.payload_json ? ev.payload_json.slice(0, 40) + '...' : ''}</div></td>
+                <td class="py-3"><span class="px-2 py-0.5 rounded bg-black/40 text-zinc-400 text-[10px] mono">SQLite WAL</span></td>
+                <td class="py-3 mono text-zinc-400 text-[11px]">${ev.created_at ? new Date(ev.created_at).toLocaleTimeString() : 'ahora'}</td>
+                <td class="py-3 mono text-zinc-400 text-[11px]">${ev.run_id || 'sys'}</td>
+                <td class="py-3"><span class="text-xs font-bold ${ev.severity === 'FATAL' ? 'text-red-400' : 'text-emerald-400'}">${ev.severity}</span></td>
+                <td class="py-3 text-right pr-2"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Registrado</span></td>
+              </tr>
+            `).join('');
+          }
+        } catch(e) {}
+      }
+    }
+    window.switchDashboardSubTab = switchDashboardSubTab;
+
 
     window.applyApprovedChanges = applyApprovedChanges;
 
