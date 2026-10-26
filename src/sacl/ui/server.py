@@ -102,10 +102,36 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         path = parsed_url.path
         query = urllib.parse.parse_qs(parsed_url.query)
 
-        # 1. Root / UI Shell
+        # 1. Root / UI Shell (Prefers compiled React 19 app in apps/web/dist if available)
         if path in ("/", "/index.html", "/ui"):
+            dist_index = Path("apps/web/dist/index.html")
+            if dist_index.exists():
+                try:
+                    with open(dist_index, "r", encoding="utf-8") as f:
+                        self._send_html(200, f.read())
+                    return
+                except Exception:
+                    pass
             self._send_html(200, HTML_APPLICATION)
             return
+
+        # 1.0 Static Assets for React 19 (/assets/*)
+        if path.startswith("/assets/"):
+            asset_path = Path("apps/web/dist") / path.lstrip("/")
+            if asset_path.exists() and asset_path.is_file():
+                content_type = "text/css" if path.endswith(".css") else ("application/javascript" if path.endswith(".js") else "application/octet-stream")
+                try:
+                    with open(asset_path, "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", f"{content_type}; charset=utf-8")
+                    self.send_header("Content-Length", str(len(data)))
+                    self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+                except Exception:
+                    pass
 
         # 1. Favicon Handler
         if path == "/favicon.ico":
