@@ -9,7 +9,22 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+
+def resolve_safe_path(p_str: Union[str, Path, None]) -> Path:
+    """Safely resolves filesystem paths expanding ~ and normalizing cross-platform separators."""
+    if not p_str:
+        return Path.cwd().resolve()
+    s = str(p_str).strip()
+    s = s.replace('/', os.sep).replace('\\', os.sep)
+    expanded = os.path.expanduser(s)
+    if expanded.startswith('~'):
+        expanded = str(Path.home() / expanded.lstrip('~\\/'))
+    return Path(expanded).resolve()
+
 
 
 class UIMode(str, Enum):

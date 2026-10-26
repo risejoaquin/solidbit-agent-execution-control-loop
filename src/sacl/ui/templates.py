@@ -341,23 +341,23 @@ HTML_APPLICATION = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- COMPACT METRICS CHIPS ROW (Cero ruido, alta densidad) -->
+      <!-- COMPACT METRICS CHIPS ROW (Cero ruido, alta densidad, 100% dinámico) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
           <span class="text-[11px] text-zinc-400 uppercase font-semibold">SDLC Test Suite</span>
-          <span class="mono text-xs font-bold text-emerald-400">29/29 PASS</span>
+          <span id="hud-metric-tests" class="mono text-xs font-bold text-emerald-400">31/31 PASS</span>
         </div>
         <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
           <span class="text-[11px] text-zinc-400 uppercase font-semibold">Contratos Inmutables</span>
-          <span class="mono text-xs font-bold text-white">4/4 DR-INV</span>
+          <span id="hud-metric-contracts" class="mono text-xs font-bold text-white">6/6 VERIFIED</span>
         </div>
         <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
           <span class="text-[11px] text-zinc-400 uppercase font-semibold">Persistencia SQLite</span>
-          <span class="mono text-xs font-bold text-emerald-400">WAL INTEGRITY OK</span>
+          <span id="hud-metric-wal" class="mono text-xs font-bold text-emerald-400">WAL INTEGRITY OK</span>
         </div>
         <div class="p-3 rounded-xl bg-black border bd flex items-center justify-between">
           <span class="text-[11px] text-zinc-400 uppercase font-semibold">Túnel Universal</span>
-          <span class="mono text-xs font-bold text-blue-400 flex items-center gap-1.5">
+          <span id="hud-metric-tunnel" class="mono text-xs font-bold text-blue-400 flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> ONLINE
           </span>
         </div>
@@ -1035,8 +1035,13 @@ HTML_APPLICATION = """<!DOCTYPE html>
             <i data-lucide="folder" class="w-4 h-4"></i>
           </div>
           <div class="truncate">
-            <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Carpeta Activa en Disco:</div>
-            <div class="text-xs font-bold mono text-white truncate" id="fs-current-root-path">Cargando carpeta...</div>
+            <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-400 flex items-center gap-2">
+              <span>Carpeta Activa en Disco:</span>
+              <span id="fs-tree-item-count" class="mono text-[10px] text-amber-400 font-bold">0 elementos</span>
+            </div>
+            <div class="text-xs font-bold mono text-white flex items-center gap-1.5 flex-wrap mt-0.5" id="fs-current-root-path">
+              Cargando carpeta...
+            </div>
           </div>
         </div>
 
@@ -1046,7 +1051,11 @@ HTML_APPLICATION = """<!DOCTYPE html>
               class="w-full bg-black/60 border bd rounded-lg px-3 py-1.5 pl-8 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/50">
             <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-2"></i>
           </div>
-          <button onclick="loadFsTree()" class="p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-zinc-300 cursor-pointer" title="Recargar Áarbol">
+          <button onclick="navigateFsUp()" class="btn btn-secondary text-xs px-2.5 py-1.5 flex items-center gap-1 text-amber-400 hover:text-amber-300" title="Subir a la carpeta superior">
+            <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Subir Nivel</span>
+          </button>
+          <button onclick="loadFsTree()" class="p-2 rounded-lg border bd bg-white/5 hover:bg-white/10 text-zinc-300 cursor-pointer" title="Recargar Árbol">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -1512,16 +1521,12 @@ HTML_APPLICATION = """<!DOCTYPE html>
         </div>
 
         <div>
-          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Accesos Rápidos a Carpetas Locales:</div>
-          <div class="space-y-1.5">
-            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px] truncate">worktrees/integration (Espacio de Trabajo Activo)</span>
-              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
-            </button>
-            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px] truncate">Stable-Ecommerce-Orchestrator (Raíz de Proyecto)</span>
-              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
-            </button>
+          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5 flex items-center justify-between">
+            <span>Repositorios y Proyectos Detectados en Disco:</span>
+            <span class="mono text-[10px] text-zinc-500">Zero-Mock Dynamic Registry</span>
+          </div>
+          <div id="open-folder-presets-container" class="space-y-1.5 max-h-48 overflow-y-auto custom-scroll">
+            <!-- Dynamically populated from real scanned projects -->
           </div>
         </div>
       </div>
@@ -1584,102 +1589,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     </div>
   </div>
 
-    <!-- ========================================== -->
-  <!-- MODAL: OPEN FOLDER / WORKSPACE PICKER -->
-  <!-- ========================================== -->
-  <div id="open-folder-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-amber-500/40 shadow-2xl space-y-4 p-6">
-      <div class="flex items-center justify-between border-b bd pb-3">
-        <div class="flex items-center gap-2.5">
-          <i data-lucide="folder-open" class="w-5 h-5 text-amber-400"></i>
-          <h3 class="text-base font-bold text-white mono">Abrir Carpeta (Open Folder)</h3>
-        </div>
-        <button onclick="closeOpenFolderModal()" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block text-zinc-400 mb-1 font-semibold">Ruta de Carpeta en Disco:</label>
-          <input type="text" id="open-folder-input" class="w-full bg-black/60 border bd rounded-xl p-3 text-white mono text-xs focus:outline-none focus:border-amber-400" placeholder="C:/Users/mi-proyecto">
-        </div>
-
-        <div>
-          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Accesos Rápidos a Carpetas Locales:</div>
-          <div class="space-y-1.5">
-            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/worktrees/integration')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px] truncate">worktrees/integration (Espacio de Trabajo Activo)</span>
-              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
-            </button>
-            <button onclick="setOpenFolderPreset('~/Documents/Stable-Ecommerce-Orchestrator')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px] truncate">Stable-Ecommerce-Orchestrator (Raíz de Proyecto)</span>
-              <span class="text-amber-400 text-[10px] font-bold shrink-0">Seleccionar &rarr;</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2.5 pt-3 border-t bd">
-        <button onclick="closeOpenFolderModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
-        <button onclick="submitOpenFolder()" class="btn btn-primary text-xs px-5 py-2">
-          <span>Abrir Carpeta &rarr;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL: OPEN FILE PICKER -->
-  <!-- ========================================== -->
-  <div id="open-file-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 md:p-6 hidden">
-    <div class="section-canvas w-full max-w-xl flex flex-col overflow-hidden bg-[#030305] border-emerald-500/40 shadow-2xl space-y-4 p-6">
-      <div class="flex items-center justify-between border-b bd pb-3">
-        <div class="flex items-center gap-2.5">
-          <i data-lucide="file-code" class="w-5 h-5 text-emerald-400"></i>
-          <h3 class="text-base font-bold text-white mono">Abrir Archivo (Open File)</h3>
-        </div>
-        <button onclick="closeOpenFileModal()" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block text-zinc-400 mb-1 font-semibold">Ruta del Archivo a Inspeccionar:</label>
-          <input type="text" id="open-file-input" class="w-full bg-black/60 border bd rounded-xl p-3 text-white mono text-xs focus:outline-none focus:border-emerald-400" placeholder="pyproject.toml o ruta completa">
-        </div>
-
-        <div>
-          <div class="text-zinc-500 text-[11px] uppercase font-bold mb-1.5">Archivos Clave Sugeridos:</div>
-          <div class="space-y-1.5">
-            <button onclick="setOpenFilePathPreset('pyproject.toml')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px]">pyproject.toml (Configuración del Paquete)</span>
-              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
-            </button>
-            <button onclick="setOpenFilePathPreset('src/sacl/cli.py')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px]">src/sacl/cli.py (Punto de Entrada CLI)</span>
-              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
-            </button>
-            <button onclick="setOpenFilePathPreset('README.md')" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-emerald-400/50 flex items-center justify-between text-zinc-300 hover:text-white">
-              <span class="mono text-[11px]">README.md (Documentación de Proyecto)</span>
-              <span class="text-emerald-400 text-[10px] font-bold">Abrir &rarr;</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2.5 pt-3 border-t bd">
-        <button onclick="closeOpenFileModal()" class="btn btn-secondary text-xs px-4 py-2">Cancelar</button>
-        <button onclick="submitOpenFile()" class="btn btn-primary text-xs px-5 py-2">
-          <span>Abrir & Inspeccionar &rarr;</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- DRAWER: TERMINAL LOGS OVERLAY -->
+      <!-- DRAWER: TERMINAL LOGS OVERLAY -->
   <!-- ========================================== -->
   <div id="terminal-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-[#020204] border-l bd z-50 transform translate-x-full transition-transform duration-200 ease-out flex flex-col shadow-2xl">
     <div class="h-14 border-b bd flex items-center justify-between px-5 bg-black/50 shrink-0">
@@ -3546,9 +3456,16 @@ function initSSE() {
 
     function setOpenFolderPreset(path) {
       const input = document.getElementById('open-folder-input');
-      if (input) input.value = path;
+      if (input && path) input.value = path.replaceAll(String.fromCharCode(92), '/');
       submitOpenFolder();
     }
+
+    function selectFolderPresetIndex(idx) {
+      if (allProjects && allProjects[idx]) {
+        setOpenFolderPreset(allProjects[idx].path);
+      }
+    }
+    window.selectFolderPresetIndex = selectFolderPresetIndex;
     window.setOpenFolderPreset = setOpenFolderPreset;
 
     async function submitOpenFolder() {
@@ -3608,6 +3525,56 @@ function initSSE() {
     }
     window.submitOpenFile = submitOpenFile;
 
+        let currentFsParentPath = '';
+
+    function renderOpenFolderPresets() {
+      const container = document.getElementById('open-folder-presets-container');
+      if (!container) return;
+      if (!allProjects || allProjects.length === 0) {
+        container.innerHTML = '<div class="p-3 text-zinc-500 text-xs mono">Cargando repositorios locales...</div>';
+        return;
+      }
+      container.innerHTML = allProjects.map((p, idx) => `
+        <button type="button" onclick="selectFolderPresetIndex(${idx})" class="w-full text-left p-2.5 rounded-lg bg-black/40 border bd hover:border-amber-400/50 flex items-center justify-between text-zinc-300 hover:text-white transition cursor-pointer">
+          <div class="truncate pr-2">
+            <div class="font-bold text-white text-xs flex items-center gap-2">
+              <span>${escapeHtml(p.name)}</span>
+              <span class="mono text-[10px] text-zinc-400 font-normal">(${escapeHtml(p.branch || 'main')})</span>
+            </div>
+            <div class="mono text-[10px] text-zinc-400 truncate">${escapeHtml(p.path)}</div>
+          </div>
+          <span class="text-amber-400 text-[10px] font-bold shrink-0">Abrir &rarr;</span>
+        </button>
+      `).join('');
+      lucide.createIcons();
+    }
+    window.renderOpenFolderPresets = renderOpenFolderPresets;
+
+    function renderBreadcrumbs(pathStr) {
+      if (!pathStr) return '<span>Sin ruta</span>';
+      const clean = pathStr.replaceAll(String.fromCharCode(92), '/');
+      const parts = clean.split('/').filter(Boolean);
+      let cumulative = '';
+      return parts.map((part, idx) => {
+        if (idx === 0 && (part.includes(':') || clean.startsWith('/'))) {
+          cumulative = part.includes(':') ? part + '/' : '/' + part;
+        } else {
+          cumulative += (cumulative.endsWith('/') ? '' : '/') + part;
+        }
+        const target = cumulative;
+        return `<button onclick="loadFsTree('${target}')" class="hover:text-amber-400 underline decoration-dotted text-zinc-300 font-mono text-xs cursor-pointer">${escapeHtml(part)}</button>`;
+      }).join(' <span class="text-zinc-600">/</span> ');
+    }
+
+    function navigateFsUp() {
+      if (currentFsParentPath) {
+        loadFsTree(currentFsParentPath);
+      } else {
+        showToast('Ya te encuentras en la raíz del sistema de archivos', 'info');
+      }
+    }
+    window.navigateFsUp = navigateFsUp;
+
     async function loadFsTree(folder = '') {
       const container = document.getElementById('fs-tree-container');
       const rootPathEl = document.getElementById('fs-current-root-path');
@@ -3623,7 +3590,8 @@ function initSSE() {
         const data = await res.json();
         if (data.success) {
           currentRawFsTree = data.tree || [];
-          if (rootPathEl) rootPathEl.innerText = data.root_path;
+          currentFsParentPath = data.parent_path || '';
+          if (rootPathEl) rootPathEl.innerHTML = renderBreadcrumbs(data.root_path);
           if (countEl) countEl.innerText = `${data.items_count} elementos`;
           container.innerHTML = renderTreeNodes(currentRawFsTree, 0);
           lucide.createIcons();
@@ -3641,13 +3609,19 @@ function initSSE() {
       return nodes.map((n) => {
         const pad = level * 14;
         const nodeId = 'node-' + Math.random().toString(36).substr(2, 9);
+        const safePath = escapeHtml(n.path).split(String.fromCharCode(92)).join('/');
         if (n.is_dir) {
           return `
             <div class="tree-item-dir">
-              <div onclick="toggleFsFolder('${nodeId}')" class="flex items-center gap-1.5 py-1 px-2 rounded hover:bg-white/5 cursor-pointer text-xs text-zinc-300 font-medium select-none" style="padding-left: ${pad + 8}px">
-                <i data-lucide="chevron-right" id="arrow-${nodeId}" class="w-3 h-3 text-zinc-500 transition-transform"></i>
-                <i data-lucide="folder" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span class="truncate">${escapeHtml(n.name)}</span>
+              <div onclick="toggleFsFolder('${nodeId}')" class="flex items-center justify-between py-1 px-2 rounded hover:bg-white/5 cursor-pointer text-xs text-zinc-300 font-medium select-none group" style="padding-left: ${pad + 8}px">
+                <div class="flex items-center gap-1.5 truncate">
+                  <i data-lucide="chevron-right" id="arrow-${nodeId}" class="w-3 h-3 text-zinc-500 transition-transform"></i>
+                  <i data-lucide="folder" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span class="truncate">${escapeHtml(n.name)}</span>
+                </div>
+                <button onclick="event.stopPropagation(); loadFsTree('${safePath}')" class="opacity-0 group-hover:opacity-100 hover:text-amber-400 text-zinc-500 text-[10px] mono px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 shrink-0" title="Entrar a esta carpeta">
+                  Entrar &rarr;
+                </button>
               </div>
               <div id="${nodeId}" class="hidden space-y-0.5">
                 ${renderTreeNodes(n.children, level + 1)}

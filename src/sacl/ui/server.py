@@ -17,6 +17,7 @@ import urllib.parse
 
 from sacl.ui.service import UIService
 from sacl.ui.templates import HTML_APPLICATION
+from sacl.ui.models import resolve_safe_path
 
 logger = logging.getLogger("sacl.ui.server")
 
@@ -474,16 +475,18 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         # 12.1 REST API: File System Tree Explorer
         if path == "/api/fs/tree":
             folder_param = query.get("folder", [None])[0]
-            depth_param = int(query.get("depth", ["3"])[0])
-            target_folder = Path(folder_param).resolve() if folder_param else Path(self.service.workspace_root).resolve()
+            depth_param = int(query.get("depth", ["2"])[0])
+            target_folder = resolve_safe_path(folder_param) if folder_param else resolve_safe_path(self.service.workspace_root)
             if not target_folder.exists() or not target_folder.is_dir():
-                target_folder = Path(self.service.workspace_root).resolve()
+                target_folder = resolve_safe_path(self.service.workspace_root)
             
-            tree = _scan_fs_tree(target_folder, max_depth=min(depth_param, 4))
+            tree = _scan_fs_tree(target_folder, max_depth=min(depth_param, 3))
+            parent_dir = str(target_folder.parent) if target_folder.parent != target_folder else ""
             self._send_json(200, {
                 "success": True,
                 "root_path": str(target_folder),
                 "root_name": target_folder.name,
+                "parent_path": parent_dir,
                 "items_count": len(tree),
                 "tree": tree
             })
@@ -525,10 +528,15 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             if not file_param:
                 self._send_json(400, {"success": False, "error": "Missing 'path' parameter"})
                 return
-            p = Path(file_param).resolve()
+            p = resolve_safe_path(file_param)
             if not p.exists() or not p.is_file():
-                self._send_json(404, {"success": False, "error": f"Archivo no encontrado: {file_param}"})
-                return
+                # Check relative to workspace_root
+                p_rel = (resolve_safe_path(self.service.workspace_root) / file_param.lstrip("/\\")).resolve()
+                if p_rel.exists() and p_rel.is_file():
+                    p = p_rel
+                else:
+                    self._send_json(404, {"success": False, "error": f"Archivo no encontrado: {file_param}"})
+                    return
             try:
                 content = p.read_text(encoding="utf-8", errors="replace")[:250000]
                 lines = content.splitlines()
@@ -699,20 +707,28 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # 6b. REST API: Open Specific Folder on Disk
         if path == "/api/fs/open-folder":
-            folder_str = body.get("folder", "")
+            folder_str = body.get("folder") or body.get("path") or ""
             if not folder_str:
-                self._send_json(400, {"success": False, "error": "Falta el parámetro 'folder'"})
+                self._send_json(400, {"success": False, "error": "Falta el parámetro 'folder' o 'path'"})
                 return
-            p = Path(folder_str).resolve()
+            p = resolve_safe_path(folder_str)
             if not p.exists() or not p.is_dir():
-                self._send_json(404, {"success": False, "error": f"La carpeta no existe en disco: {folder_str}"})
-                return
+                # Check if matches any scanned project
+                matched = next((resolve_safe_path(proj["path"]) for proj in self.service.projects.list_projects() if proj["name"].lower() == folder_str.lower() or proj["id"] == folder_str.lower()), None)
+                if matched and matched.exists() and matched.is_dir():
+                    p = matched
+                else:
+                    self._send_json(404, {"success": False, "error": f"La carpeta no existe en disco: {folder_str}"})
+                    return
             self.service.workspace_root = p
-            tree = _scan_fs_tree(p, max_depth=3)
+            self.service.projects.switch_project(str(p))
+            tree = _scan_fs_tree(p, max_depth=2)
+            parent_dir = str(p.parent) if p.parent != p else ""
             self._send_json(200, {
                 "success": True,
                 "root_path": str(p),
                 "root_name": p.name,
+                "parent_path": parent_dir,
                 "items_count": len(tree),
                 "tree": tree
             })
