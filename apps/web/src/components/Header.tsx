@@ -10,6 +10,7 @@ import {
   Save,
   X,
   Key,
+  Menu,
 } from 'lucide-react'
 import type { NotificationItem } from '../types/orchestrator'
 
@@ -17,12 +18,14 @@ interface HeaderProps {
   projectName: string
   onOpenSprintModal: () => void
   onNavigateSection: (section: string) => void
+  onToggleMobileMenu?: () => void
 }
 
 export const Header: React.FC<HeaderProps> = ({
   projectName,
   onOpenSprintModal,
   onNavigateSection,
+  onToggleMobileMenu,
 }) => {
   const [clock, setClock] = useState<string>('')
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
@@ -182,9 +185,20 @@ export const Header: React.FC<HeaderProps> = ({
     .toUpperCase() || 'JV'
 
   return (
-    <header className="h-16 border-b border-[#1b2533] bg-[#0c121a]/95 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
-      {/* Left: Logo + Title + Project Subtitle */}
-      <div className="flex items-center gap-3">
+    <header className="h-16 border-b border-[#1b2533] bg-[#0c121a]/95 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
+      {/* Left: Mobile Toggle + Logo + Title + Project Subtitle */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {onToggleMobileMenu && (
+          <button
+            type="button"
+            id="btn-mobile-menu-toggle"
+            onClick={onToggleMobileMenu}
+            className="md:hidden w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition shrink-0 cursor-pointer"
+            title="Abrir menú de navegación"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        )}
         <div
           onClick={() => onNavigateSection('dashboard')}
           className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 cursor-pointer hover:bg-emerald-500/20 transition"
@@ -202,15 +216,15 @@ export const Header: React.FC<HeaderProps> = ({
           </svg>
         </div>
         <div>
-          <div className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+          <div className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
             <span>SolidBit SACL</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-semibold">
+            <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-semibold">
               VITE REACT 19
             </span>
           </div>
           <div
             id="header-project-subtitle"
-            className="text-[11px] text-zinc-400 font-medium truncate max-w-[180px] sm:max-w-xs"
+            className="text-[10px] sm:text-[11px] text-zinc-400 font-medium truncate max-w-[130px] sm:max-w-xs"
           >
             {projectName || 'Stable-Ecommerce'} Orchestrator
           </div>
@@ -258,7 +272,7 @@ export const Header: React.FC<HeaderProps> = ({
           {showNotifications && (
             <div
               id="notifications-popover-content"
-              className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left"
+              className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 md:w-96 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left"
             >
               <div className="flex items-center justify-between border-b border-[#1b2533] pb-2">
                 <div className="flex items-center gap-2">
@@ -346,7 +360,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Edit Profile Popover */}
           {showProfileModal && (
-            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left">
+            <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left">
               <div className="flex items-center justify-between border-b border-[#1b2533] pb-2">
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-400" />
@@ -416,15 +430,16 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Prominent Action CTA: + Diseñar Sprint & Jira */}
+        {/* Prominent Action CTA: + Diseñar Sprint & Jira (Icon on mobile, Full on sm+) */}
         <button
           type="button"
           onClick={onOpenSprintModal}
           id="btn-design-sprint-cta"
-          className="px-3.5 sm:px-4 py-2 rounded-xl bg-[#00d084] hover:bg-[#00b875] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 transition shadow-[0_0_20px_rgba(0,208,132,0.25)] cursor-pointer shrink-0"
+          className="p-2 sm:px-4 sm:py-2 rounded-xl bg-[#00d084] hover:bg-[#00b875] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 transition shadow-[0_0_20px_rgba(0,208,132,0.25)] cursor-pointer shrink-0"
+          title="Diseñar Sprint & Jira"
         >
           <span className="text-sm font-extrabold leading-none">+</span>
-          <span>Diseñar Sprint & Jira</span>
+          <span className="hidden sm:inline">Diseñar Sprint & Jira</span>
         </button>
       </div>
     </header>

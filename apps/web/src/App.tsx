@@ -3,6 +3,8 @@ import { Header } from './components/Header'
 import { LeftSidebar } from './components/LeftSidebar'
 import { CenterDashboard } from './components/CenterDashboard'
 import { RightSidebar } from './components/RightSidebar'
+import { MobileDrawer } from './components/MobileDrawer'
+import { MobileBottomNav } from './components/MobileBottomNav'
 import { SprintDesignerModal } from './components/SprintDesignerModal'
 import { ChatSection } from './components/sections/ChatSection'
 import { RoadmapSection } from './components/sections/RoadmapSection'
@@ -16,6 +18,7 @@ import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './
 export default function App() {
   const [currentSection, setCurrentSection] = useState<string>('dashboard')
   const [isSprintModalOpen, setIsSprintModalOpen] = useState<boolean>(false)
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false)
   const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
 
   // Dynamic state loaded strictly from backend APIs (Zero mocks, Zero hardcoding)
@@ -113,17 +116,18 @@ export default function App() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#080c10] text-zinc-100 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#080c10] text-zinc-100 font-sans overflow-hidden">
       {/* Top Header */}
       <Header
         projectName={projectName}
         onOpenSprintModal={() => setIsSprintModalOpen(true)}
         onNavigateSection={(sec) => setCurrentSection(sec)}
+        onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
       />
 
-      {/* Main 3-Column Layout */}
-      <div className="flex flex-1 overflow-hidden bg-[#080c10]">
-        {/* Left Sidebar */}
+      {/* Main Layout */}
+      <div className="flex flex-1 overflow-hidden bg-[#080c10] relative">
+        {/* Left Sidebar (Desktop / Tablet) */}
         <LeftSidebar
           currentSection={currentSection}
           onSelectSection={(sec) => setCurrentSection(sec)}
@@ -132,7 +136,7 @@ export default function App() {
         />
 
         {/* Center Main Viewport */}
-        <main className="flex-1 overflow-y-auto custom-scroll p-4 lg:p-6 space-y-6">
+        <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-6">
           {currentSection === 'dashboard' && (
             <CenterDashboard
               tasks={tasks}
@@ -177,7 +181,7 @@ export default function App() {
           )}
         </main>
 
-        {/* Right Sidebar */}
+        {/* Right Sidebar (Wide screens only) */}
         <RightSidebar
           agents={agents}
           events={events}
@@ -186,6 +190,25 @@ export default function App() {
           onNavigateSection={(sec) => setCurrentSection(sec)}
         />
       </div>
+
+      {/* Mobile Slide-Over Navigation Drawer */}
+      <MobileDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        currentSection={currentSection}
+        onSelectSection={(sec) => setCurrentSection(sec)}
+        onOpenSprintModal={() => setIsSprintModalOpen(true)}
+        projectName={projectName}
+        dbStats={dbStats}
+      />
+
+      {/* Mobile Bottom Navigation Bar (Fixed on phones) */}
+      <MobileBottomNav
+        currentSection={currentSection}
+        onSelectSection={(sec) => setCurrentSection(sec)}
+        onOpenDrawer={() => setIsMobileDrawerOpen(true)}
+        hasPendingGate={true}
+      />
 
       {/* Sprint Designer Modal */}
       <SprintDesignerModal

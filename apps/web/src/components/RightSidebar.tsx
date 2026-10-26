@@ -54,7 +54,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   return (
     <aside
       id="dashboard-right-sidebar"
-      className="w-72 lg:w-80 border-l border-[#161f2c] bg-[#0c121a] overflow-y-auto custom-scroll p-4 space-y-5 shrink-0 hidden md:block select-none"
+      className="w-72 lg:w-80 border-l border-[#161f2c] bg-[#0c121a] overflow-y-auto custom-scroll p-4 space-y-5 shrink-0 hidden xl:block select-none"
     >
       {/* Card 1: Agentes */}
       <div className="space-y-3">

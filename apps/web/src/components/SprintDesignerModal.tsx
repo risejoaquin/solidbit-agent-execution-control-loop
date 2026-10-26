@@ -153,26 +153,26 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0e141d] border border-[#1b2533] rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2.5 sm:p-4">
+      <div className="bg-[#0e141d] border border-[#1b2533] rounded-2xl sm:rounded-3xl max-w-4xl w-full p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-2xl max-h-[94dvh] sm:max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#1b2533] pb-4 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3 sm:pb-4 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">
+              <h2 className="text-sm sm:text-base font-bold text-white leading-tight">
                 Diseñador de Sprints & Síntesis Topológica de Kahn
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-[11px] sm:text-xs text-zinc-400 line-clamp-1 sm:line-clamp-none">
                 Gobernanza SolidBit: Creación inmutable de trabajo, particionado en oleadas y compuerta HMAC
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition"
+            className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition shrink-0"
           >
             <X className="w-4 h-4" />
           </button>

@@ -44,7 +44,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   ]
 
   return (
-    <aside className="w-56 lg:w-60 border-r border-[#161f2c] bg-[#0c121a] flex flex-col justify-between shrink-0 p-3 select-none">
+    <aside className="hidden md:flex w-56 lg:w-60 border-r border-[#161f2c] bg-[#0c121a] flex-col justify-between shrink-0 p-3 select-none">
       {/* Navigation Links */}
       <nav className="space-y-1">
         {navItems.map((item) => {

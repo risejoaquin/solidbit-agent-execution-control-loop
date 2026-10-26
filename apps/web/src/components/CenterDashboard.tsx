@@ -351,14 +351,14 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                   key={task.id}
                   className="p-3 rounded-xl bg-[#090e16] border border-[#1b2533] space-y-2 hover:border-zinc-700 transition"
                 >
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-emerald-400 text-[11px] font-bold">
+                      <span className="font-mono text-emerald-400 text-[11px] font-bold shrink-0">
                         {task.key}
                       </span>
                       <span className="font-bold text-white">{task.title}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-400">
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-[11px] font-mono text-zinc-400">
                       <span className="px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300">
                         {task.agent}
                       </span>
