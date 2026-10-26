@@ -6,6 +6,8 @@ import { RightSidebar } from './components/RightSidebar'
 import { MobileDrawer } from './components/MobileDrawer'
 import { MobileBottomNav } from './components/MobileBottomNav'
 import { SprintDesignerModal } from './components/SprintDesignerModal'
+import { Breadcrumbs } from './components/Breadcrumbs'
+import { NetworkStatusBanner } from './components/NetworkStatusBanner'
 import { ChatSection } from './components/sections/ChatSection'
 import { RoadmapSection } from './components/sections/RoadmapSection'
 import { AgentsSection } from './components/sections/AgentsSection'
@@ -47,7 +49,7 @@ export default function App() {
           start: '24 Oct',
           end: '07 Nov',
           progress: t.status === 'COMPLETED' ? 100 : (t.status === 'IN_PROGRESS' ? 65 : 20),
-          status: t.status === 'COMPLETED' ? 'Completada' : (t.status === 'IN_PROGRESS' ? 'En progreso' : 'Pendiente'),
+          status: t.status === 'COMPLETED' ? 'Completada' : (t.status === 'En progreso' ? 'En progreso' : 'Pendiente'),
         }))
         setTasks(dynamicTasks)
       }
@@ -115,6 +117,31 @@ export default function App() {
     }
   }, [])
 
+  const getBreadcrumbs = () => {
+    switch (currentSection) {
+      case 'chat':
+        return [{ label: 'Chat de Inferencia IA (AGY)', sectionId: 'chat' }]
+      case 'designer':
+      case 'roadmap':
+        return [{ label: 'Roadmap & DAG Topológico', sectionId: 'roadmap' }]
+      case 'agents':
+        return [{ label: 'Flota de Agentes & Procesos OS', sectionId: 'agents' }]
+      case 'gates':
+      case 'executions':
+        return [{ label: 'Compuertas Soberanas & Ejecuciones', sectionId: 'executions' }]
+      case 'projects':
+        return [{ label: 'Ecosistema de Proyectos & Worktrees', sectionId: 'projects' }]
+      case 'database':
+      case 'reports':
+        return [{ label: 'Inspector SQLite WAL & Telemetría', sectionId: 'database' }]
+      case 'github':
+      case 'settings':
+        return [{ label: 'Configuración & GitHub Hub', sectionId: 'github' }]
+      default:
+        return [{ label: 'Panel de Control Principal' }]
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#080c10] text-zinc-100 font-sans overflow-hidden">
       {/* Top Header */}
@@ -124,6 +151,9 @@ export default function App() {
         onNavigateSection={(sec) => setCurrentSection(sec)}
         onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
       />
+
+      {/* Network Offline / Reconnection Banner */}
+      <NetworkStatusBanner onRetry={loadData} />
 
       {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden bg-[#080c10] relative">
@@ -136,7 +166,12 @@ export default function App() {
         />
 
         {/* Center Main Viewport */}
-        <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-6">
+        <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
+          {/* Contextual Breadcrumbs */}
+          <div className="border-b border-[#1b2533]/50 pb-2">
+            <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
+          </div>
+
           {currentSection === 'dashboard' && (
             <CenterDashboard
               tasks={tasks}
