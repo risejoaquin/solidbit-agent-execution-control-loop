@@ -44,6 +44,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Inicio', icon: Home, action: () => onSelectSection('dashboard') },
     { id: 'chat', label: 'Chat IA (AGY)', icon: MessageSquare, action: () => onSelectSection('chat'), highlight: true },
+    { id: 'workflows', label: 'Workflows & Skills (AGY)', icon: Layers, action: () => onSelectSection('workflows') },
     { id: 'designer', label: 'Roadmap & DAG', icon: GitBranch, action: () => onSelectSection('designer') },
     { id: 'agents', label: 'Flota de Agentes', icon: Bot, action: () => onSelectSection('agents') },
     { id: 'gates', label: 'Ejecuciones & HITL', icon: PlayCircle, action: () => onSelectSection('gates') },

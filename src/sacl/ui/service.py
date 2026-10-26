@@ -35,6 +35,7 @@ from sacl.ui.modules.chat import ChatModule
 from sacl.ui.modules.connections import ConnectionsModule
 from sacl.ui.modules.contracts import ContractsModule
 from sacl.ui.modules.db_inspector import DBInspectorModule
+from sacl.ui.modules.diff import GitDiffModule
 from sacl.ui.modules.email_gateway import EmailGatewayModule
 from sacl.ui.modules.evidence import EvidenceModule
 from sacl.ui.modules.gates import GatesModule
@@ -43,7 +44,10 @@ from sacl.ui.modules.orchestrator import OrchestratorModule
 from sacl.ui.modules.projects import ProjectsModule
 from sacl.ui.modules.recovery import RecoveryModule
 from sacl.ui.modules.roadmap import RoadmapModule
+from sacl.ui.modules.slash_commands import SlashCommandRegistry
+from sacl.ui.modules.subagents_manager import SubagentsManager
 from sacl.ui.modules.telemetry import TelemetryModule
+from sacl.engine.workflow_engine import WorkflowEngine
 
 logger = logging.getLogger("sacl.ui.service")
 
@@ -99,6 +103,10 @@ class UIService:
         self.campaign_designer = CampaignDesignerModule(self.workspace_root)
         self.orchestrator = OrchestratorModule(self, workspace_root=self.workspace_root)
         self.actions = ActionExecutionModule(self, workspace_root=self.workspace_root)
+        self.workflow_engine = WorkflowEngine(self.workspace_root, db_path=self.db_path)
+        self.diff = GitDiffModule(self.workspace_root)
+        self.slash_registry = SlashCommandRegistry(self.workspace_root, self.workflow_engine)
+        self.subagents = SubagentsManager(self.workspace_root)
         self.chat = ChatModule(self)
         self.email_gateway = EmailGatewayModule(
             sender_email="lucilfer@selfcaresinners.com",

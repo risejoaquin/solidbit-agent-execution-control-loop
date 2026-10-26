@@ -35,6 +35,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Inicio', icon: Home, action: () => onSelectSection('dashboard') },
     { id: 'chat', label: 'Chat IA (AGY)', icon: MessageSquare, action: () => onSelectSection('chat'), highlight: true },
+    { id: 'workflows', label: 'Workflows & Skills', icon: Layers, action: () => onSelectSection('workflows') },
     { id: 'designer', label: 'Roadmap', icon: GitBranch, action: () => onSelectSection('designer') },
     { id: 'agents', label: 'Agentes', icon: Bot, action: () => onSelectSection('agents') },
     { id: 'gates', label: 'Ejecuciones', icon: PlayCircle, action: () => onSelectSection('gates') },

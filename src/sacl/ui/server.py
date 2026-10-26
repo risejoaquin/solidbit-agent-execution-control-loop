@@ -732,6 +732,53 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, self.service.orchestrator.check_jira_status())
             return
 
+        # Antigravity Skills & Workflows Endpoints
+        if path == "/api/skills":
+            self._send_json(200, {"success": True, "skills": self.service.workflow_engine.discover_skills()})
+            return
+
+        if path == "/api/skills/details":
+            skill_id = query.get("id", [None])[0] or query.get("skill_id", [None])[0]
+            if not skill_id:
+                self._send_json(400, {"success": False, "error": "Falta parámetro 'id'"})
+                return
+            details = self.service.workflow_engine.get_skill_details(skill_id)
+            if details:
+                self._send_json(200, {"success": True, "skill": details})
+            else:
+                self._send_json(404, {"success": False, "error": f"Skill '{skill_id}' no encontrado"})
+            return
+
+        # Git Working Tree & Visual Diff Endpoints
+        if path == "/api/git/status":
+            self._send_json(200, self.service.diff.get_status())
+            return
+
+        if path == "/api/git/diff":
+            target_file = query.get("file", [None])[0] or query.get("path", [None])[0]
+            self._send_json(200, self.service.diff.get_unified_diff(target_file))
+            return
+
+        # Slash Commands & Mentions Registry
+        if path == "/api/commands/registry":
+            self._send_json(200, {"success": True, "commands": self.service.slash_registry.get_all_commands()})
+            return
+
+        if path == "/api/commands/mentions":
+            self._send_json(200, {"success": True, "mentions": self.service.slash_registry.get_mention_suggestions()})
+            return
+
+        # Subagents & Background Tasks Management
+        if path == "/api/subagents/list":
+            self._send_json(200, self.service.subagents.list_subagents_and_tasks())
+            return
+
+        if path == "/api/subagents/logs":
+            task_id = query.get("id", [None])[0] or query.get("task_id", [None])[0]
+            tail = int(query.get("tail", ["50"])[0])
+            self._send_json(200, self.service.subagents.get_task_logs(task_id, tail_lines=tail))
+            return
+
         # 404
         self._send_json(404, {"error": "Not Found", "path": path})
 
@@ -1174,6 +1221,41 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 justification=justification,
             )
             broadcast_sse("changes_applied", res)
+            self._send_json(200, res)
+            return
+
+        # 22. Skills: Execute Skill Workflow
+        if path == "/api/skills/execute":
+            skill_id = body.get("skill_id") or body.get("id")
+            if not skill_id:
+                self._send_json(400, {"success": False, "error": "Falta parámetro 'skill_id'"})
+                return
+            params = body.get("params", {})
+            operator = _operator_profile.get("name", "risejoaquin / LUCILFER")
+            res = self.service.workflow_engine.execute_skill(skill_id, params, operator=operator)
+            broadcast_sse("workflow_executed", res)
+            self._send_json(200 if res.get("success") else 400, res)
+            return
+
+        # 23. Git: Revert File
+        if path == "/api/git/revert":
+            file_path = body.get("file_path") or body.get("path")
+            if not file_path:
+                self._send_json(400, {"success": False, "error": "Falta parámetro 'file_path'"})
+                return
+            res = self.service.diff.revert_file(file_path)
+            broadcast_sse("git_reverted", {"file": file_path, "res": res})
+            self._send_json(200 if res.get("success") else 400, res)
+            return
+
+        # 24. Subagents: Kill Task / Subagent
+        if path == "/api/subagents/kill":
+            task_id = body.get("task_id") or body.get("id")
+            if not task_id:
+                self._send_json(400, {"success": False, "error": "Falta parámetro 'task_id'"})
+                return
+            res = self.service.subagents.kill_task(task_id)
+            broadcast_sse("subagent_killed", {"task_id": task_id})
             self._send_json(200, res)
             return
 

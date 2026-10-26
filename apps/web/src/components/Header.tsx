@@ -11,6 +11,7 @@ import {
   X,
   Key,
   Menu,
+  GitBranch,
 } from 'lucide-react'
 import type { NotificationItem } from '../types/orchestrator'
 
@@ -19,6 +20,7 @@ interface HeaderProps {
   onOpenSprintModal: () => void
   onNavigateSection: (section: string) => void
   onToggleMobileMenu?: () => void
+  onOpenDiffModal?: () => void
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSprintModal,
   onNavigateSection,
   onToggleMobileMenu,
+  onOpenDiffModal,
 }) => {
   const [clock, setClock] = useState<string>('')
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
@@ -240,6 +243,20 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>{clock || 'Cargando reloj...'}</span>
         </div>
+
+        {/* Git Diffs Quick Inspector Trigger */}
+        {onOpenDiffModal && (
+          <button
+            type="button"
+            id="btn-header-diff-inspector"
+            onClick={onOpenDiffModal}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
+            title="Inspeccionar diffs Git en worktree"
+          >
+            <GitBranch className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Diffs</span>
+          </button>
+        )}
 
         {/* Notifications Popover */}
         <div className="relative" ref={popoverRef}>

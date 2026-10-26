@@ -9,7 +9,14 @@ import {
   Loader2,
   Terminal,
   Activity,
+  GitBranch,
+  Sparkles,
+  AtSign,
 } from 'lucide-react'
+import { SlashCommandMenu, type SlashCommandItem } from '../SlashCommandMenu'
+import { MentionPicker, type MentionItem } from '../MentionPicker'
+import { ToolCallCard, type ToolCallData } from '../ToolCallCard'
+import { DiffInspectorModal } from '../DiffInspectorModal'
 
 interface BackendChatMessage {
   id: string
@@ -17,6 +24,7 @@ interface BackendChatMessage {
   content: string
   timestamp?: string
   action_data?: any
+  tool_calls?: ToolCallData[]
 }
 
 export const ChatSection: React.FC = () => {
@@ -24,7 +32,20 @@ export const ChatSection: React.FC = () => {
   const [inputText, setInputText] = useState('')
   const [loading, setLoading] = useState(false)
   const [operatorName, setOperatorName] = useState('Joaquin Vallejo')
+
+  // Slash commands and mentions state
+  const [commandsRegistry, setCommandsRegistry] = useState<SlashCommandItem[]>([])
+  const [showSlashMenu, setShowSlashMenu] = useState(false)
+  const [showMentionPicker, setShowMentionPicker] = useState(false)
+  const [slashQuery, setSlashQuery] = useState('')
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [selectedSlashIdx, setSelectedSlashIdx] = useState(0)
+
+  // Diff Inspector Modal state
+  const [isDiffModalOpen, setIsDiffModalOpen] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -34,7 +55,7 @@ export const ChatSection: React.FC = () => {
     scrollToBottom()
   }, [messages, loading])
 
-  // Load real chat history and operator profile from backend
+  // Load chat history, profile, and command registry from backend
   const loadChat = async () => {
     try {
       const res = await fetch('/api/chat/history')
@@ -50,6 +71,14 @@ export const ChatSection: React.FC = () => {
       const pRes = await fetch('/api/settings/profile')
       const pData = await pRes.json()
       if (pData.profile?.name) setOperatorName(pData.profile.name)
+    } catch {}
+
+    try {
+      const cmdRes = await fetch('/api/commands/registry')
+      const cmdData = await cmdRes.json()
+      if (cmdData.commands) {
+        setCommandsRegistry(cmdData.commands)
+      }
     } catch {}
   }
 
@@ -74,9 +103,56 @@ export const ChatSection: React.FC = () => {
     } catch {}
   }, [])
 
+  const handleInputChange = (val: string) => {
+    setInputText(val)
+
+    // Check for slash command trigger
+    if (val.startsWith('/')) {
+      setShowSlashMenu(true)
+      setShowMentionPicker(false)
+      setSlashQuery(val)
+      return
+    }
+
+    // Check for @mention trigger (last token)
+    const tokens = val.split(' ')
+    const lastToken = tokens[tokens.length - 1]
+    if (lastToken.startsWith('@')) {
+      setShowMentionPicker(true)
+      setShowSlashMenu(false)
+      setMentionQuery(lastToken)
+      return
+    }
+
+    setShowSlashMenu(false)
+    setShowMentionPicker(false)
+  }
+
+  const handleSelectSlashCommand = (cmd: SlashCommandItem) => {
+    setInputText(cmd.command + (cmd.requires_arg ? ' ' : ''))
+    setShowSlashMenu(false)
+    inputRef.current?.focus()
+  }
+
+  const handleSelectMention = (item: MentionItem) => {
+    const tokens = inputText.split(' ')
+    tokens[tokens.length - 1] = `@${item.id} `
+    setInputText(tokens.join(' '))
+    setShowMentionPicker(false)
+    inputRef.current?.focus()
+  }
+
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputText).trim()
     if (!text || loading) return
+
+    setShowSlashMenu(false)
+    setShowMentionPicker(false)
+
+    // Local intercept for opening diff modal directly
+    if (text === '/diff') {
+      setIsDiffModalOpen(true)
+    }
 
     const tempUserMsg: BackendChatMessage = {
       id: `usr-${Date.now()}`,
@@ -98,7 +174,6 @@ export const ChatSection: React.FC = () => {
       const data = await res.json()
       if (data.success && data.assistant_message) {
         setMessages((prev) => {
-          // Replace temp with server version if needed, or append
           const filtered = prev.filter((m) => m.id !== tempUserMsg.id)
           return [...filtered, data.user_message || tempUserMsg, data.assistant_message]
         })
@@ -131,18 +206,19 @@ export const ChatSection: React.FC = () => {
   }
 
   const slashShortcuts = [
-    { label: '/sprint', prompt: 'lanzar campaña sprint SACL con contratos DR-INV-001 y DR-PAY-001' },
-    { label: '/compuertas', prompt: 'revisar compuertas pendientes de aprobación HITL' },
-    { label: '/contratos', prompt: 'auditar estado de los 6 contratos inmutables de SolidBit' },
-    { label: '/status', prompt: 'mostrar estado general del runtime, base de datos SQLite y worktrees' },
+    { label: '/plan', prompt: '/plan Planificar oleadas del sprint' },
+    { label: '/audit', prompt: '/audit' },
+    { label: '/diff', prompt: '/diff' },
+    { label: '/goal', prompt: '/goal Completar verificación de contratos' },
+    { label: '/schedule', prompt: '/schedule */15 * * * *' },
   ]
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8.5rem)] rounded-3xl bg-[#0e141d] border border-[#1b2533] overflow-hidden shadow-2xl">
-      {/* Top Header */}
-      <div className="flex items-center justify-between px-6 py-4 bg-[#0a0f16] border-b border-[#1b2533]">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto rounded-3xl bg-[#0c121a] border border-[#1b2533] shadow-2xl overflow-hidden animate-fade-in">
+      {/* Top Bar */}
+      <div className="px-6 py-4 border-b border-[#1b2533] bg-[#090e16] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-9 h-9 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
             <Bot className="w-5 h-5" />
           </div>
           <div>
@@ -152,16 +228,24 @@ export const ChatSection: React.FC = () => {
               </h2>
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                BACKEND CONECTADO
+                ANTIGRAVITY MOTOR ACTIVO
               </span>
             </div>
             <p className="text-xs text-zinc-400">
-              Conexión directa con ChatModule (/api/chat/message) y runtime local de Antigravity
+              Soporte nativo de Slash Commands (<code className="text-emerald-400 font-mono">/</code>), Menciones (<code className="text-purple-400 font-mono">@</code>), y Tool Calls colapsables.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsDiffModalOpen(true)}
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:border-emerald-500/40 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+            title="Abrir inspector de diffs"
+          >
+            <GitBranch className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Inspector Diff</span>
+          </button>
           <button
             onClick={handleClearHistory}
             className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
@@ -174,10 +258,10 @@ export const ChatSection: React.FC = () => {
       </div>
 
       {/* Quick operational prompts */}
-      <div className="flex items-center gap-2 px-6 py-2.5 bg-[#090d13] border-b border-[#1b2533]/60 overflow-x-auto text-xs">
+      <div className="flex items-center gap-2 px-6 py-2 bg-[#090d13] border-b border-[#1b2533]/60 overflow-x-auto text-xs">
         <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
           <Terminal className="w-3.5 h-3.5 text-emerald-400" />
-          Comandos Operacionales:
+          Comandos Rápidos:
         </span>
         {slashShortcuts.map((sc) => (
           <button
@@ -212,7 +296,7 @@ export const ChatSection: React.FC = () => {
 
               {/* Message Content */}
               <div
-                className={`flex flex-col gap-1 rounded-2xl p-4 text-xs leading-relaxed ${
+                className={`flex flex-col gap-1 rounded-2xl p-4 text-xs leading-relaxed max-w-2xl ${
                   isUser
                     ? 'bg-blue-600/15 border border-blue-500/30 text-blue-50'
                     : 'bg-[#090e16] border border-[#1b2533] text-zinc-200 shadow-md'
@@ -236,21 +320,29 @@ export const ChatSection: React.FC = () => {
 
                 <div className="whitespace-pre-wrap font-sans text-xs">{msg.content}</div>
 
-                {/* Real Action Payload if returned by backend */}
-                {msg.action_data && (
-                  <div className="mt-3 p-3 rounded-xl bg-black/60 border border-emerald-500/30 space-y-1.5 font-mono text-[11px]">
-                    <div className="flex items-center justify-between text-emerald-400 font-bold">
-                      <span className="flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Acción Operacional Ejecutada
-                      </span>
-                      <span>{msg.action_data.execution_id || msg.action_data.status}</span>
+                {/* Tool Calls Collapsible Step Cards */}
+                {msg.tool_calls && msg.tool_calls.length > 0 && (
+                  <div className="mt-3 pt-2 border-t border-white/5 space-y-1">
+                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                      Llamadas de Herramientas ({msg.tool_calls.length}):
                     </div>
-                    {msg.action_data.deliverables && (
-                      <div className="text-[10px] text-zinc-400">
-                        {msg.action_data.deliverables.length} entregables físicos generados en disco.
-                      </div>
-                    )}
+                    {msg.tool_calls.map((tc, idx) => (
+                      <ToolCallCard key={idx} toolCall={tc} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Action feedback button if applicable */}
+                {msg.action_data?.type === 'OPEN_DIFF' && (
+                  <div className="mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsDiffModalOpen(true)}
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-mono text-xs font-bold flex items-center gap-2 transition cursor-pointer"
+                    >
+                      <GitBranch className="w-3.5 h-3.5" />
+                      <span>Abrir Diff Inspector en Pantalla Completa</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -265,7 +357,7 @@ export const ChatSection: React.FC = () => {
             </div>
             <div className="p-4 rounded-2xl bg-[#090e16] border border-[#1b2533] text-zinc-400 text-xs flex items-center gap-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-              <span>Procesando solicitud en el backend SACL y runtime AGY...</span>
+              <span>Procesando instrucción y ejecutando herramientas en runtime AGY...</span>
             </div>
           </div>
         )}
@@ -273,8 +365,28 @@ export const ChatSection: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar */}
-      <div className="p-4 bg-[#0a0f16] border-t border-[#1b2533]">
+      {/* Input bar with floating menus */}
+      <div className="p-4 bg-[#0a0f16] border-t border-[#1b2533] relative">
+        {/* Floating Slash Command Menu */}
+        {showSlashMenu && (
+          <SlashCommandMenu
+            commands={commandsRegistry}
+            query={slashQuery}
+            selectedIndex={selectedSlashIdx}
+            onSelect={handleSelectSlashCommand}
+            onClose={() => setShowSlashMenu(false)}
+          />
+        )}
+
+        {/* Floating Mention Picker */}
+        {showMentionPicker && (
+          <MentionPicker
+            query={mentionQuery}
+            onSelect={handleSelectMention}
+            onClose={() => setShowMentionPicker(false)}
+          />
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -284,12 +396,24 @@ export const ChatSection: React.FC = () => {
         >
           <div className="relative flex-1">
             <input
+              ref={inputRef}
               type="text"
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Escribe una orden o comando (e.g. 'auditar contratos', 'lanzar campaña sprint')..."
+              onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (showSlashMenu) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    setSelectedSlashIdx((prev) => prev + 1)
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault()
+                    setSelectedSlashIdx((prev) => Math.max(0, prev - 1))
+                  }
+                }
+              }}
+              placeholder="Escribe '/' para comandos de Antigravity o '@' para adjuntar contratos, archivos o tickets..."
               disabled={loading}
-              className="w-full bg-[#080c10] border border-[#1b2533] rounded-2xl px-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 transition"
+              className="w-full bg-[#080c10] border border-[#1b2533] rounded-2xl px-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/30 font-mono transition"
             />
           </div>
 
@@ -303,6 +427,12 @@ export const ChatSection: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {/* Fullscreen Diff Inspector Modal */}
+      <DiffInspectorModal
+        isOpen={isDiffModalOpen}
+        onClose={() => setIsDiffModalOpen(false)}
+      />
     </div>
   )
 }

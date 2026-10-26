@@ -15,6 +15,8 @@ import { ExecutionsSection } from './components/sections/ExecutionsSection'
 import { ProjectsSection } from './components/sections/ProjectsSection'
 import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
+import { WorkflowsSection } from './components/sections/WorkflowsSection'
+import { DiffInspectorModal } from './components/DiffInspectorModal'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
 
@@ -22,6 +24,7 @@ export default function App() {
   const [currentSection, setCurrentSection] = useState<string>('dashboard')
   const [isSprintModalOpen, setIsSprintModalOpen] = useState<boolean>(false)
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false)
+  const [isDiffModalOpen, setIsDiffModalOpen] = useState<boolean>(false)
   const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
 
   // Dynamic state loaded strictly from backend APIs (Zero mocks, Zero hardcoding)
@@ -127,6 +130,8 @@ export default function App() {
     switch (currentSection) {
       case 'chat':
         return [{ label: 'Chat de Inferencia IA (AGY)', sectionId: 'chat' }]
+      case 'workflows':
+        return [{ label: 'Workflows & Skills (Antigravity)', sectionId: 'workflows' }]
       case 'designer':
       case 'roadmap':
         return [{ label: 'Roadmap & DAG Topológico', sectionId: 'roadmap' }]
@@ -156,6 +161,7 @@ export default function App() {
         onOpenSprintModal={() => setIsSprintModalOpen(true)}
         onNavigateSection={(sec) => setCurrentSection(sec)}
         onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+        onOpenDiffModal={() => setIsDiffModalOpen(true)}
       />
 
       {/* Network Offline / Reconnection Banner */}
@@ -194,6 +200,10 @@ export default function App() {
 
           {currentSection === 'chat' && (
             <ChatSection />
+          )}
+
+          {currentSection === 'workflows' && (
+            <WorkflowsSection />
           )}
 
           {(currentSection === 'designer' || currentSection === 'roadmap') && (
@@ -258,6 +268,13 @@ export default function App() {
         isOpen={isSprintModalOpen}
         onClose={() => setIsSprintModalOpen(false)}
         onSprintExecuted={() => loadData()}
+      />
+
+      {/* Global Diff Inspector Modal */}
+      <DiffInspectorModal
+        isOpen={isDiffModalOpen}
+        onClose={() => setIsDiffModalOpen(false)}
+        onChangesApplied={() => loadData()}
       />
     </div>
   )
