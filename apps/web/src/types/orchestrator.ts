@@ -32,6 +32,20 @@ export interface AgentItem {
   pid?: number
 }
 
+export interface AgentProcess {
+  id: string
+  name: string
+  role: string
+  worktree: string
+  state: 'IDLE' | 'DISPATCHED' | 'RUNNING' | 'COMPLETED' | 'BLOCKED_ON_GATE' | 'FAILED'
+  pid: number
+  lastCommand: string
+  lastExitCode?: number
+  durationMs?: number
+  memoryMb?: number
+  updatedAt: string
+}
+
 export interface CommitItem {
   sha: string
   author: string
