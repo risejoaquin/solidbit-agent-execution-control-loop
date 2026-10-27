@@ -28,6 +28,7 @@ import {
   FileCode,
 
   Layers,
+  CheckSquare,
 
   Sparkles,
 
@@ -394,6 +395,18 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
 
           <div className="flex items-center gap-2.5 shrink-0">
+
+            {onNavigateSection && (
+              <button
+                type="button"
+                onClick={() => onNavigateSection('jira')}
+                className="w-full sm:w-auto min-h-[44px] sm:min-h-0 px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-[0.99]"
+                title="Abrir Jira Backlog & Requerimientos"
+              >
+                <CheckSquare className="w-3.5 h-3.5 text-zinc-300" />
+                <span>Jira Backlog</span>
+              </button>
+            )}
 
             <button
 

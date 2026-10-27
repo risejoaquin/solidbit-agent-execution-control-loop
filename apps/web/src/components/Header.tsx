@@ -14,6 +14,7 @@ import {
   Menu,
   GitBranch,
   CheckSquare,
+  Search,
 } from 'lucide-react'
 import type { NotificationItem } from '../types/orchestrator'
 
@@ -23,6 +24,7 @@ interface HeaderProps {
   onNavigateSection: (section: string) => void
   onToggleMobileMenu?: () => void
   onOpenDiffModal?: () => void
+  onOpenCommandPalette?: () => void
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,6 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigateSection,
   onToggleMobileMenu,
   onOpenDiffModal,
+  onOpenCommandPalette,
 }) => {
   const [clock, setClock] = useState<string>('')
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
@@ -306,6 +309,23 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           <span>{clock || 'Cargando reloj...'}</span>
         </div>
+
+        {/* Quick Search / Command Palette Trigger (Cmd+K) */}
+        {onOpenCommandPalette && (
+          <button
+            type="button"
+            onClick={onOpenCommandPalette}
+            id="btn-header-command-palette"
+            className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs text-zinc-400 hover:text-white transition cursor-pointer"
+            title="Abrir Command Palette (Ctrl+K)"
+          >
+            <Search className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Buscar...</span>
+            <kbd className="px-1.5 py-0.2 rounded bg-zinc-800 text-[9px] font-mono border border-zinc-700 text-zinc-300">
+              ⌘K
+            </kbd>
+          </button>
+        )}
 
         {/* Git Diffs Quick Inspector Trigger */}
         {onOpenDiffModal && (

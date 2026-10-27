@@ -20,14 +20,24 @@ import { TechAuthHubSection } from './components/sections/TechAuthHubSection'
 import { EmailGatewaySection } from './components/sections/EmailGatewaySection'
 import { JiraSection } from './components/sections/JiraSection'
 import { DiffInspectorModal } from './components/DiffInspectorModal'
+import { CommandPaletteModal } from './components/CommandPaletteModal'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
 
 export default function App() {
-  const [currentSection, setCurrentSection] = useState<string>('dashboard')
+  const [currentSection, setCurrentSection] = useState<string>(() => {
+    const hash = window.location.hash.replace('#', '')
+    const valid = [
+      'dashboard', 'chat', 'sprint', 'jira', 'connections', 'workflows',
+      'designer', 'roadmap', 'agents', 'gates', 'executions', 'projects',
+      'email', 'database', 'reports', 'github', 'settings'
+    ]
+    return valid.includes(hash) ? hash : 'dashboard'
+  })
   const [isSprintModalOpen, setIsSprintModalOpen] = useState<boolean>(false)
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false)
   const [isDiffModalOpen, setIsDiffModalOpen] = useState<boolean>(false)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false)
   const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
   const [selectedJiraTicketForSprint, setSelectedJiraTicketForSprint] = useState<any | null>(null)
 
@@ -115,6 +125,34 @@ export default function App() {
       console.warn('Backend loading warning:', e)
     }
   }
+
+  // Deep linking and browser navigation sync
+  useEffect(() => {
+    if (window.location.hash.replace('#', '') !== currentSection) {
+      window.location.hash = currentSection
+    }
+  }, [currentSection])
+
+  useEffect(() => {
+    const handleHash = () => {
+      const h = window.location.hash.replace('#', '')
+      if (h && h !== currentSection) setCurrentSection(h)
+    }
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [currentSection])
+
+  // Global Ctrl+K / Cmd+K listener (Linear / GitHub standard)
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setIsCommandPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
 
   useEffect(() => {
     loadData()
@@ -288,14 +326,19 @@ export default function App() {
         currentSection={currentSection}
         onSelectSection={(sec) => setCurrentSection(sec)}
         onOpenDrawer={() => setIsMobileDrawerOpen(true)}
-        hasPendingGate={true}
+        onOpenSprintModal={() => setIsSprintModalOpen(true)}
+        hasPendingGate={events.some((e) => e.severity === 'FATAL' || (e.event_type && e.event_type.includes('GATE')))}
       />
 
       {/* Sprint Designer Modal */}
       <SprintDesignerModal
         isOpen={isSprintModalOpen}
-        onClose={() => setIsSprintModalOpen(false)}
+        onClose={() => {
+          setIsSprintModalOpen(false)
+          setSelectedJiraTicketForSprint(null)
+        }}
         onSprintExecuted={() => loadData()}
+        initialTicket={selectedJiraTicketForSprint}
       />
 
       {/* Global Diff Inspector Modal */}
@@ -303,6 +346,15 @@ export default function App() {
         isOpen={isDiffModalOpen}
         onClose={() => setIsDiffModalOpen(false)}
         onChangesApplied={() => loadData()}
+      />
+
+      {/* Global Command Palette Spotlight (Ctrl+K) */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigate={(sec) => setCurrentSection(sec)}
+        onOpenSprintModal={() => setIsSprintModalOpen(true)}
+        onOpenDiffModal={() => setIsDiffModalOpen(true)}
       />
     </div>
   )
