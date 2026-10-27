@@ -67,12 +67,12 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       />
 
       {/* Drawer Panel */}
-      <div className="relative w-72 max-w-[85vw] bg-[#0c121a] border-r border-[#1b2533] flex flex-col justify-between p-4 shadow-2xl z-10">
+      <div className="relative w-72 max-w-[85vw] bg-black border-r border-zinc-800 flex flex-col justify-between p-4 shadow-2xl z-10">
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#1b2533]">
+          <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-zinc-200">
                 <Layers className="w-4 h-4" />
               </div>
               <div>
@@ -112,7 +112,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     isActive
                       ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/10'
                       : item.highlight
-                      ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25'
+                      ? 'text-zinc-200 bg-emerald-500/10 border border-emerald-500/25'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'
                   }`}
                 >
@@ -121,7 +121,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     <span>{item.label}</span>
                   </div>
                   {item.highlight && !isActive && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                   )}
                 </button>
               )
@@ -130,27 +130,27 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         </div>
 
         {/* Bottom Actions & Status */}
-        <div className="space-y-3 pt-3 border-t border-[#1b2533]">
+        <div className="space-y-3 pt-3 border-t border-zinc-800">
           <button
             id="drawer-btn-sprint"
             onClick={() => {
               onClose()
               onOpenSprintModal()
             }}
-            className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-white text-black font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 cursor-pointer"
           >
             <Play className="w-3.5 h-3.5 fill-black" />
             <span>Ejecutar Sprint</span>
           </button>
 
           {/* SQLite WAL stats */}
-          <div className="p-2.5 rounded-xl bg-[#080c10] border border-[#1b2533] space-y-1 text-[10px] font-mono">
+          <div className="p-2.5 rounded-xl bg-[#080c10] border border-zinc-800 space-y-1 text-[10px] font-mono">
             <div className="flex items-center justify-between text-zinc-400">
               <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 SQLite WAL:
               </span>
-              <span className="text-emerald-400 font-bold">Activo</span>
+              <span className="text-zinc-200 font-bold">Activo</span>
             </div>
             <div className="flex justify-between text-zinc-500 text-[9px]">
               <span>Jobs: {dbStats?.jobs ?? 2}</span>

@@ -2,15 +2,20 @@
 
 @layer base {
   :root {
-    --bg-main: #080c10;
-    --bg-card: #0c121a;
-    --border-card: #1b2533;
-    --text-primary: #f4f4f5;
+    --bg-main: #000000;
+    --bg-card: #0c0c0e;
+    --bg-elevated: #141417;
+    --border-card: #27272a;
+    --border-subtle: #1f1f23;
+    --text-primary: #ffffff;
+    --text-secondary: #e4e4e7;
     --text-muted: #a1a1aa;
-    --accent-emerald: #10b981;
-    --accent-amber: #f59e0b;
-    --accent-blue: #3b82f6;
-    --accent-rose: #f43f5e;
+    --accent-primary: #ffffff;
+    --accent-contrast: #000000;
+    --accent-subtle: #27272a;
+    --status-active: #ffffff;
+    --status-emerald: #10b981;
+    --status-amber: #f59e0b;
   }
 
   body {
@@ -24,31 +29,31 @@
 
   /* Accessible Visible Focus Rings (WCAG 2.2 AA) */
   :focus-visible {
-    outline: 2px solid var(--accent-emerald) !important;
+    outline: 2px solid #ffffff !important;
     outline-offset: 2px !important;
   }
 }
 
-/* Custom sleek high-contrast scrollbars */
+/* Custom sleek minimalist monochrome scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0c121a;
+  background: #000000;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1b2533;
+  background: #27272a;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a3749;
+  background: #3f3f46;
 }
 
 /* Custom internal container scrollbar */
 .custom-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #1b2533 #0c121a;
+  scrollbar-color: #27272a #000000;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -60,22 +65,11 @@
   padding-top: max(0.5rem, env(safe-area-inset-top));
 }
 
-/* Touch Target Minimum (Fitts's Law: >= 44x44px for primary touch controls) */
-@media (max-width: 768px) {
-  .touch-target-min {
-    min-height: 44px;
-    min-width: 44px;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Prefers Reduced Motion (WCAG 2.2 Accessibility) */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+.animate-fade-in {
+  animation: fadeIn 0.18s ease-out forwards;
 }

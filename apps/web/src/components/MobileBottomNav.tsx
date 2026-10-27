@@ -29,14 +29,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   }
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#0a0f16]/95 backdrop-blur-md border-t border-[#1b2533] px-2 py-1 flex items-center justify-around h-16 safe-area-pb">
+    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#0a0f16]/95 backdrop-blur-md border-t border-zinc-800 px-2 py-1 flex items-center justify-around h-16 safe-area-pb">
       {/* 1. Inicio */}
       <button
         id="bottom-nav-dashboard"
         onClick={() => onSelectSection('dashboard')}
         className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
           isTabActive('dashboard')
-            ? 'text-emerald-400 font-bold'
+            ? 'text-white font-bold font-bold'
             : 'text-zinc-400 hover:text-white'
         }`}
       >
@@ -50,11 +50,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         onClick={() => onSelectSection('chat')}
         className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl relative transition ${
           isTabActive('chat')
-            ? 'text-emerald-400 font-bold'
+            ? 'text-white font-bold font-bold'
             : 'text-zinc-400 hover:text-white'
         }`}
       >
-        <span className="absolute top-1 right-3 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#0a0f16] animate-pulse" />
+        <span className="absolute top-1 right-3 w-2 h-2 rounded-full bg-white ring-2 ring-[#0a0f16] animate-pulse" />
         <MessageSquare className="w-5 h-5" />
         <span className="text-[10px] mt-0.5">Chat IA</span>
       </button>
@@ -65,7 +65,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         onClick={() => onSelectSection('designer')}
         className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition ${
           isTabActive('designer')
-            ? 'text-emerald-400 font-bold'
+            ? 'text-white font-bold font-bold'
             : 'text-zinc-400 hover:text-white'
         }`}
       >
@@ -79,7 +79,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         onClick={() => onSelectSection('gates')}
         className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl relative transition ${
           isTabActive('gates')
-            ? 'text-emerald-400 font-bold'
+            ? 'text-white font-bold font-bold'
             : 'text-zinc-400 hover:text-white'
         }`}
       >

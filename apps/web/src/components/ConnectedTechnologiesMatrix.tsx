@@ -110,20 +110,20 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
   const getTechIcon = (id: string, category: string) => {
     switch (id) {
       case 'agy':
-        return <Cpu className="w-4 h-4 text-emerald-400" />
+        return <Cpu className="w-4 h-4 text-zinc-200" />
       case 'gh':
       case 'github':
         return <GitFork className="w-4 h-4 text-white" />
       case 'git':
-        return <GitBranch className="w-4 h-4 text-emerald-400" />
+        return <GitBranch className="w-4 h-4 text-zinc-200" />
       case 'supabase':
       case 'sqlite':
       case 'database':
-        return <Database className="w-4 h-4 text-cyan-400" />
+        return <Database className="w-4 h-4 text-zinc-200" />
       case 'railway':
-        return <Server className="w-4 h-4 text-purple-400" />
+        return <Server className="w-4 h-4 text-zinc-200" />
       case 'resend':
-        return <Mail className="w-4 h-4 text-blue-400" />
+        return <Mail className="w-4 h-4 text-zinc-200" />
       case 'jira':
         return <ShieldCheck className="w-4 h-4 text-amber-400" />
       default:
@@ -139,8 +139,8 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
     switch (status) {
       case 'connected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-zinc-900 text-zinc-200 border border-zinc-700 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             CONECTADO
           </span>
         )
@@ -171,12 +171,12 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
   return (
     <section
       aria-label="Matriz de Tecnologías y Servicios Conectados"
-      className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-[#0c121a] border border-[#1b2533] space-y-4 shadow-xl"
+      className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1b2533] pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-white shrink-0">
             <Server className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
@@ -184,7 +184,7 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
               <h2 className="text-sm sm:text-base font-bold text-white tracking-wide">
                 Tecnologías & Servicios Conectados
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-bold">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-zinc-200 border border-emerald-500/25 font-bold">
                 {connectedCount} de {displayTechs.length} Operativos
               </span>
             </div>
@@ -201,7 +201,7 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
             className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer"
             title="Actualizar diagnóstico de conexiones"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
+            <RefreshCw className="w-3.5 h-3.5 text-zinc-200" />
             <span>Diagnóstico</span>
           </button>
         )}
@@ -213,7 +213,7 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
           <div
             key={tech.id}
             onClick={() => onTestConnection?.(tech.id)}
-            className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#070b10] border border-[#1b2533] hover:border-emerald-500/40 space-y-2 transition cursor-pointer group"
+            className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#070b10] border border-zinc-800 hover:border-zinc-600 space-y-2 transition cursor-pointer group"
           >
             {/* Top row: Icon + Status */}
             <div className="flex items-center justify-between gap-1">
@@ -225,7 +225,7 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
 
             {/* Name */}
             <div>
-              <span className="text-xs font-bold text-white block truncate group-hover:text-emerald-400 transition">
+              <span className="text-xs font-bold text-white block truncate group-hover:text-zinc-200 transition">
                 {tech.name}
               </span>
               <span className="text-[10px] font-mono text-zinc-400 block truncate mt-0.5">

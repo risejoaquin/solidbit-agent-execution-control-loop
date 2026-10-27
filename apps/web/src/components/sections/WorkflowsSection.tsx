@@ -112,7 +112,7 @@ export const WorkflowsSection: React.FC = () => {
     switch (scope) {
       case 'workspace':
         return (
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-zinc-900 text-zinc-200 border border-zinc-750">
             WORKSPACE
           </span>
         )
@@ -140,7 +140,7 @@ export const WorkflowsSection: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
       {/* 1. Header Banner */}
-      <section className="p-5 sm:p-6 rounded-3xl bg-[#0c121a] border border-[#1b2533] shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <section className="p-5 sm:p-6 rounded-3xl bg-zinc-950 border border-zinc-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
             <Layers className="w-6 h-6" />
@@ -155,7 +155,7 @@ export const WorkflowsSection: React.FC = () => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-3xl">
-              Descubrimiento autónomo de archivos <code className="text-emerald-400 font-mono">SKILL.md</code> y flujos legados con ejecución aislada en Git Worktrees y verificación de invariantes.
+              Descubrimiento autónomo de archivos <code className="text-zinc-200 font-mono">SKILL.md</code> y flujos legados con ejecución aislada en Git Worktrees y verificación de invariantes.
             </p>
           </div>
         </div>
@@ -174,7 +174,7 @@ export const WorkflowsSection: React.FC = () => {
       {/* 2. Filter Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Scope pills */}
-        <div className="flex items-center p-1 rounded-2xl bg-[#090e16] border border-[#1b2533] overflow-x-auto text-xs font-mono">
+        <div className="flex items-center p-1 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-x-auto text-xs font-mono">
           {['all', 'workspace', 'global', 'plugin', 'builtin'].map((scope) => (
             <button
               key={scope}
@@ -198,7 +198,7 @@ export const WorkflowsSection: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar workflow por nombre o comando..."
-            className="w-full bg-[#090e16] border border-[#1b2533] rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl pl-10 pr-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition"
           />
         </div>
       </div>
@@ -210,7 +210,7 @@ export const WorkflowsSection: React.FC = () => {
           <p>Escaneando árboles de skills en workspace y directorios globales...</p>
         </div>
       ) : filteredSkills.length === 0 ? (
-        <div className="p-12 text-center text-zinc-500 rounded-3xl bg-[#0c121a] border border-[#1b2533] font-mono text-xs">
+        <div className="p-12 text-center text-zinc-500 rounded-3xl bg-zinc-950 border border-zinc-800 font-mono text-xs">
           No se encontraron workflows con el criterio de búsqueda seleccionado.
         </div>
       ) : (
@@ -218,7 +218,7 @@ export const WorkflowsSection: React.FC = () => {
           {filteredSkills.map((skill) => (
             <div
               key={skill.id}
-              className="p-5 rounded-3xl bg-[#0c121a] border border-[#1b2533] hover:border-purple-500/40 transition flex flex-col justify-between group shadow-lg"
+              className="p-5 rounded-3xl bg-zinc-950 border border-zinc-800 hover:border-purple-500/40 transition flex flex-col justify-between group shadow-lg"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -237,13 +237,13 @@ export const WorkflowsSection: React.FC = () => {
                   {skill.description}
                 </p>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-[#1b2533]/60 text-[10px] font-mono text-zinc-500">
-                  <Terminal className="w-3 h-3 text-emerald-400" />
-                  <code className="text-emerald-400 font-bold">{skill.slash_command}</code>
+                <div className="flex items-center gap-2 pt-2 border-t border-zinc-800/60 text-[10px] font-mono text-zinc-500">
+                  <Terminal className="w-3 h-3 text-zinc-200" />
+                  <code className="text-zinc-200 font-bold">{skill.slash_command}</code>
                 </div>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-[#1b2533] flex items-center justify-between gap-2">
+              <div className="pt-4 mt-4 border-t border-zinc-800 flex items-center justify-between gap-2">
                 <span className="text-[10px] text-zinc-500 font-mono">
                   {skill.has_scripts ? 'Scripting activo' : 'Paso único'}
                 </span>
@@ -268,8 +268,8 @@ export const WorkflowsSection: React.FC = () => {
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
         >
-          <div className="w-full max-w-2xl bg-[#0c121a] border border-[#1b2533] rounded-3xl p-6 shadow-2xl space-y-5 overflow-hidden">
-            <div className="flex items-start justify-between gap-3 border-b border-[#1b2533] pb-4">
+          <div className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-5 overflow-hidden">
+            <div className="flex items-start justify-between gap-3 border-b border-zinc-800 pb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-extrabold text-white">
@@ -300,7 +300,7 @@ export const WorkflowsSection: React.FC = () => {
                     value={paramGoal}
                     onChange={(e) => setParamGoal(e.target.value)}
                     placeholder={`Instrucción específica para ${activeSkill.name}...`}
-                    className="w-full bg-[#070a0e] border border-[#1b2533] rounded-2xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 font-mono"
+                    className="w-full bg-[#070a0e] border border-zinc-800 rounded-2xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 font-mono"
                   />
                 </div>
 
@@ -313,11 +313,11 @@ export const WorkflowsSection: React.FC = () => {
                     className="w-4 h-4 rounded text-purple-600 bg-zinc-900 border-zinc-700 cursor-pointer"
                   />
                   <label htmlFor="strict-invariants" className="text-xs text-zinc-300 cursor-pointer">
-                    Verificación estricta de invariantes SolidBit (<code className="text-emerald-400 font-mono">DR-INV-001</code>)
+                    Verificación estricta de invariantes SolidBit (<code className="text-zinc-200 font-mono">DR-INV-001</code>)
                   </label>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1b2533]">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
                   <button
                     type="button"
                     onClick={() => setActiveSkill(null)}
@@ -350,7 +350,7 @@ export const WorkflowsSection: React.FC = () => {
             {/* Execution Result view */}
             {executionResult && (
               <div className="space-y-4 font-mono text-xs animate-fade-in">
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-emerald-400 font-bold">
+                <div className="p-3.5 rounded-2xl bg-white/10 border border-emerald-500/30 flex items-center justify-between text-zinc-200 font-bold">
                   <span className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
                     Workflow Completado ({executionResult.duration_sec}s)
@@ -367,7 +367,7 @@ export const WorkflowsSection: React.FC = () => {
                           <div className="text-white font-bold">Paso {step.step}: {step.name}</div>
                           <div className="text-[10px] text-zinc-400">{step.output}</div>
                         </div>
-                        <span className="text-[10px] text-emerald-400 font-bold">{step.duration_ms}ms</span>
+                        <span className="text-[10px] text-zinc-200 font-bold">{step.duration_ms}ms</span>
                       </div>
                     ))}
                   </div>
@@ -382,11 +382,11 @@ export const WorkflowsSection: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex justify-end pt-3 border-t border-[#1b2533]">
+                <div className="flex justify-end pt-3 border-t border-zinc-800">
                   <button
                     type="button"
                     onClick={() => setActiveSkill(null)}
-                    className="px-5 py-2 rounded-xl bg-emerald-500 text-black font-extrabold text-xs cursor-pointer"
+                    className="px-5 py-2 rounded-xl bg-white text-black font-extrabold text-xs cursor-pointer"
                   >
                     Aceptar
                   </button>

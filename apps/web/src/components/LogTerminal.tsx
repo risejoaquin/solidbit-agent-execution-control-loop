@@ -181,28 +181,28 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
   const getLevelBadge = (level: LogEntry['level']) => {
     switch (level) {
       case 'SUCCESS':
-        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+        return 'text-zinc-100 bg-zinc-900 border-zinc-700'
       case 'WARN':
-        return 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+        return 'text-amber-300 bg-zinc-900 border-amber-500/30'
       case 'ERROR':
-        return 'text-red-400 bg-red-500/10 border-red-500/20'
+        return 'text-rose-300 bg-zinc-900 border-rose-500/30'
       case 'AUDIT':
-        return 'text-purple-400 bg-purple-500/10 border-purple-500/20'
+        return 'text-zinc-200 bg-zinc-900 border-zinc-700'
       default:
-        return 'text-blue-400 bg-blue-500/10 border-blue-500/20'
+        return 'text-zinc-300 bg-zinc-900 border-zinc-700'
     }
   }
 
   const getSubsystemColor = (sub: LogEntry['subsystem']) => {
     switch (sub) {
       case 'AGY':
-        return 'text-emerald-400'
+        return 'text-zinc-200'
       case 'GATE':
-        return 'text-amber-400'
+        return 'text-zinc-300'
       case 'WAL':
-        return 'text-cyan-400'
+        return 'text-zinc-300'
       case 'VCS':
-        return 'text-blue-400'
+        return 'text-zinc-300'
       default:
         return 'text-zinc-400'
     }
@@ -211,14 +211,14 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
   return (
     <div
       id="solidbit-log-terminal"
-      className={`rounded-2xl sm:rounded-3xl bg-[#060a0f] border border-[#1b2533] shadow-2xl flex flex-col transition-all overflow-hidden ${
+      className={`rounded-2xl sm:rounded-3xl bg-black border border-zinc-800 shadow-2xl flex flex-col transition-all overflow-hidden ${
         isExpanded ? 'fixed inset-3 sm:inset-6 z-50' : 'w-full'
       }`}
     >
       {/* Top Header / Bar */}
-      <div className="px-4 py-3 bg-[#0a0f16] border-b border-[#1b2533] flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="px-4 py-3 bg-zinc-950 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white">
             <Terminal className="w-4 h-4" />
           </div>
           <div>
@@ -226,8 +226,8 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
               <span className="text-xs font-bold text-white font-mono tracking-wide">
                 Terminal de Telemetría & Logs SACL
               </span>
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-750">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 EN VIVO (SSE)
               </span>
             </div>
@@ -238,14 +238,14 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
         </div>
 
         {/* Streams Tab Pills */}
-        <div className="flex items-center gap-1 p-0.5 rounded-xl bg-black/50 border border-[#1b2533]">
+        <div className="flex items-center gap-1 p-0.5 rounded-xl bg-black/50 border border-zinc-800">
           {(['ALL', 'AGY', 'GATE', 'WAL'] as const).map((stream) => (
             <button
               key={stream}
               onClick={() => setStreamFilter(stream)}
               className={`px-2.5 py-1 rounded-lg text-[10px] font-mono transition cursor-pointer ${
                 streamFilter === stream
-                  ? 'bg-emerald-500 text-black font-bold shadow-sm'
+                  ? 'bg-white text-black font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -266,7 +266,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
             onClick={() => setAutoScroll(!autoScroll)}
             className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-mono flex items-center gap-1 transition cursor-pointer ${
               autoScroll
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-zinc-200'
                 : 'bg-zinc-900 border-zinc-800 text-zinc-500'
             }`}
             title="Desplazamiento automático al recibir nuevos eventos"
@@ -280,7 +280,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
             className="p-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition cursor-pointer"
             title="Copiar buffer completo"
           >
-            {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {copied ? <CheckCircle2 className="w-4 h-4 text-zinc-200" /> : <Copy className="w-4 h-4" />}
           </button>
 
           <button
@@ -302,7 +302,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
       </div>
 
       {/* Filter Toolbar */}
-      <div className="px-4 py-2 bg-[#080d13] border-b border-[#1b2533] flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="px-4 py-2 bg-[#080d13] border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
@@ -311,7 +311,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
             placeholder="Filtrar por texto, PID o módulo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#05080c] border border-[#1b2533] rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 font-mono"
+            className="w-full bg-[#05080c] border border-zinc-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 font-mono"
           />
         </div>
 
@@ -390,7 +390,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
       </div>
 
       {/* Terminal Footer Info Bar */}
-      <div className="px-4 py-2 bg-[#080d13] border-t border-[#1b2533] flex items-center justify-between text-[10px] font-mono text-zinc-500 shrink-0">
+      <div className="px-4 py-2 bg-[#080d13] border-t border-zinc-800 flex items-center justify-between text-[10px] font-mono text-zinc-500 shrink-0">
         <div className="flex items-center gap-3">
           <span>HOST: 127.0.0.1:8765</span>
           <span>&bull;</span>

@@ -55,22 +55,22 @@ export const MentionPicker: React.FC<MentionPickerProps> = ({ query, onSelect, o
   const getIcon = (category: string) => {
     switch (category) {
       case 'contract':
-        return <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+        return <ShieldCheck className="w-3.5 h-3.5 text-zinc-200" />
       case 'jira':
-        return <CheckSquare className="w-3.5 h-3.5 text-blue-400" />
+        return <CheckSquare className="w-3.5 h-3.5 text-zinc-200" />
       case 'table':
-        return <Database className="w-3.5 h-3.5 text-amber-400" />
+        return <Database className="w-3.5 h-3.5 text-zinc-200" />
       default:
-        return <FileCode className="w-3.5 h-3.5 text-purple-400" />
+        return <FileCode className="w-3.5 h-3.5 text-zinc-200" />
     }
   }
 
   if (allItems.length === 0) return null
 
   return (
-    <div className="absolute bottom-full left-0 right-0 mb-2 max-h-64 overflow-y-auto custom-scroll rounded-2xl bg-[#090e16] border border-[#1b2533] shadow-2xl p-2 z-50 animate-fade-in backdrop-blur-xl">
-      <div className="px-3 py-1.5 border-b border-[#1b2533]/60 mb-1 text-[10px] font-mono text-zinc-500 flex items-center gap-1.5">
-        <AtSign className="w-3 h-3 text-emerald-400" />
+    <div className="absolute bottom-full left-0 right-0 mb-2 max-h-64 overflow-y-auto custom-scroll rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-2 z-50 animate-fade-in backdrop-blur-xl">
+      <div className="px-3 py-1.5 border-b border-zinc-800/60 mb-1 text-[10px] font-mono text-zinc-500 flex items-center gap-1.5">
+        <AtSign className="w-3 h-3 text-zinc-200" />
         ADJUNTAR CONTEXTO (@MENTIONS)
       </div>
       <div className="space-y-1">

@@ -45,7 +45,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   ]
 
   return (
-    <aside className="hidden md:flex w-56 lg:w-60 border-r border-[#161f2c] bg-[#0c121a] flex-col justify-between shrink-0 p-3 select-none">
+    <aside className="hidden md:flex w-56 lg:w-60 border-r border-zinc-800 bg-black flex-col justify-between shrink-0 p-3 select-none">
       {/* Navigation Links */}
       <nav className="space-y-1">
         {navItems.map((item) => {
@@ -65,8 +65,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               onClick={item.action}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition cursor-pointer text-left ${
                 isActive
-                  ? 'bg-[#14261f] text-emerald-400 border border-emerald-500/20 font-bold'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5 font-medium'
+                  ? 'bg-white text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900 font-medium'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -74,7 +74,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 <span>{item.label}</span>
               </div>
               {item.highlight && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/80" />
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse shadow-sm shadow-white/50" />
               )}
             </button>
           )
@@ -82,9 +82,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </nav>
 
       {/* Bottom SQLite V1 System Card */}
-      <div className="p-3 rounded-2xl bg-[#0f1622] border border-[#1b2533] space-y-2 text-xs">
+      <div className="p-3 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2 text-xs">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
           <span className="font-bold text-white text-[11px]">Sistema Operativo</span>
         </div>
         <div className="font-bold text-white text-xs font-mono">SQLite V1 (WAL Mode)</div>
@@ -93,7 +93,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <span className="text-zinc-400 flex items-center gap-1.5">
               <Layers className="w-3 h-3 text-zinc-500" /> Jobs ({dbStats?.jobs ?? 2})
             </span>
-            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px] font-medium">
               Online
             </span>
           </div>
@@ -101,7 +101,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <span className="text-zinc-400 flex items-center gap-1.5">
               <Play className="w-3 h-3 text-zinc-500" /> Runs ({dbStats?.runs ?? 26})
             </span>
-            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px] font-medium">
               Online
             </span>
           </div>
@@ -109,7 +109,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <span className="text-zinc-400 flex items-center gap-1.5">
               <Activity className="w-3 h-3 text-zinc-500" /> Eventos ({dbStats?.events ?? 26})
             </span>
-            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px] font-medium">
               Online
             </span>
           </div>
@@ -117,7 +117,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <span className="text-zinc-400 flex items-center gap-1.5">
               <Terminal className="w-3 h-3 text-zinc-500" /> Logs
             </span>
-            <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 text-[10px] font-medium">
               Online
             </span>
           </div>

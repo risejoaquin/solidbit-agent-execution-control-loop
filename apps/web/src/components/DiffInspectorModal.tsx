@@ -124,11 +124,11 @@ export const DiffInspectorModal: React.FC<DiffInspectorModalProps> = ({
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in"
     >
-      <div className="w-full max-w-6xl h-[88vh] bg-[#0c121a] border border-[#1b2533] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-full max-w-6xl h-[88vh] bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header bar */}
-        <div className="px-5 py-4 border-b border-[#1b2533] bg-[#090e16] flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 border-b border-zinc-800 bg-black flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-zinc-200 shrink-0">
               <GitBranch className="w-5 h-5" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export const DiffInspectorModal: React.FC<DiffInspectorModalProps> = ({
                 <h2 className="text-sm sm:text-base font-extrabold text-white tracking-wide">
                   Inspector de Diffs Git & Cambios en Worktree
                 </h2>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-zinc-200 border border-emerald-500/30 font-bold">
                   {diffData.branch} @ {diffData.commit}
                 </span>
               </div>
@@ -154,7 +154,7 @@ export const DiffInspectorModal: React.FC<DiffInspectorModalProps> = ({
               className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 transition cursor-pointer"
               title="Refrescar diff"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-zinc-200' : ''}`} />
             </button>
             <button
               type="button"
@@ -170,11 +170,11 @@ export const DiffInspectorModal: React.FC<DiffInspectorModalProps> = ({
         {/* Diff Content Body: 2 Columns on desktop (File List | Diff Code) */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Left Column: File List */}
-          <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-[#1b2533] bg-[#090d14] flex flex-col shrink-0">
-            <div className="p-3 border-b border-[#1b2533] flex items-center justify-between text-xs font-mono text-zinc-400">
+          <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-zinc-800 bg-[#090d14] flex flex-col shrink-0">
+            <div className="p-3 border-b border-zinc-800 flex items-center justify-between text-xs font-mono text-zinc-400">
               <span>ARCHIVOS MODIFICADOS ({diffData.files.length})</span>
               <div className="flex items-center gap-2 text-[10px]">
-                <span className="text-emerald-400 font-bold">+{diffData.total_additions}</span>
+                <span className="text-zinc-200 font-bold">+{diffData.total_additions}</span>
                 <span className="text-red-400 font-bold">-{diffData.total_deletions}</span>
               </div>
             </div>
@@ -200,12 +200,12 @@ export const DiffInspectorModal: React.FC<DiffInspectorModalProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <FileCode className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                        <FileCode className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-zinc-200' : 'text-zinc-500'}`} />
                         <span className="truncate text-[11px] font-semibold">{file.path}</span>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0 text-[10px]">
                         {file.additions > 0 && (
-                          <span className="text-emerald-400 font-bold">+{file.additions}</span>
+                          <span className="text-zinc-200 font-bold">+{file.additions}</span>
                         )}
                         {file.deletions > 0 && (
                           <span className="text-red-400 font-bold">-{file.deletions}</span>
@@ -223,7 +223,7 @@ export const DiffInspectorModal: React.FC<DiffInspectorModalProps> = ({
             {selectedFile ? (
               <>
                 {/* File Action Bar */}
-                <div className="px-4 py-2.5 border-b border-[#1b2533] bg-[#0a0f18] flex items-center justify-between shrink-0">
+                <div className="px-4 py-2.5 border-b border-zinc-800 bg-[#0a0f18] flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2 font-mono text-xs">
                     <span className="text-white font-bold">{selectedFile.path}</span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-zinc-800 text-zinc-300">

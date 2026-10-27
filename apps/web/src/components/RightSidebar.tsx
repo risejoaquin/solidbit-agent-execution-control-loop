@@ -54,13 +54,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   return (
     <aside
       id="dashboard-right-sidebar"
-      className="w-72 lg:w-80 border-l border-[#161f2c] bg-[#0c121a] overflow-y-auto custom-scroll p-4 space-y-5 shrink-0 hidden xl:block select-none"
+      className="w-72 lg:w-80 border-l border-zinc-800 bg-black overflow-y-auto custom-scroll p-4 space-y-5 shrink-0 hidden xl:block select-none"
     >
       {/* Card 1: Agentes */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-white flex items-center gap-2">
-            <Bot className="w-4 h-4 text-emerald-400" /> Agentes
+            <Bot className="w-4 h-4 text-zinc-200" /> Agentes
           </span>
           <span id="right-agents-ratio" className="text-[11px] font-mono text-zinc-400">
             {activeCount}/{agents.length} activos
@@ -75,7 +75,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <div
                 key={a.id}
                 onClick={() => onSelectAgent?.(a)}
-                className="flex items-center justify-between p-2 rounded-xl bg-[#0f1622] border border-[#1b2533] hover:border-emerald-500/30 hover:bg-[#121c2b] transition cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-xl bg-zinc-950 border border-zinc-800/80 hover:border-zinc-600 hover:bg-zinc-900 transition cursor-pointer"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-7 h-7 rounded-lg bg-black/40 border border-white/5 flex items-center justify-center text-zinc-300 shrink-0">
@@ -88,12 +88,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 </div>
                 <div
                   className={`flex items-center gap-1.5 text-[10px] font-medium shrink-0 ${
-                    isEmerald ? 'text-emerald-400' : isAmber ? 'text-amber-400' : 'text-zinc-500'
+                    isEmerald ? 'text-zinc-200' : isAmber ? 'text-amber-400' : 'text-zinc-500'
                   }`}
                 >
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
-                      isEmerald ? 'bg-emerald-400' : isAmber ? 'bg-amber-400' : 'bg-zinc-600'
+                      isEmerald ? 'bg-white' : isAmber ? 'bg-amber-400' : 'bg-zinc-600'
                     }`}
                   ></span>
                   <span>{a.status}</span>
@@ -128,12 +128,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 <div
                   key={ev.event_id}
                   onClick={() => onSelectEvent?.(ev)}
-                  className="p-2 rounded-xl bg-[#0f1622] border border-[#1b2533] space-y-1 hover:border-white/10 transition cursor-pointer"
+                  className="p-2 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1 hover:border-white/10 transition cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-[11px] font-bold font-mono ${
-                        isFatal ? 'text-red-400' : isWarn ? 'text-amber-400' : 'text-emerald-400'
+                        isFatal ? 'text-red-400' : isWarn ? 'text-amber-400' : 'text-zinc-200'
                       }`}
                     >
                       {ev.event_type}

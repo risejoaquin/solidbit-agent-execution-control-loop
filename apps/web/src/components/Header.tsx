@@ -188,29 +188,29 @@ export const Header: React.FC<HeaderProps> = ({
     .toUpperCase() || 'JV'
 
   return (
-    <header className="h-16 border-b border-[#1b2533] bg-[#0c121a]/95 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
+    <header className="h-16 border-b border-zinc-800 bg-black/95 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
       {/* Left: Logo + Title + Project Subtitle */}
       <div className="flex items-center gap-2.5 sm:gap-3">
         <div
           onClick={() => onNavigateSection('dashboard')}
-          className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 cursor-pointer hover:bg-emerald-500/20 transition"
+          className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 flex items-center justify-center shrink-0 cursor-pointer hover:bg-zinc-800 transition"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
             <path
               d="M12 2L2 7L12 12L22 7L12 2Z"
-              fill="#10b981"
+              fill="#ffffff"
               fillOpacity="0.3"
-              stroke="#10b981"
+              stroke="#ffffff"
               strokeWidth="1.8"
             />
-            <path d="M2 17L12 22L22 17" stroke="#10b981" strokeWidth="1.8" />
-            <path d="M2 12L12 17L22 12" stroke="#10b981" strokeWidth="1.8" />
+            <path d="M2 17L12 22L22 17" stroke="#ffffff" strokeWidth="1.8" />
+            <path d="M2 12L12 17L22 12" stroke="#ffffff" strokeWidth="1.8" />
           </svg>
         </div>
         <div>
           <div className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
             <span>SolidBit SACL</span>
-            <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-semibold">
+            <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 font-mono font-semibold">
               VITE REACT 19
             </span>
           </div>
@@ -238,9 +238,9 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Real-time Clock */}
         <div
           id="header-live-clock"
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#090e16] border border-[#1b2533] text-xs font-mono text-zinc-300 shadow-inner"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono text-zinc-300 shadow-inner"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           <span>{clock || 'Cargando reloj...'}</span>
         </div>
 
@@ -250,10 +250,10 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             id="btn-header-diff-inspector"
             onClick={onOpenDiffModal}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-emerald-500/50 text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
             title="Inspeccionar diffs Git en worktree"
           >
-            <GitBranch className="w-3.5 h-3.5 text-emerald-400" />
+            <GitBranch className="w-3.5 h-3.5 text-white" />
             <span>Diffs</span>
           </button>
         )}
@@ -269,7 +269,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Bell className="w-4 h-4" />
             {notifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-black text-[9px] font-bold flex items-center justify-center shadow-lg shadow-emerald-500/50">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white text-black text-[9px] font-bold flex items-center justify-center shadow-lg shadow-white/20">
                 {notifications.length}
               </span>
             )}
@@ -278,11 +278,11 @@ export const Header: React.FC<HeaderProps> = ({
           {showNotifications && (
             <div
               id="notifications-popover-content"
-              className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 md:w-96 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left"
+              className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 md:w-96 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-4 space-y-3 z-50 text-left"
             >
-              <div className="flex items-center justify-between border-b border-[#1b2533] pb-2">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-emerald-400" />
+                  <Bell className="w-4 h-4 text-white" />
                   <span className="text-xs font-bold text-white">Centro de Notificaciones</span>
                 </div>
                 <span className="text-[10px] font-mono text-zinc-500">
@@ -301,14 +301,14 @@ export const Header: React.FC<HeaderProps> = ({
                         if (n.actionUrl) onNavigateSection(n.actionUrl)
                         setShowNotifications(false)
                       }}
-                      className="p-2.5 rounded-xl bg-[#080c10] border border-white/5 hover:border-emerald-500/30 transition cursor-pointer space-y-1"
+                      className="p-2.5 rounded-xl bg-zinc-900/60 border border-white/5 hover:border-zinc-600 transition cursor-pointer space-y-1"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-white flex items-center gap-1.5">
                           {n.type === 'gate' ? (
                             <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
                           ) : n.type === 'success' ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                           ) : (
                             <Info className="w-3.5 h-3.5 text-blue-400" />
                           )}
@@ -322,14 +322,14 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#1b2533] text-[11px]">
+              <div className="flex items-center justify-between pt-2 border-t border-zinc-800 text-[11px]">
                 <button
                   type="button"
                   onClick={() => {
                     onNavigateSection('executions')
                     setShowNotifications(false)
                   }}
-                  className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                  className="text-white hover:underline flex items-center gap-1 font-semibold cursor-pointer"
                 >
                   <Terminal className="w-3.5 h-3.5" /> Ver compuertas HITL
                 </button>
@@ -353,11 +353,11 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2.5 pl-1 pr-1 hover:opacity-90 transition cursor-pointer group text-left"
             title="Editar Perfil Soberano"
           >
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0 group-hover:border-emerald-400">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-white font-bold text-xs flex items-center justify-center shrink-0 group-hover:border-emerald-400">
               {initials}
             </div>
             <div className="hidden sm:block text-left leading-tight">
-              <div className="text-xs font-bold text-white group-hover:text-emerald-400 transition">
+              <div className="text-xs font-bold text-white group-hover:text-white transition">
                 {operatorName}
               </div>
               <div className="text-[10px] text-zinc-400">{operatorRole}</div>
@@ -366,10 +366,10 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Edit Profile Popover */}
           {showProfileModal && (
-            <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 rounded-2xl bg-[#0e141d] border border-[#1b2533] shadow-2xl p-4 space-y-3 z-50 text-left">
-              <div className="flex items-center justify-between border-b border-[#1b2533] pb-2">
+            <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-4 space-y-3 z-50 text-left">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-400" />
+                  <User className="w-4 h-4 text-white" />
                   <span className="text-xs font-bold text-white">Editar Perfil Soberano</span>
                 </div>
                 <button
@@ -387,7 +387,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type="text"
                     value={operatorName}
                     onChange={(e) => setOperatorName(e.target.value)}
-                    className="w-full bg-[#080c10] border border-[#1b2533] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
                   />
                 </div>
 
@@ -397,7 +397,7 @@ export const Header: React.FC<HeaderProps> = ({
                     type="text"
                     value={operatorRole}
                     onChange={(e) => setOperatorRole(e.target.value)}
-                    className="w-full bg-[#080c10] border border-[#1b2533] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
                   />
                 </div>
 
@@ -407,11 +407,11 @@ export const Header: React.FC<HeaderProps> = ({
                     type="email"
                     value={operatorEmail}
                     onChange={(e) => setOperatorEmail(e.target.value)}
-                    className="w-full bg-[#080c10] border border-[#1b2533] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
+                    className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500/60"
                   />
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-[#1b2533]">
+                <div className="pt-2 flex items-center justify-between border-t border-zinc-800">
                   <button
                     type="button"
                     onClick={() => {
@@ -425,7 +425,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <button
                     type="submit"
                     disabled={savingProfile}
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold shadow-sm text-xs flex items-center gap-1.5 transition cursor-pointer"
                   >
                     <Save className="w-3.5 h-3.5" />
                     <span>{savingProfile ? 'Guardando...' : 'Guardar'}</span>
@@ -441,7 +441,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           onClick={onOpenSprintModal}
           id="btn-design-sprint-cta"
-          className="p-2 sm:px-4 sm:py-2 rounded-xl bg-[#00d084] hover:bg-[#00b875] text-[#0a0e14] font-bold text-xs flex items-center gap-1.5 transition shadow-[0_0_20px_rgba(0,208,132,0.25)] cursor-pointer shrink-0"
+          className="p-2 sm:px-4 sm:py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer shrink-0"
           title="Diseñar Sprint & Jira"
         >
           <span className="text-sm font-extrabold leading-none">+</span>

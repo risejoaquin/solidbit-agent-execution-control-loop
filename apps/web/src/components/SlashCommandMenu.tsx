@@ -65,49 +65,49 @@ export const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
   const getCategoryBadge = (category: string, scope?: string) => {
     if (category === 'workflow') {
       return (
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-500/30">
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/15 text-zinc-200 border border-purple-500/30">
           {scope ? `SKILL (${scope.toUpperCase()})` : 'WORKFLOW'}
         </span>
       )
     }
     if (category === 'governance') {
       return (
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-zinc-200 border border-emerald-500/30">
           SOLIDBIT GOV
         </span>
       )
     }
     if (category === 'devtools') {
       return (
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30">
+        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-zinc-200 border border-blue-500/30">
           DEVTOOL
         </span>
       )
     }
     return (
-      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-zinc-200 border border-amber-500/30">
         CORE AGY
       </span>
     )
   }
 
   const getCommandIcon = (category: string, command: string) => {
-    if (command === '/diff') return <GitBranch className="w-4 h-4 text-emerald-400 shrink-0" />
-    if (command === '/audit') return <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-    if (command === '/schedule') return <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-    if (command === '/browser') return <Compass className="w-4 h-4 text-blue-400 shrink-0" />
-    if (category === 'workflow') return <Layers className="w-4 h-4 text-purple-400 shrink-0" />
-    return <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+    if (command === '/diff') return <GitBranch className="w-4 h-4 text-zinc-200 shrink-0" />
+    if (command === '/audit') return <ShieldCheck className="w-4 h-4 text-zinc-200 shrink-0" />
+    if (command === '/schedule') return <Clock className="w-4 h-4 text-zinc-200 shrink-0" />
+    if (command === '/browser') return <Compass className="w-4 h-4 text-zinc-200 shrink-0" />
+    if (category === 'workflow') return <Layers className="w-4 h-4 text-zinc-200 shrink-0" />
+    return <Sparkles className="w-4 h-4 text-zinc-200 shrink-0" />
   }
 
   return (
     <div
       ref={menuRef}
-      className="absolute bottom-full left-0 right-0 mb-2 max-h-72 overflow-y-auto custom-scroll rounded-2xl bg-[#090e16] border border-[#1b2533] shadow-2xl p-2 z-50 animate-fade-in backdrop-blur-xl"
+      className="absolute bottom-full left-0 right-0 mb-2 max-h-72 overflow-y-auto custom-scroll rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-2 z-50 animate-fade-in backdrop-blur-xl"
     >
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#1b2533]/60 mb-1 text-[10px] font-mono text-zinc-500">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800/60 mb-1 text-[10px] font-mono text-zinc-500">
         <span className="flex items-center gap-1.5">
-          <Terminal className="w-3 h-3 text-emerald-400" />
+          <Terminal className="w-3 h-3 text-zinc-200" />
           COMANDOS DE ANTIGRAVITY & SKILLS DISPONIBLES ({filtered.length})
         </span>
         <span className="hidden sm:inline">Navega con &uarr;&darr; &bull; Enter para seleccionar</span>
@@ -122,7 +122,7 @@ export const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
               onClick={() => onSelect(item)}
               className={`flex items-start gap-3 p-2.5 rounded-xl cursor-pointer transition ${
                 isSelected
-                  ? 'bg-emerald-500/15 border border-emerald-500/40 text-white'
+                  ? 'bg-zinc-900 border border-zinc-700 text-white shadow-sm'
                   : 'hover:bg-zinc-900/80 border border-transparent text-zinc-300'
               }`}
             >

@@ -32,14 +32,14 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({ toolCall }) => {
     switch (tool) {
       case 'run_command':
       case 'git_status':
-        return <Terminal className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        return <Terminal className="w-3.5 h-3.5 text-zinc-200 shrink-0" />
       case 'write_file':
       case 'edit_file':
-        return <FileCode className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+        return <FileCode className="w-3.5 h-3.5 text-zinc-200 shrink-0" />
       case 'auto_plan':
-        return <Layers className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+        return <Layers className="w-3.5 h-3.5 text-zinc-200 shrink-0" />
       case 'schedule':
-        return <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        return <Clock className="w-3.5 h-3.5 text-zinc-200 shrink-0" />
       default:
         return <Terminal className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
     }
@@ -65,11 +65,11 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({ toolCall }) => {
   }
 
   return (
-    <div className="rounded-xl bg-black/60 border border-[#1b2533] overflow-hidden text-xs font-mono my-2 transition">
+    <div className="rounded-xl bg-black/60 border border-zinc-800 overflow-hidden text-xs font-mono my-2 transition">
       {/* Header bar (clickable to toggle) */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between p-2.5 bg-[#090e16] hover:bg-zinc-900/80 cursor-pointer select-none transition"
+        className="flex items-center justify-between p-2.5 bg-zinc-950 hover:bg-zinc-900/80 cursor-pointer select-none transition"
       >
         <div className="flex items-center gap-2 min-w-0">
           {isOpen ? (
@@ -88,8 +88,8 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({ toolCall }) => {
             <span className="text-[10px] text-zinc-500">{toolCall.duration_ms}ms</span>
           )}
           {isSuccess ? (
-            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            <span className="inline-flex items-center gap-1 text-[10px] text-zinc-200 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+              <CheckCircle2 className="w-3 h-3 text-zinc-200" />
               SUCCESS
             </span>
           ) : (
@@ -103,7 +103,7 @@ export const ToolCallCard: React.FC<ToolCallCardProps> = ({ toolCall }) => {
 
       {/* Collapsed body */}
       {isOpen && (
-        <div className="p-3 bg-black/90 border-t border-[#1b2533] space-y-2 text-[11px]">
+        <div className="p-3 bg-black/90 border-t border-zinc-800 space-y-2 text-[11px]">
           {toolCall.args && Object.keys(toolCall.args).length > 0 && (
             <div>
               <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Argumentos:</div>
