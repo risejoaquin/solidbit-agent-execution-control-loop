@@ -74,7 +74,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           subsystem: sub,
           level: lvl,
           message: ev.payload_json || ev.event_type || 'Evento transaccional en SQLite WAL',
-          pid: 1400 + (idx % 4) * 85,
+          pid: ev.pid || undefined,
         }
       })
       setLogs(mapped)
@@ -87,7 +87,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           subsystem: 'KERNEL',
           level: 'SUCCESS',
           message: 'SolidBit SACL Kernel inicializado en modo transaccional WAL.',
-          pid: 1400,
+          pid: undefined,
         },
         {
           id: 'log-1',
@@ -95,7 +95,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           subsystem: 'AGY',
           level: 'INFO',
           message: 'Host AGY detectado (Antigravity CLI v2.0) en runtime local.',
-          pid: 1485,
+          pid: undefined,
         },
         {
           id: 'log-2',
@@ -103,7 +103,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           subsystem: 'WAL',
           level: 'SUCCESS',
           message: 'Base de datos sacl_ops.db verificada: 22 estados canónicos consistentes.',
-          pid: 1400,
+          pid: undefined,
         },
         {
           id: 'log-3',
@@ -111,7 +111,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           subsystem: 'GATE',
           level: 'AUDIT',
           message: 'Compuertas soberanas habilitadas: Zero unauthorized deploy (HMAC-SHA256).',
-          pid: 1570,
+          pid: undefined,
         },
       ])
     }
@@ -129,7 +129,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           subsystem: evType.includes('gate') ? 'GATE' : (evType.includes('job') ? 'AGY' : 'WAL'),
           level: evType.includes('error') ? 'ERROR' : (evType.includes('gate') ? 'WARN' : 'INFO'),
           message: typeof data === 'string' ? data : (data?.message || JSON.stringify(data)),
-          pid: 1400 + Math.floor(Math.random() * 300),
+          pid: data?.pid || undefined,
         }
         setLogs((prev) => [...prev.slice(-250), newEntry])
       }

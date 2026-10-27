@@ -68,16 +68,19 @@ export default function App() {
       const connData = await connRes.json()
       if (connData.connections && connData.connections.length > 0) {
         setConnections(connData.connections)
-        const dynamicAgents: AgentItem[] = connData.connections.map((c: any, idx: number) => ({
-          id: c.id,
-          name: c.name,
-          role: c.account_info || `Versión ${c.version || 'Local'}`,
-          status: c.status === 'connected' ? 'Activo' : 'Inactivo',
-          color: c.status === 'connected' ? 'emerald' : 'zinc',
-          icon: c.id === 'agy' ? 'cpu' : (c.category === 'vcs' ? 'terminal' : 'server'),
-          pid: 1400 + idx * 75,
-        }))
-        setAgents(dynamicAgents)
+      }
+
+      // 2b. Real Fleet Status from backend (Strictly Zero Mocks - SB-ENG-HB-001)
+      try {
+        const fleetRes = await fetch('/api/agents/fleet')
+        const fleetData = await fleetRes.json()
+        if (fleetData && fleetData.active_agents && Array.isArray(fleetData.active_agents)) {
+          setAgents(fleetData.active_agents)
+        } else {
+          setAgents([])
+        }
+      } catch {
+        setAgents([])
       }
 
       // 3. Real Git Commits from backend

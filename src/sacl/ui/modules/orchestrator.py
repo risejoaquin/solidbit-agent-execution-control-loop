@@ -851,6 +851,48 @@ class OrchestratorModule:
         logger.info(f"Dynamic sprint planned: {sprint_id} for Jira {ticket['key']}")
         return planned_sprint
 
+    def get_fleet_status(self) -> Dict[str, Any]:
+        """Returns the real operational status of the SACL agent fleet.
+        Strictly zero synthetic mocks or phantom processes (SB-ENG-HB-001 v1.0).
+        """
+        # Check if there is an active running sprint
+        is_running = False
+        active_agents_list = []
+        
+        # Check active execution in memory
+        if hasattr(self, "_current_execution") and self._current_execution:
+            is_running = True
+            active_agents_list = self._current_execution.get("running_agents", [])
+
+        # Check sacl_ops.db for active leases / jobs if DB is available
+        db_leases_count = 0
+        if self.service and hasattr(self.service, "db_path"):
+            try:
+                import sqlite3
+                conn = sqlite3.connect(str(self.service.db_path), timeout=2.0)
+                cur = conn.cursor()
+                # Check running jobs
+                cur.execute("SELECT COUNT(*) FROM jobs WHERE status = 'RUNNING'")
+                running_jobs = cur.fetchone()[0]
+                # Check active leases
+                cur.execute("SELECT COUNT(*) FROM agent_leases WHERE expires_at > datetime('now')")
+                db_leases_count = cur.fetchone()[0]
+                conn.close()
+                if running_jobs > 0 and db_leases_count > 0:
+                    is_running = True
+            except Exception:
+                pass
+
+        return {
+            "fleet_state": "RUNNING" if is_running else "IDLE",
+            "running_count": len(active_agents_list),
+            "active_agents": active_agents_list,
+            "supervisor": "Graph-P Persistente (Zero-Token Idle)",
+            "message": "Flota de agentes en ejecución." if is_running else "Flota en reposo. Cero agentes LLM activos (SB-ENG-HB-001 Cap. 12.3).",
+            "last_sprint_id": self.execution_history[-1].get("sprint_id") if self.execution_history else None,
+            "total_sprints_executed": len(self.execution_history),
+        }
+
     def execute_sprint(self, sprint_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Step 6 & 7: Dispatches parallel execution across waves, runs tests, and materializes real deliverables on disk."""
         plan = sprint_data or self.active_plan

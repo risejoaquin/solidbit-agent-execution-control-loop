@@ -129,77 +129,21 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
     let isMounted = true
 
     const fetchRealOSProcesses = async () => {
-
       try {
-
-        const res = await fetch('/api/subagents/list')
-
+        const res = await fetch('/api/agents/fleet')
         if (!res.ok) return
-
         const data = await res.json()
-
-        if (data.tasks && data.tasks.length > 0 && isMounted) {
-
-          const procs: AgentProcess[] = data.tasks
-
-            .filter((t: any) => t.pid || t.status === 'RUNNING' || t.type === 'background_task')
-
-            .slice(0, 8)
-
-            .map((t: any, idx: number) => {
-
-              const pidNum = t.pid || (idx + 1000)
-
-              let cmd = 'python -m sacl.cli doctor'
-
-              if (t.role?.includes('Cloudflare')) cmd = 'cloudflared tunnel --url http://127.0.0.1:8765'
-
-              else if (t.role?.includes('Vite') || t.name?.includes('node')) cmd = 'npm run preview --port 3000'
-
-              else if (t.role?.includes('Decision Shell') || t.name?.includes('python')) cmd = 'python -m sacl.cli ui --port 8765'
-
-              else if (t.role?.includes('AI LLM') || t.name?.includes('agy')) cmd = 'agy.exe --listen --port 8765'
-
-
-
-              return {
-
-                id: t.id || `OS-PROC-${pidNum}`,
-
-                name: t.name || `Proceso OS: ${t.role}`,
-
-                role: t.role || 'Daemon de Plataforma',
-
-                worktree: 'worktrees/integration',
-
-                state: t.status === 'RUNNING' ? 'RUNNING' : 'IDLE',
-
-                pid: pidNum,
-
-                lastCommand: cmd,
-
-                memoryMb: t.memory_mb,
-
-                updatedAt: 'En vivo (OS)',
-
-              }
-
-            })
-
-          if (procs.length > 0) {
-
-            setProcesses(procs)
-
+        if (isMounted) {
+          if (data.active_agents && data.active_agents.length > 0) {
+            setProcesses(data.active_agents)
+          } else {
+            // Truthful Zero-Token Idle state (SB-ENG-HB-001 Cap. 12.3)
+            setProcesses([])
           }
-
         }
-
       } catch (err) {
-
-        console.warn('Real OS process poll skipped:', err)
-
+        console.warn('Real agent fleet poll skipped:', err)
       }
-
     }
 
 

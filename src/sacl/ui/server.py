@@ -442,6 +442,12 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"connections": conns, "count": len(conns)})
             return
 
+        # 6b. REST API: Agent Fleet Status (Strictly Real - Zero Mocks)
+        if path == "/api/agents/fleet":
+            fleet = self.service.orchestrator.get_fleet_status()
+            self._send_json(200, fleet)
+            return
+
         # 7. REST API: Campaigns & DAG
         if path == "/api/campaigns":
             overview = self.service.campaigns.get_campaigns_overview()

@@ -68,7 +68,18 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         </div>
 
         <div id="right-agents-list" className="space-y-2 text-xs">
-          {agents.map((a) => {
+          {agents.length === 0 ? (
+            <div className="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-850 space-y-2 text-center">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-zinc-900 text-zinc-300 border border-zinc-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                Zero-Token Idle
+              </span>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                Flota en reposo. Cero agentes LLM activos hasta despachar una misión o sprint (Cap. 12.3).
+              </p>
+            </div>
+          ) : (
+            agents.map((a) => {
             const isEmerald = a.color === 'emerald'
             const isAmber = a.color === 'amber'
             return (
@@ -100,7 +111,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 </div>
               </div>
             )
-          })}
+          }))}
         </div>
       </div>
 

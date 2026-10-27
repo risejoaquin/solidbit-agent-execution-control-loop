@@ -98,32 +98,54 @@ export const AgentFleetProcessTable: React.FC<AgentFleetProcessTableProps> = ({
       {/* Header with high visual hierarchy */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-zinc-200 shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shrink-0">
             <Cpu className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                Flota de Agentes & Procesos en Tiempo Real
+                Flota de Agentes Autónomos SACL
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-zinc-200 border border-emerald-500/25 font-semibold">
-                {processes.length} Agentes Registrados
-              </span>
+              {processes.length === 0 ? (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-zinc-900 text-zinc-300 border border-zinc-700">
+                  REPOSO (ZERO-TOKEN IDLE)
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white text-black border border-white">
+                  {processes.length} Agentes en Ejecución
+                </span>
+              )}
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Supervisión de subprocesos locales, PID, aislamiento en worktrees y telemetría de ejecución.
+              Supervisión soberana de agentes, worktrees efímeros aislados y trazabilidad inmutable (SB-ENG-HB-001).
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 shrink-0">
-          <span className="flex items-center gap-1.5 bg-black/40 px-2.5 py-1 rounded-lg border border-white/5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Supervisión: <strong className="text-white">Graph-P Local</strong>
+          <span className="flex items-center gap-1.5 bg-black px-2.5 py-1 rounded-xl border border-zinc-800">
+            <span className={`w-2 h-2 rounded-full ${processes.length > 0 ? 'bg-white animate-pulse' : 'bg-zinc-600'}`} />
+            Supervisor: <strong className="text-white">Graph-P Persistente</strong>
           </span>
         </div>
       </div>
 
+      {processes.length === 0 ? (
+        <div className="p-6 rounded-2xl bg-black border border-zinc-850 text-center space-y-3">
+          <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-white mx-auto">
+            <Layers className="w-5 h-5 text-zinc-300" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+              Flota de Agentes en Modo Reposo (Zero-Token Idle)
+            </h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Siguiendo la arquitectura del RISEHANDBOOK (Capítulo 12.3), el supervisor Graph-P permanece ligero y sin trabajadores LLM activos mientras no hay misiones despachadas. Ningún agente consume tokens en segundo plano.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* 1. DESKTOP / TABLET: HIGH-DENSITY PROCESS TABLE (>= 768px) */}
       <div className="hidden md:block overflow-x-auto custom-scroll">
         <table className="w-full text-left text-xs font-mono">
@@ -282,6 +304,8 @@ export const AgentFleetProcessTable: React.FC<AgentFleetProcessTableProps> = ({
           )
         })}
       </div>
+      </>
+      )}
     </section>
   )
 }
