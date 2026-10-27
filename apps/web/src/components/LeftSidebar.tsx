@@ -12,6 +12,7 @@ import {
   Activity,
   Terminal,
   MessageSquare,
+  Key,
   Sparkles,
 } from 'lucide-react'
 
@@ -35,6 +36,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Inicio', icon: Home, action: () => onSelectSection('dashboard') },
     { id: 'chat', label: 'Chat IA (AGY)', icon: MessageSquare, action: () => onSelectSection('chat'), highlight: true },
+    { id: 'connections', label: 'Sesiones CLI & Auth', icon: Key, action: () => onSelectSection('connections') },
     { id: 'workflows', label: 'Workflows & Skills', icon: Layers, action: () => onSelectSection('workflows') },
     { id: 'designer', label: 'Roadmap', icon: GitBranch, action: () => onSelectSection('designer') },
     { id: 'agents', label: 'Agentes', icon: Bot, action: () => onSelectSection('agents') },

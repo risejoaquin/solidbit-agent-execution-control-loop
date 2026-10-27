@@ -16,6 +16,7 @@ import { ProjectsSection } from './components/sections/ProjectsSection'
 import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
 import { WorkflowsSection } from './components/sections/WorkflowsSection'
+import { TechAuthHubSection } from './components/sections/TechAuthHubSection'
 import { DiffInspectorModal } from './components/DiffInspectorModal'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
@@ -200,6 +201,10 @@ export default function App() {
 
           {currentSection === 'chat' && (
             <ChatSection />
+          )}
+
+          {currentSection === 'connections' && (
+            <TechAuthHubSection />
           )}
 
           {currentSection === 'workflows' && (

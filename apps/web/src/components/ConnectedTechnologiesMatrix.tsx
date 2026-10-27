@@ -30,12 +30,14 @@ interface ConnectedTechnologiesMatrixProps {
   connections: TechnologyItem[]
   onRefresh?: () => void
   onTestConnection?: (techId: string) => void
+  onNavigateSection?: (sectionId: string) => void
 }
 
 export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixProps> = ({
   connections = [],
   onRefresh,
   onTestConnection,
+  onNavigateSection,
 }) => {
   // Baseline technologies if waiting for backend data
   const defaultTechs: TechnologyItem[] = [
@@ -194,17 +196,31 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
           </div>
         </div>
 
-        {onRefresh && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer"
-            title="Actualizar diagnóstico de conexiones"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-zinc-200" />
-            <span>Diagnóstico</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {onNavigateSection && (
+            <button
+              type="button"
+              id="btn-goto-auth-hub"
+              onClick={() => onNavigateSection('connections')}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+              title="Abrir Centro de Sesiones CLI y Autenticación"
+            >
+              <span>Sesiones CLI</span>
+              <ExternalLink className="w-3 h-3 text-black" />
+            </button>
+          )}
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-mono flex items-center gap-1.5 transition cursor-pointer"
+              title="Actualizar diagnóstico de conexiones"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-zinc-200" />
+              <span>Diagnóstico</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grid: 2 columns on Mobile, 4 columns on Tablet, 4-5 on Desktop */}
