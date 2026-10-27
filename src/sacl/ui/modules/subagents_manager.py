@@ -26,14 +26,14 @@ class SubagentsManager:
         self.db_path = db_path or Path("sacl_ops.db")
 
     def _query_os_processes(self) -> List[Dict[str, Any]]:
-        """Queries real Windows processes (python, cloudflared, node, agy) via PowerShell."""
+        """Queries real Windows processes (python, node, agy) via PowerShell."""
         real_procs: List[Dict[str, Any]] = []
         try:
             cmd = [
                 "powershell",
                 "-NoProfile",
                 "-Command",
-                "Get-Process -Name python*, cloudflare*, node*, agy* -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, WorkingSet64 | ConvertTo-Json -Compress",
+                "Get-Process -Name python*, node*, agy* -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, WorkingSet64 | ConvertTo-Json -Compress",
             ]
             res = subprocess.run(
                 cmd, capture_output=True, text=True, timeout=4, encoding="utf-8", errors="replace"
@@ -47,9 +47,7 @@ class SubagentsManager:
                     ws_mb = round(p.get("WorkingSet64", 0) / (1024 * 1024), 1)
 
                     role = "Daemon Process"
-                    if "cloudflared" in name:
-                        role = "Cloudflare Tunnel (trycloudflare -> 8765)"
-                    elif "node" in name:
+                    if "node" in name:
                         role = "Vite React 19 Frontend Engine"
                     elif "python" in name:
                         role = "SACL Decision Shell & SSE Service"
