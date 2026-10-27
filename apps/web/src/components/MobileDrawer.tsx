@@ -163,7 +163,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-white font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  Persistencia Soberana
+                  Persistencia Control
                 </span>
                 <button
                   type="button"
@@ -215,7 +215,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
               <div className="flex items-center gap-2">
                 <Database className="w-4 h-4 text-white" />
-                <h3 className="text-xs font-bold text-white">Persistencia Soberana SQLite</h3>
+                <h3 className="text-xs font-bold text-white">Persistencia Control SQLite</h3>
               </div>
               <button
                 type="button"

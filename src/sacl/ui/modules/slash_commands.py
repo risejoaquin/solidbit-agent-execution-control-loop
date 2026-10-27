@@ -274,7 +274,7 @@ class SlashCommandRegistry:
             {
                 "id": "approvals",
                 "name": "approvals",
-                "desc": "Compuertas HITL soberanas y firmas HMAC",
+                "desc": "Compuertas HITL controls y firmas HMAC",
                 "category": "table",
             },
             {

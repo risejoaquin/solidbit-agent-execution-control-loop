@@ -117,7 +117,7 @@ export const AgentFleetProcessTable: React.FC<AgentFleetProcessTableProps> = ({
               )}
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Supervisión soberana de agentes, worktrees efímeros aislados y trazabilidad inmutable (SB-ENG-HB-001).
+              Supervisión control de agentes, worktrees efímeros aislados y trazabilidad inmutable (SB-ENG-HB-001).
             </p>
           </div>
         </div>

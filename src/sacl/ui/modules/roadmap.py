@@ -82,7 +82,7 @@ class RoadmapModule:
         },
         {
             "id": "phase-5",
-            "name": "Fase 5: Despliegue Soberano & Canary en Producción",
+            "name": "Fase 5: Despliegue Principal & Canary en Producción",
             "code": "SDLC-PROD",
             "status": "PLANNED",
             "progress": 20,

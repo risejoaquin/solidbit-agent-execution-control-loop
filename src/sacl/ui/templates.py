@@ -766,7 +766,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <i data-lucide="play-circle" class="w-6 h-6 text-emerald-400"></i>
-            <span>Pipelines SDLC & Automatizaciones Soberanas</span>
+            <span>Pipelines SDLC & Automatizaciones Controls</span>
           </h2>
           <p class="text-sm text-zinc-400 mt-1">Dispara pipelines, suites de pruebas y verificaciones con salida en tiempo real.</p>
         </div>
@@ -902,7 +902,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                 <i data-lucide="play" class="w-5 h-5"></i>
               </div>
               <div>
-                <h4 class="text-sm font-bold text-white uppercase tracking-tight">Sprint Soberano SACL V1</h4>
+                <h4 class="text-sm font-bold text-white uppercase tracking-tight">Sprint Principal SACL V1</h4>
                 <div class="text-xs mono text-zinc-400">DAG Topológico Aislado</div>
               </div>
             </div>
@@ -950,7 +950,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
               <i data-lucide="git-fork" class="w-6 h-6 text-purple-400"></i>
               <span>Studio Visual de DAG & Campañas de Agentes</span>
             </h2>
-            <span class="mono text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">TOPOLOGÍA SOBERANA</span>
+            <span class="mono text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">TOPOLOGÍA CONTROL</span>
           </div>
           <p class="text-sm text-zinc-400 mt-1">Diseña, edita dependencias acíclicas, configura compuertas humanas y exporta paquetes Wave canónicos.</p>
         </div>
@@ -1484,7 +1484,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       </div>
     </div>
     <div id="terminal-stdout-container" class="flex-1 p-4 font-mono text-xs text-zinc-300 overflow-y-auto space-y-1.5 select-text custom-scroll bg-[#000000]">
-      <div class="text-zinc-500">[INIT] Consola de ejecución soberana lista. Aguardando procesos...</div>
+      <div class="text-zinc-500">[INIT] Consola de ejecución control lista. Aguardando procesos...</div>
     </div>
   </div>
 
@@ -1503,7 +1503,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     </div>
     <div class="flex-1 overflow-y-auto p-5 space-y-5 custom-scroll">
       <div class="section-canvas p-5 space-y-2.5">
-        <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Autoría & Soberanía</div>
+        <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Autoría & Control
         <div class="text-base font-bold text-white">LUCILFER / risejoaquin</div>
         <div class="text-xs text-zinc-400">Cuenta GitHub activa: <span class="mono text-emerald-400 font-semibold">@risejoaquin</span></div>
         <div class="text-xs text-zinc-400">Email Resend: <span class="mono text-zinc-300">lucilfer@selfcaresinners.com</span></div>
@@ -1960,7 +1960,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({
             request_id: reqId,
             decision: 'APPROVED',
-            justification: 'Autorizado por operador soberano LUCILFER / risejoaquin'
+            justification: 'Autorizado por operador local LUCILFER / risejoaquin'
           })
         });
         const data = await res.json();
@@ -2035,7 +2035,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({
             request_id: reqId,
             decision: 'REJECTED',
-            justification: 'Compuerta rechazada por operador soberano LUCILFER / risejoaquin'
+            justification: 'Compuerta rechazada por operador local LUCILFER / risejoaquin'
           })
         });
         const data = await res.json();
@@ -4441,7 +4441,7 @@ function initSSE() {
             <span class="font-bold text-blue-400 text-xs flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i> Jira Cloud Status</span>
             <span class="text-[9px] mono text-zinc-500">hace 1 hora</span>
           </div>
-          <p class="text-[11px] text-zinc-300">Sesión remota protegida. Tareas persistidas en SQLite WAL local soberano.</p>
+          <p class="text-[11px] text-zinc-300">Sesión remota protegida. Tareas persistidas en SQLite WAL local local.</p>
         </div>
       `;
       lucide.createIcons();
@@ -4678,7 +4678,7 @@ function initSSE() {
               <span>Sincronización Jira / SQLite WAL</span>
               <span id="jira-auth-badge" class="mono text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">SQLITE LOCAL FIRST</span>
             </div>
-            <p id="jira-status-desc" class="text-[11px] text-zinc-400">Atlassian CLI instalado (C:\\Tools\\Atlassian\acli.EXE). Tareas se persisten soberanamente en SQLite WAL local.</p>
+            <p id="jira-status-desc" class="text-[11px] text-zinc-400">Atlassian CLI instalado (C:\\Tools\\Atlassian\acli.EXE). Tareas se persisten directamente en SQLite WAL local.</p>
           </div>
         </div>
         <button type="button" onclick="loadOrchestratorContext()" class="btn btn-secondary text-[11px] px-2.5 py-1 text-zinc-300 hover:text-white shrink-0">

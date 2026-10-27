@@ -93,7 +93,7 @@ def _load_operator_profile() -> Dict[str, Any]:
             pass
     return {
         "name": detected_name or "Operador SACL",
-        "role": os.environ.get("SACL_OPERATOR_ROLE", "Product Owner / Sovereign Authority"),
+        "role": os.environ.get("SACL_OPERATOR_ROLE", "Product Owner / Autoridad Principal"),
         "email": detected_email or "operator@localhost",
         "secret": os.environ.get("SACL_AUDIT_SECRET", "sacl-sovereign-audit-secret-2026"),
         "signing_status": "AUTHENTICATED",
@@ -513,7 +513,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
               <div class="card">
                 <div class="badge">{decision}</div>
                 <h1>{status_text}</h1>
-                <p>La micro-decisión ha sido registrada de forma segura en el control loop soberano. El DAG continúa según los contratos.</p>
+                <p>La micro-decisión ha sido registrada de forma segura en el control loop local. El DAG continúa según los contratos.</p>
                 <div class="req">{req_id}</div>
               </div>
             </body>
@@ -1053,12 +1053,26 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, res)
             return
 
-        # 6. Project Workspace Switching
+        # 6. Project Workspace Switching, Manual Import & Removal
         if path == "/api/projects/switch":
             project_id = body.get("project_id", "")
             res = self.service.projects.switch_project(project_id)
             broadcast_sse("project_switched", res)
             self._send_json(200, res)
+            return
+
+        if path == "/api/projects/import":
+            folder_path = body.get("path") or body.get("folder") or ""
+            res = self.service.projects.import_project(folder_path)
+            broadcast_sse("project_imported", res)
+            self._send_json(200 if res.get("success") else 400, res)
+            return
+
+        if path == "/api/projects/remove":
+            project_id = body.get("project_id") or body.get("path") or ""
+            res = self.service.projects.remove_project(project_id)
+            broadcast_sse("project_removed", res)
+            self._send_json(200 if res.get("success") else 400, res)
             return
 
         # 6b. REST API: Open Specific Folder on Disk
@@ -1281,7 +1295,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # 17. Live SDLC & Action Execution Engine
         if path == "/api/actions/execute":
-            action_type = body.get("action_type", "test_suite")
+            action_type = body.get("action_type") or body.get("action") or "test_suite"
             params = body.get("params", {})
             res = self.service.actions.execute(action_type, params=params)
             broadcast_sse("action_executed", res)

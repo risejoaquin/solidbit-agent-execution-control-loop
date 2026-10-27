@@ -256,7 +256,7 @@ class OrchestratorModule:
             "cli_path": acli_path,
             "mode": "unauthenticated",
             "status": "BLOCKED_HUMAN_ACTION_REQUIRED",
-            "message": "Sin credenciales de Jira. Las tareas se persistirán de forma soberana en SQLite WAL local.",
+            "message": "Sin credenciales de Jira. Las tareas se persistirán de forma control en SQLite WAL local.",
             "human_action": "Ejecutar 'acli auth login' o definir JIRA_API_TOKEN y JIRA_URL para sincronización remota.",
         }
 
@@ -390,7 +390,7 @@ class OrchestratorModule:
             {
                 "key": "SOLID-108",
                 "title": "Production Deployment & Canary Verification with Rollback",
-                "phase": "Fase 5: Despliegue Soberano",
+                "phase": "Fase 5: Despliegue Principal",
                 "contracts": ["DR-INV-001", "DR-PAY-001", "DR-REC-001"],
                 "status": "PLANNED",
                 "description": "Despliegue a producción con verificación canary automatizada y rollback en < 1.5s.",
@@ -707,7 +707,7 @@ class OrchestratorModule:
                     "title": "Human Security Authority Gatekeeper",
                     "responsibilities": "Verificación de cero vulnerabilidades críticas y firma de compuerta Gate 5.",
                     "worktree": "worktrees/integration",
-                    "phase": "Wave 4: Aprobación Humana Soberana",
+                    "phase": "Wave 4: Aprobación Humana Control",
                 },
             ]
             waves = [

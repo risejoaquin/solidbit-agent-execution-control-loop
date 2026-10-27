@@ -79,7 +79,7 @@ def query_agy_engine(
     agy_model = mapping.get(model_id, "gemini-3.8-flash-low")
 
     system_context = (
-        "Eres el asistente soberano del SolidBit SACL (Sovereign Agent Control Loop), "
+        "Eres el asistente local del SolidBit SACL (SolidBit Agent Execution Control Loop), "
         "Conoces los contratos DR-INV-001, "
         "DR-PAY-001, el aislamiento por worktrees de Git, la persistencia SQLite WAL y compuertas humanas. "
         "Responde de forma concisa, técnica y directa sin rodeos."
@@ -129,7 +129,7 @@ class ChatModule:
             {
                 "id": "msg-init-1",
                 "role": "assistant",
-                "content": "Hola. Soy el asistente soberano del **SACL Decision Shell** impulsado por el motor **AGY**. Puedo auditar contratos (`DR-INV-001`, `DR-PAY-001`), lanzar campañas de agentes, inspeccionar compuertas o resolver consultas de arquitectura en tiempo real. ¿Qué deseas hacer hoy?",
+                "content": "Hola. Soy el asistente local del **SACL Decision Shell** impulsado por el motor **AGY**. Puedo auditar contratos (`DR-INV-001`, `DR-PAY-001`), lanzar campañas de agentes, inspeccionar compuertas o resolver consultas de arquitectura en tiempo real. ¿Qué deseas hacer hoy?",
                 "timestamp": utc_now(),
                 "action_suggestion": None,
             }
@@ -251,7 +251,7 @@ class ChatModule:
                     "1. **Oleada 0 (Gobernanza):** Verificación de contratos congelados (`DR-INV-001`).\n"
                     "2. **Oleada 1 (Persistencia):** Inicialización de esquemas SQLite WAL y aislamiento de ramas.\n"
                     "3. **Oleada 2 (Core E-commerce):** Ejecución de SellableUnit y Checkout sin sobreventa.\n"
-                    "4. **Oleada 3 (QA & HITL):** Suite Pytest y compuerta de firma criptográfica soberana.\n\n"
+                    "4. **Oleada 3 (QA & HITL):** Suite Pytest y compuerta de firma criptográfica control.\n\n"
                     "El plan ha sido sintetizado en el Diseñador Kahn. Pulsa **'Lanzar Oleada Kahn'** para proceder."
                 )
 
@@ -407,7 +407,7 @@ class ChatModule:
                     "### 📊 Reporte Ejecutivo de Telemetría Real SACL V1\n\n"
                     f"- **Repositorio Git Físico:** Rama `{git_branch}` @ Commit `{git_head}`\n"
                     f"- **Persistencia SQLite WAL (`sacl_ops.db`):** `PRAGMA integrity_check = {wal_status}`\n"
-                    f"- **Jobs en Base de Datos:** `{total_jobs}` registros soberanos\n"
+                    f"- **Jobs en Base de Datos:** `{total_jobs}` registros locales\n"
                     f"- **Ejecuciones Registradas (Runs):** `{total_runs}` runs históricos\n"
                     f"- **Compuertas de Aprobación:** `{total_approvals}` compuertas auditadas\n"
                     "- **Invariantes SDLC:** 24/24 verificadas formalmente en `tests/helpers/test_contracts.py`\n"
@@ -505,7 +505,7 @@ class ChatModule:
                             g.approval_id, "APPROVED", justification="Autorizado vía Asistente Chat"
                         )
 
-                        assistant_text = f"Compuerta **{g.approval_id}** (`{g.action}`) autorizada con éxito en el control loop soberano. El pipeline continúa su ejecución en el worktree aislado."
+                        assistant_text = f"Compuerta **{g.approval_id}** (`{g.action}`) autorizada con éxito en el control loop local. El pipeline continúa su ejecución en el worktree aislado."
 
                         action_data = {
                             "type": "GATE_DECIDED",
@@ -519,7 +519,7 @@ class ChatModule:
                         assistant_text = "No hay compuertas pendientes para autorizar en este momento. El ecosistema está en estado 100% autónomo y limpio."
 
                 else:
-                    assistant_text = "Compuerta autorizada en el registro soberano."
+                    assistant_text = "Compuerta autorizada en el registro local."
 
             # 7. Operational Command: CORREO / RESEND
 

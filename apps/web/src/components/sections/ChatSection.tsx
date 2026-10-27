@@ -435,7 +435,7 @@ export const ChatSection: React.FC = () => {
                 <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-1.5 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-white text-[11px]">
-                      {isUser ? operatorName : 'Asistente Soberano SACL'}
+                      {isUser ? operatorName : 'Asistente Principal SACL'}
                     </span>
                     <span className="text-[10px] text-zinc-400 font-mono">
                       ({isUser ? 'Product Owner' : 'AGY Runtime'})

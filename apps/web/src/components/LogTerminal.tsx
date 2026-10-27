@@ -109,7 +109,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           timestamp: formatSmartDateTime(new Date()),
           subsystem: 'GATE',
           level: 'AUDIT',
-          message: 'Compuertas soberanas habilitadas: Zero unauthorized deploy (HMAC-SHA256).',
+          message: 'Compuertas controls habilitadas: Zero unauthorized deploy (HMAC-SHA256).',
           pid: undefined,
         },
       ])

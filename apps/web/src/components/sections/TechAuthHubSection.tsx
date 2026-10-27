@@ -23,6 +23,9 @@ import {
   Box,
   Code2,
   X,
+  ChevronDown,
+  ChevronUp,
+  XCircle,
 } from 'lucide-react'
 
 export interface TechnologySessionItem {
@@ -43,11 +46,15 @@ export const TechAuthHubSection: React.FC = () => {
   const [connections, setConnections] = useState<TechnologySessionItem[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [testingId, setTestingId] = useState<string | null>(null)
-  const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string; timestamp: string }>>({})
+  const [testResults, setTestResults] = useState<
+    Record<string, { success: boolean; message: string; timestamp: string }>
+  >({})
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
-  
+  const [expandedCliId, setExpandedCliId] = useState<string | null>(null)
+  const [bannerFeedback, setBannerFeedback] = useState<{ type: 'success' | 'info'; message: string } | null>(null)
+
   // Auth Credential Modal state
   const [authModalTool, setAuthModalTool] = useState<TechnologySessionItem | null>(null)
   const [authToken, setAuthToken] = useState<string>('')
@@ -56,7 +63,6 @@ export const TechAuthHubSection: React.FC = () => {
   const [isSubmittingAuth, setIsSubmittingAuth] = useState<boolean>(false)
   const [authFeedback, setAuthFeedback] = useState<{ success: boolean; message: string } | null>(null)
 
-  // Fetch connections from real backend
   const fetchConnections = async () => {
     setIsLoading(true)
     try {
@@ -76,16 +82,14 @@ export const TechAuthHubSection: React.FC = () => {
     fetchConnections()
   }, [])
 
-  // 1-Click Copy CLI Command
   const copyCliCommand = (toolId: string, cmd: string) => {
     navigator.clipboard.writeText(cmd)
     setCopiedId(toolId)
     setTimeout(() => {
       setCopiedId(null)
-    }, 2200)
+    }, 2000)
   }
 
-  // Live test connection endpoint call
   const handleTestConnection = async (toolId: string) => {
     setTestingId(toolId)
     try {
@@ -95,9 +99,14 @@ export const TechAuthHubSection: React.FC = () => {
         body: JSON.stringify({ tool_id: toolId }),
       })
       const result = await res.json()
-      const isSuccess = result.success || (result.connection && result.connection.status === 'connected')
-      const msg = result.connection?.account_info || (isSuccess ? 'Sesión verificada correctamente con el ejecutable local.' : (result.connection?.error_message || 'Sesión no autenticada o binario ausente.'))
-      
+      const isSuccess =
+        result.success || (result.connection && result.connection.status === 'connected')
+      const msg = isSuccess
+        ? result.connection?.account_info || 'Sesión activa y verificada en este equipo.'
+        : result.connection?.error_message ||
+          result.connection?.account_info ||
+          'Falta iniciar sesión o configurar credencial.'
+
       setTestResults((prev) => ({
         ...prev,
         [toolId]: {
@@ -106,14 +115,13 @@ export const TechAuthHubSection: React.FC = () => {
           timestamp: formatSmartDateTime(new Date()),
         },
       }))
-      // Refresh state
       fetchConnections()
     } catch (err) {
       setTestResults((prev) => ({
         ...prev,
         [toolId]: {
           success: false,
-          message: `Error al ejecutar prueba de diagnóstico: ${err}`,
+          message: `Error al verificar conexión: ${err}`,
           timestamp: formatSmartDateTime(new Date()),
         },
       }))
@@ -122,7 +130,6 @@ export const TechAuthHubSection: React.FC = () => {
     }
   }
 
-  // Web Browser / OAuth Auth Trigger
   const handleLaunchBrowserAuth = async (tech: TechnologySessionItem) => {
     try {
       const res = await fetch('/api/connections/browser-auth', {
@@ -131,19 +138,51 @@ export const TechAuthHubSection: React.FC = () => {
         body: JSON.stringify({ tool_id: tech.id }),
       })
       const result = await res.json()
-      if (result.browser_opened || result.success) {
-        alert(`Navegador iniciado para autenticar ${tech.name}. Complete el inicio de sesión y luego pulse "Probar Sesión CLI".`)
-      } else if (tech.auth_url) {
+      setBannerFeedback({
+        type: 'info',
+        message:
+          result.message ||
+          `Se abrió el navegador para autenticar ${tech.name}. Al terminar, haz clic en "Verificar".`,
+      })
+      if (!result.browser_opened && tech.auth_url) {
         window.open(tech.auth_url, '_blank', 'noopener,noreferrer')
       }
-    } catch (e) {
+    } catch {
       if (tech.auth_url) {
         window.open(tech.auth_url, '_blank', 'noopener,noreferrer')
       }
     }
   }
 
-  // Submit Credential Form
+  // Poka-Yoke real-time token format validation
+  const getTokenValidationRules = (toolId: string, tokenVal: string) => {
+    const trimmed = tokenVal.trim()
+    const hasLength = trimmed.length >= 8
+    if (toolId === 'resend') {
+      return [
+        { label: 'Comienza con el prefijo "re_"', valid: trimmed.startsWith('re_') },
+        { label: 'Longitud mínima de clave API (12+ caracteres)', valid: trimmed.length >= 12 },
+      ]
+    }
+    if (toolId === 'gh') {
+      return [
+        {
+          label: 'Prefijo estándar de GitHub (ghp_, github_pat_ o gho_)',
+          valid:
+            trimmed.startsWith('ghp_') ||
+            trimmed.startsWith('github_pat_') ||
+            trimmed.startsWith('gho_') ||
+            trimmed.length >= 20,
+        },
+        { label: 'Longitud válida de token', valid: hasLength },
+      ]
+    }
+    return [
+      { label: 'Token sin espacios al inicio o final', valid: trimmed.length > 0 && !trimmed.includes(' ') },
+      { label: 'Longitud mínima de seguridad (8+ caracteres)', valid: hasLength },
+    ]
+  }
+
   const handleSubmitCredential = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!authModalTool) return
@@ -165,7 +204,10 @@ export const TechAuthHubSection: React.FC = () => {
       })
       const data = await res.json()
       if (data.success) {
-        setAuthFeedback({ success: true, message: data.message || 'Credencial guardada y sesión validada con éxito.' })
+        setAuthFeedback({
+          success: true,
+          message: data.message || 'Credencial guardada y verificada con éxito.',
+        })
         setTimeout(() => {
           setAuthModalTool(null)
           setAuthToken('')
@@ -173,9 +215,12 @@ export const TechAuthHubSection: React.FC = () => {
           setAuthDomain('')
           setAuthFeedback(null)
           fetchConnections()
-        }, 1500)
+        }, 1000)
       } else {
-        setAuthFeedback({ success: false, message: data.message || data.error || 'No se pudo validar la credencial ingresada.' })
+        setAuthFeedback({
+          success: false,
+          message: data.message || data.error || 'No se pudo validar la credencial ingresada.',
+        })
       }
     } catch (err) {
       setAuthFeedback({ success: false, message: `Error al comunicar con el servidor: ${err}` })
@@ -211,128 +256,139 @@ export const TechAuthHubSection: React.FC = () => {
       case 'aws':
         return <Layers className="w-5 h-5 text-zinc-200" />
       default:
-        return category === 'runtime' ? <Terminal className="w-5 h-5 text-zinc-400" /> : <Layers className="w-5 h-5 text-zinc-400" />
+        return category === 'runtime' ? (
+          <Terminal className="w-5 h-5 text-zinc-400" />
+        ) : (
+          <Layers className="w-5 h-5 text-zinc-400" />
+        )
     }
   }
 
-  // Filter list
   const filteredConnections = connections.filter((c) => {
     const matchesCategory =
       selectedCategory === 'all' ||
-      (selectedCategory === 'ai' && c.category === 'ai') ||
-      (selectedCategory === 'vcs' && c.category === 'vcs') ||
-      (selectedCategory === 'cloud' && (c.category === 'cloud' || c.category === 'infra')) ||
-      (selectedCategory === 'database' && c.category === 'database') ||
-      (selectedCategory === 'governance' && (c.category === 'governance' || c.category === 'notifications')) ||
-      (selectedCategory === 'runtime' && (c.category === 'runtime' || c.category === 'infra' && c.id === 'docker'))
+      (selectedCategory === 'connected' && c.status === 'connected') ||
+      (selectedCategory === 'pending' && c.status !== 'connected')
 
     const matchesSearch =
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (c.agent_usage && c.agent_usage.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (c.account_info && c.account_info.toLowerCase().includes(searchQuery.toLowerCase()))
 
     return matchesCategory && matchesSearch
   })
 
   const connectedCount = connections.filter((c) => c.status === 'connected').length
-  const pendingCount = connections.length - connectedCount
+  const unauthCount = connections.filter(
+    (c) => c.status === 'unauthenticated' || c.status === 'degraded'
+  ).length
+  const missingCount = connections.filter((c) => c.status === 'disconnected').length
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in max-w-7xl mx-auto">
-      {/* 1. Top Section Header */}
-      <div className="p-4 sm:p-6 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shrink-0">
-              <Key className="w-5 h-5 sm:w-6 sm:h-6" />
+    <div className="space-y-6 pb-12 animate-fade-in max-w-6xl mx-auto text-left">
+      {/* 1. Header Simplificado (Hick's Law: 1 CTA primario) */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shrink-0">
+              <Key className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-base sm:text-lg lg:text-xl font-bold text-white tracking-wide">
-                  Sesiones CLI & Autenticación de Tecnologías
-                </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-white text-black border border-white">
-                  12 Plataformas SACL
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-2xl">
-                Controle el estado de autenticación, credenciales de entorno y comandos CLI para que los agentes autónomos operen en local sobre cada tecnología de la suite.
+              <h1 className="text-lg font-bold text-white tracking-tight">
+                Conexiones Reales del Sistema
+              </h1>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Verificación en tiempo real de qué herramientas están instaladas y cuáles tienen sesión iniciada en tu PC.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              type="button"
-              id="btn-refresh-all-tech"
-              onClick={fetchConnections}
-              disabled={isLoading}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold font-mono flex items-center gap-2 transition cursor-pointer shadow-sm disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-black ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Verificar Todas en Local</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={fetchConnections}
+            disabled={isLoading}
+            className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-sm disabled:opacity-50 self-start sm:self-auto"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-black ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Verificando...' : 'Volver a Verificar Todo'}</span>
+          </button>
         </div>
 
-        {/* Live Metrics Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 border-t border-zinc-850 text-xs">
-          <div className="p-3 rounded-xl bg-black border border-zinc-800">
-            <span className="text-zinc-500 block text-[11px] font-mono uppercase">Total Tecnologías</span>
-            <span className="text-base font-bold text-white font-mono mt-0.5 block">{connections.length}</span>
+        {/* Resumen de Estado Claro (Visibilidad continua del sistema) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-zinc-850 text-xs">
+          <div className="p-3.5 rounded-xl bg-black border border-emerald-500/25 flex items-center justify-between">
+            <div>
+              <span className="text-zinc-400 block text-[11px]">Conectadas y Autenticadas</span>
+              <span className="text-lg font-bold text-emerald-400 font-mono mt-0.5 block">
+                {connectedCount} listas para usar
+              </span>
+            </div>
+            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
           </div>
-          <div className="p-3 rounded-xl bg-black border border-zinc-800">
-            <span className="text-zinc-500 block text-[11px] font-mono uppercase">Sesiones Activas</span>
-            <span className="text-base font-bold text-white font-mono mt-0.5 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              {connectedCount} Verificadas
-            </span>
+
+          <div className="p-3.5 rounded-xl bg-black border border-amber-500/25 flex items-center justify-between">
+            <div>
+              <span className="text-zinc-400 block text-[11px]">Instaladas (Falta Iniciar Sesión)</span>
+              <span className="text-lg font-bold text-amber-400 font-mono mt-0.5 block">
+                {unauthCount} por conectar
+              </span>
+            </div>
+            <AlertTriangle className="w-5 h-5 text-amber-400" />
           </div>
-          <div className="p-3 rounded-xl bg-black border border-zinc-800">
-            <span className="text-zinc-500 block text-[11px] font-mono uppercase">Pendientes / Inactivas</span>
-            <span className="text-base font-bold text-zinc-400 font-mono mt-0.5 block">{pendingCount}</span>
-          </div>
-          <div className="p-3 rounded-xl bg-black border border-zinc-800">
-            <span className="text-zinc-500 block text-[11px] font-mono uppercase">Dirty-Root Guard</span>
-            <span className="text-base font-bold text-white font-mono mt-0.5 block">100% Hermético</span>
+
+          <div className="p-3.5 rounded-xl bg-black border border-zinc-800 flex items-center justify-between">
+            <div>
+              <span className="text-zinc-500 block text-[11px]">No Instaladas en PC</span>
+              <span className="text-lg font-bold text-zinc-400 font-mono mt-0.5 block">
+                {missingCount} ausentes
+              </span>
+            </div>
+            <XCircle className="w-5 h-5 text-zinc-500" />
           </div>
         </div>
       </div>
 
-      {/* 2. Filters & Search Toolbar */}
+      {bannerFeedback && (
+        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-white flex items-center justify-between gap-3">
+          <span>{bannerFeedback.message}</span>
+          <button
+            type="button"
+            onClick={() => setBannerFeedback(null)}
+            className="text-zinc-400 hover:text-white text-xs font-mono"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
+      {/* 2. Filtros Simples (Reconocimiento antes que recuerdo) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scroll text-xs">
+        <div className="flex items-center gap-2">
           {[
-            { id: 'all', label: 'Todas (12)' },
-            { id: 'ai', label: 'IA & Inferencia' },
-            { id: 'vcs', label: 'VCS & Git' },
-            { id: 'cloud', label: 'Cloud & PaaS' },
-            { id: 'database', label: 'Bases de Datos' },
-            { id: 'governance', label: 'Gobernanza' },
-            { id: 'runtime', label: 'Runtimes' },
-          ].map((cat) => (
+            { id: 'all', label: `Todas (${connections.length})` },
+            { id: 'connected', label: `Conectadas (${connectedCount})` },
+            { id: 'pending', label: `Requieren Atención (${unauthCount + missingCount})` },
+          ].map((tab) => (
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition cursor-pointer text-xs font-medium ${
-                selectedCategory === cat.id
-                  ? 'bg-white text-black font-bold shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700'
+              key={tab.id}
+              type="button"
+              onClick={() => setSelectedCategory(tab.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                selectedCategory === tab.id
+                  ? 'bg-white text-black'
+                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
               }`}
             >
-              {cat.label}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Search Input */}
-        <div className="relative min-w-[220px]">
+        <div className="relative min-w-[240px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
-            placeholder="Buscar tecnología o comando..."
+            placeholder="Filtrar por nombre (GitHub, Resend, Railway...)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white transition"
@@ -340,168 +396,163 @@ export const TechAuthHubSection: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {/* 3. Tarjetas de Conexión (Progressive Disclosure para comandos técnicos) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredConnections.map((tech) => {
           const isConnected = tech.status === 'connected'
+          const isDisconnected = tech.status === 'disconnected'
           const isTesting = testingId === tech.id
           const testResult = testResults[tech.id]
           const isCopied = copiedId === tech.id
+          const showCli = expandedCliId === tech.id
 
           return (
             <div
               key={tech.id}
-              id={`card-tech-${tech.id}`}
-              className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition flex flex-col justify-between space-y-4 shadow-lg group"
+              className={`p-5 rounded-2xl bg-zinc-950 border transition flex flex-col justify-between space-y-4 ${
+                isConnected
+                  ? 'border-zinc-800 hover:border-zinc-700'
+                  : isDisconnected
+                  ? 'border-zinc-900 opacity-75'
+                  : 'border-amber-500/30 hover:border-amber-500/50'
+              }`}
             >
-              {/* Header: Icon, Name, Badge */}
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 group-hover:border-zinc-600 transition">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
                       {getTechIcon(tech.id, tech.category)}
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white block group-hover:text-zinc-100 transition">
-                        {tech.name}
-                      </h3>
-                      <span className="text-[11px] font-mono text-zinc-400 block mt-0.5 truncate max-w-[190px]">
+                      <h3 className="text-sm font-bold text-white">{tech.name}</h3>
+                      <span className="text-[11px] font-mono text-zinc-500 block mt-0.5 truncate max-w-[180px]">
                         {tech.version || tech.id}
                       </span>
                     </div>
                   </div>
 
-                  {/* Status Badge */}
                   {isConnected ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-white text-black border border-white shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                       CONECTADO
                     </span>
+                  ) : isDisconnected ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-zinc-900 text-zinc-400 border border-zinc-800 shrink-0">
+                      <XCircle className="w-3 h-3 text-zinc-500" />
+                      NO INSTALADO
+                    </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-zinc-900 text-zinc-300 border border-zinc-700 shrink-0">
-                      <AlertTriangle className="w-3 h-3 text-zinc-400" />
-                      SIN AUTENTICAR
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
+                      <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      FALTA SESIÓN
                     </span>
                   )}
                 </div>
 
-                {/* Account / Session Info */}
-                <div className="p-2.5 rounded-xl bg-black border border-zinc-850 text-xs">
-                  <span className="text-[10px] font-mono uppercase text-zinc-500 block">Sesión en Host</span>
-                  <span className="text-xs text-zinc-200 font-mono block mt-0.5 truncate">
-                    {tech.account_info || (isConnected ? 'Sesión local detectada en PATH' : 'No se detecta sesión activa en el entorno')}
+                {/* Estado Real Detectado */}
+                <div className="p-3 rounded-xl bg-black border border-zinc-850 text-xs space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-zinc-500 block">
+                    Estado Real en tu PC:
                   </span>
+                  <span className="text-xs text-zinc-200 font-medium block">
+                    {tech.account_info || (isConnected ? 'Sesión activa' : 'Sin sesión iniciada')}
+                  </span>
+                  {!isConnected && tech.error_message && (
+                    <span className="text-[11px] text-amber-400/90 block pt-0.5">
+                      {tech.error_message}
+                    </span>
+                  )}
                 </div>
 
-                {/* Agent Usage description */}
                 {tech.agent_usage && (
-                  <div className="text-xs text-zinc-400 leading-relaxed bg-zinc-900/50 p-2.5 rounded-xl border border-zinc-850">
-                    <span className="text-[10px] font-mono uppercase text-zinc-500 block mb-1">
-                      Uso por Agentes Locales:
-                    </span>
-                    <p className="text-[11px] text-zinc-300">
-                      {tech.agent_usage}
-                    </p>
-                  </div>
+                  <p className="text-xs text-zinc-400 leading-relaxed">{tech.agent_usage}</p>
                 )}
-              </div>
 
-              {/* Dedicated CLI Snippet Box */}
-              <div className="space-y-3 pt-2 border-t border-zinc-850">
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                    <span className="flex items-center gap-1.5 text-zinc-300">
-                      <Terminal className="w-3.5 h-3.5 text-zinc-400" />
-                      Comando CLI para Agentes:
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => copyCliCommand(tech.id, tech.cli_command || `${tech.id} --version`)}
-                      className="inline-flex items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition cursor-pointer font-bold"
-                      title="Copiar comando"
-                    >
-                      {isCopied ? (
-                        <>
-                          <Check className="w-3 h-3 text-white" />
-                          <span className="text-white">¡Copiado!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" />
-                          <span>Copiar</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Monospace Command Bar */}
-                  <div
-                    onClick={() => copyCliCommand(tech.id, tech.cli_command || `${tech.id} --version`)}
-                    className="p-2.5 rounded-xl bg-black border border-zinc-800 hover:border-zinc-600 font-mono text-[11px] text-white flex items-center justify-between cursor-pointer transition select-all overflow-x-auto custom-scroll"
-                  >
-                    <code className="whitespace-nowrap">{tech.cli_command || `${tech.id} --version`}</code>
-                    <Copy className="w-3.5 h-3.5 text-zinc-500 ml-2 shrink-0 group-hover:text-white transition" />
-                  </div>
-                </div>
-
-                {/* Inline Test Result if executed */}
                 {testResult && (
                   <div
                     className={`p-2.5 rounded-xl text-xs border ${
                       testResult.success
-                        ? 'bg-zinc-900 border-zinc-700 text-zinc-200'
-                        : 'bg-zinc-900 border-zinc-750 text-zinc-300'
+                        ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-200'
+                        : 'bg-amber-950/30 border-amber-500/30 text-amber-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-1 text-[10px] font-mono text-zinc-400">
-                      <span className="flex items-center gap-1 font-bold">
-                        {testResult.success ? (
-                          <CheckCircle2 className="w-3 h-3 text-white" />
-                        ) : (
-                          <AlertTriangle className="w-3 h-3 text-zinc-400" />
-                        )}
-                        {testResult.success ? 'DIAGNÓSTICO EXITOSO' : 'DIAGNÓSTICO FALLIDO'}
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span className="font-bold">
+                        {testResult.success ? '✓ VERIFICADO' : '⚠️ REQUIERE ACCIÓN'}
                       </span>
                       <span>{testResult.timestamp}</span>
                     </div>
-                    <p className="text-[11px] mt-1 font-mono truncate">{testResult.message}</p>
+                    <p className="text-[11px] mt-1">{testResult.message}</p>
                   </div>
                 )}
+              </div>
 
-                {/* Action Buttons Toolbar */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleTestConnection(tech.id)}
-                    disabled={isTesting}
-                    className="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-white text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 text-zinc-300 ${isTesting ? 'animate-spin' : ''}`} />
-                    <span>{isTesting ? 'Probando...' : 'Probar Sesión'}</span>
-                  </button>
-
-                  {tech.auth_url ? (
-                    <button
-                      type="button"
-                      onClick={() => handleLaunchBrowserAuth(tech)}
-                      className="px-3 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 text-black" />
-                      <span>Iniciar Sesión</span>
-                    </button>
+              {/* Acciones (Ley de Hick: Acción principal clara + Opciones técnicas ocultas en acordeón) */}
+              <div className="space-y-2.5 pt-3 border-t border-zinc-850">
+                <div className="flex items-center gap-2">
+                  {!isConnected && !isDisconnected ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthModalTool(tech)
+                          setAuthToken('')
+                          setAuthFeedback(null)
+                        }}
+                        className="flex-1 px-3 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Key className="w-3.5 h-3.5 text-black" />
+                        <span>Conectar con Token</span>
+                      </button>
+                      {tech.auth_url && (
+                        <button
+                          type="button"
+                          onClick={() => handleLaunchBrowserAuth(tech)}
+                          className="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-zinc-200 text-xs font-medium flex items-center justify-center gap-1 transition cursor-pointer"
+                          title="Abrir web oficial"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        setAuthModalTool(tech)
-                        setAuthToken('')
-                        setAuthFeedback(null)
-                      }}
-                      className="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-zinc-200 text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      onClick={() => handleTestConnection(tech.id)}
+                      disabled={isTesting}
+                      className="flex-1 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-50"
                     >
-                      <Lock className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Configurar Token</span>
+                      <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
+                      <span>{isTesting ? 'Verificando...' : 'Probar Conexión'}</span>
                     </button>
+                  )}
+                </div>
+
+                {/* Divulgación Progresiva: Comando CLI oculto por defecto */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedCliId(showCli ? null : tech.id)}
+                    className="w-full flex items-center justify-between text-[11px] text-zinc-500 hover:text-zinc-300 pt-1 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1">
+                      <Terminal className="w-3 h-3" />
+                      Ver comando de consola
+                    </span>
+                    {showCli ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+
+                  {showCli && (
+                    <div
+                      onClick={() => copyCliCommand(tech.id, tech.cli_command || `${tech.id} --version`)}
+                      className="mt-2 p-2.5 rounded-xl bg-black border border-zinc-800 hover:border-zinc-600 font-mono text-[11px] text-zinc-200 flex items-center justify-between cursor-pointer transition"
+                    >
+                      <code className="truncate">{tech.cli_command || `${tech.id} --version`}</code>
+                      <span className="text-[10px] text-zinc-400 shrink-0 ml-2 flex items-center gap-1">
+                        {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {isCopied ? 'Copiado' : 'Copiar'}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -510,98 +561,146 @@ export const TechAuthHubSection: React.FC = () => {
         })}
       </div>
 
-      {/* 4. Modal for Credential Setup */}
+      {/* 4. Modal con Validación en Tiempo Real (Poka-Yoke) */}
       {authModalTool && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xl">
+          <div className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white">
+                <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white">
                   <Lock className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Configurar Credencial</h3>
-                  <span className="text-[11px] font-mono text-zinc-400">{authModalTool.name}</span>
+                  <h3 className="text-sm font-bold text-white">Conectar {authModalTool.name}</h3>
+                  <span className="text-[11px] text-zinc-400">
+                    La clave se activará de inmediato en tu sesión local
+                  </span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setAuthModalTool(null)}
-                className="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-white flex items-center justify-center transition"
+                className="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitCredential} className="space-y-3.5">
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                Ingrese el token de API o clave de sesión para {authModalTool.name}. El token quedará activo en la memoria del orquestador para ejecuciones de agentes.
-              </p>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-mono text-zinc-300 block">Token / Clave de API</label>
+            <form onSubmit={handleSubmitCredential} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-200 block">
+                  Token o API Key de {authModalTool.name}
+                </label>
                 <input
                   type="password"
+                  autoFocus
                   required
-                  placeholder="Ingrese token (ej: re_3G... o ghp_...)"
+                  placeholder={
+                    authModalTool.id === 'resend'
+                      ? 're_3GoppTX7_...'
+                      : authModalTool.id === 'gh'
+                      ? 'ghp_...'
+                      : 'Pega aquí tu token de acceso...'
+                  }
                   value={authToken}
                   onChange={(e) => setAuthToken(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-black border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black border border-zinc-700 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white font-mono"
                 />
               </div>
 
+              {/* Reglas Poka-Yoke en tiempo real que se marcan en verde mientras escribe */}
+              <div className="p-3 rounded-xl bg-black border border-zinc-850 space-y-1.5">
+                <span className="text-[10px] font-mono uppercase text-zinc-500 block">
+                  Verificación de formato en tiempo real:
+                </span>
+                {getTokenValidationRules(authModalTool.id, authToken).map((rule, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs">
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 transition ${
+                        rule.valid ? 'text-emerald-400' : 'text-zinc-600'
+                      }`}
+                    />
+                    <span className={rule.valid ? 'text-emerald-300 font-medium' : 'text-zinc-500'}>
+                      {rule.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
               {authModalTool.id === 'jira' && (
-                <>
+                <div className="space-y-3 pt-1">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-mono text-zinc-300 block">Email de Atlassian</label>
+                    <label className="text-xs font-semibold text-zinc-300 block">
+                      Correo de tu cuenta Atlassian
+                    </label>
                     <input
                       type="email"
-                      placeholder="usuario@empresa.com"
+                      placeholder="tu@correo.com"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl bg-black border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white font-mono"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-mono text-zinc-300 block">Dominio Atlassian (opcional)</label>
+                    <label className="text-xs font-semibold text-zinc-300 block">
+                      Dominio Jira (ej: miempresa.atlassian.net)
+                    </label>
                     <input
                       type="text"
-                      placeholder="mi-empresa.atlassian.net"
+                      placeholder="miempresa.atlassian.net"
                       value={authDomain}
                       onChange={(e) => setAuthDomain(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl bg-black border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white font-mono"
                     />
                   </div>
-                </>
+                </div>
               )}
 
               {authFeedback && (
                 <div
-                  className={`p-3 rounded-xl text-xs font-mono border ${
+                  className={`p-3 rounded-xl text-xs border ${
                     authFeedback.success
-                      ? 'bg-zinc-900 border-zinc-700 text-zinc-200'
-                      : 'bg-zinc-900 border-zinc-750 text-zinc-300'
+                      ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+                      : 'bg-red-950/40 border-red-500/40 text-red-200'
                   }`}
                 >
                   {authFeedback.message}
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-850">
-                <button
-                  type="button"
-                  onClick={() => setAuthModalTool(null)}
-                  className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-zinc-300 text-xs font-mono transition cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingAuth || !authToken.trim()}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold transition cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmittingAuth ? 'Validando...' : 'Guardar y Verificar'}
-                </button>
+              <div className="flex items-center justify-between pt-2 border-t border-zinc-850">
+                {authModalTool.auth_url ? (
+                  <button
+                    type="button"
+                    onClick={() => handleLaunchBrowserAuth(authModalTool)}
+                    className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 underline cursor-pointer"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Obtener token en la web
+                  </button>
+                ) : (
+                  <span />
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAuthModalTool(null)}
+                    className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs transition cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      isSubmittingAuth ||
+                      !getTokenValidationRules(authModalTool.id, authToken).every((r) => r.valid)
+                    }
+                    className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold transition cursor-pointer disabled:opacity-40"
+                  >
+                    {isSubmittingAuth ? 'Conectando...' : 'Guardar y Conectar'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

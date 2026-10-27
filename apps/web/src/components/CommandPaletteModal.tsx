@@ -168,7 +168,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     },
     {
       id: 'nav-gates',
-      title: 'Compuertas Soberanas & Ejecuciones (HITL)',
+      title: 'Compuertas Controls & Ejecuciones (HITL)',
       subtitle: 'Historial de runs y firmas criptográficas HMAC-SHA256',
       category: 'Navegación',
       icon: PlayCircle,

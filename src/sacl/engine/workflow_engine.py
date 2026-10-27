@@ -326,7 +326,7 @@ class WorkflowEngine:
             steps.append(
                 {
                     "step": 3,
-                    "name": "Ejecución de Auditoría de Invariantes Soberanos (Pytest + Doctor)",
+                    "name": "Ejecución de Auditoría de Invariantes Locales (Pytest + Doctor)",
                     "status": "COMPLETED"
                     if res_pytest.returncode == 0 and res_doc.returncode == 0
                     else "FAILED",
