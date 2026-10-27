@@ -60,17 +60,23 @@ def build_parser() -> argparse.ArgumentParser:
     configure_monitor_parser(monitor_parser)
 
     # 5. package
-    package_parser = subparsers.add_parser("package", help="Create, verify, or extract wave packages")
+    package_parser = subparsers.add_parser(
+        "package", help="Create, verify, or extract wave packages"
+    )
     configure_package_parser(package_parser)
 
     # 6. preflight / doctor
-    preflight_parser = subparsers.add_parser("preflight", help="Validate host environment and clean-root rule")
+    preflight_parser = subparsers.add_parser(
+        "preflight", help="Validate host environment and clean-root rule"
+    )
     configure_preflight_parser(preflight_parser)
     doctor_parser = subparsers.add_parser("doctor", help="Alias for preflight")
     configure_preflight_parser(doctor_parser)
 
     # 7. ui / dashboard
-    ui_parser = subparsers.add_parser("ui", help="Launch Apple-grade Decision Shell local web dashboard")
+    ui_parser = subparsers.add_parser(
+        "ui", help="Launch Apple-grade Decision Shell local web dashboard"
+    )
     configure_ui_parser(ui_parser)
     dashboard_parser = subparsers.add_parser("dashboard", help="Alias for ui")
     configure_ui_parser(dashboard_parser)

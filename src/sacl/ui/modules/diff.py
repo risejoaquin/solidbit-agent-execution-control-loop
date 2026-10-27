@@ -8,10 +8,9 @@ and HITL Decision Gate reviews.
 from __future__ import annotations
 
 import logging
-import os
-from pathlib import Path
 import re
 import subprocess
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("sacl.ui.modules.diff")
@@ -54,11 +53,13 @@ class GitDiffModule:
                 elif "R" in code:
                     status = "renamed"
 
-                files.append({
-                    "path": path,
-                    "status": status,
-                    "code": code,
-                })
+                files.append(
+                    {
+                        "path": path,
+                        "status": status,
+                        "code": code,
+                    }
+                )
 
             # Get current branch and commit
             branch_res = subprocess.run(
@@ -126,7 +127,9 @@ class GitDiffModule:
 
             # Also check untracked files if any
             status_info = self.get_status()
-            untracked_paths = [f["path"] for f in status_info.get("files", []) if f["status"] == "untracked"]
+            untracked_paths = [
+                f["path"] for f in status_info.get("files", []) if f["status"] == "untracked"
+            ]
 
             for u_path in untracked_paths:
                 if target_file and u_path != target_file:
@@ -136,17 +139,29 @@ class GitDiffModule:
                     try:
                         content = full_p.read_text(encoding="utf-8", errors="replace")
                         lines = content.splitlines()
-                        chunks = [{
-                            "header": f"@@ -0,0 +1,{len(lines)} @@",
-                            "lines": [{"type": "add", "text": line, "old_num": None, "new_num": idx + 1} for idx, line in enumerate(lines[:300])]
-                        }]
-                        parsed_files.append({
-                            "path": u_path,
-                            "status": "untracked",
-                            "additions": len(lines),
-                            "deletions": 0,
-                            "chunks": chunks,
-                        })
+                        chunks = [
+                            {
+                                "header": f"@@ -0,0 +1,{len(lines)} @@",
+                                "lines": [
+                                    {
+                                        "type": "add",
+                                        "text": line,
+                                        "old_num": None,
+                                        "new_num": idx + 1,
+                                    }
+                                    for idx, line in enumerate(lines[:300])
+                                ],
+                            }
+                        ]
+                        parsed_files.append(
+                            {
+                                "path": u_path,
+                                "status": "untracked",
+                                "additions": len(lines),
+                                "deletions": 0,
+                                "chunks": chunks,
+                            }
+                        )
                     except Exception:
                         pass
 
@@ -219,42 +234,50 @@ class GitDiffModule:
                 if current_chunk is not None:
                     if line.startswith("+") and not line.startswith("+++"):
                         additions += 1
-                        current_chunk["lines"].append({
-                            "type": "add",
-                            "text": line[1:],
-                            "old_num": None,
-                            "new_num": new_line,
-                        })
+                        current_chunk["lines"].append(
+                            {
+                                "type": "add",
+                                "text": line[1:],
+                                "old_num": None,
+                                "new_num": new_line,
+                            }
+                        )
                         new_line += 1
                     elif line.startswith("-") and not line.startswith("---"):
                         deletions += 1
-                        current_chunk["lines"].append({
-                            "type": "del",
-                            "text": line[1:],
-                            "old_num": old_line,
-                            "new_num": None,
-                        })
+                        current_chunk["lines"].append(
+                            {
+                                "type": "del",
+                                "text": line[1:],
+                                "old_num": old_line,
+                                "new_num": None,
+                            }
+                        )
                         old_line += 1
                     elif line.startswith(" "):
-                        current_chunk["lines"].append({
-                            "type": "ctx",
-                            "text": line[1:],
-                            "old_num": old_line,
-                            "new_num": new_line,
-                        })
+                        current_chunk["lines"].append(
+                            {
+                                "type": "ctx",
+                                "text": line[1:],
+                                "old_num": old_line,
+                                "new_num": new_line,
+                            }
+                        )
                         old_line += 1
                         new_line += 1
 
             if current_chunk:
                 chunks.append(current_chunk)
 
-            files.append({
-                "path": b_path,
-                "status": status,
-                "additions": additions,
-                "deletions": deletions,
-                "chunks": chunks,
-            })
+            files.append(
+                {
+                    "path": b_path,
+                    "status": status,
+                    "additions": additions,
+                    "deletions": deletions,
+                    "chunks": chunks,
+                }
+            )
 
         return files
 

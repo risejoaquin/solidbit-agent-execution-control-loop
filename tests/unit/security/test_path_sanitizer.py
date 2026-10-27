@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 
 from sacl.security.exceptions import (
@@ -78,12 +79,39 @@ class TestAntiZipSlipTraversals:
 class TestWindowsDOSDeviceNames:
     """Tests rejection of prohibited Windows reserved DOS device names."""
 
-    @pytest.mark.parametrize("dev_name", [
-        "CON", "PRN", "AUX", "NUL",
-        "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-        "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-        "con", "prn", "aux", "nul", "com1", "lpt1",
-    ])
+    @pytest.mark.parametrize(
+        "dev_name",
+        [
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+            "COM1",
+            "COM2",
+            "COM3",
+            "COM4",
+            "COM5",
+            "COM6",
+            "COM7",
+            "COM8",
+            "COM9",
+            "LPT1",
+            "LPT2",
+            "LPT3",
+            "LPT4",
+            "LPT5",
+            "LPT6",
+            "LPT7",
+            "LPT8",
+            "LPT9",
+            "con",
+            "prn",
+            "aux",
+            "nul",
+            "com1",
+            "lpt1",
+        ],
+    )
     def test_dos_device_names_detected(self, dev_name: str) -> None:
         assert is_dos_device_name(dev_name) is True
         assert is_dos_device_name(f"{dev_name}.txt") is True

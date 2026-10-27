@@ -8,7 +8,7 @@ powered directly by the Antigravity (AGY) runtime.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger("sacl.ui.modules.models")
 
@@ -121,10 +121,13 @@ class ModelsModule:
         models = []
         for m in self.AVAILABLE_MODELS:
             item = dict(m)
-            item["is_active"] = (m["id"] == self.active_model_id)
+            item["is_active"] = m["id"] == self.active_model_id
             models.append(item)
 
-        active = next((m for m in self.AVAILABLE_MODELS if m["id"] == self.active_model_id), self.AVAILABLE_MODELS[0])
+        active = next(
+            (m for m in self.AVAILABLE_MODELS if m["id"] == self.active_model_id),
+            self.AVAILABLE_MODELS[0],
+        )
 
         return {
             "active_model": active,

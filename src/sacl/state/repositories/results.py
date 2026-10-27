@@ -6,18 +6,23 @@ and transport delivery evidence.
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, Optional
 
-from sacl.contracts.invariants import Verdict
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import normalize_repo_path, utc_now
 
-VALID_RESULT_VERDICTS = frozenset({
-    'PASS', 'PARTIAL', 'BLOCKED', 'FAILED',
-    'PASS (Report Present)', 'DONE_REVIEW_REQUIRED',
-    'STOPPED_BY_USER', 'UNKNOWN'
-})
+VALID_RESULT_VERDICTS = frozenset(
+    {
+        "PASS",
+        "PARTIAL",
+        "BLOCKED",
+        "FAILED",
+        "PASS (Report Present)",
+        "DONE_REVIEW_REQUIRED",
+        "STOPPED_BY_USER",
+        "UNKNOWN",
+    }
+)
 
 
 class ResultRepository(BaseRepository):
@@ -63,9 +68,16 @@ class ResultRepository(BaseRepository):
         cursor = self.execute(
             sql,
             (
-                job_id, run_id, status, final_verdict,
-                norm_summary_md, norm_summary_json, norm_zip,
-                delivered_to, delivered_at, now,
+                job_id,
+                run_id,
+                status,
+                final_verdict,
+                norm_summary_md,
+                norm_summary_json,
+                norm_zip,
+                delivered_to,
+                delivered_at,
+                now,
             ),
         )
         self.commit()
@@ -81,7 +93,9 @@ class ResultRepository(BaseRepository):
         sql = "SELECT * FROM results WHERE job_id = ? ORDER BY created_at DESC LIMIT 1;"
         return self.fetchone_dict(sql, (job_id,))
 
-    def mark_delivered(self, run_id: str, delivered_to: str, delivered_at: Optional[str] = None) -> None:
+    def mark_delivered(
+        self, run_id: str, delivered_to: str, delivered_at: Optional[str] = None
+    ) -> None:
         """Updates result delivery evidence."""
         now = delivered_at or utc_now()
         sql = "UPDATE results SET delivered_to = ?, delivered_at = ? WHERE run_id = ?;"

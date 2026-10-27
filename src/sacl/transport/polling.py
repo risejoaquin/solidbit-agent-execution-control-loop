@@ -12,7 +12,7 @@ import dataclasses
 import datetime
 import logging
 import sqlite3
-from typing import Any, Dict, List, Optional, Set
+from typing import List, Optional
 
 from sacl.transport.gmail_adapter import IGmailApiAdapter
 from sacl.transport.reconciliation import HistoryReconciliationManager
@@ -26,6 +26,7 @@ DEFAULT_FALLBACK_INTERVAL_SECONDS = 900  # 15 minutes
 @dataclasses.dataclass
 class PollingResult:
     """Summary of degraded fallback polling execution."""
+
     messages_found: int = 0
     unhandled_messages_processed: int = 0
     jobs_ingested: List[str] = dataclasses.field(default_factory=list)
@@ -57,7 +58,9 @@ class FallbackPoller:
             return True
         if self._last_polled_at is None:
             return True
-        elapsed = (datetime.datetime.now(datetime.timezone.utc) - self._last_polled_at).total_seconds()
+        elapsed = (
+            datetime.datetime.now(datetime.timezone.utc) - self._last_polled_at
+        ).total_seconds()
         return elapsed >= self.min_interval_seconds
 
     def poll_mailbox(self, force: bool = False) -> PollingResult:
@@ -77,7 +80,9 @@ class FallbackPoller:
         messages_stubs = list_resp.get("messages", [])
 
         result = PollingResult(messages_found=len(messages_stubs))
-        unhandled_ids = self._filter_unhandled_message_ids([m.get("id") for m in messages_stubs if m.get("id")])
+        unhandled_ids = self._filter_unhandled_message_ids(
+            [m.get("id") for m in messages_stubs if m.get("id")]
+        )
 
         for mid in unhandled_ids:
             try:
@@ -111,7 +116,9 @@ class FallbackPoller:
                 latest_msg = self.gmail_adapter.get_message(msgs[0]["id"])
                 latest_history_id = str(latest_msg.get("historyId", "1"))
                 self.reconciliation_manager.advance_persisted_cursor(latest_history_id)
-                logger.info("Reset persisted history cursor to %s after stale recovery", latest_history_id)
+                logger.info(
+                    "Reset persisted history cursor to %s after stale recovery", latest_history_id
+                )
         except Exception as e:
             logger.error("Failed to update history cursor after stale recovery: %s", e)
 

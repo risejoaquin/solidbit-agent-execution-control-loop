@@ -75,6 +75,7 @@ def schema_validator(schemas_dir: Path) -> SchemaValidator:
 @pytest.fixture
 def load_frozen_example(examples_dir: Path) -> Callable[[str], Dict[str, Any]]:
     """Fixture factory to load a named example JSON file."""
+
     def _loader(filename: str) -> Dict[str, Any]:
         if not filename.endswith(".json"):
             filename = f"{filename}.valid.json"
@@ -85,6 +86,7 @@ def load_frozen_example(examples_dir: Path) -> Callable[[str], Dict[str, Any]]:
             raise FileNotFoundError(f"Example file '{filename}' not found in {examples_dir}")
         with open(target, "r", encoding="utf-8") as f:
             return json.load(f)
+
     return _loader
 
 
@@ -118,7 +120,9 @@ def sqlite_memory_db(migration_sql_path: Path) -> Generator[sqlite3.Connection, 
 
 
 @pytest.fixture
-def sqlite_temp_db(tmp_path: Path, migration_sql_path: Path) -> Generator[sqlite3.Connection, None, None]:
+def sqlite_temp_db(
+    tmp_path: Path, migration_sql_path: Path
+) -> Generator[sqlite3.Connection, None, None]:
     """Temporary file-backed SQLite database operating in full WAL mode with 001_init.sql."""
     db_file = tmp_path / "sacl_ops_test.db"
     conn = sqlite3.connect(str(db_file))

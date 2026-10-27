@@ -18,13 +18,18 @@ from sacl.contracts.exceptions import (
 
 class WorkspaceError(SaclError):
     """Base exception for all workspace isolation and Git guard errors."""
+
     pass
 
 
 class BranchProtectionError(WorkspaceError, HardDenyViolation):
     """Raised when an operation attempts to execute on or modify a protected branch (e.g. main/master)."""
 
-    def __init__(self, branch_name: str, reason: str = "Protected branch cannot be targeted for direct execution or mutation") -> None:
+    def __init__(
+        self,
+        branch_name: str,
+        reason: str = "Protected branch cannot be targeted for direct execution or mutation",
+    ) -> None:
         HardDenyViolation.__init__(
             self,
             action="main_branch_execution",
@@ -36,7 +41,11 @@ class BranchProtectionError(WorkspaceError, HardDenyViolation):
 class PrimaryCheckoutViolationError(WorkspaceError, HardDenyViolation):
     """Raised when an operation attempts to modify the primary human checkout directly."""
 
-    def __init__(self, target_path: str, reason: str = "Primary checkout is read-only. File mutations must occur in dedicated worktrees.") -> None:
+    def __init__(
+        self,
+        target_path: str,
+        reason: str = "Primary checkout is read-only. File mutations must occur in dedicated worktrees.",
+    ) -> None:
         HardDenyViolation.__init__(
             self,
             action="primary_checkout_mutation",
@@ -69,7 +78,9 @@ class GitCommandError(WorkspaceError):
 class WorktreeCollisionError(WorkspaceError):
     """Raised when worktree provisioning encounters a collision or duplicate path/branch."""
 
-    def __init__(self, message: str, worktree_path: Optional[str] = None, branch: Optional[str] = None) -> None:
+    def __init__(
+        self, message: str, worktree_path: Optional[str] = None, branch: Optional[str] = None
+    ) -> None:
         super().__init__(
             message=message,
             details={"worktree_path": worktree_path, "branch": branch},

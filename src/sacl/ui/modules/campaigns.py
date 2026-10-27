@@ -5,13 +5,13 @@ Parses campaigns, manifests, workorders, and launches 1-click DAG executions.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import logging
-from pathlib import Path
 import sqlite3
 import uuid
-from typing import Any, Callable, Dict, List, Optional
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger("sacl.ui.modules.campaigns")
 
@@ -34,8 +34,12 @@ class CampaignsModule:
     def get_campaigns_overview(self) -> Dict[str, Any]:
         """Scans for active and prepared campaigns."""
         manifests = [
-            Path("C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED/MANIFEST.json"),
-            Path("C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_PRODUCTIZATION_READY_TO_LAUNCH_CAMPAIGN_v1_1_FIXED/MANIFEST.json"),
+            Path(
+                "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED/MANIFEST.json"
+            ),
+            Path(
+                "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_PRODUCTIZATION_READY_TO_LAUNCH_CAMPAIGN_v1_1_FIXED/MANIFEST.json"
+            ),
             self.workspace_root / "MANIFEST.json",
         ]
 
@@ -56,33 +60,89 @@ class CampaignsModule:
                 "mode": "prepared-local-implementation",
                 "workorders": {
                     "value": [
-                        {"id": "IMPL-DB-001", "agent": "AG-DB-IMPLEMENTER", "title": "SQLite schema and migrations", "phase": "A", "status": "COMPLETED"},
-                        {"id": "IMPL-UI-001", "agent": "AG-UI-SHELL", "title": "Apple-grade UI shell and micro-decisions", "phase": "B", "status": "COMPLETED"},
-                        {"id": "IMPL-SCHED-001", "agent": "AG-SCHEDULER-IMPLEMENTER", "title": "N-agent scheduler and locks", "phase": "C", "status": "READY"},
-                        {"id": "IMPL-GATE-001", "agent": "AG-HUMAN-GATE-IMPLEMENTER", "title": "Human gate bounded tokens", "phase": "D", "status": "READY"},
-                        {"id": "IMPL-REC-001", "agent": "AG-RECOVERY-IMPLEMENTER", "title": "Crash consistency and recovery", "phase": "D", "status": "READY"},
-                        {"id": "IMPL-EVID-001", "agent": "AG-EVIDENCE-IMPLEMENTER", "title": "Evidence packaging and hashing", "phase": "D", "status": "READY"},
-                        {"id": "IMPL-SEC-001", "agent": "AG-SECURITY-IMPLEMENTER", "title": "Policy catalog and secret redaction", "phase": "D", "status": "READY"},
-                        {"id": "IMPL-QA-001", "agent": "AG-QA-INTEGRATION", "title": "Integration & regression suite (683 tests)", "phase": "E", "status": "PASSING"},
-                        {"id": "IMPL-FINAL-001", "agent": "AG-FINAL-AUDITOR", "title": "Final local audit package", "phase": "F", "status": "PENDING_GATE"},
+                        {
+                            "id": "IMPL-DB-001",
+                            "agent": "AG-DB-IMPLEMENTER",
+                            "title": "SQLite schema and migrations",
+                            "phase": "A",
+                            "status": "COMPLETED",
+                        },
+                        {
+                            "id": "IMPL-UI-001",
+                            "agent": "AG-UI-SHELL",
+                            "title": "Apple-grade UI shell and micro-decisions",
+                            "phase": "B",
+                            "status": "COMPLETED",
+                        },
+                        {
+                            "id": "IMPL-SCHED-001",
+                            "agent": "AG-SCHEDULER-IMPLEMENTER",
+                            "title": "N-agent scheduler and locks",
+                            "phase": "C",
+                            "status": "READY",
+                        },
+                        {
+                            "id": "IMPL-GATE-001",
+                            "agent": "AG-HUMAN-GATE-IMPLEMENTER",
+                            "title": "Human gate bounded tokens",
+                            "phase": "D",
+                            "status": "READY",
+                        },
+                        {
+                            "id": "IMPL-REC-001",
+                            "agent": "AG-RECOVERY-IMPLEMENTER",
+                            "title": "Crash consistency and recovery",
+                            "phase": "D",
+                            "status": "READY",
+                        },
+                        {
+                            "id": "IMPL-EVID-001",
+                            "agent": "AG-EVIDENCE-IMPLEMENTER",
+                            "title": "Evidence packaging and hashing",
+                            "phase": "D",
+                            "status": "READY",
+                        },
+                        {
+                            "id": "IMPL-SEC-001",
+                            "agent": "AG-SECURITY-IMPLEMENTER",
+                            "title": "Policy catalog and secret redaction",
+                            "phase": "D",
+                            "status": "READY",
+                        },
+                        {
+                            "id": "IMPL-QA-001",
+                            "agent": "AG-QA-INTEGRATION",
+                            "title": "Integration & regression suite (683 tests)",
+                            "phase": "E",
+                            "status": "PASSING",
+                        },
+                        {
+                            "id": "IMPL-FINAL-001",
+                            "agent": "AG-FINAL-AUDITOR",
+                            "title": "Final local audit package",
+                            "phase": "F",
+                            "status": "PENDING_GATE",
+                        },
                     ]
-                }
+                },
             }
 
         workorders_list = []
         raw_wo = active_manifest.get("workorders", {})
         items = raw_wo.get("value", []) if isinstance(raw_wo, dict) else raw_wo
         for item in items:
-            workorders_list.append({
-                "id": item.get("id"),
-                "agent": item.get("agent"),
-                "title": item.get("title"),
-                "phase": item.get("phase", "A"),
-                "owned_paths": item.get("owned_paths", []),
-                "depends_on": item.get("depends_on", []),
-                "status": item.get("status", "READY"),
-                "human_gate": item.get("human_gate", False),
-            })
+            workorders_list.append(
+                {
+                    "id": item.get("id"),
+                    "agent": item.get("agent"),
+                    "title": item.get("title"),
+                    "phase": item.get("phase", "A"),
+                    "owned_paths": item.get("owned_paths", []),
+                    "depends_on": item.get("depends_on", []),
+                    "status": item.get("status", "READY"),
+                    "human_gate": item.get("human_gate", False),
+                }
+            )
 
         return {
             "campaign_id": active_manifest.get("campaign_id", "SACL_ORCHESTRATOR_v1"),
@@ -90,12 +150,23 @@ class CampaignsModule:
             "version": active_manifest.get("version", "1.0.0"),
             "mode": active_manifest.get("mode", "local-bounded"),
             "workorders": workorders_list,
-            "phases": ["Phase A: Database", "Phase B: UI & Shell", "Phase C: Scheduler", "Phase D: Governance & Security", "Phase E: QA & Integration", "Phase F: Final Audit"],
+            "phases": [
+                "Phase A: Database",
+                "Phase B: UI & Shell",
+                "Phase C: Scheduler",
+                "Phase D: Governance & Security",
+                "Phase E: QA & Integration",
+                "Phase F: Final Audit",
+            ],
         }
 
-    def launch_campaign(self, campaign_id: str = "SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED") -> Dict[str, Any]:
+    def launch_campaign(
+        self, campaign_id: str = "SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED"
+    ) -> Dict[str, Any]:
         """Triggers 1-click execution for a campaign after preflight verification."""
-        run_id = f"run-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
+        run_id = (
+            f"run-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
+        )
 
         if self._get_rw_conn:
             try:

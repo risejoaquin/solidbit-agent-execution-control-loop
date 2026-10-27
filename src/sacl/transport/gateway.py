@@ -10,10 +10,9 @@ Implements ITransportGateway adhering strictly to:
 
 from __future__ import annotations
 
-import datetime
 import logging
-from pathlib import Path
 import sqlite3
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from sacl.contracts.interfaces import ITransportGateway
@@ -21,20 +20,16 @@ from sacl.contracts.models import AttachmentMetadata, MailEnvelope
 from sacl.transport.envelope import (
     compute_attachment_metadata,
     create_mail_envelope,
-    generate_nonce,
-    parse_routing_hint,
 )
 from sacl.transport.exceptions import (
     StaleHistoryCursorError,
-    TransportError,
 )
 from sacl.transport.gmail_adapter import IGmailApiAdapter
 from sacl.transport.outbox import OutboxDispatcher
 from sacl.transport.polling import FallbackPoller
-from sacl.transport.pubsub import IPubSubSubscriber, WakeSignal
+from sacl.transport.pubsub import IPubSubSubscriber
 from sacl.transport.reconciliation import (
     HistoryReconciliationManager,
-    ReconciliationResult,
 )
 from sacl.transport.sanitization import ZipDefenseExtractor
 from sacl.transport.watch import WatchLifecycleManager
@@ -120,12 +115,14 @@ class MailGateway(ITransportGateway):
                 except Exception as e:
                     logger.debug("Failed to emit PUBSUB_WAKE_RECEIVED: %s", e)
 
-            results.append({
-                "emailAddress": sig.email_address,
-                "historyId": sig.history_id,
-                "ack_id": sig.ack_id,
-                "message_id": sig.message_id,
-            })
+            results.append(
+                {
+                    "emailAddress": sig.email_address,
+                    "historyId": sig.history_id,
+                    "ack_id": sig.ack_id,
+                    "message_id": sig.message_id,
+                }
+            )
             if sig.ack_id:
                 ack_ids_to_confirm.append(sig.ack_id)
 
@@ -152,7 +149,9 @@ class MailGateway(ITransportGateway):
                 }
             ]
         except StaleHistoryCursorError:
-            logger.warning("History cursor %s expired (404); executing full-sync fallback.", start_history_id)
+            logger.warning(
+                "History cursor %s expired (404); executing full-sync fallback.", start_history_id
+            )
             fallback_res = self.fallback_poller.recover_from_stale_cursor()
             return [
                 {

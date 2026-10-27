@@ -231,7 +231,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
             </div>
             <span id="notif-count-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">3 nuevas</span>
           </div>
-          
+
           <div id="notifications-list" class="space-y-2 text-xs max-h-72 overflow-y-auto custom-scroll pr-1">
             <!-- Populated dynamically via JS -->
           </div>
@@ -1092,7 +1092,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
       <!-- SPLIT VIEW: FILE TREE (LEFT) & CODE VIEWER (RIGHT) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[550px]">
-        
+
         <!-- LEFT: FILE DIRECTORY TREE -->
         <div class="lg:col-span-4 section-canvas p-4 flex flex-col space-y-3 bg-[#020204]">
           <div class="flex items-center justify-between border-b bd pb-2.5">
@@ -1639,7 +1639,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           if (cntBadge) cntBadge.textContent = prs.length + ' PRs';
           const countEl = document.getElementById('gh-prs-count');
           if (countEl) countEl.textContent = prs.length + ' Pull Requests Abiertos';
-          
+
           const listEl = document.getElementById('gh-prs-list');
           if (listEl) {
             if (prs.length === 0) {
@@ -2110,7 +2110,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       try {
         const res = await fetch(`${API_BASE}/api/snapshot`);
         const data = await res.json();
-        
+
         // Update Recovery Metric
         if (data.recovery) {
           const rec = data.recovery;
@@ -2137,7 +2137,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
         if (data.pending_gates && data.pending_gates.length > 0) {
           activePendingGate = data.pending_gates[0];
           currentGateRequestId = activePendingGate.request_id;
-          
+
           const pill = document.getElementById('gate-request-id-pill');
           const title = document.getElementById('gate-action-title');
           const desc = document.getElementById('gate-reason-desc');
@@ -2797,7 +2797,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
     // ==========================================
     // SSE INITIALIZER
     // ==========================================
-    
+
     // ==========================================
     // STUDIO VISUAL DE DAG & CAMPAÑAS JAVASCRIPT
     // ==========================================
@@ -2836,7 +2836,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
 
         const card = document.createElement('div');
         card.className = 'section-canvas p-4 space-y-3 relative hover:border-purple-500/40 transition-all';
-        
+
         let actionBadgeColor = 'bg-blue-500/10 text-blue-400 border-blue-500/25';
         if (node.action === 'CONTRACT_VERIFY' || node.action === 'RUN_TESTS') {
           actionBadgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25';
@@ -3188,10 +3188,10 @@ function initSSE() {
 
     function formatMarkdownContent(str) {
       return escapeHtml(str)
-        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+        .replace(/\\*\\*(.*?)\\*\\*/g, '<strong class="text-white">$1</strong>')
         .replace(/`([^`]+)`/g, '<code class="mono px-1 py-0.5 rounded bg-black/50 text-emerald-400">$1</code>');
     }
-  
+
     // ==========================================
     // DECISION DOSSIER & PROGRESS ENGINE (V7)
     // ==========================================
@@ -3323,7 +3323,7 @@ function initSSE() {
     }
     window.executeActionWithProgress = executeActionWithProgress;
 
-  
+
     // ==========================================
     // FILE SYSTEM EXPLORER & CODE VIEWER ENGINE (V8)
     // ==========================================
@@ -3653,7 +3653,7 @@ function initSSE() {
     }
     window.filterFsTree = filterFsTree;
 
-  
+
     // ==========================================
     async function switchEcosystemProject(folderPath, projectName) {
       showToast(`Cambiando espacio de trabajo a ${projectName}...`, 'info');
@@ -4106,7 +4106,7 @@ function initSSE() {
         showToast(`Error al aplicar cambios: ${e.message}`, 'error');
       }
     }
-    
+
     // ==========================================
     // INDUSTRY STANDARD DASHBOARD DATA BINDER (ZERO HARDCODING)
     // ==========================================
@@ -4367,9 +4367,9 @@ function initSSE() {
       }
     }
     window.loadIndustryDashboardData = loadIndustryDashboardData;
-    
 
-    
+
+
     // ==========================================
     // REAL-TIME CLOCK & NOTIFICATIONS ENGINE
     // ==========================================
@@ -4678,7 +4678,7 @@ function initSSE() {
               <span>Sincronización Jira / SQLite WAL</span>
               <span id="jira-auth-badge" class="mono text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">SQLITE LOCAL FIRST</span>
             </div>
-            <p id="jira-status-desc" class="text-[11px] text-zinc-400">Atlassian CLI instalado (C:\Tools\Atlassian\acli.EXE). Tareas se persisten soberanamente en SQLite WAL local.</p>
+            <p id="jira-status-desc" class="text-[11px] text-zinc-400">Atlassian CLI instalado (C:\\Tools\\Atlassian\acli.EXE). Tareas se persisten soberanamente en SQLite WAL local.</p>
           </div>
         </div>
         <button type="button" onclick="loadOrchestratorContext()" class="btn btn-secondary text-[11px] px-2.5 py-1 text-zinc-300 hover:text-white shrink-0">

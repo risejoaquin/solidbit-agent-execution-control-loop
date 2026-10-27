@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from sacl.contracts.exceptions import QuarantineError, SaclError
+from sacl.contracts.exceptions import QuarantineError
 
 
 class PackageError(QuarantineError):

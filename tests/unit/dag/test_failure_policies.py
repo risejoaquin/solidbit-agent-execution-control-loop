@@ -5,8 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Tuple
 
-import pytest
-
 from sacl.contracts.invariants import FailurePolicy, GraphNodeStatus
 from sacl.contracts.models import ExecutionGraph, GraphPhase
 from sacl.dag.models import SchedulerConfig
@@ -15,10 +13,12 @@ from sacl.dag.scheduler import EphemeralDagScheduler
 
 def make_mock_runner(failing_agents: set[str], pass_verdict: str = "PASS"):
     """Factory to produce deterministic mock runner for agents."""
+
     def _runner(agent_id: str, attempt: int) -> Tuple[int, Optional[str]]:
         if agent_id in failing_agents:
             return 1, f"Simulated failure for {agent_id}"
         return 0, None
+
     return _runner
 
 

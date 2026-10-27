@@ -15,25 +15,22 @@ import hashlib
 import io
 import json
 import logging
+import zipfile
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-import zipfile
+from typing import Any, Callable, Dict, List, Optional, Union
 
+from sacl.contracts.exceptions import ContractValidationError
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.security.exceptions import (
     ArchiveAdmissionError,
     InvalidFilenameSecurityError,
     PathTraversalSecurityError,
     ResourceLimitExceededError,
-    SecurityError,
     SymlinkSecurityError,
 )
 from sacl.security.path_sanitizer import (
-    has_alternate_data_stream,
-    is_dos_device_name,
-    is_symlink_or_reparse,
     validate_safe_path,
 )
 from sacl.security.redaction import assert_zero_secrets
@@ -128,7 +125,9 @@ class ArchiveAdmissionController:
         except Exception as e:
             msg = f"Cannot compute SHA-256 on archive: {e}"
             if fail_closed:
-                raise ArchiveAdmissionError(package_id, msg, violation_code=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE.value) from e
+                raise ArchiveAdmissionError(
+                    package_id, msg, violation_code=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE.value
+                ) from e
             return AdmissionDecision(
                 admitted=False,
                 status=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE,
@@ -144,7 +143,11 @@ class ArchiveAdmissionController:
             except Exception as e:
                 msg = f"Failed to open zip archive from memory: {e}"
                 if fail_closed:
-                    raise ArchiveAdmissionError(package_id, msg, violation_code=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE.value) from e
+                    raise ArchiveAdmissionError(
+                        package_id,
+                        msg,
+                        violation_code=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE.value,
+                    ) from e
                 return AdmissionDecision(
                     admitted=False,
                     status=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE,
@@ -172,7 +175,11 @@ class ArchiveAdmissionController:
             except Exception as e:
                 msg = f"Failed to open zip file at '{p}': {e}"
                 if fail_closed:
-                    raise ArchiveAdmissionError(package_id, msg, violation_code=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE.value) from e
+                    raise ArchiveAdmissionError(
+                        package_id,
+                        msg,
+                        violation_code=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE.value,
+                    ) from e
                 return AdmissionDecision(
                     admitted=False,
                     status=AdmissionStatus.REJECTED_CORRUPT_ARCHIVE,
@@ -271,7 +278,9 @@ class ArchiveAdmissionController:
             except Exception as e:
                 msg = f"Failed to parse manifest.json: {e}"
                 if fail_closed:
-                    raise ArchiveAdmissionError(package_id, msg, violation_code="MANIFEST_PARSE_ERROR") from e
+                    raise ArchiveAdmissionError(
+                        package_id, msg, violation_code="MANIFEST_PARSE_ERROR"
+                    ) from e
                 return AdmissionDecision(
                     admitted=False,
                     status=AdmissionStatus.REJECTED_MANIFEST_INVALID,
@@ -356,7 +365,11 @@ class ArchiveAdmissionController:
                 if existing_sha is not None:
                     if existing_sha.lower() == sha256_hash.lower():
                         # Idempotent re-delivery: same job_id and same hash
-                        logger.info("Idempotent package re-delivery for job %s (hash %s)", job_id, sha256_hash)
+                        logger.info(
+                            "Idempotent package re-delivery for job %s (hash %s)",
+                            job_id,
+                            sha256_hash,
+                        )
                         return AdmissionDecision(
                             admitted=True,
                             status=AdmissionStatus.DUPLICATE_IGNORED,

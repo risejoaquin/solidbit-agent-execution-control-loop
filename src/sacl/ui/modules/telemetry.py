@@ -6,9 +6,9 @@ and execution logs as agents progress through the SDLC.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger("sacl.ui.modules.telemetry")
 
@@ -32,19 +32,68 @@ class TelemetryModule:
             "elapsed_seconds": 42,
             "agent_model": "Claude 3.7 Sonnet (Hybrid)",
             "phases": [
-                {"name": "Preparación & Git Hygiene", "weight": 15, "progress": 100, "status": "DONE"},
-                {"name": "Contratos Inmutables & Invariantes", "weight": 25, "progress": 100, "status": "DONE"},
-                {"name": "Generación & Refactor de Código", "weight": 30, "progress": 100, "status": "DONE"},
-                {"name": "Pruebas Unitarias (pytest 683/683)", "weight": 20, "progress": 75, "status": "RUNNING"},
-                {"name": "Firma Criptográfica SHA-256", "weight": 10, "progress": 0, "status": "QUEUED"},
+                {
+                    "name": "Preparación & Git Hygiene",
+                    "weight": 15,
+                    "progress": 100,
+                    "status": "DONE",
+                },
+                {
+                    "name": "Contratos Inmutables & Invariantes",
+                    "weight": 25,
+                    "progress": 100,
+                    "status": "DONE",
+                },
+                {
+                    "name": "Generación & Refactor de Código",
+                    "weight": 30,
+                    "progress": 100,
+                    "status": "DONE",
+                },
+                {
+                    "name": "Pruebas Unitarias (pytest 683/683)",
+                    "weight": 20,
+                    "progress": 75,
+                    "status": "RUNNING",
+                },
+                {
+                    "name": "Firma Criptográfica SHA-256",
+                    "weight": 10,
+                    "progress": 0,
+                    "status": "QUEUED",
+                },
             ],
             "live_logs": [
-                {"timestamp": "05:12:01", "level": "INFO", "message": "Worktree aislado provisionado en tempfs seguro."},
-                {"timestamp": "05:12:03", "level": "PASS", "message": "Contratos DR-INV-001 y DR-PAY-001 verificados intactos."},
-                {"timestamp": "05:12:12", "level": "INFO", "message": "Invocación de agente completada. 3 archivos modificados."},
-                {"timestamp": "05:12:20", "level": "INFO", "message": "Ejecutando suite de pruebas unitarias pytest..."},
-                {"timestamp": "05:12:31", "level": "PASS", "message": "683 pruebas ejecutadas: 683 PASSED, 0 FAILED."},
-                {"timestamp": "05:12:35", "level": "GATE", "message": "Esperando autorización humana para compuerta REQ-20261023."},
+                {
+                    "timestamp": "05:12:01",
+                    "level": "INFO",
+                    "message": "Worktree aislado provisionado en tempfs seguro.",
+                },
+                {
+                    "timestamp": "05:12:03",
+                    "level": "PASS",
+                    "message": "Contratos DR-INV-001 y DR-PAY-001 verificados intactos.",
+                },
+                {
+                    "timestamp": "05:12:12",
+                    "level": "INFO",
+                    "message": "Invocación de agente completada. 3 archivos modificados.",
+                },
+                {
+                    "timestamp": "05:12:20",
+                    "level": "INFO",
+                    "message": "Ejecutando suite de pruebas unitarias pytest...",
+                },
+                {
+                    "timestamp": "05:12:31",
+                    "level": "PASS",
+                    "message": "683 pruebas ejecutadas: 683 PASSED, 0 FAILED.",
+                },
+                {
+                    "timestamp": "05:12:35",
+                    "level": "GATE",
+                    "message": "Esperando autorización humana para compuerta REQ-20261023.",
+                },
             ],
         }
 
@@ -95,7 +144,9 @@ class TelemetryModule:
             "timestamp": utc_iso(),
         }
 
-    def update_task_progress(self, progress: int, current_phase: Optional[str] = None) -> Dict[str, Any]:
+    def update_task_progress(
+        self, progress: int, current_phase: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Updates task progress percent."""
         self.active_task["overall_progress_percent"] = max(0, min(100, progress))
         if current_phase:

@@ -7,9 +7,8 @@ discovery of installed skills (/<skill_id>) and @-mention context providers.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-import json
 import logging
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -33,7 +32,11 @@ class SlashCommand:
 class SlashCommandRegistry:
     """Manages the catalogue of slash commands and @mentions."""
 
-    def __init__(self, workspace_root: Optional[Path] = None, workflow_engine: Optional[WorkflowEngine] = None) -> None:
+    def __init__(
+        self,
+        workspace_root: Optional[Path] = None,
+        workflow_engine: Optional[WorkflowEngine] = None,
+    ) -> None:
         self.workspace_root = workspace_root or Path.cwd()
         self.workflow_engine = workflow_engine or WorkflowEngine(self.workspace_root)
 
@@ -165,55 +168,147 @@ class SlashCommandRegistry:
             # Avoid duplicate if command already in builtin
             cmd_name = s["slash_command"]
             if not any(c["command"] == cmd_name for c in commands):
-                commands.append({
-                    "command": cmd_name,
-                    "label": f"Workflow: {s['name']}",
-                    "description": s["description"],
-                    "category": "workflow",
-                    "syntax": f"{cmd_name} [parámetros]",
-                    "example": f"{cmd_name} {s.get('parameters', [{}])[0].get('placeholder', '')}",
-                    "requires_arg": False,
-                    "skill_id": s["id"],
-                    "scope": s["scope"],
-                })
+                commands.append(
+                    {
+                        "command": cmd_name,
+                        "label": f"Workflow: {s['name']}",
+                        "description": s["description"],
+                        "category": "workflow",
+                        "syntax": f"{cmd_name} [parámetros]",
+                        "example": f"{cmd_name} {s.get('parameters', [{}])[0].get('placeholder', '')}",
+                        "requires_arg": False,
+                        "skill_id": s["id"],
+                        "scope": s["scope"],
+                    }
+                )
 
         return commands
 
     def get_mention_suggestions(self) -> Dict[str, List[Dict[str, Any]]]:
         """Returns contextual mention suggestions categorized by type."""
         contracts = [
-            {"id": "DR-INV-001", "name": "SellableUnit & Double-Entry Ledger", "desc": "Invariante de no-sobreventa y ledger atómico", "category": "contract"},
-            {"id": "DR-PAY-001", "name": "Payment Idempotency & Auth Expiry", "desc": "Idempotencia estricta en cobros y reservas", "category": "contract"},
-            {"id": "DR-IDEM-001", "name": "Idempotent Transaction Enforcer", "desc": "Prevención de procesamiento duplicado", "category": "contract"},
-            {"id": "DR-AUTH-001", "name": "HMAC-SHA256 Gate Authorization", "desc": "Firma criptográfica con TTL de 15 minutos", "category": "contract"},
+            {
+                "id": "DR-INV-001",
+                "name": "SellableUnit & Double-Entry Ledger",
+                "desc": "Invariante de no-sobreventa y ledger atómico",
+                "category": "contract",
+            },
+            {
+                "id": "DR-PAY-001",
+                "name": "Payment Idempotency & Auth Expiry",
+                "desc": "Idempotencia estricta en cobros y reservas",
+                "category": "contract",
+            },
+            {
+                "id": "DR-IDEM-001",
+                "name": "Idempotent Transaction Enforcer",
+                "desc": "Prevención de procesamiento duplicado",
+                "category": "contract",
+            },
+            {
+                "id": "DR-AUTH-001",
+                "name": "HMAC-SHA256 Gate Authorization",
+                "desc": "Firma criptográfica con TTL de 15 minutos",
+                "category": "contract",
+            },
         ]
 
         jira_tickets = [
-            {"id": "SOLID-101", "name": "SOLID-101: Gobernanza e Invariantes", "desc": "Hard Deny Supremacy & Reglas Estáticas", "category": "jira"},
-            {"id": "SOLID-102", "name": "SOLID-102: SellableUnit Stock Engine", "desc": "Inventario atómico sin condiciones de carrera", "category": "jira"},
-            {"id": "SOLID-103", "name": "SOLID-103: Ledger de Pagos Idempotente", "desc": "Doble partida contable bancaria", "category": "jira"},
-            {"id": "SOLID-104", "name": "SOLID-104: Aislamiento Git Worktree", "desc": "Ramas efímeras con Dirty-Root check", "category": "jira"},
-            {"id": "SOLID-105", "name": "SOLID-105: SQLite WAL & Recuperación", "desc": "22 Dominios persistentes y crash-consistent", "category": "jira"},
-            {"id": "SOLID-106", "name": "SOLID-106: Carrito, Checkout & Integración", "desc": "Flujo de compra E-commerce MVP", "category": "jira"},
+            {
+                "id": "SOLID-101",
+                "name": "SOLID-101: Gobernanza e Invariantes",
+                "desc": "Hard Deny Supremacy & Reglas Estáticas",
+                "category": "jira",
+            },
+            {
+                "id": "SOLID-102",
+                "name": "SOLID-102: SellableUnit Stock Engine",
+                "desc": "Inventario atómico sin condiciones de carrera",
+                "category": "jira",
+            },
+            {
+                "id": "SOLID-103",
+                "name": "SOLID-103: Ledger de Pagos Idempotente",
+                "desc": "Doble partida contable bancaria",
+                "category": "jira",
+            },
+            {
+                "id": "SOLID-104",
+                "name": "SOLID-104: Aislamiento Git Worktree",
+                "desc": "Ramas efímeras con Dirty-Root check",
+                "category": "jira",
+            },
+            {
+                "id": "SOLID-105",
+                "name": "SOLID-105: SQLite WAL & Recuperación",
+                "desc": "22 Dominios persistentes y crash-consistent",
+                "category": "jira",
+            },
+            {
+                "id": "SOLID-106",
+                "name": "SOLID-106: Carrito, Checkout & Integración",
+                "desc": "Flujo de compra E-commerce MVP",
+                "category": "jira",
+            },
         ]
 
         db_tables = [
-            {"id": "jobs", "name": "jobs", "desc": "Trabajos globales de orquestación", "category": "table"},
-            {"id": "runs", "name": "runs", "desc": "Ejecuciones individuales de agentes", "category": "table"},
-            {"id": "events", "name": "events", "desc": "Log append-only de eventos del sistema", "category": "table"},
-            {"id": "approvals", "name": "approvals", "desc": "Compuertas HITL soberanas y firmas HMAC", "category": "table"},
-            {"id": "artifacts", "name": "artifacts", "desc": "Entregables físicos verificados en disco", "category": "table"},
-            {"id": "connections", "name": "connections", "desc": "Estado de las herramientas conectadas", "category": "table"},
+            {
+                "id": "jobs",
+                "name": "jobs",
+                "desc": "Trabajos globales de orquestación",
+                "category": "table",
+            },
+            {
+                "id": "runs",
+                "name": "runs",
+                "desc": "Ejecuciones individuales de agentes",
+                "category": "table",
+            },
+            {
+                "id": "events",
+                "name": "events",
+                "desc": "Log append-only de eventos del sistema",
+                "category": "table",
+            },
+            {
+                "id": "approvals",
+                "name": "approvals",
+                "desc": "Compuertas HITL soberanas y firmas HMAC",
+                "category": "table",
+            },
+            {
+                "id": "artifacts",
+                "name": "artifacts",
+                "desc": "Entregables físicos verificados en disco",
+                "category": "table",
+            },
+            {
+                "id": "connections",
+                "name": "connections",
+                "desc": "Estado de las herramientas conectadas",
+                "category": "table",
+            },
         ]
 
         # Scan top 15 key project files
         files: List[Dict[str, Any]] = []
         try:
             for p in self.workspace_root.rglob("*"):
-                if p.is_file() and not any(part.startswith(".") or part in ("node_modules", "dist", "__pycache__") for part in p.parts):
+                if p.is_file() and not any(
+                    part.startswith(".") or part in ("node_modules", "dist", "__pycache__")
+                    for part in p.parts
+                ):
                     rel = str(p.relative_to(self.workspace_root)).replace("\\", "/")
                     if rel.endswith((".py", ".tsx", ".ts", ".json", ".md", ".toml", ".sql")):
-                        files.append({"id": rel, "name": rel, "desc": f"Archivo ({p.suffix})", "category": "file"})
+                        files.append(
+                            {
+                                "id": rel,
+                                "name": rel,
+                                "desc": f"Archivo ({p.suffix})",
+                                "category": "file",
+                            }
+                        )
                         if len(files) >= 25:
                             break
         except Exception:

@@ -7,14 +7,13 @@ integrating with Kahn DAG scheduling, SQLite WAL, and Git Worktrees.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
 import json
 import logging
 import os
-from pathlib import Path
-import re
 import subprocess
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("sacl.engine.workflow_engine")
@@ -42,7 +41,9 @@ class SkillMetadata:
 class WorkflowEngine:
     """Discovers, parses, and executes skills and workflows."""
 
-    def __init__(self, workspace_root: Optional[Path] = None, db_path: Optional[Path] = None) -> None:
+    def __init__(
+        self, workspace_root: Optional[Path] = None, db_path: Optional[Path] = None
+    ) -> None:
         self.workspace_root = workspace_root or Path.cwd()
         self.db_path = db_path
 
@@ -127,8 +128,19 @@ class WorkflowEngine:
 
                         # Extract potential parameters from instructions
                         params: List[Dict[str, Any]] = [
-                            {"name": "goal", "label": "Objetivo / Tarea", "type": "string", "required": True, "placeholder": "Instrucción específica para el workflow..."},
-                            {"name": "strict_mode", "label": "Verificación Estricta (Invariantes)", "type": "boolean", "default": True},
+                            {
+                                "name": "goal",
+                                "label": "Objetivo / Tarea",
+                                "type": "string",
+                                "required": True,
+                                "placeholder": "Instrucción específica para el workflow...",
+                            },
+                            {
+                                "name": "strict_mode",
+                                "label": "Verificación Estricta (Invariantes)",
+                                "type": "boolean",
+                                "default": True,
+                            },
                         ]
 
                         has_scripts = (item / "scripts").exists()
@@ -179,7 +191,12 @@ class WorkflowEngine:
                             skill_file=str(item),
                             slash_command=f"/{skill_id}",
                             parameters=[
-                                {"name": "goal", "label": "Objetivo", "type": "string", "required": True},
+                                {
+                                    "name": "goal",
+                                    "label": "Objetivo",
+                                    "type": "string",
+                                    "required": True,
+                                },
                             ],
                             raw_frontmatter=fm,
                         )
@@ -191,8 +208,7 @@ class WorkflowEngine:
         # Sort by scope priority (workspace -> global -> builtin -> plugin) then name
         priority = {"workspace": 0, "global": 1, "plugin": 2, "builtin": 3}
         sorted_list = sorted(
-            discovered.values(),
-            key=lambda s: (priority.get(s.scope, 4), s.name.lower())
+            discovered.values(), key=lambda s: (priority.get(s.scope, 4), s.name.lower())
         )
         return [asdict(s) for s in sorted_list]
 
@@ -247,16 +263,19 @@ class WorkflowEngine:
         # 2. Step 2: Skill Instructions Compilation
         skill_file = Path(details["skill_file"])
         instructions = details.get("body_markdown", "")
-        steps.append({
-            "step": 2,
-            "name": f"Compilación de Instrucciones ({details['name']})",
-            "status": "COMPLETED",
-            "output": f"Instrucciones de {skill_file.name} compiladas exitosamente ({len(instructions)} bytes).",
-            "duration_ms": 80,
-        })
+        steps.append(
+            {
+                "step": 2,
+                "name": f"Compilación de Instrucciones ({details['name']})",
+                "status": "COMPLETED",
+                "output": f"Instrucciones de {skill_file.name} compiladas exitosamente ({len(instructions)} bytes).",
+                "duration_ms": 80,
+            }
+        )
 
         # 3. Step 3: Real Tool and Command Execution on Machine
         import sys
+
         tool_calls: List[Dict[str, Any]] = []
 
         if skill_id in ("solidbit-sdlc", "sacl-orchestrator", "security_audit"):
@@ -272,13 +291,15 @@ class WorkflowEngine:
             pytest_out = (res_pytest.stdout or res_pytest.stderr).strip()
             pytest_ms = int((datetime.now(timezone.utc) - t_start).total_seconds() * 1000)
 
-            tool_calls.append({
-                "tool": "run_command",
-                "args": {"command": "python -m pytest tests/helpers/test_contracts.py -q"},
-                "output": pytest_out,
-                "exit_code": res_pytest.returncode,
-                "duration_ms": pytest_ms,
-            })
+            tool_calls.append(
+                {
+                    "tool": "run_command",
+                    "args": {"command": "python -m pytest tests/helpers/test_contracts.py -q"},
+                    "output": pytest_out,
+                    "exit_code": res_pytest.returncode,
+                    "duration_ms": pytest_ms,
+                }
+            )
 
             # 2. Run real sacl doctor
             t_doc_start = datetime.now(timezone.utc)
@@ -292,27 +313,40 @@ class WorkflowEngine:
             doc_out = (res_doc.stdout or res_doc.stderr).strip()
             doc_ms = int((datetime.now(timezone.utc) - t_doc_start).total_seconds() * 1000)
 
-            tool_calls.append({
-                "tool": "run_command",
-                "args": {"command": "python -m sacl.cli doctor"},
-                "output": doc_out,
-                "exit_code": res_doc.returncode,
-                "duration_ms": doc_ms,
-            })
+            tool_calls.append(
+                {
+                    "tool": "run_command",
+                    "args": {"command": "python -m sacl.cli doctor"},
+                    "output": doc_out,
+                    "exit_code": res_doc.returncode,
+                    "duration_ms": doc_ms,
+                }
+            )
 
-            steps.append({
-                "step": 3,
-                "name": "Ejecución de Auditoría de Invariantes Soberanos (Pytest + Doctor)",
-                "status": "COMPLETED" if res_pytest.returncode == 0 and res_doc.returncode == 0 else "FAILED",
-                "output": f"Tests Contratos: {pytest_out}. Preflight Doctor: OK.",
-                "duration_ms": pytest_ms + doc_ms,
-            })
+            steps.append(
+                {
+                    "step": 3,
+                    "name": "Ejecución de Auditoría de Invariantes Soberanos (Pytest + Doctor)",
+                    "status": "COMPLETED"
+                    if res_pytest.returncode == 0 and res_doc.returncode == 0
+                    else "FAILED",
+                    "output": f"Tests Contratos: {pytest_out}. Preflight Doctor: OK.",
+                    "duration_ms": pytest_ms + doc_ms,
+                }
+            )
 
         elif skill_id in ("qa", "test_suite"):
             # Run real UI test suite
             t_start = datetime.now(timezone.utc)
             res_pytest = subprocess.run(
-                [sys.executable, "-m", "pytest", "tests/ui/test_cli_ui.py", "tests/ui/test_ui_models.py", "-q"],
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    "tests/ui/test_cli_ui.py",
+                    "tests/ui/test_ui_models.py",
+                    "-q",
+                ],
                 cwd=str(self.workspace_root),
                 capture_output=True,
                 text=True,
@@ -321,21 +355,27 @@ class WorkflowEngine:
             pytest_out = (res_pytest.stdout or res_pytest.stderr).strip()
             pytest_ms = int((datetime.now(timezone.utc) - t_start).total_seconds() * 1000)
 
-            tool_calls.append({
-                "tool": "run_command",
-                "args": {"command": "python -m pytest tests/ui/test_cli_ui.py tests/ui/test_ui_models.py -q"},
-                "output": pytest_out,
-                "exit_code": res_pytest.returncode,
-                "duration_ms": pytest_ms,
-            })
+            tool_calls.append(
+                {
+                    "tool": "run_command",
+                    "args": {
+                        "command": "python -m pytest tests/ui/test_cli_ui.py tests/ui/test_ui_models.py -q"
+                    },
+                    "output": pytest_out,
+                    "exit_code": res_pytest.returncode,
+                    "duration_ms": pytest_ms,
+                }
+            )
 
-            steps.append({
-                "step": 3,
-                "name": "Ejecución de Suite de Regresión UI",
-                "status": "COMPLETED" if res_pytest.returncode == 0 else "FAILED",
-                "output": pytest_out,
-                "duration_ms": pytest_ms,
-            })
+            steps.append(
+                {
+                    "step": 3,
+                    "name": "Ejecución de Suite de Regresión UI",
+                    "status": "COMPLETED" if res_pytest.returncode == 0 else "FAILED",
+                    "output": pytest_out,
+                    "duration_ms": pytest_ms,
+                }
+            )
 
         else:
             # Check if skill directory has scripts to execute
@@ -347,18 +387,32 @@ class WorkflowEngine:
                 for sc in scripts_dir.iterdir():
                     if sc.suffix in (".py", ".sh", ".ps1") and sc.is_file():
                         t_start = datetime.now(timezone.utc)
-                        cmd = [sys.executable, str(sc)] if sc.suffix == ".py" else ["powershell", "-File", str(sc)]
+                        cmd = (
+                            [sys.executable, str(sc)]
+                            if sc.suffix == ".py"
+                            else ["powershell", "-File", str(sc)]
+                        )
                         try:
-                            proc = subprocess.run(cmd, cwd=str(self.workspace_root), capture_output=True, text=True, timeout=15)
+                            proc = subprocess.run(
+                                cmd,
+                                cwd=str(self.workspace_root),
+                                capture_output=True,
+                                text=True,
+                                timeout=15,
+                            )
                             sc_out = (proc.stdout or proc.stderr).strip()
-                            sc_ms = int((datetime.now(timezone.utc) - t_start).total_seconds() * 1000)
-                            tool_calls.append({
-                                "tool": "run_command",
-                                "args": {"command": f"{sc.name}"},
-                                "output": sc_out or "Script finalizado con código 0",
-                                "exit_code": proc.returncode,
-                                "duration_ms": sc_ms,
-                            })
+                            sc_ms = int(
+                                (datetime.now(timezone.utc) - t_start).total_seconds() * 1000
+                            )
+                            tool_calls.append(
+                                {
+                                    "tool": "run_command",
+                                    "args": {"command": f"{sc.name}"},
+                                    "output": sc_out or "Script finalizado con código 0",
+                                    "exit_code": proc.returncode,
+                                    "duration_ms": sc_ms,
+                                }
+                            )
                             script_executed = True
                             break
                         except Exception as e:
@@ -367,26 +421,31 @@ class WorkflowEngine:
             if not script_executed:
                 # Query real agy engine if available
                 from sacl.ui.modules.chat import query_agy_engine
+
                 t_start = datetime.now(timezone.utc)
                 llm_prompt = f"Ejecuta el objetivo del skill '{details['name']}': {goal}\nInstrucciones:\n{details.get('body_markdown', '')[:1000]}"
                 llm_out = query_agy_engine(llm_prompt)
                 llm_ms = int((datetime.now(timezone.utc) - t_start).total_seconds() * 1000)
 
-                tool_calls.append({
-                    "tool": "agy_infer",
-                    "args": {"model": "gemini-3.8-flash", "skill": details["name"]},
-                    "output": llm_out or f"Inferencia ejecutada para objetivo: '{goal}'",
-                    "exit_code": 0,
-                    "duration_ms": llm_ms,
-                })
+                tool_calls.append(
+                    {
+                        "tool": "agy_infer",
+                        "args": {"model": "gemini-3.8-flash", "skill": details["name"]},
+                        "output": llm_out or f"Inferencia ejecutada para objetivo: '{goal}'",
+                        "exit_code": 0,
+                        "duration_ms": llm_ms,
+                    }
+                )
 
-            steps.append({
-                "step": 3,
-                "name": f"Despacho y Ejecución Real de {details['name']}",
-                "status": "COMPLETED",
-                "output": f"Ejecución completada en worktree '{self.workspace_root.name}'. Entregables generados en disco.",
-                "duration_ms": 320,
-            })
+            steps.append(
+                {
+                    "step": 3,
+                    "name": f"Despacho y Ejecución Real de {details['name']}",
+                    "status": "COMPLETED",
+                    "output": f"Ejecución completada en worktree '{self.workspace_root.name}'. Entregables generados en disco.",
+                    "duration_ms": 320,
+                }
+            )
 
         # Physical Materialization of Workorder and Artifact Deliverables to Disk
         workorders_dir = self.workspace_root / "workorders"
@@ -410,7 +469,8 @@ class WorkflowEngine:
         }
         wo_path.write_text(json.dumps(wo_data, indent=2), encoding="utf-8")
 
-        rep_content = f"""# Reporte de Ejecución de Workflow: {details['name']}
+        rep_content = (
+            f"""# Reporte de Ejecución de Workflow: {details["name"]}
 - **ID de Ejecución:** `{execution_id}`
 - **Operador:** `{operator}`
 - **Meta:** `{goal}`
@@ -418,10 +478,24 @@ class WorkflowEngine:
 - **Estado:** `COMPLETED`
 
 ## Pasos Ejecutados
-""" + "\n".join([f"- **Paso {s['step']}:** {s['name']} — `{s['status']}` ({s.get('duration_ms', 0)}ms)\n  *{s['output']}*" for s in steps]) + f"""
+"""
+            + "\n".join(
+                [
+                    f"- **Paso {s['step']}:** {s['name']} — `{s['status']}` ({s.get('duration_ms', 0)}ms)\n  *{s['output']}*"
+                    for s in steps
+                ]
+            )
+            + """
 
 ## Llamadas a Herramientas
-""" + "\n".join([f"- **{tc['tool']}**: `{tc['args']}` -> Exit Code {tc.get('exit_code', 0)}" for tc in tool_calls])
+"""
+            + "\n".join(
+                [
+                    f"- **{tc['tool']}**: `{tc['args']}` -> Exit Code {tc.get('exit_code', 0)}"
+                    for tc in tool_calls
+                ]
+            )
+        )
 
         rep_path.write_text(rep_content, encoding="utf-8")
 
@@ -429,6 +503,7 @@ class WorkflowEngine:
         if self.db_path and self.db_path.exists():
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(str(self.db_path))
                 conn.execute(
                     """

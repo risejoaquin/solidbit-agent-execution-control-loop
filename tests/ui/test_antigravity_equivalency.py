@@ -7,9 +7,10 @@
 """
 
 import json
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-import urllib.request
+
 import pytest
 
 from sacl.engine.workflow_engine import WorkflowEngine

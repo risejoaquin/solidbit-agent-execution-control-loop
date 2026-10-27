@@ -9,16 +9,15 @@ Enforces:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Optional, Union
 
 from sacl.observability.audit import AuditEventEmitter
 from sacl.observability.events import (
     Severity,
-    create_audit_event,
 )
 from sacl.results.models import OutboxHandoffResult
 
@@ -232,7 +231,12 @@ class ResultOutboxHandoff:
                     },
                 )
 
-            logger.info("Successfully dispatched outbox result %d for run %s to %s", outbox_id, run_id, recipient)
+            logger.info(
+                "Successfully dispatched outbox result %d for run %s to %s",
+                outbox_id,
+                run_id,
+                recipient,
+            )
             return OutboxHandoffResult(
                 outbox_id=outbox_id,
                 run_id=run_id,

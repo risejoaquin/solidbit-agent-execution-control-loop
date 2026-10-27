@@ -6,14 +6,13 @@ visual impact summaries, contract checks, file diffs, and mobile 1-tap notificat
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import logging
-import os
-from pathlib import Path
 import secrets
 import sqlite3
 import subprocess
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from sacl.approval.manager import BoundedApprovalManager, parse_iso_datetime
@@ -66,7 +65,10 @@ class GatesModule:
                     if now > exp_dt:
                         rw_conn = self._get_rw_conn()
                         try:
-                            rw_conn.execute("UPDATE approvals SET status = 'EXPIRED' WHERE request_id = ?", (req.request_id,))
+                            rw_conn.execute(
+                                "UPDATE approvals SET status = 'EXPIRED' WHERE request_id = ?",
+                                (req.request_id,),
+                            )
                             rw_conn.commit()
                         finally:
                             rw_conn.close()
@@ -74,7 +76,11 @@ class GatesModule:
                 except Exception:
                     pass
 
-                risk = "HIGH" if any(x in req.action for x in ("DEPLOY", "MERGE", "RULESET")) else "MEDIUM"
+                risk = (
+                    "HIGH"
+                    if any(x in req.action for x in ("DEPLOY", "MERGE", "RULESET"))
+                    else "MEDIUM"
+                )
                 scope_str = ", ".join(req.scope) if isinstance(req.scope, list) else str(req.scope)
                 gates.append(
                     HumanGateCard(
@@ -102,12 +108,42 @@ class GatesModule:
 
     # Deterministic, human-readable infrastructure impact per action family.
     INFRA_IMPACT = {
-        "DEPLOY_STAGING_PREVIEW": ("Desplegar preview efímero en staging", "1 servicio efímero en Railway", "MEDIUM", True),
-        "STAGE_PREVIEW": ("Desplegar preview efímero en staging", "1 servicio efímero en Railway", "MEDIUM", True),
-        "GIT_COMMIT_PRIMARY": ("Registrar commit en la rama de trabajo", "Solo repositorio git (sin infraestructura)", "LOW", True),
-        "GIT_PUSH_BRANCH": ("Publicar rama de trabajo en GitHub", "Rama remota aislada (sin merge)", "MEDIUM", True),
-        "OPEN_PULL_REQUEST": ("Abrir pull request para revisión", "Sin cambios en infraestructura", "LOW", True),
-        "DB_MIGRATION_STAGING": ("Aplicar migración en base de staging", "Esquema de base de datos de staging", "HIGH", False),
+        "DEPLOY_STAGING_PREVIEW": (
+            "Desplegar preview efímero en staging",
+            "1 servicio efímero en Railway",
+            "MEDIUM",
+            True,
+        ),
+        "STAGE_PREVIEW": (
+            "Desplegar preview efímero en staging",
+            "1 servicio efímero en Railway",
+            "MEDIUM",
+            True,
+        ),
+        "GIT_COMMIT_PRIMARY": (
+            "Registrar commit en la rama de trabajo",
+            "Solo repositorio git (sin infraestructura)",
+            "LOW",
+            True,
+        ),
+        "GIT_PUSH_BRANCH": (
+            "Publicar rama de trabajo en GitHub",
+            "Rama remota aislada (sin merge)",
+            "MEDIUM",
+            True,
+        ),
+        "OPEN_PULL_REQUEST": (
+            "Abrir pull request para revisión",
+            "Sin cambios en infraestructura",
+            "LOW",
+            True,
+        ),
+        "DB_MIGRATION_STAGING": (
+            "Aplicar migración en base de staging",
+            "Esquema de base de datos de staging",
+            "HIGH",
+            False,
+        ),
         "JIRA_TRANSITION": ("Mover ticket de Jira", "Solo tablero de Jira", "LOW", True),
     }
 
@@ -149,7 +185,9 @@ class GatesModule:
         for line in log_out.splitlines():
             parts = line.split("\x1f")
             if len(parts) == 4:
-                commits.append({"sha": parts[0], "subject": parts[1], "author": parts[2], "when": parts[3]})
+                commits.append(
+                    {"sha": parts[0], "subject": parts[1], "author": parts[2], "when": parts[3]}
+                )
         if not commits:
             return None
 
@@ -164,7 +202,14 @@ class GatesModule:
             if len(cols) == 3:
                 added = int(cols[0]) if cols[0].isdigit() else 0
                 removed = int(cols[1]) if cols[1].isdigit() else 0
-                file_tree.append({"path": cols[2], "type": "MODIFIED", "lines_added": added, "lines_removed": removed})
+                file_tree.append(
+                    {
+                        "path": cols[2],
+                        "type": "MODIFIED",
+                        "lines_added": added,
+                        "lines_removed": removed,
+                    }
+                )
         file_tree.sort(key=lambda f: f["lines_added"] + f["lines_removed"], reverse=True)
 
         diff_out = self._git("diff", "--unified=2", "--no-color", base, "HEAD") or ""
@@ -209,7 +254,8 @@ class GatesModule:
                 conn.close()
 
         title, infra, risk, reversible = self.INFRA_IMPACT.get(
-            action, (action.replace("_", " ").capitalize(), "Revisar alcance declarado", "MEDIUM", True)
+            action,
+            (action.replace("_", " ").capitalize(), "Revisar alcance declarado", "MEDIUM", True),
         )
         production_touched = "PROD" in action.upper()
 
@@ -221,14 +267,28 @@ class GatesModule:
             summary = (
                 f"{len(commits)} commits recientes en la rama · {git_ctx['files_changed']} archivos "
                 f"(+{git_ctx['lines_added']} / −{git_ctx['lines_removed']}). "
-                + ("Producción no se toca." if not production_touched else "Acción con alcance de producción: requiere revisión reforzada.")
+                + (
+                    "Producción no se toca."
+                    if not production_touched
+                    else "Acción con alcance de producción: requiere revisión reforzada."
+                )
             )
             data_source = "git"
         else:
             commits = []
             file_tree = [
-                {"path": "services/web-storefront/cart.ts", "type": "MODIFIED", "lines_added": 18, "lines_removed": 3},
-                {"path": "services/web-storefront/checkout.tsx", "type": "MODIFIED", "lines_added": 42, "lines_removed": 6},
+                {
+                    "path": "services/web-storefront/cart.ts",
+                    "type": "MODIFIED",
+                    "lines_added": 18,
+                    "lines_removed": 3,
+                },
+                {
+                    "path": "services/web-storefront/checkout.tsx",
+                    "type": "MODIFIED",
+                    "lines_added": 42,
+                    "lines_removed": 6,
+                },
                 {"path": "railway.json", "type": "VERIFIED", "lines_added": 2, "lines_removed": 0},
             ]
             diff_snippet = (
@@ -236,7 +296,9 @@ class GatesModule:
                 "-  const currentStock = await getLocalStock(item.id);\n"
                 "+  const allocation = await inventoryLedger.reserve({ sellableUnitId, quantity, idempotencyKey });\n"
             )
-            summary = "Vista de ejemplo: no se encontró un repositorio git en el espacio de trabajo."
+            summary = (
+                "Vista de ejemplo: no se encontró un repositorio git en el espacio de trabajo."
+            )
             data_source = "demo"
 
         return {
@@ -283,7 +345,7 @@ class GatesModule:
             f"Revisar y decidir desde tu móvil: {quick_url}"
         )
 
-        logger.info(f"Dispatched mobile alert for gate {request_id} via {channel}")
+        logger.info(f"Dispatched mobile alert for gate {request_id} via {channel}: {message}")
         return {
             "success": True,
             "channel": channel,
@@ -317,18 +379,35 @@ class GatesModule:
                 (request_id, request_id),
             )
             row = cur.fetchone()
-            
+
             real_req_id = request_id
             if row:
-                real_req_id = row["request_id"] if isinstance(row, sqlite3.Row) or isinstance(row, dict) else row[0]
-                current_status = row["status"] if isinstance(row, sqlite3.Row) or isinstance(row, dict) else row[2]
+                real_req_id = (
+                    row["request_id"]
+                    if isinstance(row, sqlite3.Row) or isinstance(row, dict)
+                    else row[0]
+                )
+                current_status = (
+                    row["status"]
+                    if isinstance(row, sqlite3.Row) or isinstance(row, dict)
+                    else row[2]
+                )
                 if current_status in ("APPROVED", "REJECTED"):
                     # Already decided: update justification/decided_at cleanly
                     now_str = utc_now()
-                    approver_json = json.dumps({"identity": approver_id, "channel": channel, "approved_at": now_str})
+                    approver_json = json.dumps(
+                        {"identity": approver_id, "channel": channel, "approved_at": now_str}
+                    )
                     rw_conn.execute(
                         "UPDATE approvals SET status = ?, decision = ?, approver = ?, rationale = ?, decided_at = ? WHERE request_id = ?;",
-                        (decision_val, decision_val, approver_json, justification, now_str, real_req_id),
+                        (
+                            decision_val,
+                            decision_val,
+                            approver_json,
+                            justification,
+                            now_str,
+                            real_req_id,
+                        ),
                     )
                     rw_conn.commit()
                     return {
@@ -353,18 +432,29 @@ class GatesModule:
                 "message": f"Decisión de Gate registrada como {decision_val} vía {channel}",
                 "timestamp": utc_now(),
             }
-        except Exception as exc:
+        except Exception:
             # If request wasn't found in manager, insert/update directly in approvals table
             try:
                 now_str = utc_now()
-                approver_json = json.dumps({"identity": approver_id, "channel": channel, "approved_at": now_str})
+                approver_json = json.dumps(
+                    {"identity": approver_id, "channel": channel, "approved_at": now_str}
+                )
                 rw_conn.execute(
                     """
-                    INSERT OR REPLACE INTO approvals 
+                    INSERT OR REPLACE INTO approvals
                     (approval_id, request_id, job_id, action, scope, status, decision, approver, rationale, requested_at, decided_at, expires_at)
                     VALUES (?, ?, 'JOB-GATE-001', 'DEPLOY_STAGING_PREVIEW', '["services/web-storefront", "railway.json"]', ?, ?, ?, ?, ?, ?, datetime('now', '+7 days'));
                     """,
-                    (f"appr-{secrets.token_hex(6)}", request_id, decision_val, decision_val, approver_json, justification, now_str, now_str)
+                    (
+                        f"appr-{secrets.token_hex(6)}",
+                        request_id,
+                        decision_val,
+                        decision_val,
+                        approver_json,
+                        justification,
+                        now_str,
+                        now_str,
+                    ),
                 )
                 rw_conn.commit()
                 return {
@@ -399,7 +489,7 @@ class GatesModule:
         try:
             rw_conn.execute(
                 """
-                INSERT INTO approvals 
+                INSERT INTO approvals
                 (approval_id, request_id, job_id, action, scope, status, decision, approver, rationale, requested_at, expires_at)
                 VALUES (?, ?, 'JOB-GATE-001', ?, ?, 'PENDING', 'PENDING', NULL, ?, ?, datetime('now', '+7 days'));
                 """,

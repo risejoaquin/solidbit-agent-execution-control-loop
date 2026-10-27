@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from sacl.contracts.exceptions import DirtyRootError
 from sacl.worker.worktree import WorkspaceManager
 
 

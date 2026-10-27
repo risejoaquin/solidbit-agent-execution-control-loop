@@ -6,19 +6,17 @@ and human approval gate decisions across modular sub-services.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-import json
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from sacl.approval.manager import BoundedApprovalManager
-from sacl.approval.models import Approver
+from sacl.engine.workflow_engine import WorkflowEngine
 from sacl.observability.monitor import MonitorReadModel
 from sacl.state.connection import create_connection
 from sacl.state.migrations import MigrationRunner
-from sacl.ui.security import load_or_create_secret
 from sacl.ui.models import (
     ConnectionState,
     FullDashboardView,
@@ -26,7 +24,6 @@ from sacl.ui.models import (
     RecoverySummaryView,
     SafetyBoundaryStatus,
     TechnologyConnection,
-    UIMode,
 )
 from sacl.ui.modules.actions import ActionExecutionModule
 from sacl.ui.modules.campaign_designer import CampaignDesignerModule
@@ -47,7 +44,7 @@ from sacl.ui.modules.roadmap import RoadmapModule
 from sacl.ui.modules.slash_commands import SlashCommandRegistry
 from sacl.ui.modules.subagents_manager import SubagentsManager
 from sacl.ui.modules.telemetry import TelemetryModule
-from sacl.engine.workflow_engine import WorkflowEngine
+from sacl.ui.security import load_or_create_secret
 
 logger = logging.getLogger("sacl.ui.service")
 
@@ -227,7 +224,7 @@ class UIService:
             readiness = max(20, readiness - 15)
 
         agents_data = [a.to_dict() for a in base_snap.agents]
-        leases_data = [l.to_dict() for l in base_snap.leases]
+        leases_data = [ls.to_dict() for ls in base_snap.leases]
 
         recovery_info = self.recovery.get_recovery_status()
         recovery = RecoverySummaryView(
@@ -235,7 +232,9 @@ class UIService:
             latest_run_id=base_snap.run_id if base_snap.run_id != "--" else None,
             classification=recovery_info.get("classification", "READY_SAFE"),
             safe_to_resume=True,
-            recommended_action=recovery_info.get("recommended_action", "Operational state verified"),
+            recommended_action=recovery_info.get(
+                "recommended_action", "Operational state verified"
+            ),
         )
 
         active_proj = self.projects.get_active_project()
@@ -244,7 +243,9 @@ class UIService:
         return FullDashboardView(
             readiness_score=readiness,
             active_project=active_proj_name,
-            active_campaign=base_snap.package_id if base_snap.package_id != "--" else "Productization V1",
+            active_campaign=base_snap.package_id
+            if base_snap.package_id != "--"
+            else "Productization V1",
             mode=mode,
             safety=SafetyBoundaryStatus(),
             connections=conns,

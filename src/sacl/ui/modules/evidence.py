@@ -22,8 +22,12 @@ class EvidenceModule:
             self.evidence_dirs = evidence_dirs
         else:
             self.evidence_dirs = [
-                Path("C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED/evidence"),
-                Path("C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/evidence"),
+                Path(
+                    "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED/evidence"
+                ),
+                Path(
+                    "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/evidence"
+                ),
                 Path("evidence"),
             ]
 
@@ -39,13 +43,15 @@ class EvidenceModule:
                     continue
                 seen_names.add(item.name)
                 stat = item.stat()
-                files.append({
-                    "name": item.name,
-                    "path": str(item),
-                    "size_bytes": stat.st_size,
-                    "modified_at": stat.st_mtime,
-                    "type": "markdown" if item.suffix == ".md" else "data",
-                })
+                files.append(
+                    {
+                        "name": item.name,
+                        "path": str(item),
+                        "size_bytes": stat.st_size,
+                        "modified_at": stat.st_mtime,
+                        "type": "markdown" if item.suffix == ".md" else "data",
+                    }
+                )
         return sorted(files, key=lambda x: x["name"])
 
     def read_report(self, filename: str) -> Dict[str, Any]:

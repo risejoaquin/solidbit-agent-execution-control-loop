@@ -25,9 +25,20 @@ class DBInspectorModule:
             return {"tables": {}, "total_records": 0, "status": "NO_DATABASE"}
 
         tables = [
-            "projects", "packages", "jobs", "runs", "graph_nodes",
-            "agents", "events", "approvals", "artifacts", "results",
-            "leases", "heartbeats", "errors", "audit_events"
+            "projects",
+            "packages",
+            "jobs",
+            "runs",
+            "graph_nodes",
+            "agents",
+            "events",
+            "approvals",
+            "artifacts",
+            "results",
+            "leases",
+            "heartbeats",
+            "errors",
+            "audit_events",
         ]
 
         stats: Dict[str, int] = {}
@@ -68,7 +79,8 @@ class DBInspectorModule:
                 FROM audit_events
                 ORDER BY timestamp DESC
                 LIMIT ?;
-                """, (limit,)
+                """,
+                (limit,),
             )
             for row in cur.fetchall():
                 events.append(dict(row))
@@ -81,7 +93,8 @@ class DBInspectorModule:
                     FROM events
                     ORDER BY created_at DESC
                     LIMIT ?;
-                    """, (limit,)
+                    """,
+                    (limit,),
                 )
                 for row in cur.fetchall():
                     events.append(dict(row))

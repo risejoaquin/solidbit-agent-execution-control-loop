@@ -84,7 +84,7 @@ class DashboardSnapshot:
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d["agents"] = [a.to_dict() for a in self.agents]
-        d["leases"] = [l.to_dict() for l in self.leases]
+        d["leases"] = [lease.to_dict() for lease in self.leases]
         return d
 
 
@@ -182,7 +182,9 @@ class MonitorReadModel:
 
             # 3. Agent Fleet
             agents = self._get_agent_fleet(cursor, active_run_id)
-            active_workers = sum(1 for a in agents if a.status in {"RUNNING", "LAUNCHING", "TIMEOUT_RUNNING"})
+            active_workers = sum(
+                1 for a in agents if a.status in {"RUNNING", "LAUNCHING", "TIMEOUT_RUNNING"}
+            )
 
             # 4. Leases
             leases = self._get_leases(cursor)
@@ -249,7 +251,9 @@ class MonitorReadModel:
             for r in rows:
                 # Check report physical existence on disk if path recorded
                 report_p = Path(r["report_path"]) if r["report_path"] else None
-                report_exists = report_p.is_file() and report_p.stat().st_size > 0 if report_p else False
+                report_exists = (
+                    report_p.is_file() and report_p.stat().st_size > 0 if report_p else False
+                )
 
                 duration_sec = self._calc_duration(r["started_at"], r["finished_at"])
                 fleet.append(
@@ -319,7 +323,9 @@ class MonitorReadModel:
         # Agent-level alerts
         for a in agents:
             if a.status == "TIMEOUT_RUNNING":
-                alerts.append(f"[WARN] {a.agent_id} exceeded timeout -> Transitioned to TIMEOUT_RUNNING (Alive)")
+                alerts.append(
+                    f"[WARN] {a.agent_id} exceeded timeout -> Transitioned to TIMEOUT_RUNNING (Alive)"
+                )
 
         # Events-level recent warnings/errors
         try:
@@ -348,12 +354,16 @@ class MonitorReadModel:
             )
             rows = cursor.fetchall()
             for r in rows:
-                conflicts.append(f"Overlap detected: {r['file_path']} across {r['agents_involved']}")
+                conflicts.append(
+                    f"Overlap detected: {r['file_path']} across {r['agents_involved']}"
+                )
         except sqlite3.OperationalError:
             pass
         return conflicts
 
-    def _get_recent_events(self, cursor: sqlite3.Cursor, run_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def _get_recent_events(
+        self, cursor: sqlite3.Cursor, run_id: str, limit: int = 5
+    ) -> List[Dict[str, Any]]:
         evs: List[Dict[str, Any]] = []
         try:
             cursor.execute(
@@ -377,7 +387,9 @@ class MonitorReadModel:
             pass
         return evs
 
-    def _get_recent_errors(self, cursor: sqlite3.Cursor, run_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def _get_recent_errors(
+        self, cursor: sqlite3.Cursor, run_id: str, limit: int = 5
+    ) -> List[Dict[str, Any]]:
         errs: List[Dict[str, Any]] = []
         try:
             cursor.execute(
@@ -438,7 +450,7 @@ def render_ascii_dashboard(snapshot: DashboardSnapshot) -> str:
         " AGENT EXECUTION FLEET",
         thin_sep,
         f" {'Agent ID':<11} | {'Status':<16} | {'PID':<6} | {'Exit':<4} | {'Report':<6} | {'Verdict':<22} | {'Duration':<9}",
-        f" {'-'*11}-+-{'-'*16}-+-{'-'*6}-+-{'-'*4}-+-{'-'*6}-+-{'-'*22}-+-{'-'*9}",
+        f" {'-' * 11}-+-{'-' * 16}-+-{'-' * 6}-+-{'-' * 4}-+-{'-' * 6}-+-{'-' * 22}-+-{'-' * 9}",
     ]
 
     if not snapshot.agents:
@@ -452,17 +464,27 @@ def render_ascii_dashboard(snapshot: DashboardSnapshot) -> str:
                 f" {a.agent_id:<11} | {a.status:<16} | {pid_str:<6} | {exit_str:<4} | {rep_str:<6} | {a.verdict:<22} | {a.duration_str:<9}"
             )
 
-    lines.extend([
-        thin_sep,
-        " CONCURRENCY & LEASES",
-        thin_sep,
-    ])
+    lines.extend(
+        [
+            thin_sep,
+            " CONCURRENCY & LEASES",
+            thin_sep,
+        ]
+    )
 
-    limit_note = " (MaxParallel Limit Reached)" if snapshot.active_workers_count >= snapshot.max_parallel else ""
-    lines.append(f" Active Workers: {snapshot.active_workers_count} / {snapshot.max_parallel}{limit_note}")
+    limit_note = (
+        " (MaxParallel Limit Reached)"
+        if snapshot.active_workers_count >= snapshot.max_parallel
+        else ""
+    )
+    lines.append(
+        f" Active Workers: {snapshot.active_workers_count} / {snapshot.max_parallel}{limit_note}"
+    )
 
     if snapshot.leases:
-        lease_strs = [f"{l.lease_name} (PID {l.holder_pid})" for l in snapshot.leases if not l.is_expired]
+        lease_strs = [
+            f"{ls.lease_name} (PID {ls.holder_pid})" for ls in snapshot.leases if not ls.is_expired
+        ]
         lines.append(f" Leases:         {', '.join(lease_strs) if lease_strs else 'None active'}")
     else:
         lines.append(" Leases:         None recorded")
@@ -479,9 +501,11 @@ def render_ascii_dashboard(snapshot: DashboardSnapshot) -> str:
     else:
         lines.append(" Conflicts:      None detected.")
 
-    lines.extend([
-        sep,
-        " [Press Ctrl+C to exit monitor. Running agents and supervisors will NOT be terminated.]",
-    ])
+    lines.extend(
+        [
+            sep,
+            " [Press Ctrl+C to exit monitor. Running agents and supervisors will NOT be terminated.]",
+        ]
+    )
 
     return "\n".join(lines)

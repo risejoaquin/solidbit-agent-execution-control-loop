@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import io
-from pathlib import Path
 import zipfile
+from pathlib import Path
+
 import pytest
 
 from sacl.transport.exceptions import (
@@ -27,10 +28,12 @@ def create_in_memory_zip(files: dict[str, bytes]) -> bytes:
 
 def test_valid_zip_extraction(tmp_path: Path) -> None:
     extractor = ZipDefenseExtractor()
-    zip_bytes = create_in_memory_zip({
-        "manifest.json": b'{"package_id": "W0"}',
-        "prompts/agent.md": b"# Prompt instructions",
-    })
+    zip_bytes = create_in_memory_zip(
+        {
+            "manifest.json": b'{"package_id": "W0"}',
+            "prompts/agent.md": b"# Prompt instructions",
+        }
+    )
 
     dest = tmp_path / "extracted"
     extracted = extractor.validate_and_extract(zip_bytes, dest, package_id="W0")

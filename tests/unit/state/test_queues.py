@@ -194,7 +194,16 @@ def test_durable_outbox_queue_lifecycle(queue_db: sqlite3.Connection) -> None:
     q = DurableOutboxQueue(queue_db)
     JobRepository(queue_db).create_job("job-out", None, None)
     RunRepository(queue_db).create_run(
-        "run-out-1", "job-out", "pkg-1", "proj", "risejoaquin/proj", "mode", "src", "target", "runs/r", "RUNNING"
+        "run-out-1",
+        "job-out",
+        "pkg-1",
+        "proj",
+        "risejoaquin/proj",
+        "mode",
+        "src",
+        "target",
+        "runs/r",
+        "RUNNING",
     )
 
     assert q.qsize() == 0
@@ -233,7 +242,9 @@ def test_durable_outbox_queue_lifecycle(queue_db: sqlite3.Connection) -> None:
     )
     q.nack(outbox_id_2, error_log="SMTP Connection Refused")
     cursor = queue_db.cursor()
-    cursor.execute("SELECT status, attempts, error_log FROM mail_outbox WHERE outbox_id = ?;", (outbox_id_2,))
+    cursor.execute(
+        "SELECT status, attempts, error_log FROM mail_outbox WHERE outbox_id = ?;", (outbox_id_2,)
+    )
     row = cursor.fetchone()
     assert row["status"] == "FAILED"
     assert row["attempts"] == 1

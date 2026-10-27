@@ -1,6 +1,7 @@
 """Unit tests for SACL V1 UI Data Models."""
 
 import json
+
 from sacl.ui.models import (
     ConnectionState,
     FullDashboardView,

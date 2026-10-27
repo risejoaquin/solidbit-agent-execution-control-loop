@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Union
 
-from sacl.state.exceptions import PayloadConflictError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.repositories.jobs import JobRepository
 from sacl.state.repositories.mail import MailRepository
@@ -73,7 +72,9 @@ class IdempotencyHelper(BaseRepository):
 
         if existing_job:
             existing_pkg_id = existing_job.get("package_id")
-            existing_pkg = self.package_repo.get_package(existing_pkg_id) if existing_pkg_id else None
+            existing_pkg = (
+                self.package_repo.get_package(existing_pkg_id) if existing_pkg_id else None
+            )
 
             if existing_pkg:
                 existing_sha = existing_pkg.get("archive_sha256", "")
@@ -159,7 +160,11 @@ class IdempotencyHelper(BaseRepository):
     ) -> bool:
         """Atomically transitions an entity's status iff current status matches expected_status."""
         now = utc_now()
-        set_clauses = ["status = ?", "updated_at = ?"] if "updated_at" in self._get_table_columns(table) else ["status = ?"]
+        set_clauses = (
+            ["status = ?", "updated_at = ?"]
+            if "updated_at" in self._get_table_columns(table)
+            else ["status = ?"]
+        )
         params: List[Any] = [target_status]
         if "updated_at" in self._get_table_columns(table):
             params.append(now)
@@ -182,7 +187,7 @@ class IdempotencyHelper(BaseRepository):
 
         sql = f"""
             UPDATE {table}
-            SET {', '.join(set_clauses)}
+            SET {", ".join(set_clauses)}
             WHERE {id_column} = ? AND {where_status};
         """
         cursor = self.execute(sql, params)

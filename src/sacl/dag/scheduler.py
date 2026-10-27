@@ -18,13 +18,10 @@ from __future__ import annotations
 import sqlite3
 import time
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from sacl.contracts.exceptions import (
-    ApprovalRequiredError,
     ArchitectureInvariantError,
-    CollisionDetectedError,
     DirtyRootError,
 )
 from sacl.contracts.interfaces import IDagScheduler
@@ -276,7 +273,10 @@ class EphemeralDagScheduler(IDagScheduler):
                     self._update_stage_status(p)
                     for nid in p.node_ids:
                         node = self.nodes_map.get(nid)
-                        if node and node.status in (GraphNodeStatus.PENDING.value, GraphNodeStatus.READY.value):
+                        if node and node.status in (
+                            GraphNodeStatus.PENDING.value,
+                            GraphNodeStatus.READY.value,
+                        ):
                             node.status = GraphNodeStatus.BLOCKED.value
                             self._update_node_status(node)
 
@@ -344,7 +344,9 @@ class EphemeralDagScheduler(IDagScheduler):
                             # Apply exponential backoff delay
                             backoff = calculate_backoff_delay(node.current_attempt + 1)
                             if backoff > 0:
-                                time.sleep(min(backoff, 0.5))  # Sleep up to backoff (clamped in tests)
+                                time.sleep(
+                                    min(backoff, 0.5)
+                                )  # Sleep up to backoff (clamped in tests)
 
                             # Reset to READY for subsequent attempt
                             node.status = GraphNodeStatus.READY.value
@@ -405,7 +407,9 @@ class EphemeralDagScheduler(IDagScheduler):
         mock_runner = None
         if self.mock_runner_factory:
             factory_fn = self.mock_runner_factory
-            mock_runner = lambda cfg, att: factory_fn(node.agent_id, att)
+
+            def mock_runner(cfg, att):
+                return factory_fn(node.agent_id, att)
 
         worker_cfg = WorkerConfig(
             agent_id=node.agent_id,
@@ -536,7 +540,9 @@ class EphemeralDagScheduler(IDagScheduler):
             WHERE run_id = ?;
         """
         try:
-            self.db_conn.execute(sql, (run_status, verdict, integration, now_iso, self.config.run_id))
+            self.db_conn.execute(
+                sql, (run_status, verdict, integration, now_iso, self.config.run_id)
+            )
             self.db_conn.commit()
         except Exception:
             pass

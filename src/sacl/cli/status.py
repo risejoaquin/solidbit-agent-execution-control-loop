@@ -7,12 +7,10 @@ and legacy state JSON files, supporting tabular and JSON output.
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import json
 import logging
-from pathlib import Path
 import sqlite3
-import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from sacl.legacy.state_bridge import LegacyStateBridge
@@ -72,7 +70,9 @@ def execute_status(args: argparse.Namespace) -> int:
         if Path("state").exists():
             status_rows = _query_filesystem_status(Path("."), args.agent)
         elif Path("runs").exists():
-            latest_runs = sorted(Path("runs").glob("w0-*"), key=lambda p: p.stat().st_mtime, reverse=True)
+            latest_runs = sorted(
+                Path("runs").glob("w0-*"), key=lambda p: p.stat().st_mtime, reverse=True
+            )
             if latest_runs:
                 status_rows = _query_filesystem_status(latest_runs[0], args.agent)
 
@@ -91,8 +91,10 @@ def execute_status(args: argparse.Namespace) -> int:
     print("\n" + "=" * 105)
     print("                              SACL AGENT EXECUTION STATUS")
     print("=" * 105)
-    print(f" {'AGENT':<12} | {'STATUS':<16} | {'PID':<8} | {'EXIT':<6} | {'REPORT':<8} | {'VERDICT':<24} | {'UPDATED':<19}")
-    print(f" {'-'*12}-+-{'-'*16}-+-{'-'*8}-+-{'-'*6}-+-{'-'*8}-+-{'-'*24}-+-{'-'*19}")
+    print(
+        f" {'AGENT':<12} | {'STATUS':<16} | {'PID':<8} | {'EXIT':<6} | {'REPORT':<8} | {'VERDICT':<24} | {'UPDATED':<19}"
+    )
+    print(f" {'-' * 12}-+-{'-' * 16}-+-{'-' * 8}-+-{'-' * 6}-+-{'-' * 8}-+-{'-' * 24}-+-{'-' * 19}")
 
     running = complete = failed = stopped = timeout = 0
     for r in status_rows:
@@ -116,15 +118,21 @@ def execute_status(args: argparse.Namespace) -> int:
         elif "TIMEOUT" in st:
             timeout += 1
 
-        print(f" {agent_id:<12} | {st:<16} | {pid_s:<8} | {ec_s:<6} | {rep_s:<8} | {verdict:<24} | {updated:<19}")
+        print(
+            f" {agent_id:<12} | {st:<16} | {pid_s:<8} | {ec_s:<6} | {rep_s:<8} | {verdict:<24} | {updated:<19}"
+        )
 
     print("-" * 105)
-    print(f"Summary: RUNNING={running} | COMPLETE={complete} | FAILED={failed} | STOPPED={stopped} | TIMEOUT={timeout}")
+    print(
+        f"Summary: RUNNING={running} | COMPLETE={complete} | FAILED={failed} | STOPPED={stopped} | TIMEOUT={timeout}"
+    )
     print("=" * 105 + "\n")
     return 0
 
 
-def _query_sqlite_status(db_path: Path, run_id: Optional[str], agent_filter: str) -> List[Dict[str, Any]]:
+def _query_sqlite_status(
+    db_path: Path, run_id: Optional[str], agent_filter: str
+) -> List[Dict[str, Any]]:
     """Queries SQLite for agent status rows."""
     rows: List[Dict[str, Any]] = []
     try:
@@ -160,15 +168,17 @@ def _query_sqlite_status(db_path: Path, run_id: Optional[str], agent_filter: str
             )
 
         for a_id, st, pid, ec, rp, verd, upd in cursor.fetchall():
-            rows.append({
-                "AGENT": a_id,
-                "STATUS": st,
-                "PID": pid,
-                "EXIT": ec,
-                "REPORT": bool(rp and Path(rp).exists()),
-                "RESULT": verd or "--",
-                "LAST_ACTIVITY": upd or "--",
-            })
+            rows.append(
+                {
+                    "AGENT": a_id,
+                    "STATUS": st,
+                    "PID": pid,
+                    "EXIT": ec,
+                    "REPORT": bool(rp and Path(rp).exists()),
+                    "RESULT": verd or "--",
+                    "LAST_ACTIVITY": upd or "--",
+                }
+            )
         conn.close()
     except Exception as exc:
         logger.debug("SQLite status query failed: %s", exc)
@@ -200,13 +210,15 @@ def _query_filesystem_status(run_dir: Path, agent_filter: str) -> List[Dict[str,
             logs_dir=logs_dir,
         )
 
-        rows.append({
-            "AGENT": recon["Agent"],
-            "STATUS": recon["Status"],
-            "PID": recon["Pid"],
-            "EXIT": recon["ExitCode"],
-            "REPORT": recon["ReportExists"],
-            "RESULT": recon["Verdict"],
-            "LAST_ACTIVITY": recon.get("StartedAt", "--"),
-        })
+        rows.append(
+            {
+                "AGENT": recon["Agent"],
+                "STATUS": recon["Status"],
+                "PID": recon["Pid"],
+                "EXIT": recon["ExitCode"],
+                "REPORT": recon["ReportExists"],
+                "RESULT": recon["Verdict"],
+                "LAST_ACTIVITY": recon.get("StartedAt", "--"),
+            }
+        )
     return rows

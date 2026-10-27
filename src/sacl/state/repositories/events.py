@@ -7,14 +7,13 @@ Compatibility Table: audit_events.
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, List, Optional, Union
 
 from sacl.contracts.models import AuditEvent
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import json_dumps_safe, json_loads_safe, utc_now
 
-VALID_SEVERITIES = frozenset({'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'})
+VALID_SEVERITIES = frozenset({"DEBUG", "INFO", "WARN", "ERROR", "FATAL"})
 
 
 class EventRepository(BaseRepository):
@@ -64,13 +63,15 @@ class EventRepository(BaseRepository):
         event_id = cursor.lastrowid
 
         # Insert compatibility audit_events if severity allows
-        if severity in ('INFO', 'WARN', 'ERROR', 'FATAL'):
+        if severity in ("INFO", "WARN", "ERROR", "FATAL"):
             sql_audit = """
                 INSERT INTO audit_events (
                     run_id, agent_id, event_type, severity, payload_json, created_at
                 ) VALUES (?, ?, ?, ?, ?, ?);
             """
-            self.execute(sql_audit, (run_id, agent_id, event_type, severity, payload_json, created_at))
+            self.execute(
+                sql_audit, (run_id, agent_id, event_type, severity, payload_json, created_at)
+            )
 
         self.commit()
         return event_id  # type: ignore[return-value]

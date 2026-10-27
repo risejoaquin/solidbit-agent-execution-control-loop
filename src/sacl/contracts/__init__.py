@@ -18,6 +18,18 @@ from sacl.contracts.exceptions import (
     ReconciliationError,
     SaclError,
 )
+from sacl.contracts.interfaces import (
+    IApprovalManager,
+    IDagScheduler,
+    IPackageValidator,
+    IPolicyEngine,
+    IReconciler,
+    IRecoveryManager,
+    IStateStore,
+    ISupervisor,
+    ITransportGateway,
+    IWorkspaceManager,
+)
 from sacl.contracts.invariants import (
     ALL_JOB_STATES,
     ALLOWED_PROCESS_IMAGES,
@@ -56,18 +68,6 @@ from sacl.contracts.invariants import (
     OperationalStateDomain,
     RiskTier,
     Verdict,
-)
-from sacl.contracts.interfaces import (
-    IApprovalManager,
-    IDagScheduler,
-    IPackageValidator,
-    IPolicyEngine,
-    IReconciler,
-    IRecoveryManager,
-    IStateStore,
-    ISupervisor,
-    ITransportGateway,
-    IWorkspaceManager,
 )
 from sacl.contracts.models import (
     AgentResult,

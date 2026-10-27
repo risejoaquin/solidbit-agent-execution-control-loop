@@ -12,9 +12,9 @@ import hashlib
 import hmac
 import logging
 import os
-from pathlib import Path
 import secrets
 import time
+from pathlib import Path
 from typing import Mapping, Optional
 
 logger = logging.getLogger("sacl.ui.security")
@@ -93,6 +93,7 @@ def verify_svix_signature(
     base64-decoded part of the ``whsec_...`` secret. The ``svix-signature`` header
     may carry several space-separated ``v1,<base64>`` signatures.
     """
+
     def _h(name: str) -> str:
         for key, value in headers.items():
             if key.lower() == name:
@@ -113,7 +114,9 @@ def verify_svix_signature(
     if abs(current - ts) > tolerance:
         return False
 
-    secret_part = webhook_secret.split("_", 1)[1] if webhook_secret.startswith("whsec_") else webhook_secret
+    secret_part = (
+        webhook_secret.split("_", 1)[1] if webhook_secret.startswith("whsec_") else webhook_secret
+    )
     try:
         key = base64.b64decode(secret_part)
     except Exception:

@@ -6,19 +6,12 @@ Packages identify registered projects but cannot redirect execution outside
 local registry policy.
 """
 
-from pathlib import Path
 import pytest
 
 from sacl.contracts.exceptions import ContractValidationError, PolicyDeniedError
 from sacl.contracts.invariants import RiskTier
-from sacl.contracts.models import (
-    ConcurrencyPolicy,
-    ProjectRegistry,
-    ProjectRegistryEntry,
-)
 from sacl.policy.project_registry import (
     ProjectRegistryManager,
-    is_same_or_subpath,
     normalize_fs_path,
 )
 
@@ -135,13 +128,19 @@ def test_non_redirection_invariant_with_override_enabled(sample_registry_dict):
 
     # Authorized target roots
     val1 = manager.validate_target_root("test-project-override", "C:\\Repos\\TestOverride\\primary")
-    val2 = manager.validate_target_root("test-project-override", "C:\\Repos\\TestOverride\\secondary")
+    val2 = manager.validate_target_root(
+        "test-project-override", "C:\\Repos\\TestOverride\\secondary"
+    )
     assert normalize_fs_path(val1) == normalize_fs_path("C:\\Repos\\TestOverride\\primary")
     assert normalize_fs_path(val2) == normalize_fs_path("C:\\Repos\\TestOverride\\secondary")
 
     # Subpath within authorized root is allowed
-    val_sub = manager.validate_target_root("test-project-override", "C:\\Repos\\TestOverride\\secondary\\subdir")
-    assert normalize_fs_path(val_sub) == normalize_fs_path("C:\\Repos\\TestOverride\\secondary\\subdir")
+    val_sub = manager.validate_target_root(
+        "test-project-override", "C:\\Repos\\TestOverride\\secondary\\subdir"
+    )
+    assert normalize_fs_path(val_sub) == normalize_fs_path(
+        "C:\\Repos\\TestOverride\\secondary\\subdir"
+    )
 
     # Unauthorized root outside allowed_target_roots MUST fail closed
     with pytest.raises(PolicyDeniedError) as excinfo:

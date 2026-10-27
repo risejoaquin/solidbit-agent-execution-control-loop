@@ -7,6 +7,7 @@ Approver channels are strictly CLI, GMAIL, MANUAL (no webhooks).
 """
 
 from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from sacl.contracts.exceptions import (
@@ -90,7 +91,9 @@ def test_disallowed_approver_channel_fails():
         "PRODUCTION_DB_MUTATION",
     ],
 )
-def test_approval_cannot_override_hard_deny_unconditional_violation(valid_approval_token, hard_action):
+def test_approval_cannot_override_hard_deny_unconditional_violation(
+    valid_approval_token, hard_action
+):
     validator = ApprovalValidator()
     valid_approval_token.action = hard_action
 

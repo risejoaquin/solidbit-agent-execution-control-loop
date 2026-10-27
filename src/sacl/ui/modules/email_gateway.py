@@ -12,13 +12,13 @@ header is spoofable and is never trusted as the sole control.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import html
 import json
 import logging
 import os
 import re
 import secrets
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
 from sacl.ui.security import inbound_webhook_token, verify_inbound_token, verify_svix_signature
@@ -250,16 +250,18 @@ class EmailGatewayModule:
         subject = subject[:200]
 
         if sender_addr not in self.authorized_senders:
-            self.email_log.append({
-                "id": f"EML-IN-{secrets.token_hex(4)}",
-                "direction": "INBOUND",
-                "from": sender_addr[:120],
-                "to": self.sender_email,
-                "subject": subject,
-                "status": "REJECTED",
-                "timestamp": utc_now_iso(),
-                "summary": f"Remitente no autorizado: {sender_addr[:120]}",
-            })
+            self.email_log.append(
+                {
+                    "id": f"EML-IN-{secrets.token_hex(4)}",
+                    "direction": "INBOUND",
+                    "from": sender_addr[:120],
+                    "to": self.sender_email,
+                    "subject": subject,
+                    "status": "REJECTED",
+                    "timestamp": utc_now_iso(),
+                    "summary": f"Remitente no autorizado: {sender_addr[:120]}",
+                }
+            )
             return {
                 "success": False,
                 "error": f"Remitente '{sender_addr}' no autorizado. Solo se aceptan correos de {self.operator_email}",

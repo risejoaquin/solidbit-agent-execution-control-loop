@@ -11,7 +11,7 @@ Tests:
 from __future__ import annotations
 
 from pathlib import Path
-import sqlite3
+
 import pytest
 
 from sacl.contracts.exceptions import DirtyRootError
@@ -147,7 +147,9 @@ class TestDagWorkerIntegration:
 
         # Verify SQLite states in dag_stages and graph_nodes
         cur = conn.cursor()
-        cur.execute("SELECT status FROM dag_stages WHERE run_id = 'run-dag-test' ORDER BY phase_number")
+        cur.execute(
+            "SELECT status FROM dag_stages WHERE run_id = 'run-dag-test' ORDER BY phase_number"
+        )
         stage_statuses = [r[0] for r in cur.fetchall()]
         assert stage_statuses == ["COMPLETE", "COMPLETE"]
 
@@ -303,5 +305,8 @@ class TestDagWorkerIntegration:
         assert scheduler.nodes_map["AG-FAIL"].status == GraphNodeStatus.FAILED.value
 
         # Downstream agent AG-DOWNSTREAM must be BLOCKED (never executed)
-        assert scheduler.nodes_map["AG-DOWNSTREAM"].status in (GraphNodeStatus.BLOCKED.value, GraphNodeStatus.CANCELLED.value)
+        assert scheduler.nodes_map["AG-DOWNSTREAM"].status in (
+            GraphNodeStatus.BLOCKED.value,
+            GraphNodeStatus.CANCELLED.value,
+        )
         assert scheduler.phases[1].status == "BLOCKED"

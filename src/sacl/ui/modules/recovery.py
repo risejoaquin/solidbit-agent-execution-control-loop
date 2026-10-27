@@ -6,9 +6,8 @@ Inspects runs, worktrees, active leases, and safely reconciles interrupted state
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger("sacl.ui.modules.recovery")
 
@@ -60,5 +59,7 @@ class RecoveryModule:
             "safe_to_resume": True,
             "active_leases_count": leases_count,
             "dirty_root_prevented": True,
-            "recommended_action": "Resume from checkpoint without destructive git reset." if interrupted else "Optimal state. Zero pending crashes.",
+            "recommended_action": "Resume from checkpoint without destructive git reset."
+            if interrupted
+            else "Optimal state. Zero pending crashes.",
         }

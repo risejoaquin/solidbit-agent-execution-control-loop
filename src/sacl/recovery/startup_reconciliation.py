@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Optional, Set, Union
 from sacl.contracts.interfaces import IRecoveryManager
 from sacl.observability.events import (
     AuditEventType,
-    create_audit_event,
 )
 from sacl.recovery.interrupted import (
     InterruptedRunRecoveryReport,
@@ -28,7 +27,6 @@ from sacl.recovery.interrupted import (
     recover_interrupted_run,
 )
 from sacl.recovery.process_identity import (
-    MockProcessInspector,
     ProcessInspectionStatus,
     ProcessInspector,
     get_default_process_inspector,
@@ -122,7 +120,9 @@ class StartupReconciliationEngine(IRecoveryManager):
 
     def check_pid_safety(self, pid: int, recorded_start_time: str) -> bool:
         """Verifies process identity to prevent interacting with recycled PIDs."""
-        res = inspect_process(pid=pid, expected_start_time=recorded_start_time, inspector=self.inspector)
+        res = inspect_process(
+            pid=pid, expected_start_time=recorded_start_time, inspector=self.inspector
+        )
         return res.status == ProcessInspectionStatus.RUNNING_MATCH
 
     def execute_startup_reconciliation(
@@ -152,17 +152,17 @@ class StartupReconciliationEngine(IRecoveryManager):
 
         lease_acquired = False
         stale_lock_reclaimed = False
-        active_conflict = False
 
         if lease_row:
             holder_pid = lease_row["holder_pid"]
-            holder_expires = lease_row["expires_at"]
 
             # If it's already held by our own PID, renew it
             if holder_pid == self.supervisor_pid:
                 lease_acquired = True
                 self._update_lease(conn, self.supervisor_pid, now_iso, expires_iso)
-                messages.append(f"Renewed existing SUPERVISOR_SINGLETON lease for PID {self.supervisor_pid}.")
+                messages.append(
+                    f"Renewed existing SUPERVISOR_SINGLETON lease for PID {self.supervisor_pid}."
+                )
             else:
                 # 3-Way check on holder process using lease acquired_at timestamp
                 holder_obs = inspect_process(
@@ -173,7 +173,6 @@ class StartupReconciliationEngine(IRecoveryManager):
 
                 if holder_obs.is_alive and holder_obs.is_valid:
                     # Active supervisor is legitimately running!
-                    active_conflict = True
                     msg = (
                         f"SUPERVISOR_ALREADY_ACTIVE: Another supervisor process (PID {holder_pid}, "
                         f"image '{holder_obs.observation.process_name}') is actively holding "
@@ -213,7 +212,9 @@ class StartupReconciliationEngine(IRecoveryManager):
             # Lease doesn't exist yet -> Claim fresh lease
             self._insert_lease(conn, self.supervisor_pid, now_iso, expires_iso)
             lease_acquired = True
-            messages.append(f"Acquired new SUPERVISOR_SINGLETON lease for PID {self.supervisor_pid}.")
+            messages.append(
+                f"Acquired new SUPERVISOR_SINGLETON lease for PID {self.supervisor_pid}."
+            )
 
         # Collect all registered worktree paths from DB for orphan detection
         registered_worktree_paths: Set[str] = set()
@@ -259,7 +260,9 @@ class StartupReconciliationEngine(IRecoveryManager):
                 errors=errors,
             )
 
-        messages.append(f"Discovered {interrupted_count} interrupted run(s) requiring reconciliation.")
+        messages.append(
+            f"Discovered {interrupted_count} interrupted run(s) requiring reconciliation."
+        )
 
         # ====================================================================
         # Phase 3: 4-Point Orphan Worker Reconciliation Loop
@@ -278,8 +281,7 @@ class StartupReconciliationEngine(IRecoveryManager):
         # Determine supervisor final state
         has_dirty_root = any(r.dirty_root_halted for r in run_reports)
         has_surviving = any(
-            r.run_decision.outcome == SafeToResumeOutcome.RESUME_SUPERVISION
-            for r in run_reports
+            r.run_decision.outcome == SafeToResumeOutcome.RESUME_SUPERVISION for r in run_reports
         )
         has_review = any(
             r.run_decision.outcome == SafeToResumeOutcome.BLOCKED_RECOVERY_REVIEW
@@ -337,7 +339,11 @@ class StartupReconciliationEngine(IRecoveryManager):
                 INSERT INTO events (event_type, severity, payload_json, created_at)
                 VALUES (?, 'INFO', ?, ?);
                 """,
-                (AuditEventType.LEASE_ACQUIRED.value, str({"lease_name": "SUPERVISOR_SINGLETON", "pid": pid}), acquired_at),
+                (
+                    AuditEventType.LEASE_ACQUIRED.value,
+                    str({"lease_name": "SUPERVISOR_SINGLETON", "pid": pid}),
+                    acquired_at,
+                ),
             )
 
     def _update_lease(

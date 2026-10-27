@@ -10,7 +10,6 @@ Enforces:
 
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -125,7 +124,7 @@ class WorkspaceManager(IWorkspaceManager):
                     cwd=repo_path,
                     check=True,
                 )
-            except RuntimeError as e:
+            except RuntimeError:
                 # If git worktree fails, create fallback isolated directory
                 worktree_path.mkdir(parents=True, exist_ok=True)
 

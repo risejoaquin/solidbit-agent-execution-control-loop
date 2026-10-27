@@ -7,7 +7,7 @@ frozen architectural contracts, bounded gates, and release milestones.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 logger = logging.getLogger("sacl.ui.modules.roadmap")
 

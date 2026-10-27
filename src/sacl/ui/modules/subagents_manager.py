@@ -6,13 +6,11 @@ and real task/subagent execution logs from disk and SQLite WAL.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import logging
-import os
-from pathlib import Path
 import subprocess
-import sys
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("sacl.ui.modules.subagents_manager")
@@ -21,7 +19,9 @@ logger = logging.getLogger("sacl.ui.modules.subagents_manager")
 class SubagentsManager:
     """Monitors and controls background tasks and subagents with real OS telemetry."""
 
-    def __init__(self, workspace_root: Optional[Path] = None, db_path: Optional[Path] = None) -> None:
+    def __init__(
+        self, workspace_root: Optional[Path] = None, db_path: Optional[Path] = None
+    ) -> None:
         self.workspace_root = workspace_root or Path.cwd()
         self.db_path = db_path or Path("sacl_ops.db")
 
@@ -35,7 +35,9 @@ class SubagentsManager:
                 "-Command",
                 "Get-Process -Name python*, cloudflare*, node*, agy* -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, WorkingSet64 | ConvertTo-Json -Compress",
             ]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=4, encoding="utf-8", errors="replace")
+            res = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=4, encoding="utf-8", errors="replace"
+            )
             if res.returncode == 0 and res.stdout.strip():
                 raw = json.loads(res.stdout.strip())
                 items = raw if isinstance(raw, list) else [raw]
@@ -54,17 +56,19 @@ class SubagentsManager:
                     elif "agy" in name:
                         role = "Antigravity AI LLM Engine Host"
 
-                    real_procs.append({
-                        "id": f"proc-{pid}",
-                        "pid": pid,
-                        "name": f"{name}.exe (PID: {pid})",
-                        "type": "background_task",
-                        "role": role,
-                        "status": "RUNNING",
-                        "memory_mb": ws_mb,
-                        "log_size_kb": round(ws_mb * 10, 1),
-                        "last_updated": datetime.now(timezone.utc).isoformat(),
-                    })
+                    real_procs.append(
+                        {
+                            "id": f"proc-{pid}",
+                            "pid": pid,
+                            "name": f"{name}.exe (PID: {pid})",
+                            "type": "background_task",
+                            "role": role,
+                            "status": "RUNNING",
+                            "memory_mb": ws_mb,
+                            "log_size_kb": round(ws_mb * 10, 1),
+                            "last_updated": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
         except Exception as err:
             logger.warning(f"Error querying OS processes: {err}")
 
@@ -81,6 +85,7 @@ class SubagentsManager:
         if self.db_path and self.db_path.exists():
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(str(self.db_path))
                 cursor = conn.cursor()
                 cursor.execute(
@@ -93,15 +98,19 @@ class SubagentsManager:
                 )
                 for row in cursor.fetchall():
                     run_id, job_id, proj, status, started_at = row
-                    tasks.append({
-                        "id": run_id,
-                        "pid": None,
-                        "name": f"Agent Run: {run_id}",
-                        "type": "subagent",
-                        "role": f"SACL Worker ({proj})",
-                        "status": "RUNNING" if "WAITING" in status or "PROGRESS" in status else "COMPLETED",
-                        "last_updated": started_at or datetime.now(timezone.utc).isoformat(),
-                    })
+                    tasks.append(
+                        {
+                            "id": run_id,
+                            "pid": None,
+                            "name": f"Agent Run: {run_id}",
+                            "type": "subagent",
+                            "role": f"SACL Worker ({proj})",
+                            "status": "RUNNING"
+                            if "WAITING" in status or "PROGRESS" in status
+                            else "COMPLETED",
+                            "last_updated": started_at or datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
                 conn.close()
             except Exception as e:
                 logger.warning(f"Error reading runs from SQLite: {e}")
@@ -120,21 +129,25 @@ class SubagentsManager:
                 if task_id in found_ids:
                     continue
                 found_ids.add(task_id)
-                mtime = datetime.fromtimestamp(log_file.stat().st_mtime, tz=timezone.utc).isoformat()
+                mtime = datetime.fromtimestamp(
+                    log_file.stat().st_mtime, tz=timezone.utc
+                ).isoformat()
                 size_kb = round(log_file.stat().st_size / 1024, 1)
-                is_active = (datetime.now(timezone.utc).timestamp() - log_file.stat().st_mtime < 300)
+                is_active = datetime.now(timezone.utc).timestamp() - log_file.stat().st_mtime < 300
 
-                tasks.append({
-                    "id": task_id,
-                    "pid": None,
-                    "name": f"Task: {task_id}",
-                    "type": "background_task",
-                    "role": "Background Worker Daemon",
-                    "status": "RUNNING" if is_active else "IDLE",
-                    "log_path": str(log_file),
-                    "log_size_kb": size_kb,
-                    "last_updated": mtime,
-                })
+                tasks.append(
+                    {
+                        "id": task_id,
+                        "pid": None,
+                        "name": f"Task: {task_id}",
+                        "type": "background_task",
+                        "role": "Background Worker Daemon",
+                        "status": "RUNNING" if is_active else "IDLE",
+                        "log_path": str(log_file),
+                        "log_size_kb": size_kb,
+                        "last_updated": mtime,
+                    }
+                )
 
         return {
             "success": True,

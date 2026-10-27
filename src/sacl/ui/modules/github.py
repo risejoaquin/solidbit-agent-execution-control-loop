@@ -72,16 +72,17 @@ def get_github_status() -> Dict[str, Any]:
         "is_clean": is_clean,
         "ahead": ahead,
         "behind": behind,
-        "status_label": "Sincronizado" if ahead == 0 and behind == 0 else f"{ahead} commits por subir",
+        "status_label": "Sincronizado"
+        if ahead == 0 and behind == 0
+        else f"{ahead} commits por subir",
     }
 
 
 def get_pull_requests() -> List[Dict[str, Any]]:
     """Return active Pull Requests directly from GitHub via gh CLI."""
-    code, stdout, _ = _run_cmd([
-        "gh", "pr", "list",
-        "--json", "number,title,state,isDraft,headRefName,url,updatedAt"
-    ])
+    code, stdout, _ = _run_cmd(
+        ["gh", "pr", "list", "--json", "number,title,state,isDraft,headRefName,url,updatedAt"]
+    )
     if code == 0 and stdout:
         try:
             return json.loads(stdout)
@@ -92,30 +93,35 @@ def get_pull_requests() -> List[Dict[str, Any]]:
 
 def get_recent_commits(limit: int = 10) -> List[Dict[str, Any]]:
     """Return recent Git commits formatted for clean UI presentation."""
-    code, stdout, _ = _run_cmd([
-        "git", "log", f"-n{limit}", '--format=%h|%an|%ar|%s'
-    ])
+    code, stdout, _ = _run_cmd(["git", "log", f"-n{limit}", "--format=%h|%an|%ar|%s"])
     commits = []
     if code == 0 and stdout:
         for line in stdout.splitlines():
             parts = line.split("|", 3)
             if len(parts) == 4:
-                commits.append({
-                    "sha": parts[0],
-                    "author": parts[1],
-                    "time": parts[2],
-                    "message": parts[3],
-                })
+                commits.append(
+                    {
+                        "sha": parts[0],
+                        "author": parts[1],
+                        "time": parts[2],
+                        "message": parts[3],
+                    }
+                )
     return commits
 
 
 def get_actions_runs(limit: int = 6) -> List[Dict[str, Any]]:
     """Return GitHub Actions CI/CD workflow runs."""
-    code, stdout, _ = _run_cmd([
-        "gh", "run", "list",
-        f"--limit={limit}",
-        "--json", "name,status,conclusion,headBranch,url,createdAt"
-    ])
+    code, stdout, _ = _run_cmd(
+        [
+            "gh",
+            "run",
+            "list",
+            f"--limit={limit}",
+            "--json",
+            "name,status,conclusion,headBranch,url,createdAt",
+        ]
+    )
     if code == 0 and stdout:
         try:
             return json.loads(stdout)
@@ -133,7 +139,9 @@ def sync_origin() -> Dict[str, Any]:
     }
 
 
-def create_pull_request(title: str, body: str, base: str = "main", draft: bool = True) -> Dict[str, Any]:
+def create_pull_request(
+    title: str, body: str, base: str = "main", draft: bool = True
+) -> Dict[str, Any]:
     """Create a new Pull Request on GitHub via gh CLI."""
     cmd = ["gh", "pr", "create", "--title", title, "--body", body, "--base", base]
     if draft:

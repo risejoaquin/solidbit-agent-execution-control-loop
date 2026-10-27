@@ -9,15 +9,14 @@ Constitutional Invariants (ADR-007, SB-FREEZE-P1-06):
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 import sqlite3
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from sacl.approval.manager import BoundedApprovalManager
-from sacl.approval.models import ApprovalRequest
-from sacl.approval.validator import format_iso_datetime
 from sacl.contracts.exceptions import HardDenyViolation
-from sacl.contracts.invariants import HARD_DENIED_ACTIONS, JobSideStatus
+from sacl.contracts.invariants import JobSideStatus
 
 
 @pytest.fixture
@@ -125,7 +124,9 @@ def test_create_approval_request_transitions_sqlite_state(
     assert run_status == JobSideStatus.WAITING_APPROVAL.value
 
     # Check approvals table row
-    cursor.execute("SELECT request_id, action, status, decision FROM approvals WHERE request_id = ?", (req_id,))
+    cursor.execute(
+        "SELECT request_id, action, status, decision FROM approvals WHERE request_id = ?", (req_id,)
+    )
     appr_row = cursor.fetchone()
     assert appr_row[0] == req_id
     assert appr_row[1] == "BRANCH_INTEGRATION"

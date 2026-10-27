@@ -9,10 +9,10 @@ Constitutional Invariants (ADR-007, SB-FREEZE-P1-06):
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-import json
-from pathlib import Path
 import sqlite3
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
 import pytest
 
 from sacl.approval.channels import (
@@ -22,14 +22,12 @@ from sacl.approval.channels import (
 )
 from sacl.approval.manager import BoundedApprovalManager
 from sacl.approval.models import Approver
-from sacl.approval.validator import BoundedApprovalValidator, format_iso_datetime
 from sacl.contracts.exceptions import (
     ApprovalExpiredError,
     ContractValidationError,
-    HardDenyViolation,
     PolicyDeniedError,
 )
-from sacl.contracts.invariants import ApprovalChannel, ApprovalDecision
+from sacl.contracts.invariants import ApprovalChannel
 
 
 @pytest.fixture
@@ -174,11 +172,7 @@ def test_gmail_channel_handler() -> None:
     assert subject == "[SACL][APPROVAL][v1][job-100] STAGE_CONTINUATION (REQ-20261007-001)"
 
     # Test valid inbound reply parsing
-    inbound_body = (
-        "DECISION: APPROVED\n"
-        "NOTES: Verified safe for execution.\n"
-        "REQ-20261007-001"
-    )
+    inbound_body = "DECISION: APPROVED\nNOTES: Verified safe for execution.\nREQ-20261007-001"
     req_id, decision, approver, notes = gmail_handler.parse_inbound_decision(
         sender_email="uniquedraken@gmail.com",
         subject="Re: [SACL][APPROVAL][v1][job-100] STAGE_CONTINUATION",

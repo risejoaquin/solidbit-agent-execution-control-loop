@@ -8,9 +8,8 @@ Codifies RETRY_AND_TIMEOUT_POLICY.md §5:
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 from sacl.contracts.exceptions import (
     ApprovalRequiredError,
@@ -73,10 +72,18 @@ def classify_failure(
 
     # Check for transient patterns in error message
     err_lower = error_str.lower()
-    if "sqlite_busy" in err_lower or "database is locked" in err_lower or "busy_timeout" in err_lower:
+    if (
+        "sqlite_busy" in err_lower
+        or "database is locked" in err_lower
+        or "busy_timeout" in err_lower
+    ):
         return True, FailureClassification.TRANSIENT_SQLITE_BUSY, 2
 
-    if "index.lock" in err_lower or "worktree lock" in err_lower or "resource temporarily unavailable" in err_lower:
+    if (
+        "index.lock" in err_lower
+        or "worktree lock" in err_lower
+        or "resource temporarily unavailable" in err_lower
+    ):
         return True, FailureClassification.TRANSIENT_WORKTREE_LOCK, 2
 
     # Early crash before modifying files

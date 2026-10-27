@@ -1,7 +1,8 @@
 """Unit tests for SACL V1 UI Modular Sub-services."""
 
-from pathlib import Path
 import sqlite3
+from pathlib import Path
+
 import pytest
 
 from sacl.state.connection import create_connection
@@ -136,6 +137,7 @@ def test_email_gateway_module():
     from sacl.ui.modules.email_gateway import EmailGatewayModule
 
     launched = []
+
     def mock_launch(cid):
         launched.append(cid)
         return {"success": True, "launched": cid}
@@ -256,7 +258,9 @@ def test_chat_module():
     assert history[0]["role"] == "assistant"
 
     # Post user prompt
-    res = chat.post_message("Hola, quiero auditar los contratos inmutables", model_id="claude-3-7-sonnet")
+    res = chat.post_message(
+        "Hola, quiero auditar los contratos inmutables", model_id="claude-3-7-sonnet"
+    )
     assert res["success"] is True
     assert "DR-INV-001" in res["assistant_message"]["content"]
     assert len(chat.get_history()) == 3
@@ -284,7 +288,7 @@ def test_orchestrator_module(tmp_path: Path):
         acceptance_criteria=["0 colisiones en concurrencia", "100% tests en verde"],
         priority="CRITICAL",
         contracts=["DR-PAY-001", "DR-IDEM-001"],
-        key="SOLID-200"
+        key="SOLID-200",
     )
     assert created["key"] == "SOLID-200"
     assert "DR-PAY-001" in created["contracts"]
@@ -325,5 +329,3 @@ def test_orchestrator_module(tmp_path: Path):
     assert apply_res["jira_ticket"] == "SOLID-106"
     assert apply_res["jira_status"] == "COMPLETED"
     assert (latest_run / "evidence" / "deployment_signature.json").exists()
-
-

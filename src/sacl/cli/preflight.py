@@ -8,11 +8,9 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
 import shutil
 import subprocess
-import sys
-from typing import Dict, List, Tuple
+from pathlib import Path
 
 from sacl.legacy.compatibility import check_dirty_root
 
@@ -42,7 +40,10 @@ def execute_preflight(args: argparse.Namespace) -> int:
     # 1. Host Tools Verification
     tools = [
         ("Git CLI", ["git", "--version"]),
-        ("PowerShell CLI", ["powershell.exe", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]),
+        (
+            "PowerShell CLI",
+            ["powershell.exe", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"],
+        ),
         ("Antigravity CLI", ["agy.exe", "--version"]),
     ]
 
@@ -62,7 +63,9 @@ def execute_preflight(args: argparse.Namespace) -> int:
                 print(f"  [PASS] {name:<18}: Found in PATH")
         else:
             if "Antigravity" in name:
-                print(f"  [WARN] {name:<18}: NOT FOUND (Mock/Test mode available; live runs require agy)")
+                print(
+                    f"  [WARN] {name:<18}: NOT FOUND (Mock/Test mode available; live runs require agy)"
+                )
             else:
                 print(f"  [FAIL] {name:<18}: NOT FOUND in system PATH")
                 checks_passed = False

@@ -10,14 +10,13 @@ from __future__ import annotations
 
 import ctypes
 import os
-import platform
 import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Protocol, Tuple, Union
+from typing import Dict, Iterable, Optional, Protocol, Union
 
 from sacl.contracts.invariants import (
     ALLOWED_PROCESS_IMAGES,
@@ -133,9 +132,7 @@ class SystemProcessInspector:
                 exit_code_dword = ctypes.c_ulong()
                 is_active = True
                 exit_code = None
-                if ctypes.windll.kernel32.GetExitCodeProcess(
-                    handle, ctypes.byref(exit_code_dword)
-                ):
+                if ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code_dword)):
                     if exit_code_dword.value != STILL_ACTIVE:
                         is_active = False
                         exit_code = int(exit_code_dword.value)
@@ -193,9 +190,7 @@ class SystemProcessInspector:
                 f"$p = Get-Process -Id {pid} -ErrorAction SilentlyContinue; "
                 f"if ($p) {{ [string]::Format('{{0}}|{{1}}|{{2}}|{{3}}', $p.ProcessName, $p.HasExited, $p.StartTime.ToUniversalTime().ToString('o'), $p.ExitCode) }}",
             ]
-            res = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=5, check=False
-            )
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=5, check=False)
             out = res.stdout.strip()
             if not out or "|" not in out:
                 return None

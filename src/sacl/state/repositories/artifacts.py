@@ -6,7 +6,6 @@ on the filesystem (ADR-011).
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, List, Optional
 
 from sacl.contracts.invariants import ArtifactType
@@ -46,7 +45,17 @@ class ArtifactRepository(BaseRepository):
         """
         cursor = self.execute(
             sql,
-            (run_id, job_id, agent_id, node_id, artifact_type, norm_path, file_size_bytes, sha256_hash, now),
+            (
+                run_id,
+                job_id,
+                agent_id,
+                node_id,
+                artifact_type,
+                norm_path,
+                file_size_bytes,
+                sha256_hash,
+                now,
+            ),
         )
         self.commit()
         return cursor.lastrowid  # type: ignore[return-value]

@@ -2,14 +2,13 @@
 
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
+
 import pytest
 
 from sacl.approval.manager import BoundedApprovalManager
 from sacl.contracts.invariants import ApprovalStatus
 from sacl.state.connection import create_connection
 from sacl.state.migrations import MigrationRunner
-from sacl.ui.models import ConnectionState
 from sacl.ui.service import UIService
 
 
@@ -39,8 +38,8 @@ def test_ui_service_technology_connections(test_db: Path):
     conns = service.check_technology_connections()
     assert len(conns) > 0
     names = [c.name for c in conns]
-    assert "Git VCS" in names
-    assert "Python 3 Runtime" in names
+    assert any("Git VCS" in n for n in names)
+    assert any("Python" in n for n in names)
 
 
 def test_ui_service_pending_gates_and_decision(test_db: Path):

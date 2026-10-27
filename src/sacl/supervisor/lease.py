@@ -11,19 +11,17 @@ from __future__ import annotations
 import errno
 import json
 import os
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
 import sqlite3
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from sacl.contracts.exceptions import LeaseAcquisitionError
-from sacl.contracts.invariants import PID_DRIFT_TOLERANCE_SECONDS
 from sacl.contracts.models import LeaseRecord
 from sacl.observability.events import (
-    AuditEventType,
     PROJECT_LOCK_ACQUIRED,
+    AuditEventType,
     Severity,
-    create_audit_event,
 )
 
 LEASE_ACQUIRED = AuditEventType.LEASE_ACQUIRED.value
@@ -101,6 +99,7 @@ def default_process_alive_check(pid: int) -> bool:
         return False
     except Exception:
         return False
+
 
 class LeaseCoordinator:
     """Manages system and project mutual exclusion leases in sacl_ops.db."""

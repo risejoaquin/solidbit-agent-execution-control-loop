@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import io
-from pathlib import Path
 import sqlite3
 import zipfile
-import pytest
+from pathlib import Path
 
 from sacl.transport.gmail_adapter import MockGmailApiAdapter
 from sacl.transport.reconciliation import HistoryReconciliationManager
@@ -89,7 +88,9 @@ def test_reconcile_unauthorized_sender_quarantined(
     assert len(res.jobs_ingested) == 0
 
     cursor = sqlite_memory_db.cursor()
-    cursor.execute("SELECT status, rejection_reason FROM mail_messages WHERE message_id = 'msg-malicious'")
+    cursor.execute(
+        "SELECT status, rejection_reason FROM mail_messages WHERE message_id = 'msg-malicious'"
+    )
     row = cursor.fetchone()
     assert row[0] == "QUARANTINED"
     assert "SENDER_NOT_WHITELISTED" in row[1]
@@ -162,7 +163,9 @@ def test_reconcile_payload_hash_conflict_rejected(
 
     # Verify conflict reply queued in mail_outbox
     cursor = sqlite_memory_db.cursor()
-    cursor.execute("SELECT recipient, subject, status FROM mail_outbox WHERE run_id = 'conflict-JOB-CONCURRENT'")
+    cursor.execute(
+        "SELECT recipient, subject, status FROM mail_outbox WHERE run_id = 'conflict-JOB-CONCURRENT'"
+    )
     outbox_row = cursor.fetchone()
     assert outbox_row is not None
     assert outbox_row[0] == "uniquedraken@gmail.com"

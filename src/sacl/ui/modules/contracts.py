@@ -7,7 +7,7 @@ the 6 mandatory Decision Gates, and hard deny boundaries.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from sacl.contracts.invariants import HARD_DENIED_ACTIONS
 
@@ -63,12 +63,36 @@ class ContractsModule:
     ]
 
     GATES = [
-        {"id": "GATE-0", "name": "Preflight & Worktrees", "rule": "Verify clean git roots, worktrees exist, CLIs authenticated. No auto-cleaning."},
-        {"id": "GATE-1", "name": "Railway Safety", "rule": "Production autoDeploy OFF verified in-session; staging untouched; zero prod deploy."},
-        {"id": "GATE-2", "name": "GitHub Governance", "rule": "JSON backup of rulesets; CODEOWNERS matrix preserved; author cannot approve own PR."},
-        {"id": "GATE-3", "name": "Jira Graph Integrity", "rule": "Pre-backup of all issue links; live DAG verification; no cycle creation."},
-        {"id": "GATE-4", "name": "QA Independent Read-Only", "rule": "Direct API verification; detect false green reports or collateral damage."},
-        {"id": "GATE-5", "name": "Release Authority", "rule": "Zero automated merges to production, zero cutovers without sovereign human consent."},
+        {
+            "id": "GATE-0",
+            "name": "Preflight & Worktrees",
+            "rule": "Verify clean git roots, worktrees exist, CLIs authenticated. No auto-cleaning.",
+        },
+        {
+            "id": "GATE-1",
+            "name": "Railway Safety",
+            "rule": "Production autoDeploy OFF verified in-session; staging untouched; zero prod deploy.",
+        },
+        {
+            "id": "GATE-2",
+            "name": "GitHub Governance",
+            "rule": "JSON backup of rulesets; CODEOWNERS matrix preserved; author cannot approve own PR.",
+        },
+        {
+            "id": "GATE-3",
+            "name": "Jira Graph Integrity",
+            "rule": "Pre-backup of all issue links; live DAG verification; no cycle creation.",
+        },
+        {
+            "id": "GATE-4",
+            "name": "QA Independent Read-Only",
+            "rule": "Direct API verification; detect false green reports or collateral damage.",
+        },
+        {
+            "id": "GATE-5",
+            "name": "Release Authority",
+            "rule": "Zero automated merges to production, zero cutovers without sovereign human consent.",
+        },
     ]
 
     def get_policies_overview(self) -> Dict[str, Any]:

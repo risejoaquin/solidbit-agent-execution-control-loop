@@ -42,12 +42,33 @@ class JsonLogFormatter(logging.Formatter):
 
         # Merge extra attributes if passed in record.__dict__
         standard_attrs = {
-            "name", "msg", "args", "levelname", "levelno", "pathname", "filename",
-            "module", "exc_info", "exc_text", "stack_info", "lineno", "funcName",
-            "created", "msecs", "relativeCreated", "thread", "threadName",
-            "processName", "process", "message",
+            "name",
+            "msg",
+            "args",
+            "levelname",
+            "levelno",
+            "pathname",
+            "filename",
+            "module",
+            "exc_info",
+            "exc_text",
+            "stack_info",
+            "lineno",
+            "funcName",
+            "created",
+            "msecs",
+            "relativeCreated",
+            "thread",
+            "threadName",
+            "processName",
+            "process",
+            "message",
         }
-        extras = {k: v for k, v in record.__dict__.items() if k not in standard_attrs and not k.startswith("_")}
+        extras = {
+            k: v
+            for k, v in record.__dict__.items()
+            if k not in standard_attrs and not k.startswith("_")
+        }
         if extras:
             log_data["extra"] = extras
 
@@ -160,7 +181,9 @@ class StructuredLogger:
         self._log(logging.ERROR, msg, *args, **kwargs)
 
 
-def get_logger(name: str = "sacl", audit_sink: Optional[Callable[..., Any]] = None) -> StructuredLogger:
+def get_logger(
+    name: str = "sacl", audit_sink: Optional[Callable[..., Any]] = None
+) -> StructuredLogger:
     """Returns a StructuredLogger instance with the specified name."""
     logger = logging.getLogger(name)
     if not logger.handlers:

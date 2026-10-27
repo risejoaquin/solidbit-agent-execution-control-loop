@@ -1,10 +1,10 @@
 """Integration tests for SACL V1 Decision Shell Web Server with SSE and Remote Gates."""
 
-from datetime import datetime, timezone
 import json
-from pathlib import Path
-import sqlite3
 import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
+
 import pytest
 
 from sacl.approval.manager import BoundedApprovalManager
@@ -83,7 +83,9 @@ def test_ui_server_campaign_launch_endpoint(running_server):
     host, port, *_ = running_server
     url = f"http://{host}:{port}/api/campaigns/launch"
     payload = json.dumps({"campaign_id": "TEST_CAMPAIGN"}).encode("utf-8")
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}, method="POST"
+    )
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode("utf-8"))
@@ -94,8 +96,12 @@ def test_ui_server_campaign_launch_endpoint(running_server):
 def test_ui_server_connection_auth_endpoint(running_server):
     host, port, *_ = running_server
     url = f"http://{host}:{port}/api/connections/auth"
-    payload = json.dumps({"tool_id": "resend", "credentials": {"token": "re_sample"}}).encode("utf-8")
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+    payload = json.dumps({"tool_id": "resend", "credentials": {"token": "re_sample"}}).encode(
+        "utf-8"
+    )
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}, method="POST"
+    )
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         data = json.loads(resp.read().decode("utf-8"))
@@ -190,11 +196,13 @@ def test_ui_server_orchestrator_api(running_server):
 
     # 4. POST /api/orchestrator/apply-changes
     apply_url = f"http://{host}:{port}/api/orchestrator/apply-changes"
-    apply_payload = json.dumps({
-        "approval_id": "REQ-SERVER-TEST",
-        "operator": "LUCILFER",
-        "justification": "Test deployment gate approval"
-    }).encode("utf-8")
+    apply_payload = json.dumps(
+        {
+            "approval_id": "REQ-SERVER-TEST",
+            "operator": "LUCILFER",
+            "justification": "Test deployment gate approval",
+        }
+    ).encode("utf-8")
     apply_req = urllib.request.Request(
         apply_url, data=apply_payload, headers={"Content-Type": "application/json"}
     )
@@ -204,5 +212,3 @@ def test_ui_server_orchestrator_api(running_server):
         assert apply_res["success"] is True
         assert apply_res["jira_ticket"] == "SOLID-106"
         assert "hmac-sha256:" in apply_res["hmac_signature"]
-
-

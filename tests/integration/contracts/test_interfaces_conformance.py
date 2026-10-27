@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-import pytest
 
 from sacl.approval.manager import BoundedApprovalManager
 from sacl.contracts.interfaces import (
@@ -163,7 +162,9 @@ class TestInterfaceConformance:
         assert hasattr(sup, "dispatch_job")
         assert sup.is_idle() is True
 
-    def test_transport_gateway_conformance(self, sqlite_temp_db: sqlite3.Connection, tmp_path: Path):
+    def test_transport_gateway_conformance(
+        self, sqlite_temp_db: sqlite3.Connection, tmp_path: Path
+    ):
         """Verifies ITransportGateway implementations."""
         assert issubclass(MailGateway, ITransportGateway)
         gateway = MailGateway(

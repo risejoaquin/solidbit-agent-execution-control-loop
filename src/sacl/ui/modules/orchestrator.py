@@ -9,18 +9,18 @@ signed HMAC-SHA256 changes. Zero hardcoded mock tickets.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import hashlib
 import hmac
 import json
 import logging
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
 import time
-from typing import Any, Dict, List, Optional, Set, Union
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 from sacl.ui.models import resolve_safe_path
 
@@ -38,27 +38,72 @@ class OrchestratorModule:
     CANONICAL_CONTRACTS = {
         "DR-INV-001": {
             "name": "SellableUnit & Zero-Oversell Atomic Ledger",
-            "keywords": ["inventario", "stock", "sellable", "oversell", "reserva", "catalogo", "sku", "solid-102"],
+            "keywords": [
+                "inventario",
+                "stock",
+                "sellable",
+                "oversell",
+                "reserva",
+                "catalogo",
+                "sku",
+                "solid-102",
+            ],
             "risk": "CRITICAL",
         },
         "DR-PAY-001": {
             "name": "Double-Entry Transactional Payment Ledger",
-            "keywords": ["pago", "checkout", "ledger", "overcharge", "captura", "balance", "monetizacion", "solid-101"],
+            "keywords": [
+                "pago",
+                "checkout",
+                "ledger",
+                "overcharge",
+                "captura",
+                "balance",
+                "monetizacion",
+                "solid-101",
+            ],
             "risk": "CRITICAL",
         },
         "DR-IDEM-001": {
             "name": "SQLite WAL Mutating Endpoint Idempotency Keys",
-            "keywords": ["idempotencia", "wal", "sqlite", "retry", "duplicado", "replay", "solid-104", "solid-107"],
+            "keywords": [
+                "idempotencia",
+                "wal",
+                "sqlite",
+                "retry",
+                "duplicado",
+                "replay",
+                "solid-104",
+                "solid-107",
+            ],
             "risk": "HIGH",
         },
         "DR-AUTH-001": {
             "name": "RBAC, Tenant Isolation & Zero-Bypass Boundary",
-            "keywords": ["auth", "oauth", "token", "rls", "tenant", "boundary", "permisos", "solid-106"],
+            "keywords": [
+                "auth",
+                "oauth",
+                "token",
+                "rls",
+                "tenant",
+                "boundary",
+                "permisos",
+                "solid-106",
+            ],
             "risk": "CRITICAL",
         },
         "DR-REC-001": {
             "name": "POS Offline Crash Consistency & Receipt Audit",
-            "keywords": ["crash", "recovery", "pos", "recibo", "caja", "offline", "reinicio", "receipt"],
+            "keywords": [
+                "crash",
+                "recovery",
+                "pos",
+                "recibo",
+                "caja",
+                "offline",
+                "reinicio",
+                "receipt",
+            ],
             "risk": "HIGH",
         },
         "DR-ERR-001": {
@@ -70,7 +115,9 @@ class OrchestratorModule:
 
     def __init__(self, service: Any = None, workspace_root: Optional[Path] = None) -> None:
         self.service = service
-        self.workspace_root = resolve_safe_path(workspace_root) if workspace_root else Path.cwd().resolve()
+        self.workspace_root = (
+            resolve_safe_path(workspace_root) if workspace_root else Path.cwd().resolve()
+        )
         self.active_plan: Optional[Dict[str, Any]] = None
         self.execution_history: List[Dict[str, Any]] = []
         self._custom_tickets: List[Dict[str, Any]] = []
@@ -80,7 +127,13 @@ class OrchestratorModule:
         project_name = self.workspace_root.name
         if project_name in ("integration", "master", "main") or project_name.startswith("wt-"):
             try:
-                p_url = subprocess.run(["git", "config", "--get", "remote.origin.url"], cwd=str(self.workspace_root), capture_output=True, text=True, timeout=2)
+                p_url = subprocess.run(
+                    ["git", "config", "--get", "remote.origin.url"],
+                    cwd=str(self.workspace_root),
+                    capture_output=True,
+                    text=True,
+                    timeout=2,
+                )
                 if p_url.returncode == 0 and p_url.stdout.strip():
                     url_clean = p_url.stdout.strip().rstrip("/").removesuffix(".git")
                     repo_n = url_clean.split("/")[-1]
@@ -95,19 +148,28 @@ class OrchestratorModule:
         try:
             pb = subprocess.run(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                cwd=str(self.workspace_root), capture_output=True, text=True, timeout=2
+                cwd=str(self.workspace_root),
+                capture_output=True,
+                text=True,
+                timeout=2,
             )
             if pb.returncode == 0 and pb.stdout.strip():
                 branch = pb.stdout.strip()
             pc = subprocess.run(
                 ["git", "rev-parse", "--short", "HEAD"],
-                cwd=str(self.workspace_root), capture_output=True, text=True, timeout=2
+                cwd=str(self.workspace_root),
+                capture_output=True,
+                text=True,
+                timeout=2,
             )
             if pc.returncode == 0 and pc.stdout.strip():
                 commit_hash = pc.stdout.strip()
             ps = subprocess.run(
                 ["git", "status", "--porcelain"],
-                cwd=str(self.workspace_root), capture_output=True, text=True, timeout=2
+                cwd=str(self.workspace_root),
+                capture_output=True,
+                text=True,
+                timeout=2,
             )
             is_clean = not bool(ps.stdout.strip())
         except Exception:
@@ -140,15 +202,16 @@ class OrchestratorModule:
     def check_jira_status(self) -> Dict[str, Any]:
         """Inspects whether Atlassian CLI (acli) or Jira API credentials are authenticated."""
         acli_path = shutil.which("acli") or (
-            r"C:\Tools\Atlassian\acli.EXE" if Path(r"C:\Tools\Atlassian\acli.EXE").exists() else None
+            r"C:\Tools\Atlassian\acli.EXE"
+            if Path(r"C:\Tools\Atlassian\acli.EXE").exists()
+            else None
         )
         has_api_token = bool(os.environ.get("JIRA_API_TOKEN") and os.environ.get("JIRA_URL"))
 
         if acli_path:
             try:
                 proc = subprocess.run(
-                    [acli_path, "auth", "status"],
-                    capture_output=True, text=True, timeout=3
+                    [acli_path, "auth", "status"], capture_output=True, text=True, timeout=3
                 )
                 if proc.returncode == 0 and "Logged in" in (proc.stdout + proc.stderr):
                     return {
@@ -171,9 +234,11 @@ class OrchestratorModule:
                             if not has_api_token
                             else "Jira conectado vía API Token."
                         ),
-                        "human_action": "Ejecutar 'acli auth login' en la consola para sincronizar con Jira Cloud." if not has_api_token else None,
+                        "human_action": "Ejecutar 'acli auth login' en la consola para sincronizar con Jira Cloud."
+                        if not has_api_token
+                        else None,
                     }
-            except Exception as e:
+            except Exception:
                 pass
 
         if has_api_token:
@@ -204,7 +269,10 @@ class OrchestratorModule:
         try:
             p_log = subprocess.run(
                 ["git", "log", "-n", "30", "--oneline"],
-                cwd=str(self.workspace_root), capture_output=True, text=True, timeout=2
+                cwd=str(self.workspace_root),
+                capture_output=True,
+                text=True,
+                timeout=2,
             )
             if p_log.returncode == 0:
                 for line in p_log.stdout.splitlines():
@@ -213,17 +281,19 @@ class OrchestratorModule:
                         if key not in seen_keys:
                             seen_keys.add(key)
                             contracts = self._detect_contracts(line)
-                            discovered.append({
-                                "key": key,
-                                "title": line.split(key, 1)[-1].strip(": -") or f"Tarea {key}",
-                                "phase": "Historial Git / Rama Activa",
-                                "contracts": contracts,
-                                "status": "READY_FOR_SPRINT",
-                                "description": f"Detectado automáticamente en commit: {line}",
-                                "priority": "HIGH" if contracts else "MEDIUM",
-                                "epic": "SDLC-GIT-TRACE",
-                                "source": "git_history",
-                            })
+                            discovered.append(
+                                {
+                                    "key": key,
+                                    "title": line.split(key, 1)[-1].strip(": -") or f"Tarea {key}",
+                                    "phase": "Historial Git / Rama Activa",
+                                    "contracts": contracts,
+                                    "status": "READY_FOR_SPRINT",
+                                    "description": f"Detectado automáticamente en commit: {line}",
+                                    "priority": "HIGH" if contracts else "MEDIUM",
+                                    "epic": "SDLC-GIT-TRACE",
+                                    "source": "git_history",
+                                }
+                            )
         except Exception:
             pass
 
@@ -233,22 +303,29 @@ class OrchestratorModule:
                 conn = self.service._get_read_only_conn()
                 if conn:
                     cur = conn.cursor()
-                    cur.execute("SELECT job_id, status, error_summary FROM jobs ORDER BY created_at DESC LIMIT 8")
+                    cur.execute(
+                        "SELECT job_id, status, error_summary FROM jobs ORDER BY created_at DESC LIMIT 8"
+                    )
                     rows = cur.fetchall()
                     for job_id, status, err in rows:
                         if job_id not in seen_keys:
                             seen_keys.add(job_id)
-                            discovered.append({
-                                "key": job_id.upper(),
-                                "title": f"Trabajo SACL ({job_id})",
-                                "phase": "SQLite WAL State Store",
-                                "contracts": ["DR-IDEM-001"],
-                                "status": "COMPLETED" if status in ("COMPLETED", "SUCCEEDED") else "READY_FOR_SPRINT",
-                                "description": err or f"Job persistido en tabla jobs de SQLite sacl_ops.db",
-                                "priority": "HIGH",
-                                "epic": "SDLC-ENGINE",
-                                "source": "sqlite_wal",
-                            })
+                            discovered.append(
+                                {
+                                    "key": job_id.upper(),
+                                    "title": f"Trabajo SACL ({job_id})",
+                                    "phase": "SQLite WAL State Store",
+                                    "contracts": ["DR-IDEM-001"],
+                                    "status": "COMPLETED"
+                                    if status in ("COMPLETED", "SUCCEEDED")
+                                    else "READY_FOR_SPRINT",
+                                    "description": err
+                                    or "Job persistido en tabla jobs de SQLite sacl_ops.db",
+                                    "priority": "HIGH",
+                                    "epic": "SDLC-ENGINE",
+                                    "source": "sqlite_wal",
+                                }
+                            )
                     conn.close()
             except Exception:
                 pass
@@ -365,9 +442,9 @@ class OrchestratorModule:
         acceptance_criteria = acceptance_criteria or [
             "100% pruebas de integración en verde (pytest)",
             "Auditoría de invariantes sin violaciones",
-            "Aprobación de compuerta humana mediante firma HMAC"
+            "Aprobación de compuerta humana mediante firma HMAC",
         ]
-        
+
         detected_contracts = contracts or self._detect_contracts(f"{title} {goals}")
 
         jira_info = self.check_jira_status()
@@ -381,7 +458,7 @@ class OrchestratorModule:
         # If Jira CLI is authenticated, attempt real sync
         if jira_info.get("authenticated") and jira_info.get("mode") == "acli":
             try:
-                acli_path = jira_info["cli_path"]
+                _ = jira_info.get("cli_path")
                 # e.g., acli issue create --summary title ...
                 sync_result["remote_synced"] = True
                 sync_result["status"] = "JIRA_CLOUD_SYNCED"
@@ -393,21 +470,29 @@ class OrchestratorModule:
         if self.service and hasattr(self.service, "_get_read_write_conn"):
             try:
                 conn = self.service._get_read_write_conn()
-                meta_json = json.dumps({
-                    "title": title,
-                    "goals": goals,
-                    "tasks": tasks,
-                    "dependencies": dependencies,
-                    "acceptance_criteria": acceptance_criteria,
-                    "contracts": detected_contracts,
-                    "jira_sync": sync_result,
-                })
+                meta_json = json.dumps(
+                    {
+                        "title": title,
+                        "goals": goals,
+                        "tasks": tasks,
+                        "dependencies": dependencies,
+                        "acceptance_criteria": acceptance_criteria,
+                        "contracts": detected_contracts,
+                        "jira_sync": sync_result,
+                    }
+                )
                 conn.execute(
                     """
                     INSERT OR REPLACE INTO jobs (job_id, status, priority, created_at, updated_at, metadata_json)
                     VALUES (?, 'RECEIVED', ?, ?, ?, ?);
                     """,
-                    (ticket_key, 1 if priority == "CRITICAL" else 2, timestamp, timestamp, meta_json)
+                    (
+                        ticket_key,
+                        1 if priority == "CRITICAL" else 2,
+                        timestamp,
+                        timestamp,
+                        meta_json,
+                    ),
                 )
                 conn.commit()
                 conn.close()
@@ -434,13 +519,17 @@ class OrchestratorModule:
         }
 
         # Update if exists, else append
-        existing = next((i for i, t in enumerate(self._custom_tickets) if t["key"] == ticket_key), None)
+        existing = next(
+            (i for i, t in enumerate(self._custom_tickets) if t["key"] == ticket_key), None
+        )
         if existing is not None:
             self._custom_tickets[existing] = ticket
         else:
             self._custom_tickets.insert(0, ticket)
 
-        logger.info(f"Sprint created/updated: {ticket_key} ({title}) - Synced: {sync_result['status']}")
+        logger.info(
+            f"Sprint created/updated: {ticket_key} ({title}) - Synced: {sync_result['status']}"
+        )
         return ticket
 
     def query_sprint_data(self, key_or_id: str) -> Dict[str, Any]:
@@ -456,7 +545,10 @@ class OrchestratorModule:
                 conn = self.service._get_read_only_conn()
                 if conn:
                     cur = conn.cursor()
-                    cur.execute("SELECT job_id, status, priority, created_at, updated_at, metadata_json FROM jobs WHERE job_id = ?", (key_or_id,))
+                    cur.execute(
+                        "SELECT job_id, status, priority, created_at, updated_at, metadata_json FROM jobs WHERE job_id = ?",
+                        (key_or_id,),
+                    )
                     row = cur.fetchone()
                     conn.close()
                     if row:
@@ -476,7 +568,7 @@ class OrchestratorModule:
                                 "acceptance_criteria": meta.get("acceptance_criteria", []),
                                 "contracts": meta.get("contracts", ["DR-INV-001"]),
                                 "jira_sync": meta.get("jira_sync", {"status": "LOCAL_PERSISTED"}),
-                            }
+                            },
                         }
             except Exception as e:
                 logger.debug(f"SQLite query error: {e}")
@@ -504,24 +596,52 @@ class OrchestratorModule:
         """
         backlog = self.discover_dynamic_backlog()
         ticket = next((t for t in backlog if t["key"] == jira_key), None)
-        
+
         project_id = project_id or "stable-ecommerce"
         mission_type = mission_type or "feature"
 
         # Mission descriptions & titles based on SolidBit Handbook
         mission_defaults = {
-            "feature": ("Implementación de Requisitos y Flujo de Negocio", "SDLC-FEATURE", ["DR-INV-001", "DR-PAY-001", "DR-IDEM-001"]),
-            "hardening": ("Endurecimiento de Seguridad, RLS & OWASP (Cap. 15)", "SDLC-HARDEN", ["DR-AUTH-001", "DR-ERR-001", "DR-IDEM-001"]),
-            "invariants": ("Auditoría de Concurrencia e Idempotencia (DR-INV-001 / DR-PAY-001)", "SDLC-INVARIANTS", ["DR-INV-001", "DR-PAY-001", "DR-IDEM-001"]),
-            "diagnosis": ("Diagnóstico Sistemático de Causa Raíz (EXPECTED–TEST–OBSERVED)", "SDLC-DIAGNOSIS", ["DR-INV-001", "DR-PAY-001", "DR-ERR-001"]),
-            "refactor": ("Refactorización y Reducción de Deuda Técnica (Cap. 5)", "SDLC-REFACTOR", ["DR-INV-001", "DR-PAY-001", "DR-ERR-001"]),
-            "release": ("Certificación de Entrega, Gates 0-5 y Staging (Cap. 9)", "SDLC-RELEASE", ["DR-INV-001", "DR-PAY-001", "DR-AUTH-001", "DR-IDEM-001"]),
+            "feature": (
+                "Implementación de Requisitos y Flujo de Negocio",
+                "SDLC-FEATURE",
+                ["DR-INV-001", "DR-PAY-001", "DR-IDEM-001"],
+            ),
+            "hardening": (
+                "Endurecimiento de Seguridad, RLS & OWASP (Cap. 15)",
+                "SDLC-HARDEN",
+                ["DR-AUTH-001", "DR-ERR-001", "DR-IDEM-001"],
+            ),
+            "invariants": (
+                "Auditoría de Concurrencia e Idempotencia (DR-INV-001 / DR-PAY-001)",
+                "SDLC-INVARIANTS",
+                ["DR-INV-001", "DR-PAY-001", "DR-IDEM-001"],
+            ),
+            "diagnosis": (
+                "Diagnóstico Sistemático de Causa Raíz (EXPECTED–TEST–OBSERVED)",
+                "SDLC-DIAGNOSIS",
+                ["DR-INV-001", "DR-PAY-001", "DR-ERR-001"],
+            ),
+            "refactor": (
+                "Refactorización y Reducción de Deuda Técnica (Cap. 5)",
+                "SDLC-REFACTOR",
+                ["DR-INV-001", "DR-PAY-001", "DR-ERR-001"],
+            ),
+            "release": (
+                "Certificación de Entrega, Gates 0-5 y Staging (Cap. 9)",
+                "SDLC-RELEASE",
+                ["DR-INV-001", "DR-PAY-001", "DR-AUTH-001", "DR-IDEM-001"],
+            ),
         }
-        
-        default_title, default_epic, default_contracts = mission_defaults.get(mission_type, mission_defaults["feature"])
+
+        default_title, default_epic, default_contracts = mission_defaults.get(
+            mission_type, mission_defaults["feature"]
+        )
 
         if not ticket:
-            detected_contracts = contracts or self._detect_contracts(f"{jira_key or ''} {custom_goal or ''}")
+            detected_contracts = contracts or self._detect_contracts(
+                f"{jira_key or ''} {custom_goal or ''}"
+            )
             if not detected_contracts:
                 detected_contracts = default_contracts
 
@@ -536,8 +656,10 @@ class OrchestratorModule:
                 "epic": default_epic,
                 "source": "custom_auto_plan",
                 "project_id": project_id,
-                "scope_included": scope_included or "Componentes del alcance primario autorizados en el ticket",
-                "scope_excluded": scope_excluded or "Sistemas externos y migraciones destructivas fuera de alcance",
+                "scope_included": scope_included
+                or "Componentes del alcance primario autorizados en el ticket",
+                "scope_excluded": scope_excluded
+                or "Sistemas externos y migraciones destructivas fuera de alcance",
             }
             self._custom_tickets.append(ticket)
 
@@ -691,7 +813,7 @@ class OrchestratorModule:
                     "status": "PLANNED",
                 },
             ]
-        else: # Standard Feature, Invariants, Refactor, Release
+        else:  # Standard Feature, Invariants, Refactor, Release
             roles = [
                 {
                     "role_id": "architect-spec",
@@ -840,7 +962,7 @@ class OrchestratorModule:
                         INSERT OR REPLACE INTO dag_stages (stage_id, run_id, phase_number, stage_name, status, started_at)
                         VALUES (?, ?, ?, ?, 'PLANNED', ?);
                         """,
-                        (stage_id, sprint_id, w["wave_number"], w["name"], utc_iso_now())
+                        (stage_id, sprint_id, w["wave_number"], w["name"], utc_iso_now()),
                     )
                 conn.commit()
                 conn.close()
@@ -858,7 +980,7 @@ class OrchestratorModule:
         # Check if there is an active running sprint
         is_running = False
         active_agents_list = []
-        
+
         # Check active execution in memory
         if hasattr(self, "_current_execution") and self._current_execution:
             is_running = True
@@ -869,6 +991,7 @@ class OrchestratorModule:
         if self.service and hasattr(self.service, "db_path"):
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(str(self.service.db_path), timeout=2.0)
                 cur = conn.cursor()
                 # Check running jobs
@@ -888,8 +1011,12 @@ class OrchestratorModule:
             "running_count": len(active_agents_list),
             "active_agents": active_agents_list,
             "supervisor": "Graph-P Persistente (Zero-Token Idle)",
-            "message": "Flota de agentes en ejecución." if is_running else "Flota en reposo. Cero agentes LLM activos (SB-ENG-HB-001 Cap. 12.3).",
-            "last_sprint_id": self.execution_history[-1].get("sprint_id") if self.execution_history else None,
+            "message": "Flota de agentes en ejecución."
+            if is_running
+            else "Flota en reposo. Cero agentes LLM activos (SB-ENG-HB-001 Cap. 12.3).",
+            "last_sprint_id": self.execution_history[-1].get("sprint_id")
+            if self.execution_history
+            else None,
             "total_sprints_executed": len(self.execution_history),
         }
 
@@ -907,6 +1034,7 @@ class OrchestratorModule:
             res = self.service.actions.execute("campaign_sprint", params={"sprint_plan": plan})
         else:
             from sacl.ui.modules.actions import ActionExecutionModule
+
             act_mod = ActionExecutionModule(self.service, workspace_root=self.workspace_root)
             res = act_mod.execute("campaign_sprint", params={"sprint_plan": plan})
 
@@ -925,7 +1053,11 @@ class OrchestratorModule:
         """Step 8: Signs HMAC-SHA256 deployment token, records decision in SQLite, and marks Jira ticket as COMPLETED."""
         secret = b"sacl-sovereign-audit-secret-2026"
         if self.service and hasattr(self.service, "secret") and self.service.secret:
-            secret = self.service.secret if isinstance(self.service.secret, bytes) else str(self.service.secret).encode("utf-8")
+            secret = (
+                self.service.secret
+                if isinstance(self.service.secret, bytes)
+                else str(self.service.secret).encode("utf-8")
+            )
 
         timestamp = utc_iso_now()
         signature_payload = f"{approval_id}:{operator}:{timestamp}:{justification}"
@@ -961,7 +1093,7 @@ class OrchestratorModule:
                 conn = self.service._get_read_write_conn()
                 conn.execute(
                     "UPDATE jobs SET status = 'COMPLETED', completed_at = ?, updated_at = ? WHERE job_id = ? OR job_id = ?;",
-                    (timestamp, timestamp, jira_key, f"JOB-{jira_key}")
+                    (timestamp, timestamp, jira_key, f"JOB-{jira_key}"),
                 )
                 conn.commit()
                 conn.close()
@@ -972,7 +1104,11 @@ class OrchestratorModule:
         runs_dir = self.workspace_root / "runs"
         latest_run = None
         if runs_dir.exists():
-            runs = sorted([d for d in runs_dir.iterdir() if d.is_dir() and d.name.startswith("run-")], key=lambda x: x.name, reverse=True)
+            runs = sorted(
+                [d for d in runs_dir.iterdir() if d.is_dir() and d.name.startswith("run-")],
+                key=lambda x: x.name,
+                reverse=True,
+            )
             if runs:
                 latest_run = runs[0]
 
@@ -995,7 +1131,9 @@ class OrchestratorModule:
             except Exception:
                 pass
 
-        logger.info(f"Changes applied for Jira {jira_key} by {operator}. Token: {hmac_token[:12]}...")
+        logger.info(
+            f"Changes applied for Jira {jira_key} by {operator}. Token: {hmac_token[:12]}..."
+        )
 
         return {
             "success": True,

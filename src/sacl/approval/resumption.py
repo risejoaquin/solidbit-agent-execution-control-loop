@@ -9,29 +9,24 @@ under the identical run_id.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime, timezone
+from typing import Optional
 
-from sacl.approval.models import ApprovalToken, ResumptionContext, utc_now_iso
+from sacl.approval.models import ApprovalToken, ResumptionContext
 from sacl.approval.validator import BoundedApprovalValidator, format_iso_datetime
 from sacl.contracts.exceptions import (
-    ApprovalExpiredError,
     HardDenyViolation,
     PolicyDeniedError,
 )
 from sacl.contracts.invariants import (
     ApprovalDecision,
     JobSideStatus,
-    JobStatus,
 )
 from sacl.observability.audit import AuditEventEmitter
 from sacl.observability.events import (
-    AuditEventType,
     Severity,
-    create_audit_event,
 )
 
 logger = logging.getLogger("sacl.approval.resumption")
@@ -208,7 +203,10 @@ class SameRunResumptionManager:
                     run_id = row[0]
 
             cursor.execute("UPDATE runs SET status = ? WHERE run_id = ?", (blocked_status, run_id))
-            cursor.execute("UPDATE jobs SET status = ?, updated_at = ? WHERE job_id = ?", (blocked_status, now_iso, job_id))
+            cursor.execute(
+                "UPDATE jobs SET status = ?, updated_at = ? WHERE job_id = ?",
+                (blocked_status, now_iso, job_id),
+            )
             cursor.execute(
                 "UPDATE agents SET status = 'BLOCKED', updated_at = ? WHERE run_id = ? AND status = 'WAITING_APPROVAL'",
                 (now_iso, run_id),

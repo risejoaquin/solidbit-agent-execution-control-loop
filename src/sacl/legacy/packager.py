@@ -12,19 +12,15 @@ import hashlib
 import io
 import json
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
 import zipfile
+from pathlib import Path
+from typing import List, Optional, Tuple, Union
 
 from sacl.contracts.interfaces import IPackageValidator
 from sacl.contracts.models import Manifest
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.legacy.adapter import LegacyPackageAdapter
 from sacl.transport.sanitization import (
-    MAX_COMPRESSED_SIZE_BYTES,
-    MAX_COMPRESSION_RATIO,
-    MAX_TOTAL_FILE_COUNT,
-    MAX_UNCOMPRESSED_SIZE_BYTES,
     ZipDefenseExtractor,
 )
 
@@ -57,6 +53,7 @@ class WaveZipPackager(IPackageValidator):
         is_valid, errors = self.verify_wave_package(zip_path)
         if not is_valid:
             from sacl.contracts.exceptions import ContractValidationError
+
             raise ContractValidationError(f"Invalid package archive: {errors}")
         return self.adapter.load_manifest(zip_path)
 
@@ -69,7 +66,9 @@ class WaveZipPackager(IPackageValidator):
                     violations.append(name)
         return violations
 
-    def verify_checksums(self, extracted_dir: Path, checksums_file: str = "checksums.sha256") -> bool:
+    def verify_checksums(
+        self, extracted_dir: Path, checksums_file: str = "checksums.sha256"
+    ) -> bool:
         """Verifies cryptographic integrity of extracted package assets."""
         chk_p = extracted_dir / checksums_file
         if not chk_p.exists():
@@ -243,12 +242,16 @@ class WaveZipPackager(IPackageValidator):
                                     resolved_entry = n
                                     break
                             if not resolved_entry:
-                                errors.append(f"Checksum manifest references missing file: {file_rel}")
+                                errors.append(
+                                    f"Checksum manifest references missing file: {file_rel}"
+                                )
                             else:
                                 with zf.open(resolved_entry) as member_file:
                                     actual_sha = hashlib.sha256(member_file.read()).hexdigest()
                                 if actual_sha.lower() != expected_sha.lower():
-                                    errors.append(f"SHA-256 mismatch for {file_rel}: expected {expected_sha}, got {actual_sha}")
+                                    errors.append(
+                                        f"SHA-256 mismatch for {file_rel}: expected {expected_sha}, got {actual_sha}"
+                                    )
                 except Exception as exc:
                     errors.append(f"Failed to verify checksums.sha256: {exc}")
 

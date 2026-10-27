@@ -7,12 +7,14 @@ History API reconciliation, zip sanitization, deduplication, and outbox dispatch
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-from sacl.contracts.exceptions import ArchitectureInvariantError, QuarantineError, SaclError
+from typing import Any, Dict, Optional
+
+from sacl.contracts.exceptions import QuarantineError, SaclError
 
 
 class TransportError(SaclError):
     """Base exception for all transport-related errors."""
+
     pass
 
 
@@ -26,7 +28,9 @@ class TransportAuthError(TransportError):
 class RateLimitExceededError(TransportError):
     """Raised when Gmail API returns HTTP 429 Too Many Requests."""
 
-    def __init__(self, retry_after_seconds: Optional[float] = None, details: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(
+        self, retry_after_seconds: Optional[float] = None, details: Optional[Dict[str, Any]] = None
+    ) -> None:
         super().__init__(
             f"RATE_LIMIT_EXCEEDED: Gmail API quota / rate limit exceeded. Retry after: {retry_after_seconds}s",
             details={"retry_after_seconds": retry_after_seconds, **(details or {})},
@@ -52,7 +56,9 @@ class StaleHistoryCursorError(TransportError):
 class DuplicateDeliveryError(TransportError):
     """Raised or noted when an identical message or package hash was already received."""
 
-    def __init__(self, message_id: str, job_id: Optional[str] = None, nonce: Optional[str] = None) -> None:
+    def __init__(
+        self, message_id: str, job_id: Optional[str] = None, nonce: Optional[str] = None
+    ) -> None:
         super().__init__(
             f"DUPLICATE_DELIVERY: Message '{message_id}' (job: '{job_id}', nonce: '{nonce}') was already processed.",
             details={"message_id": message_id, "job_id": job_id, "nonce": nonce},

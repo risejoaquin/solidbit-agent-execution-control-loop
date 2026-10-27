@@ -11,17 +11,17 @@ Coordinates:
 
 from __future__ import annotations
 
+import json
+import os
+import shutil
+import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-import json
-import os
 from pathlib import Path
-import shutil
-from typing import Any, Dict, Optional
-import zipfile
+from typing import Optional
 
-from sacl.contracts.invariants import JobStatus, MailStatus
+from sacl.contracts.invariants import JobStatus
 from sacl.contracts.models import Manifest
 from sacl.package.exceptions import (
     PackageError,
@@ -142,7 +142,10 @@ class PackageStagingPipeline:
                     message=dup.message,
                     job_id=expected_job_id,
                     archive_sha256=archive_sha256,
-                    details={"existing_sha256": dup.existing_sha256, "duplicate_status": dup.status.value},
+                    details={
+                        "existing_sha256": dup.existing_sha256,
+                        "duplicate_status": dup.status.value,
+                    },
                 )
                 return StagingResult(
                     outcome=StagingOutcome.QUARANTINED,
@@ -226,7 +229,10 @@ class PackageStagingPipeline:
                     package_id=manifest.package_id,
                     job_id=manifest.job_id,
                     archive_sha256=archive_sha256,
-                    details={"existing_sha256": dup.existing_sha256, "duplicate_status": dup.status.value},
+                    details={
+                        "existing_sha256": dup.existing_sha256,
+                        "duplicate_status": dup.status.value,
+                    },
                 )
                 return StagingResult(
                     outcome=StagingOutcome.QUARANTINED,

@@ -5,7 +5,6 @@ Domain 14: High-frequency process liveness registry for daemons and worker proce
 
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Union
 

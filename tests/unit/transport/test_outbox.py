@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import email
-from pathlib import Path
 import sqlite3
-import pytest
+from pathlib import Path
 
 from sacl.transport.gmail_adapter import MockGmailApiAdapter
 from sacl.transport.outbox import OutboxDispatcher
@@ -24,7 +23,9 @@ def test_enqueue_reply(sqlite_memory_db: sqlite3.Connection) -> None:
     assert outbox_id > 0
 
     cursor = sqlite_memory_db.cursor()
-    cursor.execute("SELECT status, attempts, recipient FROM mail_outbox WHERE outbox_id = ?", (outbox_id,))
+    cursor.execute(
+        "SELECT status, attempts, recipient FROM mail_outbox WHERE outbox_id = ?", (outbox_id,)
+    )
     row = cursor.fetchone()
     assert row[0] == "QUEUED"
     assert row[1] == 0
@@ -75,7 +76,9 @@ def test_dispatch_pending_success(sqlite_memory_db: sqlite3.Connection, tmp_path
     assert parsed_msg["References"] == "<origin-msg-1@gmail.com>"
 
     # Check status in SQLite
-    cursor.execute("SELECT status, attempts, sent_at FROM mail_outbox WHERE outbox_id = ?", (outbox_id,))
+    cursor.execute(
+        "SELECT status, attempts, sent_at FROM mail_outbox WHERE outbox_id = ?", (outbox_id,)
+    )
     row = cursor.fetchone()
     assert row[0] == "SENT"
     assert row[1] == 1
@@ -109,7 +112,9 @@ def test_dispatch_pending_retry_and_permanent_failure(
     assert len(slept) == 2  # slept twice before 3rd attempt failed
 
     cursor = sqlite_memory_db.cursor()
-    cursor.execute("SELECT status, attempts, error_log FROM mail_outbox WHERE outbox_id = ?", (outbox_id,))
+    cursor.execute(
+        "SELECT status, attempts, error_log FROM mail_outbox WHERE outbox_id = ?", (outbox_id,)
+    )
     row = cursor.fetchone()
     assert row[0] == "FAILED"
     assert row[1] == 3

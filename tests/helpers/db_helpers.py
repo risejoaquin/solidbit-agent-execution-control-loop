@@ -6,10 +6,9 @@ Utility functions for verifying SQLite schema migrations, tables, and constraint
 from __future__ import annotations
 
 import sqlite3
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Dict, List
 
-from sacl.contracts.invariants import OPERATIONAL_STATE_DOMAINS, SQLITE_PRAGMAS
+from sacl.contracts.invariants import OPERATIONAL_STATE_DOMAINS
 
 
 def get_all_table_names(conn: sqlite3.Connection) -> List[str]:

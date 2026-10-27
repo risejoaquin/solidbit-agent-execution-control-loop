@@ -19,9 +19,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from sacl.ui.models import resolve_safe_path
 from sacl.ui.service import UIService
 from sacl.ui.templates import HTML_APPLICATION
-from sacl.ui.models import resolve_safe_path
 
 logger = logging.getLogger("sacl.ui.server")
 
@@ -48,6 +48,7 @@ def broadcast_sse(event_type: str, data: Any) -> None:
 
 PROFILE_FILE = Path("config/operator_profile.json")
 
+
 def _load_operator_profile() -> Dict[str, Any]:
     if PROFILE_FILE.exists():
         try:
@@ -57,7 +58,9 @@ def _load_operator_profile() -> Dict[str, Any]:
     detected_name = os.environ.get("SACL_OPERATOR_NAME")
     if not detected_name:
         try:
-            p_user = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True, timeout=2)
+            p_user = subprocess.run(
+                ["git", "config", "user.name"], capture_output=True, text=True, timeout=2
+            )
             if p_user.returncode == 0 and p_user.stdout.strip():
                 detected_name = p_user.stdout.strip()
         except Exception:
@@ -71,12 +74,14 @@ def _load_operator_profile() -> Dict[str, Any]:
         "last_login": datetime.now(timezone.utc).isoformat(),
     }
 
+
 def _save_operator_profile(profile: Dict[str, Any]) -> None:
     try:
         PROFILE_FILE.parent.mkdir(parents=True, exist_ok=True)
         PROFILE_FILE.write_text(json.dumps(profile, indent=2), encoding="utf-8")
     except Exception as e:
         logger.warning(f"Failed to persist operator profile: {e}")
+
 
 _operator_profile = _load_operator_profile()
 
@@ -93,8 +98,20 @@ _agy_chat_history = [
 ]
 
 
-def _scan_fs_tree(dir_path: Path, max_depth: int = 3, current_depth: int = 0) -> List[Dict[str, Any]]:
-    ignored = {".git", "__pycache__", ".pytest_cache", "node_modules", ".venv", "dist", "build", ".idea", ".vscode"}
+def _scan_fs_tree(
+    dir_path: Path, max_depth: int = 3, current_depth: int = 0
+) -> List[Dict[str, Any]]:
+    ignored = {
+        ".git",
+        "__pycache__",
+        ".pytest_cache",
+        "node_modules",
+        ".venv",
+        "dist",
+        "build",
+        ".idea",
+        ".vscode",
+    }
     items: List[Dict[str, Any]] = []
     try:
         entries = sorted(list(dir_path.iterdir()), key=lambda e: (not e.is_dir(), e.name.lower()))
@@ -110,7 +127,9 @@ def _scan_fs_tree(dir_path: Path, max_depth: int = 3, current_depth: int = 0) ->
                 "extension": e.suffix.lower() if not is_d else "",
             }
             if is_d and current_depth < max_depth:
-                item["children"] = _scan_fs_tree(e, max_depth=max_depth, current_depth=current_depth + 1)
+                item["children"] = _scan_fs_tree(
+                    e, max_depth=max_depth, current_depth=current_depth + 1
+                )
             items.append(item)
     except Exception:
         pass
@@ -180,7 +199,15 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path.startswith("/assets/"):
             asset_path = Path("apps/web/dist") / path.lstrip("/")
             if asset_path.exists() and asset_path.is_file():
-                content_type = "text/css" if path.endswith(".css") else ("application/javascript" if path.endswith(".js") else "application/octet-stream")
+                content_type = (
+                    "text/css"
+                    if path.endswith(".css")
+                    else (
+                        "application/javascript"
+                        if path.endswith(".js")
+                        else "application/octet-stream"
+                    )
+                )
                 try:
                     with open(asset_path, "rb") as f:
                         data = f.read()
@@ -216,7 +243,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             # Send initial snapshot immediately
             try:
                 snap = self.service.get_dashboard_snapshot()
-                init_msg = f"event: snapshot\ndata: {json.dumps(snap.to_dict())}\n\n".encode("utf-8")
+                init_msg = f"event: snapshot\ndata: {json.dumps(snap.to_dict())}\n\n".encode(
+                    "utf-8"
+                )
                 self.wfile.write(init_msg)
                 self.wfile.flush()
 
@@ -259,17 +288,33 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             try:
                 cur = conn.cursor()
                 if req_id:
-                    cur.execute("SELECT approval_id, request_id, action, scope, status, rationale, requested_at, expires_at FROM approvals WHERE request_id = ? OR approval_id = ? LIMIT 1;", (req_id, req_id))
+                    cur.execute(
+                        "SELECT approval_id, request_id, action, scope, status, rationale, requested_at, expires_at FROM approvals WHERE request_id = ? OR approval_id = ? LIMIT 1;",
+                        (req_id, req_id),
+                    )
                 else:
-                    cur.execute("SELECT approval_id, request_id, action, scope, status, rationale, requested_at, expires_at FROM approvals WHERE status = 'PENDING' ORDER BY requested_at DESC LIMIT 1;")
+                    cur.execute(
+                        "SELECT approval_id, request_id, action, scope, status, rationale, requested_at, expires_at FROM approvals WHERE status = 'PENDING' ORDER BY requested_at DESC LIMIT 1;"
+                    )
                 row = cur.fetchone()
                 if not row:
-                    self._send_json(200, {"success": True, "has_gate": False, "message": "No hay compuertas pendientes"})
+                    self._send_json(
+                        200,
+                        {
+                            "success": True,
+                            "has_gate": False,
+                            "message": "No hay compuertas pendientes",
+                        },
+                    )
                     return
-                
+
                 appr_id, req_id, action, scope_raw, status, rationale, req_at, exp_at = row
                 try:
-                    scope_list = json.loads(scope_raw) if scope_raw and scope_raw.startswith("[") else [scope_raw]
+                    scope_list = (
+                        json.loads(scope_raw)
+                        if scope_raw and scope_raw.startswith("[")
+                        else [scope_raw]
+                    )
                 except Exception:
                     scope_list = [str(scope_raw)]
 
@@ -281,7 +326,8 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                     "action": action,
                     "scope": scope_list,
                     "status": status,
-                    "rationale": rationale or "Despliegue efímero en Railway de preview build con contratos verificados.",
+                    "rationale": rationale
+                    or "Despliegue efímero en Railway de preview build con contratos verificados.",
                     "requested_at": req_at,
                     "expires_at": exp_at,
                     "risk_assessment": {
@@ -289,7 +335,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                         "color": "emerald",
                         "scope_isolation": "Entorno efímero no productivo en Railway (PR preview)",
                         "blast_radius": f"{len(scope_list)} archivos afectados (sin mutación de bases de datos productivas)",
-                        "rollback_safety": "100% Reversible vía git revert"
+                        "rollback_safety": "100% Reversible vía git revert",
                     },
                     "decision_checklist": [
                         {
@@ -332,16 +378,19 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                         {"type": "header", "text": "--- a/railway.json"},
                         {"type": "header", "text": "+++ b/railway.json"},
                         {"type": "chunk", "text": "@@ -12,6 +12,8 @@"},
-                        {"type": "context", "text": "  \"deploy\": {"},
-                        {"type": "add", "text": "+   \"previewEnv\": \"pr-staging-preview\","},
-                        {"type": "add", "text": "+   \"invariantsEnforcement\": \"STRICT\","},
-                        {"type": "add", "text": "+   \"operatorAttribution\": \"LUCILFER / @risejoaquin\""},
+                        {"type": "context", "text": '  "deploy": {'},
+                        {"type": "add", "text": '+   "previewEnv": "pr-staging-preview",'},
+                        {"type": "add", "text": '+   "invariantsEnforcement": "STRICT",'},
+                        {
+                            "type": "add",
+                            "text": '+   "operatorAttribution": "LUCILFER / @risejoaquin"',
+                        },
                         {"type": "context", "text": "  }"},
                         {"type": "header", "text": "--- a/services/web-storefront/package.json"},
                         {"type": "chunk", "text": "@@ -4,4 +4,4 @@"},
-                        {"type": "del", "text": "-   \"version\": \"1.1.0\","},
-                        {"type": "add", "text": "+   \"version\": \"1.2.0-preview\","},
-                    ]
+                        {"type": "del", "text": '-   "version": "1.1.0",'},
+                        {"type": "add", "text": '+   "version": "1.2.0-preview",'},
+                    ],
                 }
                 self._send_json(200, dossier)
                 return
@@ -357,19 +406,23 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             try:
                 conn.close()
                 import sqlite3
+
                 wconn = sqlite3.connect(str(self.service.db_path), timeout=5.0)
                 cur = wconn.cursor()
                 cur.execute("PRAGMA wal_checkpoint(TRUNCATE);")
                 busy, log_pages, checkpointed_pages = cur.fetchone()
                 wconn.commit()
                 wconn.close()
-                self._send_json(200, {
-                    "success": True,
-                    "busy": busy,
-                    "log_pages": log_pages,
-                    "checkpointed_pages": checkpointed_pages,
-                    "message": f"Checkpoint TRUNCATE completado. {checkpointed_pages} páginas volcadas al almacenamiento físico sin bloqueos."
-                })
+                self._send_json(
+                    200,
+                    {
+                        "success": True,
+                        "busy": busy,
+                        "log_pages": log_pages,
+                        "checkpointed_pages": checkpointed_pages,
+                        "message": f"Checkpoint TRUNCATE completado. {checkpointed_pages} páginas volcadas al almacenamiento físico sin bloqueos.",
+                    },
+                )
                 return
             except Exception as e:
                 self._send_json(500, {"success": False, "error": str(e)})
@@ -406,10 +459,12 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             broadcast_sse("gate_decided", res)
 
             # Resend-style mobile landing page
-            is_approved = (decision == "APPROVED")
+            is_approved = decision == "APPROVED"
             status_color = "#34d399" if is_approved else "#f87171"
             badge_bg = "rgba(52, 211, 153, 0.12)" if is_approved else "rgba(248, 113, 113, 0.12)"
-            status_text = "Acción Autorizada con Éxito" if is_approved else "Acción Rechazada de Forma Segura"
+            status_text = (
+                "Acción Autorizada con Éxito" if is_approved else "Acción Rechazada de Forma Segura"
+            )
             html = f"""<!DOCTYPE html>
             <html lang="es">
             <head>
@@ -488,25 +543,50 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             table_name = query.get("table", ["approvals"])[0]
             limit = int(query.get("limit", [25])[0])
             allowed = [
-                "projects", "packages", "jobs", "runs", "graph_nodes",
-                "agents", "events", "approvals", "artifacts", "results",
-                "leases", "heartbeats", "errors", "audit_events"
+                "projects",
+                "packages",
+                "jobs",
+                "runs",
+                "graph_nodes",
+                "agents",
+                "events",
+                "approvals",
+                "artifacts",
+                "results",
+                "leases",
+                "heartbeats",
+                "errors",
+                "audit_events",
             ]
             if table_name in allowed:
                 conn = self.service._get_read_only_conn()
                 try:
                     cur = conn.cursor()
-                    cur.execute(f"SELECT * FROM {table_name} ORDER BY rowid DESC LIMIT ?;", (limit,))
+                    cur.execute(
+                        f"SELECT * FROM {table_name} ORDER BY rowid DESC LIMIT ?;", (limit,)
+                    )
                     cols = [d[0] for d in cur.description] if cur.description else []
                     rows = [dict(zip(cols, r)) for r in cur.fetchall()]
-                    self._send_json(200, {"success": True, "table": table_name, "columns": cols, "rows": rows, "count": len(rows)})
+                    self._send_json(
+                        200,
+                        {
+                            "success": True,
+                            "table": table_name,
+                            "columns": cols,
+                            "rows": rows,
+                            "count": len(rows),
+                        },
+                    )
                     return
                 except Exception as exc:
                     self._send_json(500, {"success": False, "error": str(exc)})
                     return
                 finally:
                     conn.close()
-            self._send_json(400, {"success": False, "error": f"Tabla '{table_name}' no permitida o inexistente."})
+            self._send_json(
+                400,
+                {"success": False, "error": f"Tabla '{table_name}' no permitida o inexistente."},
+            )
             return
 
         if path == "/api/db/integrity":
@@ -522,16 +602,19 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 cur.execute("PRAGMA page_size;")
                 psize = cur.fetchone()[0]
                 db_size_bytes = pcount * psize
-                self._send_json(200, {
-                    "success": True,
-                    "integrity": result,
-                    "journal_mode": jmode,
-                    "page_count": pcount,
-                    "page_size": psize,
-                    "file_size_bytes": db_size_bytes,
-                    "file_size_kb": round(db_size_bytes / 1024, 2),
-                    "db_path": str(self.service.db_path),
-                })
+                self._send_json(
+                    200,
+                    {
+                        "success": True,
+                        "integrity": result,
+                        "journal_mode": jmode,
+                        "page_count": pcount,
+                        "page_size": psize,
+                        "file_size_bytes": db_size_bytes,
+                        "file_size_kb": round(db_size_bytes / 1024, 2),
+                        "db_path": str(self.service.db_path),
+                    },
+                )
                 return
             except Exception as exc:
                 self._send_json(500, {"success": False, "error": str(exc)})
@@ -554,35 +637,51 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             doc_path_param = query.get("path", [None])[0]
             if doc_path_param:
                 p = Path(doc_path_param)
-                if p.exists() and p.is_file() and p.suffix.lower() in (".md", ".json", ".txt", ".yaml", ".yml", ".py", ".ts"):
+                if (
+                    p.exists()
+                    and p.is_file()
+                    and p.suffix.lower() in (".md", ".json", ".txt", ".yaml", ".yml", ".py", ".ts")
+                ):
                     try:
                         content = p.read_text(encoding="utf-8", errors="replace")[:25000]
-                        self._send_json(200, {"success": True, "name": p.name, "path": str(p), "content": content})
+                        self._send_json(
+                            200,
+                            {"success": True, "name": p.name, "path": str(p), "content": content},
+                        )
                         return
                     except Exception as e:
                         self._send_json(500, {"success": False, "error": str(e)})
                         return
-            self._send_json(404, {"success": False, "error": "Documento no accesible o no encontrado"})
+            self._send_json(
+                404, {"success": False, "error": "Documento no accesible o no encontrado"}
+            )
             return
 
         # 12.1 REST API: File System Tree Explorer
         if path == "/api/fs/tree":
             folder_param = query.get("folder", [None])[0]
             depth_param = int(query.get("depth", ["2"])[0])
-            target_folder = resolve_safe_path(folder_param) if folder_param else resolve_safe_path(self.service.workspace_root)
+            target_folder = (
+                resolve_safe_path(folder_param)
+                if folder_param
+                else resolve_safe_path(self.service.workspace_root)
+            )
             if not target_folder.exists() or not target_folder.is_dir():
                 target_folder = resolve_safe_path(self.service.workspace_root)
-            
+
             tree = _scan_fs_tree(target_folder, max_depth=min(depth_param, 3))
             parent_dir = str(target_folder.parent) if target_folder.parent != target_folder else ""
-            self._send_json(200, {
-                "success": True,
-                "root_path": str(target_folder),
-                "root_name": target_folder.name,
-                "parent_path": parent_dir,
-                "items_count": len(tree),
-                "tree": tree
-            })
+            self._send_json(
+                200,
+                {
+                    "success": True,
+                    "root_path": str(target_folder),
+                    "root_name": target_folder.name,
+                    "parent_path": parent_dir,
+                    "items_count": len(tree),
+                    "tree": tree,
+                },
+            )
             return
 
         # 12.1b REST API: Latest Run Deliverables & Results
@@ -591,28 +690,44 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             if not runs_root.exists():
                 self._send_json(200, {"success": True, "has_runs": False, "deliverables": []})
                 return
-            all_runs = sorted([d for d in runs_root.iterdir() if d.is_dir()], key=lambda d: d.stat().st_mtime, reverse=True)
+            all_runs = sorted(
+                [d for d in runs_root.iterdir() if d.is_dir()],
+                key=lambda d: d.stat().st_mtime,
+                reverse=True,
+            )
             if not all_runs:
                 self._send_json(200, {"success": True, "has_runs": False, "deliverables": []})
                 return
             latest = all_runs[0]
             delivs = []
-            for f in [latest / "SUMMARY.md", latest / "SUMMARY.json", latest / "evidence" / "invariants_audit.json", latest / "logs" / "pytest_execution.log"]:
+            for f in [
+                latest / "SUMMARY.md",
+                latest / "SUMMARY.json",
+                latest / "evidence" / "invariants_audit.json",
+                latest / "logs" / "pytest_execution.log",
+            ]:
                 if f.exists():
-                    delivs.append({
-                        "name": f.name,
-                        "path": str(f),
-                        "rel_path": f.relative_to(self.service.workspace_root).as_posix(),
-                        "size_bytes": f.stat().st_size,
-                        "type": "markdown" if f.suffix == ".md" else ("json" if f.suffix == ".json" else "log")
-                    })
-            self._send_json(200, {
-                "success": True,
-                "has_runs": True,
-                "run_id": latest.name,
-                "run_path": str(latest),
-                "deliverables": delivs
-            })
+                    delivs.append(
+                        {
+                            "name": f.name,
+                            "path": str(f),
+                            "rel_path": f.relative_to(self.service.workspace_root).as_posix(),
+                            "size_bytes": f.stat().st_size,
+                            "type": "markdown"
+                            if f.suffix == ".md"
+                            else ("json" if f.suffix == ".json" else "log"),
+                        }
+                    )
+            self._send_json(
+                200,
+                {
+                    "success": True,
+                    "has_runs": True,
+                    "run_id": latest.name,
+                    "run_path": str(latest),
+                    "deliverables": delivs,
+                },
+            )
             return
 
         # 12.2 REST API: File System Read Content
@@ -624,24 +739,31 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             p = resolve_safe_path(file_param)
             if not p.exists() or not p.is_file():
                 # Check relative to workspace_root
-                p_rel = (resolve_safe_path(self.service.workspace_root) / file_param.lstrip("/\\")).resolve()
+                p_rel = (
+                    resolve_safe_path(self.service.workspace_root) / file_param.lstrip("/\\")
+                ).resolve()
                 if p_rel.exists() and p_rel.is_file():
                     p = p_rel
                 else:
-                    self._send_json(404, {"success": False, "error": f"Archivo no encontrado: {file_param}"})
+                    self._send_json(
+                        404, {"success": False, "error": f"Archivo no encontrado: {file_param}"}
+                    )
                     return
             try:
                 content = p.read_text(encoding="utf-8", errors="replace")[:250000]
                 lines = content.splitlines()
-                self._send_json(200, {
-                    "success": True,
-                    "filename": p.name,
-                    "path": str(p),
-                    "extension": p.suffix.lower(),
-                    "size_bytes": p.stat().st_size,
-                    "lines_count": len(lines),
-                    "content": content
-                })
+                self._send_json(
+                    200,
+                    {
+                        "success": True,
+                        "filename": p.name,
+                        "path": str(p),
+                        "extension": p.suffix.lower(),
+                        "size_bytes": p.stat().st_size,
+                        "lines_count": len(lines),
+                        "content": content,
+                    },
+                )
                 return
             except Exception as e:
                 self._send_json(500, {"success": False, "error": str(e)})
@@ -650,17 +772,20 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         # 12.3 REST API: GitHub Status, PRs, Commits & Runs
         if path == "/api/github/status":
             from sacl.ui.modules import github as gh_mod
+
             self._send_json(200, gh_mod.get_github_status())
             return
 
         if path == "/api/github/prs":
             from sacl.ui.modules import github as gh_mod
+
             prs = gh_mod.get_pull_requests()
             self._send_json(200, {"prs": prs, "count": len(prs)})
             return
 
         if path == "/api/github/commits":
             from sacl.ui.modules import github as gh_mod
+
             limit = int(query.get("limit", [10])[0])
             commits = gh_mod.get_recent_commits(limit=limit)
             self._send_json(200, {"commits": commits, "count": len(commits)})
@@ -668,6 +793,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/github/runs":
             from sacl.ui.modules import github as gh_mod
+
             limit = int(query.get("limit", [6])[0])
             runs = gh_mod.get_actions_runs(limit=limit)
             self._send_json(200, {"runs": runs, "count": len(runs)})
@@ -740,7 +866,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # Antigravity Skills & Workflows Endpoints
         if path == "/api/skills":
-            self._send_json(200, {"success": True, "skills": self.service.workflow_engine.discover_skills()})
+            self._send_json(
+                200, {"success": True, "skills": self.service.workflow_engine.discover_skills()}
+            )
             return
 
         if path == "/api/skills/details":
@@ -752,7 +880,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             if details:
                 self._send_json(200, {"success": True, "skill": details})
             else:
-                self._send_json(404, {"success": False, "error": f"Skill '{skill_id}' no encontrado"})
+                self._send_json(
+                    404, {"success": False, "error": f"Skill '{skill_id}' no encontrado"}
+                )
             return
 
         # Git Working Tree & Visual Diff Endpoints
@@ -767,11 +897,19 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # Slash Commands & Mentions Registry
         if path == "/api/commands/registry":
-            self._send_json(200, {"success": True, "commands": self.service.slash_registry.get_all_commands()})
+            self._send_json(
+                200, {"success": True, "commands": self.service.slash_registry.get_all_commands()}
+            )
             return
 
         if path == "/api/commands/mentions":
-            self._send_json(200, {"success": True, "mentions": self.service.slash_registry.get_mention_suggestions()})
+            self._send_json(
+                200,
+                {
+                    "success": True,
+                    "mentions": self.service.slash_registry.get_mention_suggestions(),
+                },
+            )
             return
 
         # Subagents & Background Tasks Management
@@ -792,7 +930,11 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         content_len = int(self.headers.get("Content-Length", 0))
-        post_data = self.rfile.read(content_len).decode("utf-8", errors="replace") if content_len > 0 else "{}"
+        post_data = (
+            self.rfile.read(content_len).decode("utf-8", errors="replace")
+            if content_len > 0
+            else "{}"
+        )
         try:
             body = json.loads(post_data) if post_data else {}
         except Exception:
@@ -820,7 +962,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         # 1b. Gate Creation / Simulation
         if path == "/api/gates/create":
             action = body.get("action", "DEPLOY_STAGING_PREVIEW")
-            reason = body.get("reason", "Verificar despliegue efímero en Railway antes de merge a main.")
+            reason = body.get(
+                "reason", "Verificar despliegue efímero en Railway antes de merge a main."
+            )
             res = self.service.gates.create_pending_gate(action=action, reason=reason)
             broadcast_sse("gate_requested", res)
             self._send_json(200, res)
@@ -852,7 +996,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         # 5. Campaign 1-Click Launch
         if path == "/api/campaigns/launch":
-            camp_id = body.get("campaign_id", "SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED")
+            camp_id = body.get(
+                "campaign_id", "SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED"
+            )
             res = self.service.campaigns.launch_campaign(camp_id)
             broadcast_sse("campaign_launched", res)
             self._send_json(200, res)
@@ -870,29 +1016,45 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/fs/open-folder":
             folder_str = body.get("folder") or body.get("path") or ""
             if not folder_str:
-                self._send_json(400, {"success": False, "error": "Falta el parámetro 'folder' o 'path'"})
+                self._send_json(
+                    400, {"success": False, "error": "Falta el parámetro 'folder' o 'path'"}
+                )
                 return
             p = resolve_safe_path(folder_str)
             if not p.exists() or not p.is_dir():
                 # Check if matches any scanned project
-                matched = next((resolve_safe_path(proj["path"]) for proj in self.service.projects.list_projects() if proj["name"].lower() == folder_str.lower() or proj["id"] == folder_str.lower()), None)
+                matched = next(
+                    (
+                        resolve_safe_path(proj["path"])
+                        for proj in self.service.projects.list_projects()
+                        if proj["name"].lower() == folder_str.lower()
+                        or proj["id"] == folder_str.lower()
+                    ),
+                    None,
+                )
                 if matched and matched.exists() and matched.is_dir():
                     p = matched
                 else:
-                    self._send_json(404, {"success": False, "error": f"La carpeta no existe en disco: {folder_str}"})
+                    self._send_json(
+                        404,
+                        {"success": False, "error": f"La carpeta no existe en disco: {folder_str}"},
+                    )
                     return
             self.service.workspace_root = p
             self.service.projects.switch_project(str(p))
             tree = _scan_fs_tree(p, max_depth=2)
             parent_dir = str(p.parent) if p.parent != p else ""
-            self._send_json(200, {
-                "success": True,
-                "root_path": str(p),
-                "root_name": p.name,
-                "parent_path": parent_dir,
-                "items_count": len(tree),
-                "tree": tree
-            })
+            self._send_json(
+                200,
+                {
+                    "success": True,
+                    "root_path": str(p),
+                    "root_name": p.name,
+                    "parent_path": parent_dir,
+                    "items_count": len(tree),
+                    "tree": tree,
+                },
+            )
             return
 
         # 7. Model Selection & Tuning
@@ -1050,7 +1212,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path in ("/api/chat", "/api/chat/message"):
             prompt = body.get("prompt", "")
             model_id = body.get("model_id") or body.get("model")
-            msg_id = f"msg-bot-{len(self.service.chat.history)+1}"
+            msg_id = f"msg-bot-{len(self.service.chat.history) + 1}"
 
             def chunk_cb(token: str) -> None:
                 broadcast_sse("chat_token", {"message_id": msg_id, "token": token, "done": False})
@@ -1074,7 +1236,11 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             params = body.get("params", {})
             res = self.service.actions.execute(action_type, params=params)
             broadcast_sse("action_executed", res)
-            is_success = res.get("success", False) or res.get("status") == "COMPLETED" or res.get("exit_code") == 0
+            is_success = (
+                res.get("success", False)
+                or res.get("status") == "COMPLETED"
+                or res.get("exit_code") == 0
+            )
             response_payload = {
                 "success": is_success,
                 "execution": res,
@@ -1086,6 +1252,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         # 18. GitHub Sync & Pull Request Actions
         if path == "/api/github/sync":
             from sacl.ui.modules import github as gh_mod
+
             res = gh_mod.sync_origin()
             broadcast_sse("github_synced", res)
             self._send_json(200, res)
@@ -1093,6 +1260,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/github/pr":
             from sacl.ui.modules import github as gh_mod
+
             title = body.get("title", "feat: automated update from SACL orchestrator")
             pr_body = body.get("body", "Created via SACL Web Executive HUD")
             base = body.get("base", "main")
@@ -1146,7 +1314,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, plan)
             return
 
-# 20. Orchestrator: Execute Sprint & Materialize Deliverables
+        # 20. Orchestrator: Execute Sprint & Materialize Deliverables
         if path in ("/api/orchestrator/execute-sprint", "/api/orchestrator/execute-plan"):
             plan_data = body.get("sprint_plan") or body.get("plan")
             res = self.service.orchestrator.execute_sprint(sprint_data=plan_data)
@@ -1208,7 +1376,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             }
             _agy_chat_history.append(agy_reply)
             broadcast_sse("chat_message", agy_reply)
-            self._send_json(200, {"success": True, "reply": agy_reply, "history": _agy_chat_history})
+            self._send_json(
+                200, {"success": True, "reply": agy_reply, "history": _agy_chat_history}
+            )
             return
 
         # 23. Sovereign Operator Profile Update
@@ -1217,10 +1387,14 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             role = body.get("role")
             email = body.get("email")
             secret = body.get("secret")
-            if name: _operator_profile["name"] = name
-            if role: _operator_profile["role"] = role
-            if email: _operator_profile["email"] = email
-            if secret: _operator_profile["secret"] = secret
+            if name:
+                _operator_profile["name"] = name
+            if role:
+                _operator_profile["role"] = role
+            if email:
+                _operator_profile["email"] = email
+            if secret:
+                _operator_profile["secret"] = secret
             broadcast_sse("profile_updated", _operator_profile)
             _save_operator_profile(_operator_profile)
             self._send_json(200, {"success": True, "profile": _operator_profile})
@@ -1230,7 +1404,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/orchestrator/apply-changes":
             approval_id = body.get("approval_id", "REQ-20261025-E43308B0")
             operator = body.get("operator", "LUCILFER / risejoaquin")
-            justification = body.get("justification", "Aprobado post-inspección de pruebas e invariantes.")
+            justification = body.get(
+                "justification", "Aprobado post-inspección de pruebas e invariantes."
+            )
             res = self.service.orchestrator.apply_changes(
                 approval_id=approval_id,
                 operator=operator,
@@ -1304,6 +1480,7 @@ class DecisionShellServer:
 
     def start(self, blocking: bool = False) -> Tuple[str, int]:
         """Starts the HTTP server."""
+
         class CustomHandler(DecisionShellRequestHandler):
             service = self.service
 

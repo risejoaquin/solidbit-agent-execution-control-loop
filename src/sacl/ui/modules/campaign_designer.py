@@ -9,9 +9,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import zipfile
 
 logger = logging.getLogger("sacl.ui.modules.campaign_designer")
 
@@ -224,7 +224,10 @@ class CampaignDesignerModule:
         """Creates a canonical Wave ZIP package conforming to SACL-SPEC-PKG-v1."""
         val = self.validate_dag()
         if not val.get("is_valid"):
-            return {"success": False, "error": f"No se puede empaquetar un DAG inválido: {val.get('error')}"}
+            return {
+                "success": False,
+                "error": f"No se puede empaquetar un DAG inválido: {val.get('error')}",
+            }
 
         campaign_id = self.current_dag["campaign_id"]
         zip_name = zip_name or f"Wave_{campaign_id}.zip"
@@ -245,7 +248,9 @@ class CampaignDesignerModule:
             checksums: List[str] = []
             with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
                 # 1. Manifest
-                manifest_bytes = json.dumps(manifest_data, indent=2, ensure_ascii=False).encode("utf-8")
+                manifest_bytes = json.dumps(manifest_data, indent=2, ensure_ascii=False).encode(
+                    "utf-8"
+                )
                 zf.writestr("manifest.json", manifest_bytes)
                 checksums.append(f"{hashlib.sha256(manifest_bytes).hexdigest()}  manifest.json")
 
@@ -270,7 +275,9 @@ class CampaignDesignerModule:
                 }
                 deps_bytes = json.dumps(deps_data, indent=2, ensure_ascii=False).encode("utf-8")
                 zf.writestr("config/dependencies.json", deps_bytes)
-                checksums.append(f"{hashlib.sha256(deps_bytes).hexdigest()}  config/dependencies.json")
+                checksums.append(
+                    f"{hashlib.sha256(deps_bytes).hexdigest()}  config/dependencies.json"
+                )
 
                 # 4. Checksums file
                 checksums_bytes = "\n".join(checksums).encode("utf-8")
@@ -285,4 +292,3 @@ class CampaignDesignerModule:
             }
         except Exception as exc:
             return {"success": False, "error": str(exc)}
-

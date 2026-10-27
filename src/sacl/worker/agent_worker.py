@@ -16,20 +16,16 @@ import sqlite3
 import subprocess
 import time
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from sacl.contracts.invariants import (
-    ALLOWED_PROCESS_IMAGES,
-    PID_DRIFT_TOLERANCE_SECONDS,
     AgentStatus,
-    GraphNodeStatus,
     Verdict,
 )
 from sacl.contracts.models import ReconciledResult
 from sacl.observability.audit import AuditEventEmitter
 from sacl.observability.events import AuditEventType, Severity
-from sacl.worker.models import ProcessIdentity, WorkerAttemptRecord, WorkerConfig
+from sacl.worker.models import WorkerAttemptRecord, WorkerConfig
 from sacl.worker.process import (
     IProcessInspector,
     MockProcessInspector,
@@ -39,7 +35,6 @@ from sacl.worker.process import (
 )
 from sacl.worker.reconciliation_hook import WorkerReconciler
 from sacl.worker.retry import (
-    calculate_backoff_delay,
     classify_failure,
     get_attempt_log_paths,
 )
@@ -246,10 +241,15 @@ class AgentWorker:
         self.config.worktree_path.mkdir(parents=True, exist_ok=True)
 
         # If using MockProcessInspector without an explicit command, simulate process
-        if isinstance(self.process_inspector, MockProcessInspector) and not self.config.executable_command:
+        if (
+            isinstance(self.process_inspector, MockProcessInspector)
+            and not self.config.executable_command
+        ):
             self.status = AgentStatus.RUNNING.value
             self.pid = 9000 + self.current_attempt
-            self.process_inspector.register_process(self.pid, "agy", self.started_at, is_running=True)
+            self.process_inspector.register_process(
+                self.pid, "agy", self.started_at, is_running=True
+            )
             self._persist_agent_state()
             self._emit_event(
                 AuditEventType.PROCESS_SPAWNED.value,

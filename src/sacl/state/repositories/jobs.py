@@ -6,8 +6,7 @@ covering the 12 primary canonical states and 10 side states.
 
 from __future__ import annotations
 
-import sqlite3
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from sacl.contracts.invariants import ALL_JOB_STATES, JobSideStatus, JobStatus
 from sacl.state.exceptions import EntityNotFoundError, InvalidStateTransitionError
@@ -87,7 +86,9 @@ class JobRepository(BaseRepository):
                 completed_at = COALESCE(?, completed_at)
             WHERE job_id = ?;
         """
-        self.execute(sql, (status, now, current_run_id, error_summary, resolved_completed_at, job_id))
+        self.execute(
+            sql, (status, now, current_run_id, error_summary, resolved_completed_at, job_id)
+        )
         self.commit()
 
     def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:

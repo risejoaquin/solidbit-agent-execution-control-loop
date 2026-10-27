@@ -12,28 +12,18 @@ from __future__ import annotations
 
 import dataclasses
 import datetime
-import hashlib
 import logging
-from pathlib import Path
 import sqlite3
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sacl.contracts.invariants import MAX_ATTACHMENT_SIZE_BYTES
-from sacl.contracts.models import AttachmentMetadata, MailEnvelope, RoutingSubject
-from sacl.contracts.schema_validator import get_default_validator
 from sacl.transport.envelope import (
     compute_attachment_metadata,
-    create_mail_envelope,
-    format_outbound_subject,
     generate_nonce,
     parse_routing_hint,
 )
 from sacl.transport.exceptions import (
-    DuplicateDeliveryError,
-    PayloadConflictError,
-    SenderNotWhitelistedError,
     StaleHistoryCursorError,
-    TransportError,
     ZipDefenseViolation,
 )
 from sacl.transport.gmail_adapter import IGmailApiAdapter
@@ -48,6 +38,7 @@ DEFAULT_CURSOR_NAME = "GMAIL_USERS_WATCH"
 @dataclasses.dataclass
 class ReconciliationResult:
     """Summary of messages processed during a History API synchronization pass."""
+
     start_history_id: str
     end_history_id: str
     messages_inspected: int = 0
@@ -107,9 +98,7 @@ class HistoryReconciliationManager:
         )
         self.db_conn.commit()
 
-    def reconcile_history(
-        self, start_history_id: Optional[str] = None
-    ) -> ReconciliationResult:
+    def reconcile_history(self, start_history_id: Optional[str] = None) -> ReconciliationResult:
         """Executes gapless authoritative synchronization via users.history.list.
 
         Returns ReconciliationResult summarizing message outcomes.
@@ -121,7 +110,9 @@ class HistoryReconciliationManager:
             history_resp = self.gmail_adapter.list_history(start_history_id=start_id)
         except StaleHistoryCursorError:
             # Let caller or poller handle stale fallback
-            logger.warning("History cursor %s is stale (>7 days). Raising StaleHistoryCursorError.", start_id)
+            logger.warning(
+                "History cursor %s is stale (>7 days). Raising StaleHistoryCursorError.", start_id
+            )
             raise
 
         records = history_resp.get("history", [])
@@ -277,7 +268,11 @@ class HistoryReconciliationManager:
         dedup_status, conflict_err = self._check_deduplication(message_id, job_id, att_meta.sha256)
 
         if dedup_status == "DUPLICATE_IGNORED":
-            logger.info("Message %s is duplicate delivery of job %s. Idempotently ignored.", message_id, job_id)
+            logger.info(
+                "Message %s is duplicate delivery of job %s. Idempotently ignored.",
+                message_id,
+                job_id,
+            )
             self._record_message_status(
                 message_id=message_id,
                 history_id=msg_history_id,
@@ -319,7 +314,9 @@ class HistoryReconciliationManager:
             self._queue_conflict_reply(job_id=job_id, thread_id=thread_id, rfc_msg_id=rfc_msg_id)
             if self.audit_emitter:
                 try:
-                    self.audit_emitter.emit_conflict_detected(job_id=job_id, reason="JOB_ID_HASH_MISMATCH")
+                    self.audit_emitter.emit_conflict_detected(
+                        job_id=job_id, reason="JOB_ID_HASH_MISMATCH"
+                    )
                 except Exception:
                     pass
             return ("CONFLICT_REJECTED", job_id)
@@ -380,7 +377,9 @@ class HistoryReconciliationManager:
 
         if self.audit_emitter:
             try:
-                self.audit_emitter.emit_job_ingested(job_id=job_id, run_id=run_id, package_sha=att_meta.sha256)
+                self.audit_emitter.emit_job_ingested(
+                    job_id=job_id, run_id=run_id, package_sha=att_meta.sha256
+                )
             except Exception:
                 pass
 
@@ -415,7 +414,9 @@ class HistoryReconciliationManager:
         cursor = self.db_conn.cursor()
 
         # Check identical message ID
-        cursor.execute("SELECT status, attachment_sha FROM mail_messages WHERE message_id = ?", (message_id,))
+        cursor.execute(
+            "SELECT status, attachment_sha FROM mail_messages WHERE message_id = ?", (message_id,)
+        )
         row = cursor.fetchone()
         if row:
             return ("DUPLICATE_IGNORED", None)
@@ -518,9 +519,7 @@ class HistoryReconciliationManager:
         )
         self.db_conn.commit()
 
-    def _queue_conflict_reply(
-        self, job_id: str, thread_id: Optional[str], rfc_msg_id: str
-    ) -> None:
+    def _queue_conflict_reply(self, job_id: str, thread_id: Optional[str], rfc_msg_id: str) -> None:
         """Queues conflict notification email reply in mail_outbox table."""
         subject = f"[SACL][RESULT][v1][{job_id}] - REJECTED (Hash Conflict)"
         body = (

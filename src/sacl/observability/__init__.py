@@ -22,12 +22,6 @@ from sacl.observability.errors import (
     ErrorCategory,
     ErrorRecorder,
 )
-from sacl.observability.evidence import (
-    ArtifactMetadata,
-    EvidenceRegistry,
-    compute_file_sha256,
-    infer_artifact_type,
-)
 from sacl.observability.events import (
     ALL_SEVERITIES,
     APPROVAL_REQUESTED,
@@ -50,6 +44,12 @@ from sacl.observability.events import (
     AuditEventType,
     Severity,
     create_audit_event,
+)
+from sacl.observability.evidence import (
+    ArtifactMetadata,
+    EvidenceRegistry,
+    compute_file_sha256,
+    infer_artifact_type,
 )
 from sacl.observability.heartbeat import BackgroundHeartbeater, HeartbeatService
 from sacl.observability.logging import (

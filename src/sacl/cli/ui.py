@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
 import sys
 import webbrowser
+from pathlib import Path
 
 from sacl.ui.server import DecisionShellServer
 
