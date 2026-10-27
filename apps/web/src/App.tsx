@@ -49,6 +49,7 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>([])
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [dbStats, setDbStats] = useState<{ jobs: number; runs: number; events: number }>({ jobs: 0, runs: 0, events: 0 })
+  const [pendingGatesCount, setPendingGatesCount] = useState<number>(0)
 
   // Initial data loading from live backend endpoints
   const loadData = async () => {
@@ -120,6 +121,15 @@ export default function App() {
           runs: Number(dbData.tables.runs ?? 0),
           events: Number(dbData.tables.events ?? 0),
         })
+      }
+
+      // 7. Real Pending Gates from backend
+      try {
+        const gatesRes = await fetch('/api/gates/pending')
+        const gatesData = await gatesRes.json()
+        setPendingGatesCount(Number(gatesData.count ?? (gatesData.gates?.length || 0)))
+      } catch {
+        setPendingGatesCount(0)
       }
     } catch (e) {
       console.warn('Backend loading warning:', e)
@@ -244,6 +254,7 @@ export default function App() {
               events={events}
               onOpenSprintModal={() => setIsSprintModalOpen(true)}
               onNavigateSection={(sec) => setCurrentSection(sec)}
+              pendingGatesCount={pendingGatesCount}
             />
           )}
 
@@ -327,7 +338,7 @@ export default function App() {
         onSelectSection={(sec) => setCurrentSection(sec)}
         onOpenDrawer={() => setIsMobileDrawerOpen(true)}
         onOpenSprintModal={() => setIsSprintModalOpen(true)}
-        hasPendingGate={events.some((e) => e.severity === 'FATAL' || (e.event_type && e.event_type.includes('GATE')))}
+        hasPendingGate={pendingGatesCount > 0}
       />
 
       {/* Sprint Designer Modal */}

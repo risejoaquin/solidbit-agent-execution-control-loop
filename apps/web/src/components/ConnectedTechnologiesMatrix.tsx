@@ -39,75 +39,7 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
   onTestConnection,
   onNavigateSection,
 }) => {
-  // Baseline technologies if waiting for backend data
-  const defaultTechs: TechnologyItem[] = [
-    {
-      id: 'agy',
-      name: 'Antigravity AI (AGY)',
-      category: 'ai',
-      status: 'connected',
-      version: 'Local Daemon v2.0',
-      account_info: 'Puerto 8765 (Gemini / Claude)',
-    },
-    {
-      id: 'git',
-      name: 'Git VCS & Worktrees',
-      category: 'vcs',
-      status: 'connected',
-      version: 'Git 2.40+',
-      account_info: 'Dirty-Root Guard Activo',
-    },
-    {
-      id: 'gh',
-      name: 'GitHub CLI (gh)',
-      category: 'vcs',
-      status: 'connected',
-      version: 'Keyring Auth',
-      account_info: 'CI/CD Actions Sincronizado',
-    },
-    {
-      id: 'jira',
-      name: 'Atlassian Jira Cloud',
-      category: 'governance',
-      status: 'connected',
-      version: 'Tablero SOLID',
-      account_info: 'Sincronización DoR/DoD',
-    },
-    {
-      id: 'sqlite',
-      name: 'SQLite WAL Store',
-      category: 'database',
-      status: 'connected',
-      version: 'WAL ACID',
-      account_info: 'sacl_ops.db (22 Dominios)',
-    },
-    {
-      id: 'supabase',
-      name: 'Supabase PostgreSQL',
-      category: 'database',
-      status: 'connected',
-      version: 'v2.122.0',
-      account_info: 'Migraciones Cloud Verificadas',
-    },
-    {
-      id: 'railway',
-      name: 'Railway Cloud PaaS',
-      category: 'infra',
-      status: 'connected',
-      version: 'Staging Preview',
-      account_info: 'autoDeploy: OFF (Gate 1)',
-    },
-    {
-      id: 'resend',
-      name: 'Resend Email Gateway',
-      category: 'notifications',
-      status: 'connected',
-      version: 'CLI Activo',
-      account_info: 'HMAC Webhooks & Alertas PO',
-    },
-  ]
-
-  const displayTechs = connections.length > 0 ? connections : defaultTechs
+  const displayTechs = connections
 
   const getTechIcon = (id: string, category: string) => {
     switch (id) {
@@ -224,8 +156,14 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
       </div>
 
       {/* Grid: 2 columns on Mobile, 4 columns on Tablet, 4-5 on Desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        {displayTechs.map((tech) => (
+      {displayTechs.length === 0 ? (
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 text-center space-y-2">
+          <RefreshCw className="w-4 h-4 text-zinc-400 animate-spin mx-auto" />
+          <p className="text-xs text-zinc-400 font-mono">Consultando estado real de binarios y sesiones en el sistema operativo...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          {displayTechs.map((tech) => (
           <div
             key={tech.id}
             onClick={() => onTestConnection?.(tech.id)}
@@ -251,6 +189,7 @@ export const ConnectedTechnologiesMatrix: React.FC<ConnectedTechnologiesMatrixPr
           </div>
         ))}
       </div>
+      )}
     </section>
   )
 }

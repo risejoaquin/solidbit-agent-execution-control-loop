@@ -46,15 +46,15 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     { id: 'chat', label: 'Chat IA (AGY)', icon: MessageSquare, action: () => onSelectSection('chat'), highlight: true },
     { id: 'sprint', label: 'Diseñar Sprint', icon: Sparkles, action: onOpenSprintModal },
     { id: 'jira', label: 'Jira Backlog', icon: CheckSquare, action: () => onSelectSection('jira') },
+    { id: 'agents', label: 'Flota de Agentes', icon: Bot, action: () => onSelectSection('agents') },
     { id: 'connections', label: 'Sesiones CLI & Auth', icon: Key, action: () => onSelectSection('connections') },
     { id: 'workflows', label: 'Workflows & Skills', icon: Layers, action: () => onSelectSection('workflows') },
-    { id: 'designer', label: 'Roadmap', icon: GitBranch, action: () => onSelectSection('designer') },
-    { id: 'agents', label: 'Agentes', icon: Bot, action: () => onSelectSection('agents') },
-    { id: 'gates', label: 'Ejecuciones', icon: PlayCircle, action: () => onSelectSection('gates') },
-    { id: 'projects', label: 'Proyectos', icon: Folder, action: () => onSelectSection('projects') },
+    { id: 'designer', label: 'Roadmap & DAG', icon: GitBranch, action: () => onSelectSection('designer') },
+    { id: 'gates', label: 'Compuertas & Runs', icon: PlayCircle, action: () => onSelectSection('gates') },
+    { id: 'projects', label: 'Worktrees & Archivos', icon: Folder, action: () => onSelectSection('projects') },
     { id: 'email', label: 'Email Gateway', icon: Mail, action: () => onSelectSection('email') },
-    { id: 'database', label: 'Reportes & DB', icon: BarChart2, action: () => onSelectSection('database') },
-    { id: 'github', label: 'Configuración', icon: Settings, action: () => onSelectSection('github') },
+    { id: 'database', label: 'Auditoría DB (WAL)', icon: BarChart2, action: () => onSelectSection('database') },
+    { id: 'github', label: 'Configuración & Git', icon: Settings, action: () => onSelectSection('github') },
   ]
 
   const jobsCount = dbStats?.jobs ?? 0

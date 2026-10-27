@@ -82,6 +82,8 @@ interface CenterDashboardProps {
 
   onNavigateSection: (section: string) => void
 
+  pendingGatesCount?: number
+
 }
 
 
@@ -109,6 +111,8 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
   onOpenSprintModal,
 
   onNavigateSection,
+
+  pendingGatesCount = 0,
 
 }) => {
 
@@ -708,11 +712,15 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
             <span className="text-base sm:text-xl font-extrabold text-white font-mono">
 
-              {activeAgentsCount > 0 ? activeAgentsCount : 5} / {agents.length > 0 ? agents.length : 5}
+              {activeAgentsCount} / {agents.length > 0 ? agents.length : 5}
 
             </span>
 
-            <span className="text-[10px] font-mono text-zinc-200">Activos</span>
+            <span className="text-[10px] font-mono text-zinc-400">
+
+              {activeAgentsCount === 0 ? 'Zero-Token' : 'Activos'}
+
+            </span>
 
           </div>
 
@@ -722,7 +730,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
               className="bg-white h-full rounded-full transition-all"
 
-              style={{ width: '100%' }}
+              style={{ width: `${agents.length > 0 ? (activeAgentsCount / agents.length) * 100 : 0}%` }}
 
             />
 
@@ -762,11 +770,15 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
             <span className="text-base sm:text-xl font-extrabold text-white font-mono">
 
-              {executingAction ? '1 Proceso' : `${runningCount || 1}`}
+              {executingAction ? '1 Proceso' : `${runningCount} Tareas`}
 
             </span>
 
-            <span className="text-[10px] font-mono text-zinc-300">Oleadas Kahn</span>
+            <span className="text-[10px] font-mono text-zinc-400">
+
+              {runningCount === 0 && !executingAction ? 'En reposo' : 'Oleadas Kahn'}
+
+            </span>
 
           </div>
 
@@ -776,7 +788,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
               className="bg-zinc-300 h-full rounded-full transition-all"
 
-              style={{ width: `${executingAction ? 100 : 60}%` }}
+              style={{ width: `${tasks.length > 0 ? (runningCount / tasks.length) * 100 : (executingAction ? 100 : 0)}%` }}
 
             />
 
@@ -874,17 +886,27 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
             <span className="text-base sm:text-xl font-extrabold text-white font-mono">
 
-              1 Pendiente
+              {pendingGatesCount} {pendingGatesCount === 1 ? 'Pendiente' : 'Pendientes'}
 
             </span>
 
-            <span className="text-[10px] font-mono text-zinc-300">HMAC-SHA256</span>
+            <span className={`text-[10px] font-mono ${pendingGatesCount > 0 ? 'text-amber-400' : 'text-zinc-500'}`}>
+
+              {pendingGatesCount > 0 ? 'Requiere Firma' : 'Cero Bloqueos'}
+
+            </span>
 
           </div>
 
           <div className="w-full bg-[#1b2533] h-1.5 rounded-full overflow-hidden">
 
-            <div className="bg-zinc-300 h-full rounded-full transition-all" style={{ width: '100%' }} />
+            <div
+
+              className={`h-full rounded-full transition-all ${pendingGatesCount > 0 ? 'bg-amber-400' : 'bg-zinc-700'}`}
+
+              style={{ width: `${pendingGatesCount > 0 ? 100 : 0}%` }}
+
+            />
 
           </div>
 
@@ -1036,6 +1058,36 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
 
 
+        {tasks.length === 0 ? (
+          <div className="p-8 text-center rounded-2xl bg-[#070b10] border border-zinc-850 space-y-3">
+            <div className="w-10 h-10 mx-auto rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
+              <Layers className="w-5 h-5 text-zinc-400" />
+            </div>
+            <div className="text-sm font-bold text-white">Sin tareas activas en este sprint</div>
+            <p className="text-xs text-zinc-400 max-w-md mx-auto">
+              Planifica una oleada acíclica de agentes desde el Diseñador Kahn o selecciona un ticket del backlog de Jira.
+            </p>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onOpenSprintModal}
+                className="px-3.5 py-1.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-zinc-200 transition cursor-pointer"
+              >
+                + Diseñar Sprint
+              </button>
+              {onNavigateSection && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateSection('jira')}
+                  className="px-3.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs font-semibold hover:bg-zinc-800 transition cursor-pointer"
+                >
+                  Ver Jira Backlog
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
         {/* View Mode: Gantt */}
 
         {viewMode === 'gantt' && (
@@ -1336,6 +1388,9 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
           </>
 
+        )}
+
+          </>
         )}
 
       </section>
