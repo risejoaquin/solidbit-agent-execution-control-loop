@@ -1,3 +1,15 @@
+import {
+  ReactFlow,
+  MiniMap,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  MarkerType,
+  Position,
+  Handle,
+} from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
 import React, { useState, useEffect } from 'react'
 import {
   GitBranch,
@@ -28,11 +40,50 @@ interface DagNode {
   dependencies: string
 }
 
+
+const AgentStepNode = ({ data }: { data: any }) => {
+  const isGate = data.gate_required
+  return (
+    <div className="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 hover:border-zinc-500 shadow-2xl min-w-[220px] max-w-[260px] text-left transition select-none">
+      <Handle type="target" position={Position.Top} className="!bg-zinc-400 !w-2.5 !h-2.5 !border-zinc-900" />
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-zinc-300">
+          {data.step}
+        </span>
+        <span
+          className={`text-[9px] font-mono px-2 py-0.5 rounded-full ${
+            isGate
+              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+              : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+          }`}
+        >
+          {isGate ? 'Requiere HITL' : 'Automático'}
+        </span>
+      </div>
+      <div className="font-bold text-white text-xs truncate" title={data.label}>
+        {data.label}
+      </div>
+      <div className="text-[10px] font-mono text-zinc-400 mt-0.5 truncate">
+        {data.agent_role}
+      </div>
+      <div className="mt-2 pt-2 border-t border-zinc-900 flex items-center justify-between text-[9px] font-mono text-zinc-500">
+        <span>Timeout: {data.timeout_sec}s</span>
+        <span className="text-zinc-300">{data.action}</span>
+      </div>
+      <Handle type="source" position={Position.Bottom} className="!bg-zinc-400 !w-2.5 !h-2.5 !border-zinc-900" />
+    </div>
+  )
+}
+
+const nodeTypes = {
+  agentStep: AgentStepNode,
+}
+
 export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
   tasks: initialTasks,
   onOpenSprintModal,
 }) => {
-  const [viewMode, setViewMode] = useState<'gantt' | 'list'>('gantt')
+  const [viewMode, setViewMode] = useState<'flow' | 'gantt' | 'list'>('flow')
   const [dagData, setDagData] = useState<any>(null)
   const [dagNodes, setDagNodes] = useState<DagNode[]>([])
   const [backlogTasks, setBacklogTasks] = useState<any[]>([])
@@ -118,6 +169,45 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
     a.remove()
   }
 
+
+  // Compute ReactFlow graph nodes & edges from dagNodes
+  const flowNodes = dagNodes.map((n, idx) => {
+    // 3 columns layout
+    const col = idx % 3
+    const row = Math.floor(idx / 3)
+    return {
+      id: n.id,
+      type: 'agentStep',
+      position: { x: col * 280 + 40, y: row * 160 + 40 },
+      data: {
+        step: `Paso ${idx + 1}`,
+        label: n.label,
+        agent_role: n.agent_role,
+        action: n.action,
+        gate_required: n.gate_required,
+        timeout_sec: n.timeout_sec,
+      },
+    }
+  })
+
+  const flowEdges = dagNodes.flatMap((n) => {
+    if (!n.dependencies) return []
+    const rawDeps: any = n.dependencies
+    const deps: string[] = Array.isArray(rawDeps)
+      ? rawDeps
+      : typeof rawDeps === 'string'
+      ? rawDeps.split(',').map((d: string) => d.trim()).filter(Boolean)
+      : []
+    return deps.map((d) => ({
+      id: `e-${d}-${n.id}`,
+      source: d,
+      target: n.id,
+      animated: true,
+      style: { stroke: '#71717a', strokeWidth: 1.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#71717a' },
+    }))
+  })
+
   return (
     <div className="space-y-6">
       {/* Header bar */}
@@ -139,6 +229,17 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           {/* View toggle */}
           <div className="flex items-center p-1 rounded-2xl bg-black/40 border border-zinc-800">
+            <button
+              onClick={() => setViewMode('flow')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 ${
+                viewMode === 'flow'
+                  ? 'bg-white text-black font-bold shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <GitBranch className="w-3.5 h-3.5" />
+              <span>Grafo DAG</span>
+            </button>
             <button
               onClick={() => setViewMode('gantt')}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 ${
@@ -211,6 +312,31 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
           <span className="font-mono text-zinc-400 text-[10px]">
             {dagNodes.length} nodos verificados
           </span>
+        </div>
+      )}
+
+            {/* Interactive React Flow Topological Canvas */}
+      {viewMode === 'flow' && (
+        <div className="h-[460px] w-full rounded-3xl bg-zinc-950 border border-zinc-800 overflow-hidden relative shadow-2xl">
+          <div className="absolute top-3 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-zinc-800 text-[11px] font-mono text-zinc-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Kahn DAG Interactive Topology ({dagNodes.length} Nodos &bull; Pan & Zoom)</span>
+          </div>
+          <ReactFlow
+            nodes={flowNodes}
+            edges={flowEdges}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-[#09090b]"
+          >
+            <Background color="#27272a" gap={20} size={1} />
+            <Controls className="!bg-zinc-900 !border-zinc-800 !text-white [&>button]:!border-zinc-800 [&>button]:!fill-white" />
+            <MiniMap
+              nodeColor="#3f3f46"
+              maskColor="rgba(0, 0, 0, 0.7)"
+              className="!bg-zinc-950 !border !border-zinc-800 !rounded-xl"
+            />
+          </ReactFlow>
         </div>
       )}
 

@@ -15,6 +15,7 @@ import {
   GitBranch,
   CheckSquare,
   Search,
+  SlidersHorizontal,
 } from 'lucide-react'
 import type { NotificationItem } from '../types/orchestrator'
 
@@ -38,6 +39,19 @@ export const Header: React.FC<HeaderProps> = ({
   const [clock, setClock] = useState<string>('')
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false)
+  const [density, setDensity] = useState<'compact' | 'default' | 'comfortable'>(
+    (localStorage.getItem('sacl_ui_density') as any) || 'default'
+  )
+
+  const handleDensityChange = (newDensity: 'compact' | 'default' | 'comfortable') => {
+    setDensity(newDensity)
+    localStorage.setItem('sacl_ui_density', newDensity)
+    document.documentElement.setAttribute('data-density', newDensity)
+  }
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-density', density)
+  }, [density])
 
   // Sovereign Operator State
   const [operatorName, setOperatorName] = useState<string>(
@@ -308,6 +322,41 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           <span>{clock || 'Cargando reloj...'}</span>
+        </div>
+
+        {/* Adaptive Information Density Switcher */}
+        <div
+          id="header-density-control"
+          className="hidden xl:flex items-center p-0.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-mono"
+          title="Densidad Adaptativa de Información"
+        >
+          <button
+            type="button"
+            onClick={() => handleDensityChange('compact')}
+            className={`px-2 py-1 rounded-lg transition ${
+              density === 'compact' ? 'bg-white text-black font-bold shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Compact 28px
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDensityChange('default')}
+            className={`px-2 py-1 rounded-lg transition ${
+              density === 'default' ? 'bg-white text-black font-bold shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Default 38px
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDensityChange('comfortable')}
+            className={`px-2 py-1 rounded-lg transition ${
+              density === 'comfortable' ? 'bg-white text-black font-bold shadow-sm' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Comfort 48px
+          </button>
         </div>
 
         {/* Quick Search / Command Palette Trigger (Cmd+K) */}

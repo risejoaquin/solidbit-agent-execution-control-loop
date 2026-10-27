@@ -192,9 +192,15 @@ export const ExecutionsSection: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-right">
-              <span className="text-[10px] font-mono text-zinc-500 block">Autoridad Requerida</span>
-              <span className="text-xs font-bold text-zinc-200 font-mono">{operatorName}</span>
+            <div className="text-right space-y-1">
+              <div>
+                <span className="text-[10px] font-mono text-zinc-500 block">Autoridad Requerida</span>
+                <span className="text-xs font-bold text-zinc-200 font-mono">{operatorName}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono text-amber-400">
+                <Clock className="w-3 h-3 text-amber-400 animate-spin" />
+                <span>SLA Fail-Closed: 14m 28s</span>
+              </div>
             </div>
           </div>
 

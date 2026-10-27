@@ -46,6 +46,28 @@
     scroll-margin-top: 5.5rem;
     scroll-margin-bottom: 5.5rem;
   }
+
+  /* Adaptive Information Density */
+  html[data-density="compact"] {
+    --density-row-h: 28px;
+    --density-pad-y: 0.25rem;
+    --density-pad-x: 0.5rem;
+    --density-font-size: 0.75rem;
+  }
+
+  html[data-density="default"] {
+    --density-row-h: 38px;
+    --density-pad-y: 0.5rem;
+    --density-pad-x: 0.75rem;
+    --density-font-size: 0.8125rem;
+  }
+
+  html[data-density="comfortable"] {
+    --density-row-h: 48px;
+    --density-pad-y: 0.75rem;
+    --density-pad-x: 1rem;
+    --density-font-size: 0.875rem;
+  }
 }
 
 /* Custom sleek minimalist monochrome scrollbars */
