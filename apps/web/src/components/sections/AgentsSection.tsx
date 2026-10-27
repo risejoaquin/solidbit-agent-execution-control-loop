@@ -17,6 +17,9 @@ import {
   FolderGit2,
   XCircle,
   Eye,
+  ChevronDown,
+  ChevronUp,
+  Info,
 } from 'lucide-react'
 import { formatSmartDateTime } from '../../utils/dateFormat'
 
@@ -31,16 +34,15 @@ interface AgentRoleDefinition {
   icon: 'host' | 'gov' | 'qa' | 'coder'
 }
 
-interface OSProcessItem {
+interface ActiveAgentRunning {
   id: string
-  pid: number | null
   name: string
-  type: string
   role: string
-  status: string
-  memory_mb?: number
-  log_size_kb?: number
-  last_updated?: string
+  pid?: number
+  worktree: string
+  command?: string
+  status: 'RUNNING' | 'COMPLETED' | 'BLOCKED_ON_GATE' | 'FAILED'
+  started_at?: string
 }
 
 const PERMANENT_ROLES: AgentRoleDefinition[] = [
@@ -98,13 +100,11 @@ const PERMANENT_ROLES: AgentRoleDefinition[] = [
 
 export const AgentsSection: React.FC = () => {
   const [fleetState, setFleetState] = useState<any>({ fleet_state: 'IDLE', running_count: 0, active_agents: [] })
-  const [osProcesses, setOsProcesses] = useState<OSProcessItem[]>([])
   const [actionHistory, setActionHistory] = useState<any[]>([])
   const [executingAction, setExecutingAction] = useState<string | null>(null)
   const [executionFeedback, setExecutionFeedback] = useState<any | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
-  const [selectedProcessLog, setSelectedProcessLog] = useState<{ id: string; content: string } | null>(null)
-  const [killingId, setKillingId] = useState<string | null>(null)
+  const [showCatalog, setShowCatalog] = useState<boolean>(false)
 
   const loadData = async () => {
     setLoading(true)
@@ -118,19 +118,7 @@ export const AgentsSection: React.FC = () => {
         console.warn('Error loading fleet state:', e)
       }
 
-      // 2. Real OS Tasks / Background daemons from backend
-      try {
-        const subRes = await fetch('/api/subagents/list')
-        const subData = await subRes.json()
-        if (subData && subData.tasks) {
-          // Filter to running or unique real processes
-          setOsProcesses(subData.tasks.filter((t: any) => t.status === 'RUNNING' || t.pid))
-        }
-      } catch (e) {
-        console.warn('Error loading OS processes:', e)
-      }
-
-      // 3. Real Agent Action History from backend
+      // 2. Real Agent Action History from backend
       try {
         const actRes = await fetch('/api/actions/history')
         const actData = await actRes.json()
@@ -168,38 +156,6 @@ export const AgentsSection: React.FC = () => {
     }
   }
 
-  const handleViewProcessLog = async (procId: string) => {
-    try {
-      const res = await fetch(`/api/subagents/logs?task_id=${encodeURIComponent(procId)}`)
-      const data = await res.json()
-      setSelectedProcessLog({
-        id: procId,
-        content: data.logs || data.content || 'Sin registros recientes en el buffer.',
-      })
-    } catch (e: any) {
-      alert('Error leyendo log: ' + e.message)
-    }
-  }
-
-  const handleKillProcess = async (procId: string) => {
-    if (!confirm(`¿Confirmas la detención forzosa del proceso ${procId}?`)) return
-    setKillingId(procId)
-    try {
-      const res = await fetch('/api/subagents/kill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task_id: procId }),
-      })
-      const data = await res.json()
-      alert(`Proceso ${procId}: ${data.message || (data.success ? 'Detenido con éxito.' : 'No se pudo detener.')}`)
-      loadData()
-    } catch (e: any) {
-      alert('Error al detener proceso: ' + e.message)
-    } finally {
-      setKillingId(null)
-    }
-  }
-
   const getRoleIcon = (icon: AgentRoleDefinition['icon']) => {
     switch (icon) {
       case 'host':
@@ -213,8 +169,9 @@ export const AgentsSection: React.FC = () => {
     }
   }
 
-  const activeAgentsCount = fleetState.active_agents?.length ?? 0
-  const isIdle = activeAgentsCount === 0
+  const activeAgents: ActiveAgentRunning[] = fleetState.active_agents || []
+  const activeCount = activeAgents.length
+  const isIdle = activeCount === 0
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -223,7 +180,7 @@ export const AgentsSection: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
-              Flota de Agentes Autónomos & Supervisión de Procesos OS
+              Flota de Agentes Autónomos SACL
             </h1>
             <span
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
@@ -232,11 +189,11 @@ export const AgentsSection: React.FC = () => {
                   : 'bg-white text-black border-white animate-pulse'
               }`}
             >
-              {isIdle ? 'ZERO-TOKEN IDLE' : `${activeAgentsCount} AGENTES ACTIVOS`}
+              {isIdle ? 'ZERO-TOKEN IDLE' : `${activeCount} AGENTES ACTIVOS`}
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Supervisión soberana de agentes de IA, procesos reales del sistema operativo y aislamiento en ramas efímeras
+            Supervisión soberana de agentes de IA con verdad empírica (SB-ENG-HB-001 Cap. 12.3). Cero datos simulados.
           </p>
         </div>
 
@@ -339,138 +296,134 @@ export const AgentsSection: React.FC = () => {
         </div>
       )}
 
-      {/* 3. The 5 Permanent SACL Agent Roles */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      {/* 3. Real Active Agent Fleet Section (Zero-Token Idle Banner vs Active Agents) */}
+      <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+          <div className="flex items-center gap-2.5">
             <Bot className="w-4 h-4 text-zinc-200" />
             <h2 className="text-sm font-bold text-white tracking-wide">
-              Definición de Roles & Worktrees de la Flota (SB-ENG-HB-001)
-            </h2>
-          </div>
-          <span className="text-xs text-zinc-400 font-mono">5 Agentes Especializados</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {PERMANENT_ROLES.map((roleDef) => (
-            <div
-              key={roleDef.id}
-              className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition flex flex-col justify-between space-y-3"
-            >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-zinc-200 shrink-0">
-                    {getRoleIcon(roleDef.icon)}
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-zinc-800">
-                      {roleDef.id}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xs font-bold text-white">{roleDef.name}</h3>
-                  <span className="text-[11px] font-mono text-zinc-400 block mt-0.5">{roleDef.role}</span>
-                </div>
-
-                <p className="text-xs text-zinc-400 leading-relaxed">{roleDef.description}</p>
-              </div>
-
-              <div className="space-y-1.5 pt-2 border-t border-zinc-850 text-[10px] font-mono">
-                <div className="flex items-center justify-between text-zinc-400">
-                  <span className="text-zinc-500">Worktree:</span>
-                  <span className="text-zinc-300 font-semibold truncate max-w-[170px]">{roleDef.worktree}</span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-400">
-                  <span className="text-zinc-500">Modelo / Motor:</span>
-                  <span className="text-zinc-300 font-semibold">{roleDef.model}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 4. Active OS Daemons & Real Background Processes (/api/subagents/list) */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800 pb-3">
-          <div className="flex items-center gap-2.5">
-            <Radio className="w-4 h-4 text-zinc-200" />
-            <h2 className="text-sm font-bold text-white">
-              Procesos en Vivo del Sistema Operativo & Daemons (/api/subagents/list)
+              Agentes en Ejecución Activa
             </h2>
           </div>
           <span className="text-xs font-mono text-zinc-400">
-            {osProcesses.length} procesos reales en ejecución
+            {isIdle ? '0 agentes consumiendo tokens' : `${activeCount} agentes activos`}
           </span>
         </div>
 
-        {osProcesses.length === 0 ? (
-          <div className="p-6 rounded-2xl bg-black border border-zinc-850 text-center space-y-2">
-            <span className="text-xs font-mono font-bold text-zinc-400 block">CERO PROCESOS SECUNDARIOS</span>
-            <p className="text-xs text-zinc-500">No hay procesos secundarios o túneles ejecutándose en este momento.</p>
+        {isIdle ? (
+          <div className="p-8 rounded-2xl bg-black border border-zinc-850 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-zinc-300 mx-auto">
+              <Layers className="w-6 h-6 text-zinc-400" />
+            </div>
+            <div className="max-w-md mx-auto space-y-1.5">
+              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+                Flota en Reposo (Zero-Token Idle)
+              </h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                No hay agentes ejecutándose actualmente. De acuerdo con el RISEHANDBOOK (Capítulo 12.3), la flota no simula estados ni consume recursos en segundo plano mientras no haya una misión despachada.
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="overflow-x-auto custom-scroll">
-            <table className="w-full text-left text-xs font-mono">
-              <thead>
-                <tr className="border-b border-zinc-800 text-[11px] text-zinc-400">
-                  <th className="pb-2.5 pl-2">Identificador</th>
-                  <th className="pb-2.5">PID (SO)</th>
-                  <th className="pb-2.5">Rol / Tarea</th>
-                  <th className="pb-2.5">Memoria</th>
-                  <th className="pb-2.5">Estado</th>
-                  <th className="pb-2.5 text-right pr-2">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-850">
-                {osProcesses.map((proc) => (
-                  <tr key={proc.id} className="hover:bg-zinc-900/50 transition">
-                    <td className="py-3 pl-2">
-                      <span className="font-bold text-white block">{proc.name}</span>
-                      <span className="text-[10px] text-zinc-500">{proc.id}</span>
-                    </td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800 text-[10px] font-bold">
-                        PID {proc.pid ?? 'EXEC'}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {activeAgents.map((ag) => (
+              <div
+                key={ag.id}
+                className="p-4 rounded-2xl bg-zinc-950 border border-zinc-700 shadow-md space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white font-mono">{ag.id}</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-black font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                    RUNNING
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">{ag.name}</h4>
+                  <span className="text-[11px] font-mono text-zinc-400">{ag.role}</span>
+                </div>
+                {ag.command && (
+                  <div className="p-2 rounded bg-black border border-zinc-800 font-mono text-[10px] text-zinc-300 truncate">
+                    {ag.command}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Collapsible Architectural Roles Catalog (Reference Specification) */}
+      <div className="rounded-3xl bg-zinc-950 border border-zinc-800 overflow-hidden shadow-xl">
+        <button
+          type="button"
+          onClick={() => setShowCatalog(!showCatalog)}
+          className="w-full p-5 flex items-center justify-between hover:bg-zinc-900/50 transition cursor-pointer text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-zinc-300">
+              <FolderGit2 className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-bold text-white tracking-wide">
+                  Catálogo de Roles & Especificación de Worktrees (SB-ENG-HB-001)
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-400 border border-zinc-800">
+                  Especificación de Arquitectura
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                Definición formal de los 5 roles permanentes que se instancian durante una oleada o sprint.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-zinc-400">
+            <span className="text-xs font-mono">{showCatalog ? 'Ocultar catálogo' : 'Ver 5 roles'}</span>
+            {showCatalog ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </div>
+        </button>
+
+        {showCatalog && (
+          <div className="p-5 pt-0 border-t border-zinc-850 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-4">
+              {PERMANENT_ROLES.map((roleDef) => (
+                <div
+                  key={roleDef.id}
+                  className="p-4 rounded-2xl bg-black border border-zinc-850 hover:border-zinc-700 transition flex flex-col justify-between space-y-3"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-200 shrink-0">
+                        {getRoleIcon(roleDef.icon)}
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-400 border border-zinc-800">
+                        {roleDef.id}
                       </span>
-                    </td>
-                    <td className="py-3 text-zinc-300 text-xs font-sans max-w-xs truncate">
-                      {proc.role}
-                    </td>
-                    <td className="py-3 text-zinc-400 text-xs">
-                      {proc.memory_mb ? `${proc.memory_mb.toFixed(1)} MB` : 'Ligero'}
-                    </td>
-                    <td className="py-3">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-black">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
-                        RUNNING
-                      </span>
-                    </td>
-                    <td className="py-3 text-right pr-2 space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => handleViewProcessLog(proc.id)}
-                        className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 text-[11px] transition cursor-pointer"
-                        title="Ver logs en vivo"
-                      >
-                        Logs
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleKillProcess(proc.id)}
-                        disabled={killingId === proc.id}
-                        className="px-2.5 py-1 rounded-lg bg-red-950/40 border border-red-500/30 hover:bg-red-900/50 text-red-300 text-[11px] transition cursor-pointer"
-                        title="Detener proceso"
-                      >
-                        {killingId === proc.id ? 'Deteniendo...' : 'Detener'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{roleDef.name}</h4>
+                      <span className="text-[11px] font-mono text-zinc-400 block mt-0.5">{roleDef.role}</span>
+                    </div>
+
+                    <p className="text-xs text-zinc-400 leading-relaxed">{roleDef.description}</p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-zinc-900 text-[10px] font-mono">
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-zinc-500">Worktree:</span>
+                      <span className="text-zinc-300 font-semibold truncate max-w-[170px]">{roleDef.worktree}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-zinc-500">Modelo / Motor:</span>
+                      <span className="text-zinc-300 font-semibold">{roleDef.model}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -481,7 +434,7 @@ export const AgentsSection: React.FC = () => {
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-zinc-200" />
             <h2 className="text-sm font-bold text-white">
-              Historial de Acciones Ejecutadas por Agentes (/api/actions/history)
+              Historial de Acciones Ejecutadas por Agentes
             </h2>
           </div>
           <span className="text-xs text-zinc-400 font-mono">{actionHistory.length} ejecuciones</span>
@@ -489,7 +442,9 @@ export const AgentsSection: React.FC = () => {
 
         <div className="overflow-x-auto custom-scroll">
           {actionHistory.length === 0 ? (
-            <p className="text-xs text-zinc-500 py-3 font-mono">No hay ejecuciones de acciones registradas aún.</p>
+            <div className="text-center py-6 text-zinc-500 text-xs font-mono">
+              No hay acciones ejecutadas en esta sesión.
+            </div>
           ) : (
             <table className="w-full text-left text-xs font-mono">
               <thead>
@@ -520,28 +475,6 @@ export const AgentsSection: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* Log Modal */}
-      {selectedProcessLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <span className="font-mono text-xs font-bold text-white">
-                Log Buffer: {selectedProcessLog.id}
-              </span>
-              <button
-                onClick={() => setSelectedProcessLog(null)}
-                className="text-zinc-400 hover:text-white p-1 rounded transition cursor-pointer"
-              >
-                Cerrar
-              </button>
-            </div>
-            <pre className="p-3 rounded-xl bg-black border border-zinc-850 font-mono text-[11px] text-zinc-300 max-h-80 overflow-y-auto custom-scroll whitespace-pre-wrap">
-              {selectedProcessLog.content}
-            </pre>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
