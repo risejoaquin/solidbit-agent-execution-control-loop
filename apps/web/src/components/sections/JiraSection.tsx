@@ -194,7 +194,7 @@ export const JiraSection: React.FC<JiraSectionProps> = ({ onLaunchSprintForTicke
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-white tracking-tight">
-                Backlog de Tareas y Jira
+                Requerimientos y Lista de Tareas
               </h2>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
@@ -203,7 +203,7 @@ export const JiraSection: React.FC<JiraSectionProps> = ({ onLaunchSprintForTicke
                     : 'bg-zinc-900 text-zinc-300 border-zinc-800'
                 }`}
               >
-                {isJiraConnected ? 'CONECTADO A JIRA CLOUD' : 'GUARDADO LOCAL EN SQLITE'}
+                {isJiraConnected ? 'SINCRONIZADO CON JIRA' : 'GUARDADO EN TU PROYECTO'}
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">
@@ -288,7 +288,7 @@ export const JiraSection: React.FC<JiraSectionProps> = ({ onLaunchSprintForTicke
               onClick={() => setStatusFilter(s.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                 statusFilter === s.id
-                  ? 'bg-white text-black'
+                  ? 'bg-zinc-800 text-white border border-zinc-600'
                   : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
               }`}
             >
@@ -363,10 +363,10 @@ export const JiraSection: React.FC<JiraSectionProps> = ({ onLaunchSprintForTicke
                       <button
                         type="button"
                         onClick={() => onLaunchSprintForTicket(ticket)}
-                        className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
                       >
-                        <Sparkles className="w-3.5 h-3.5 fill-black" />
-                        <span>Lanzar Sprint</span>
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Planificar con esta Tarea</span>
                       </button>
                     )}
 

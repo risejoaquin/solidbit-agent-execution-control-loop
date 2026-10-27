@@ -257,7 +257,7 @@ export const SettingsSection: React.FC = () => {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-300">Clave Secreta de Firma (HMAC)</label>
+                <label className="text-xs font-semibold text-zinc-300">Clave Privada de Autorización</label>
                 <span className={`text-[11px] flex items-center gap-1 ${isSecretValid ? 'text-emerald-400' : 'text-amber-400'}`}>
                   <CheckCircle2 className="w-3 h-3" />
                   {isSecretValid ? 'Longitud segura (8+ caracteres)' : 'Mínimo 8 caracteres'}

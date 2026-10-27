@@ -361,12 +361,18 @@ export const ExecutionsSection: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="p-8 rounded-2xl bg-zinc-950 border border-zinc-800 text-center space-y-2">
+        <div className="p-8 rounded-2xl bg-zinc-950 border border-zinc-800 text-center space-y-3">
           <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
           <h3 className="text-sm font-bold text-white">Todo al Día · Sin Aprobaciones Pendientes</h3>
-          <p className="text-xs text-zinc-400">
-            Cuando lances un nuevo sprint, aparecerá aquí listo para tu revisión final.
+          <p className="text-xs text-zinc-400 max-w-md mx-auto">
+            Todas las entregas anteriores han sido revisadas. Puedes volver al Centro de Sprint para planificar una nueva mejora.
           </p>
+          <a
+            href="#dashboard"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-extrabold text-xs transition shadow-sm"
+          >
+            <span>Ir al Centro de Sprint</span>
+          </a>
         </div>
       )}
 

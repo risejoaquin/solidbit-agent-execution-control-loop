@@ -161,8 +161,16 @@ class ProjectsModule:
         if not tech:
             tech = ["Proyecto Local"]
 
-        p_id = item.name.lower().replace(" ", "-")
-        display_name = "Orquestador SACL" if item.name == "integration" else item.name
+        p_id = (
+            "sacl-control-loop"
+            if item.name in ("integration", "solidbit-agent-execution-control-loop")
+            else item.name.lower().replace(" ", "-")
+        )
+        display_name = (
+            "Orquestador SACL"
+            if item.name in ("integration", "solidbit-agent-execution-control-loop")
+            else item.name
+        )
 
         return {
             "id": p_id,
@@ -275,6 +283,10 @@ class ProjectsModule:
                 if p["id"] == project_id_or_path
                 or p["name"].lower() == project_id_or_path.lower()
                 or p["path"] == project_id_or_path
+                or (
+                    project_id_or_path == "sacl-control-loop"
+                    and ("sacl" in p["id"] or "integration" in p["id"])
+                )
             ),
             None,
         )
@@ -288,6 +300,7 @@ class ProjectsModule:
                 }
             return imp
 
+        matched["id"] = project_id_or_path if project_id_or_path == "sacl-control-loop" else matched["id"]
         self.active_project_id = matched["id"]
         self._save_imported_paths()
         return {

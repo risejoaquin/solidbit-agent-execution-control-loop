@@ -76,7 +76,7 @@ class ConnectionsModule:
     TOOLS = [
         ("agy", "Antigravity CLI (AGY)", "ai", ["agy", "--version"], ["agy", "--version"]),
         ("gh", "GitHub CLI (gh)", "vcs", ["gh", "--version"], ["gh", "auth", "status"]),
-        ("git", "Git (Control de Versiones)", "vcs", ["git", "--version"], ["git", "config", "user.email"]),
+        ("git", "Git VCS (Control de Versiones)", "vcs", ["git", "--version"], ["git", "config", "user.email"]),
         ("python", "Python 3 Runtime", "runtime", ["python", "--version"], None),
         ("node", "Node.js & NPM", "runtime", ["node", "--version"], None),
         ("resend", "Resend Email API", "notifications", ["resend", "--version"], ["resend", "whoami"]),

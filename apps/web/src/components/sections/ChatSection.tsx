@@ -273,11 +273,11 @@ export const ChatSection: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-white tracking-wide">
-                Consola Conversacional SACL & Runtime AGY
+                Asistente de Consulta y Diagnóstico
               </h2>
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-750">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                ANTIGRAVITY MOTOR ACTIVO
+                ASISTENTE DISPONIBLE
               </span>
             </div>
             <p className="text-xs text-zinc-400">

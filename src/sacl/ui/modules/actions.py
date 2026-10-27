@@ -325,20 +325,26 @@ class ActionExecutionModule:
                 # 3. Verificación Real de Contratos con Pytest (test_contracts.py)
                 t_step3 = time.perf_counter()
                 invariants_file = evidence_dir / "invariants_audit.json"
+                pytest_root = (
+                    self.workspace_root
+                    if (self.workspace_root / "tests" / "helpers" / "test_contracts.py").exists()
+                    else Path(__file__).resolve().parents[4]
+                )
+                src_dir_abs = str((pytest_root / "src").resolve())
                 inv_cmd = [
                     sys.executable,
                     "-m",
                     "pytest",
-                    "tests/helpers/test_contracts.py",
+                    str(pytest_root / "tests" / "helpers" / "test_contracts.py"),
                     "-q",
                 ]
                 inv_proc = subprocess.run(
                     inv_cmd,
-                    cwd=str(self.workspace_root),
+                    cwd=str(pytest_root),
                     capture_output=True,
                     text=True,
                     timeout=15,
-                    env={**os.environ, "PYTHONPATH": "src"},
+                    env={**os.environ, "PYTHONPATH": src_dir_abs},
                 )
                 dur_step3 = round(time.perf_counter() - t_step3, 3)
                 inv_out = (inv_proc.stdout or "") + "\n" + (inv_proc.stderr or "")
@@ -389,14 +395,20 @@ class ActionExecutionModule:
                 # 4. Ejecución Real de Suite Pytest UI & Modelos
                 t_step4 = time.perf_counter()
                 pytest_log = logs_dir / "pytest_execution.log"
-                ui_test_cmd = [sys.executable, "-m", "pytest", "tests/ui/test_ui_models.py", "-v"]
+                ui_test_cmd = [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(pytest_root / "tests" / "ui" / "test_ui_models.py"),
+                    "-v",
+                ]
                 ui_proc = subprocess.run(
                     ui_test_cmd,
-                    cwd=str(self.workspace_root),
+                    cwd=str(pytest_root),
                     capture_output=True,
                     text=True,
                     timeout=20,
-                    env={**os.environ, "PYTHONPATH": "src"},
+                    env={**os.environ, "PYTHONPATH": src_dir_abs},
                 )
                 dur_step4 = round(time.perf_counter() - t_step4, 3)
                 pytest_output = (ui_proc.stdout or "") + "\n" + (ui_proc.stderr or "")

@@ -9,22 +9,19 @@ import {
   Layers,
   GitBranch,
   Bot,
-  PlayCircle,
+  ShieldCheck,
   Folder,
   Mail,
   BarChart2,
   Settings,
   ArrowRight,
-  Terminal,
-  X,
-  FileCode,
 } from 'lucide-react'
 
 interface CommandPaletteItem {
   id: string
   title: string
   subtitle: string
-  category: 'Navegación' | 'Acción Rápida'
+  category: 'Entidad Principal' | 'Acción Rápida' | 'Configuración'
   icon: React.ComponentType<{ className?: string }>
   action: () => void
   shortcut?: string
@@ -50,11 +47,11 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const items: CommandPaletteItem[] = [
-    // Acciones Rápidas
+    // Acciones Rápidas (CQRS)
     {
       id: 'act-sprint',
-      title: 'Diseñar Sprint de Ejecución (DAG Kahn)',
-      subtitle: 'Orquestar oleadas, roles y worktrees de agentes',
+      title: 'Planificar Nuevo Sprint',
+      subtitle: 'Definir objetivo y ejecutar pruebas con el equipo de asistentes',
       category: 'Acción Rápida',
       icon: Sparkles,
       action: () => {
@@ -64,21 +61,9 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       shortcut: 'S',
     },
     {
-      id: 'act-jira',
-      title: 'Crear o Revisar Tickets Jira',
-      subtitle: 'Gestionar requerimientos BDD (Given/When/Then)',
-      category: 'Acción Rápida',
-      icon: CheckSquare,
-      action: () => {
-        onClose()
-        onNavigate('jira')
-      },
-      shortcut: 'J',
-    },
-    {
       id: 'act-diffs',
-      title: 'Inspeccionar Diffs Git en Worktrees',
-      subtitle: 'Auditoría de cambios pendientes y regla Dirty-Root',
+      title: 'Inspeccionar Cambios de Código',
+      subtitle: 'Revisar líneas agregadas o modificadas en el proyecto activo',
       category: 'Acción Rápida',
       icon: GitBranch,
       action: () => {
@@ -88,12 +73,12 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       shortcut: 'D',
     },
 
-    // Navegación
+    // 5 Entidades Principales (OOUX & MECE)
     {
       id: 'nav-dashboard',
-      title: 'Inicio / Panel de Control',
-      subtitle: 'Supervisión general, telemetría y commits recientes',
-      category: 'Navegación',
+      title: '1. Sprint Actual (Centro de Control)',
+      subtitle: 'Flujo operativo principal, estado y resoluciones',
+      category: 'Entidad Principal',
       icon: Home,
       action: () => {
         onClose()
@@ -101,54 +86,21 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       },
     },
     {
-      id: 'nav-chat',
-      title: 'Chat IA (AGY) & Modelos',
-      subtitle: 'Consola conversacional con 9 motores de inferencia',
-      category: 'Navegación',
-      icon: MessageSquare,
+      id: 'nav-projects',
+      title: '2. Proyectos Vinculados',
+      subtitle: 'Importar o cambiar la carpeta de código activa',
+      category: 'Entidad Principal',
+      icon: Folder,
       action: () => {
         onClose()
-        onNavigate('chat')
-      },
-    },
-    {
-      id: 'nav-jira',
-      title: 'Jira Backlog & Requerimientos',
-      subtitle: 'Backlog de producto, historias y criterios de aceptación',
-      category: 'Navegación',
-      icon: CheckSquare,
-      action: () => {
-        onClose()
-        onNavigate('jira')
-      },
-    },
-    {
-      id: 'nav-auth',
-      title: 'Sesiones CLI & Auth Hub',
-      subtitle: 'Credenciales y diagnóstico de GitHub, Railway, Supabase, Jira',
-      category: 'Navegación',
-      icon: Key,
-      action: () => {
-        onClose()
-        onNavigate('connections')
-      },
-    },
-    {
-      id: 'nav-workflows',
-      title: 'Workflows & Skills (AGY)',
-      subtitle: 'Habilidades activas y catálogo de herramientas',
-      category: 'Navegación',
-      icon: Layers,
-      action: () => {
-        onClose()
-        onNavigate('workflows')
+        onNavigate('projects')
       },
     },
     {
       id: 'nav-roadmap',
-      title: 'Roadmap & DAG Topológico',
-      subtitle: 'Línea de tiempo SDLC y visualizador de dependencias',
-      category: 'Navegación',
+      title: '3. Mapa de Flujo y Etapas',
+      subtitle: 'Secuencia visual de revisiones y dependencias',
+      category: 'Entidad Principal',
       icon: GitBranch,
       action: () => {
         onClose()
@@ -157,9 +109,9 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     },
     {
       id: 'nav-agents',
-      title: 'Flota de Agentes & Procesos SO',
-      subtitle: 'Tabla de PIDs del sistema operativo y consumo de recursos',
-      category: 'Navegación',
+      title: '4. Equipo de Asistentes y Diagnóstico',
+      subtitle: 'Ejecutar pruebas de calidad y revisar especialistas',
+      category: 'Entidad Principal',
       icon: Bot,
       action: () => {
         onClose()
@@ -168,20 +120,45 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     },
     {
       id: 'nav-gates',
-      title: 'Compuertas Controls & Ejecuciones (HITL)',
-      subtitle: 'Historial de runs y firmas criptográficas HMAC-SHA256',
-      category: 'Navegación',
-      icon: PlayCircle,
+      title: '5. Aprobaciones e Historial',
+      subtitle: 'Autorizar entregas verificadas y consultar corridas anteriores',
+      category: 'Entidad Principal',
+      icon: ShieldCheck,
       action: () => {
         onClose()
         onNavigate('executions')
       },
     },
+
+    // Canales y Configuración
+    {
+      id: 'nav-jira',
+      title: 'Requerimientos y Lista de Tareas',
+      subtitle: 'Gestionar tareas pendientes y prioridades',
+      category: 'Configuración',
+      icon: CheckSquare,
+      action: () => {
+        onClose()
+        onNavigate('jira')
+      },
+      shortcut: 'J',
+    },
+    {
+      id: 'nav-auth',
+      title: 'Conexiones del Sistema',
+      subtitle: 'Estado de sesión en GitHub, Railway, Resend y herramientas locales',
+      category: 'Configuración',
+      icon: Key,
+      action: () => {
+        onClose()
+        onNavigate('connections')
+      },
+    },
     {
       id: 'nav-email',
-      title: 'Email Gateway & Resend',
-      subtitle: 'Automatización bidireccional y micro-decisiones por correo',
-      category: 'Navegación',
+      title: 'Notificaciones por Correo',
+      subtitle: 'Configurar avisos y resúmenes en tu bandeja de entrada',
+      category: 'Configuración',
       icon: Mail,
       action: () => {
         onClose()
@@ -189,10 +166,32 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       },
     },
     {
+      id: 'nav-chat',
+      title: 'Asistente de Consulta',
+      subtitle: 'Hacer preguntas o ejecutar comandos rápidos sobre el proyecto',
+      category: 'Configuración',
+      icon: MessageSquare,
+      action: () => {
+        onClose()
+        onNavigate('chat')
+      },
+    },
+    {
+      id: 'nav-workflows',
+      title: 'Catálogo de Flujos Automatizados',
+      subtitle: 'Rutinas especializadas listas para usar',
+      category: 'Configuración',
+      icon: Layers,
+      action: () => {
+        onClose()
+        onNavigate('workflows')
+      },
+    },
+    {
       id: 'nav-database',
-      title: 'Reportes Forenses & SQLite WAL',
-      subtitle: 'Inspector de tablas locales y registros de auditoría',
-      category: 'Navegación',
+      title: 'Registro de Actividad y Reglas de Negocio',
+      subtitle: 'Garantías protegidas y respaldo local',
+      category: 'Configuración',
       icon: BarChart2,
       action: () => {
         onClose()
@@ -201,9 +200,9 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     },
     {
       id: 'nav-github',
-      title: 'Configuración & Repositorio GitHub',
-      subtitle: 'Ajustes del perfil del operador y ramas remotas',
-      category: 'Navegación',
+      title: 'Perfil y Sincronización',
+      subtitle: 'Datos del responsable y estado de la rama remota',
+      category: 'Configuración',
       icon: Settings,
       action: () => {
         onClose()
@@ -230,7 +229,6 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     }
   }, [isOpen])
 
-  // Keyboard navigation inside modal
   useEffect(() => {
     if (!isOpen) return
 
@@ -261,7 +259,6 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
   return (
     <div className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-start justify-center pt-20 p-4 animate-fade-in text-left">
       <div className="w-full max-w-xl rounded-3xl bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden flex flex-col max-h-[75vh]">
-        {/* Search Input Bar */}
         <div className="p-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-950">
           <Search className="w-4 h-4 text-zinc-400 shrink-0" />
           <input
@@ -272,19 +269,18 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
               setQuery(e.target.value)
               setSelectedIdx(0)
             }}
-            placeholder="Escribe un comando o busca una sección... (↑ ↓ para navegar)"
-            className="w-full bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none font-mono"
+            placeholder="Ir a una entidad o ejecutar una acción... (↑ ↓ para navegar)"
+            className="w-full bg-transparent text-sm text-white placeholder-zinc-500 focus:outline-none"
           />
           <kbd className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400">
             ESC
           </kbd>
         </div>
 
-        {/* Results List */}
         <div className="overflow-y-auto custom-scroll p-2 divide-y divide-zinc-900">
           {filteredItems.length === 0 ? (
-            <div className="py-8 text-center text-xs text-zinc-500 font-mono">
-              No se encontraron coincidencias para "{query}"
+            <div className="py-8 text-center text-xs text-zinc-500">
+              No se encontraron vistas para "{query}"
             </div>
           ) : (
             filteredItems.map((item, idx) => {
@@ -346,16 +342,15 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
           )}
         </div>
 
-        {/* Footer info bar */}
         <div className="p-2.5 px-4 bg-zinc-900/40 border-t border-zinc-800 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
           <div className="flex items-center gap-3">
             <span>↑ ↓ Navegar</span>
             <span>&bull;</span>
-            <span>↵ Seleccionar</span>
+            <span>↵ Abrir</span>
             <span>&bull;</span>
             <span>ESC Cerrar</span>
           </div>
-          <span>SACL Control Plane V41</span>
+          <span>Centro de Control SolidBit</span>
         </div>
       </div>
     </div>

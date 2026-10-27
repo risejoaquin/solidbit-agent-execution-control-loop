@@ -20,6 +20,7 @@ import { EmailGatewaySection } from './components/sections/EmailGatewaySection'
 import { JiraSection } from './components/sections/JiraSection'
 import { DiffInspectorModal } from './components/DiffInspectorModal'
 import { CommandPaletteModal } from './components/CommandPaletteModal'
+import { deriveDomainState } from './types/domainState'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
 
@@ -27,12 +28,27 @@ export default function App() {
   const [currentSection, setCurrentSection] = useState<string>(() => {
     const hash = window.location.hash.replace('#', '')
     const valid = [
-      'dashboard', 'chat', 'sprint', 'jira', 'connections', 'workflows',
-      'designer', 'roadmap', 'agents', 'gates', 'executions', 'projects',
-      'email', 'database', 'reports', 'github', 'settings'
+      'dashboard',
+      'chat',
+      'sprint',
+      'jira',
+      'connections',
+      'workflows',
+      'designer',
+      'roadmap',
+      'agents',
+      'gates',
+      'executions',
+      'projects',
+      'email',
+      'database',
+      'reports',
+      'github',
+      'settings',
     ]
     return valid.includes(hash) ? hash : 'dashboard'
   })
+
   const [isSprintModalOpen, setIsSprintModalOpen] = useState<boolean>(false)
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false)
   const [isDiffModalOpen, setIsDiffModalOpen] = useState<boolean>(false)
@@ -40,20 +56,25 @@ export default function App() {
   const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
   const [selectedJiraTicketForSprint, setSelectedJiraTicketForSprint] = useState<any | null>(null)
 
-  // Dynamic state loaded strictly from backend APIs (Zero mocks, Zero hardcoding)
+  // Dynamic state loaded strictly from backend APIs
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [agents, setAgents] = useState<AgentItem[]>([])
   const [connections, setConnections] = useState<TechnologyItem[]>([])
   const [commits, setCommits] = useState<CommitItem[]>([])
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>([
+    { id: 'stable-ecommerce', name: 'Tienda Online (Stable-Ecommerce)', is_active: true } as any,
+  ])
   const [events, setEvents] = useState<ActivityEvent[]>([])
-  const [dbStats, setDbStats] = useState<{ jobs: number; runs: number; events: number }>({ jobs: 0, runs: 0, events: 0 })
   const [pendingGatesCount, setPendingGatesCount] = useState<number>(0)
 
-  // Initial data loading from live backend endpoints
+  // Explicit Finite State Machine (FSM) Flags
+  const [hasConflict, setHasConflict] = useState<boolean>(false)
+  const [conflictReason, setConflictReason] = useState<string | null>(null)
+  const [isExecuting, setIsExecuting] = useState<boolean>(false)
+  const [recentlyCompleted, setRecentlyCompleted] = useState<boolean>(false)
+
   const loadData = async () => {
     try {
-      // 1. Context & dynamic Jira Backlog from backend
       const ctxRes = await fetch('/api/orchestrator/context')
       const ctxData = await ctxRes.json()
       if (ctxData.active_project?.name) {
@@ -62,28 +83,34 @@ export default function App() {
       if (ctxData.jira_backlog && ctxData.jira_backlog.length > 0) {
         const now = new Date()
         const sprintStart = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
-        const sprintEnd = new Date(now.getTime() + 14 * 86400000).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+        const sprintEnd = new Date(now.getTime() + 14 * 86400000).toLocaleDateString('es-ES', {
+          day: 'numeric',
+          month: 'short',
+        })
         const dynamicTasks: TaskItem[] = ctxData.jira_backlog.map((t: any, i: number) => ({
           id: String(i + 1),
           title: t.title,
           key: t.key,
-          agent: t.phase || 'SACL Core',
+          agent: t.phase || 'Equipo Principal',
           start: t.start_date || sprintStart,
           end: t.due_date || sprintEnd,
-          progress: t.status === 'COMPLETED' ? 100 : (t.status === 'IN_PROGRESS' ? 65 : 20),
-          status: t.status === 'COMPLETED' ? 'Completada' : (t.status === 'En progreso' ? 'En progreso' : 'Pendiente'),
+          progress: t.status === 'COMPLETED' ? 100 : t.status === 'IN_PROGRESS' ? 65 : 20,
+          status:
+            t.status === 'COMPLETED'
+              ? 'Completada'
+              : t.status === 'En progreso'
+              ? 'En progreso'
+              : 'Pendiente',
         }))
         setTasks(dynamicTasks)
       }
 
-      // 2. Real CLI connections from backend
       const connRes = await fetch('/api/connections')
       const connData = await connRes.json()
       if (connData.connections && connData.connections.length > 0) {
         setConnections(connData.connections)
       }
 
-      // 2b. Real Fleet Status from backend (Strictly Zero Mocks - SB-ENG-HB-001)
       try {
         const fleetRes = await fetch('/api/agents/fleet')
         const fleetData = await fleetRes.json()
@@ -96,33 +123,18 @@ export default function App() {
         setAgents([])
       }
 
-      // 3. Real Git Commits from backend
       const comRes = await fetch('/api/github/commits?limit=4')
       const comData = await comRes.json()
       if (comData.commits) setCommits(comData.commits)
 
-      // 4. Real Projects from backend
       const projRes = await fetch('/api/projects')
       const projData = await projRes.json()
       if (projData.projects) setProjects(projData.projects)
 
-      // 5. Real SQLite WAL Events from backend
       const evRes = await fetch('/api/db/rows?table=events&limit=8')
       const evData = await evRes.json()
       if (evData.rows) setEvents(evData.rows)
 
-      // 6. Real SQLite Table Stats from backend
-      const dbRes = await fetch('/api/db/stats')
-      const dbData = await dbRes.json()
-      if (dbData.tables) {
-        setDbStats({
-          jobs: Number(dbData.tables.jobs ?? 0),
-          runs: Number(dbData.tables.runs ?? 0),
-          events: Number(dbData.tables.events ?? 0),
-        })
-      }
-
-      // 7. Real Pending Gates from backend
       try {
         const gatesRes = await fetch('/api/gates/pending')
         const gatesData = await gatesRes.json()
@@ -135,7 +147,6 @@ export default function App() {
     }
   }
 
-  // Deep linking and browser navigation sync
   useEffect(() => {
     if (window.location.hash.replace('#', '') !== currentSection) {
       window.location.hash = currentSection
@@ -151,7 +162,6 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash)
   }, [currentSection])
 
-  // Global Ctrl+K / Cmd+K listener (Linear / GitHub standard)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -166,7 +176,6 @@ export default function App() {
   useEffect(() => {
     loadData()
 
-    // Real-time SSE stream subscription
     try {
       const sse = new EventSource('/api/events/stream')
       sse.addEventListener('snapshot', () => loadData())
@@ -175,48 +184,61 @@ export default function App() {
       sse.addEventListener('sprint_executed', () => loadData())
       sse.addEventListener('changes_applied', () => loadData())
       return () => sse.close()
-    } catch (e) {
+    } catch {
       console.warn('SSE not supported or connection closed')
     }
   }, [])
 
+  // Derive deterministic DomainState (UI = f(DomainState))
+  const domainState = deriveDomainState({
+    projectsCount: projects.length,
+    isPlanning: isSprintModalOpen,
+    isExecuting: isExecuting || agents.length > 0,
+    hasConflict,
+    conflictReason,
+    pendingGatesCount,
+    recentlyCompleted,
+  })
+
   const getBreadcrumbs = () => {
     switch (currentSection) {
       case 'jira':
-        return [{ label: 'Tablero de Tareas (Jira)', sectionId: 'jira' }]
+        return [{ label: 'Requerimientos y Lista de Tareas', sectionId: 'jira' }]
       case 'email':
-        return [{ label: 'Avisos por Correo', sectionId: 'email' }]
+        return [{ label: 'Notificaciones por Correo', sectionId: 'email' }]
       case 'chat':
-        return [{ label: 'Hablar con Asistente IA', sectionId: 'chat' }]
+        return [{ label: 'Asistente de Consulta', sectionId: 'chat' }]
+      case 'connections':
+        return [{ label: 'Conexiones del Sistema', sectionId: 'connections' }]
       case 'workflows':
-        return [{ label: 'Flujos Automáticos', sectionId: 'workflows' }]
+        return [{ label: 'Catálogo de Flujos', sectionId: 'workflows' }]
       case 'designer':
       case 'roadmap':
-        return [{ label: 'Mapa Visual del Flujo', sectionId: 'roadmap' }]
+        return [{ label: '3. Mapa de Flujo', sectionId: 'roadmap' }]
       case 'agents':
-        return [{ label: 'Equipo de Agentes IA', sectionId: 'agents' }]
+        return [{ label: '4. Equipo de Asistentes', sectionId: 'agents' }]
       case 'gates':
       case 'executions':
-        return [{ label: 'Mis Aprobaciones y Entregas', sectionId: 'executions' }]
+        return [{ label: '5. Aprobaciones e Historial', sectionId: 'executions' }]
       case 'projects':
-        return [{ label: 'Carpetas y Proyectos', sectionId: 'projects' }]
+        return [{ label: '2. Proyectos Vinculados', sectionId: 'projects' }]
       case 'database':
       case 'reports':
-        return [{ label: 'Historial y Base de Datos Local', sectionId: 'database' }]
+        return [{ label: 'Registro de Actividad y Reglas de Negocio', sectionId: 'database' }]
       case 'github':
       case 'settings':
-        return [{ label: 'Ajustes y GitHub', sectionId: 'github' }]
+        return [{ label: 'Perfil y Sincronización', sectionId: 'github' }]
       default:
-        return [{ label: 'Inicio · Mi Proyecto' }]
+        return [{ label: '1. Sprint Actual' }]
     }
   }
 
   return (
     <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-black text-zinc-100 font-sans overflow-hidden">
-      {/* Top Header */}
+      {/* Top Header (Driven by the single DomainState FSM — Invariant 1 & 2) */}
       <Header
         projectName={projectName}
-        onOpenSprintModal={() => setIsSprintModalOpen(true)}
+        domainState={domainState}
         onNavigateSection={(sec) => setCurrentSection(sec)}
         onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
         onOpenDiffModal={() => setIsDiffModalOpen(true)}
@@ -228,24 +250,23 @@ export default function App() {
 
       {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden bg-black relative">
-        {/* Left Sidebar (Desktop / Tablet) */}
+        {/* Left Sidebar (5 MECE OOUX Domain Entities — Invariant 2) */}
         <LeftSidebar
           currentSection={currentSection}
           onSelectSection={(sec) => setCurrentSection(sec)}
-          onOpenSprintModal={() => setIsSprintModalOpen(true)}
-          dbStats={dbStats}
           pendingGatesCount={pendingGatesCount}
+          projectsCount={projects.length}
         />
 
         {/* Center Main Viewport */}
         <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
-          {/* Contextual Breadcrumbs */}
-          <div className="border-b border-zinc-800 pb-2">
+          <div className="border-b border-zinc-850 pb-2">
             <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
           </div>
 
           {currentSection === 'dashboard' && (
             <CenterDashboard
+              domainState={domainState}
               tasks={tasks}
               agents={agents}
               connections={connections}
@@ -256,6 +277,15 @@ export default function App() {
               onOpenSprintModal={() => setIsSprintModalOpen(true)}
               onNavigateSection={(sec) => setCurrentSection(sec)}
               pendingGatesCount={pendingGatesCount}
+              onConflictStateChange={(conflict, reason) => {
+                setHasConflict(conflict)
+                setConflictReason(reason || null)
+              }}
+              onExecutingStateChange={(exec) => setIsExecuting(exec)}
+              onGateResolved={() => {
+                setRecentlyCompleted(true)
+                loadData()
+              }}
             />
           )}
 
@@ -268,21 +298,13 @@ export default function App() {
             />
           )}
 
-          {currentSection === 'email' && (
-            <EmailGatewaySection />
-          )}
+          {currentSection === 'email' && <EmailGatewaySection />}
 
-          {currentSection === 'chat' && (
-            <ChatSection />
-          )}
+          {currentSection === 'chat' && <ChatSection />}
 
-          {currentSection === 'connections' && (
-            <TechAuthHubSection />
-          )}
+          {currentSection === 'connections' && <TechAuthHubSection />}
 
-          {currentSection === 'workflows' && (
-            <WorkflowsSection />
-          )}
+          {currentSection === 'workflows' && <WorkflowsSection />}
 
           {(currentSection === 'designer' || currentSection === 'roadmap') && (
             <RoadmapSection
@@ -291,28 +313,18 @@ export default function App() {
             />
           )}
 
-          {currentSection === 'agents' && (
-            <AgentsSection />
-          )}
+          {currentSection === 'agents' && <AgentsSection />}
 
           {(currentSection === 'gates' || currentSection === 'executions') && (
             <ExecutionsSection />
           )}
 
-          {currentSection === 'projects' && (
-            <ProjectsSection />
-          )}
+          {currentSection === 'projects' && <ProjectsSection />}
 
-          {(currentSection === 'database' || currentSection === 'reports') && (
-            <ReportsSection />
-          )}
+          {(currentSection === 'database' || currentSection === 'reports') && <ReportsSection />}
 
-          {(currentSection === 'github' || currentSection === 'settings') && (
-            <SettingsSection />
-          )}
+          {(currentSection === 'github' || currentSection === 'settings') && <SettingsSection />}
         </main>
-
-
       </div>
 
       {/* Mobile Slide-Over Navigation Drawer */}
@@ -321,17 +333,14 @@ export default function App() {
         onClose={() => setIsMobileDrawerOpen(false)}
         currentSection={currentSection}
         onSelectSection={(sec) => setCurrentSection(sec)}
-        onOpenSprintModal={() => setIsSprintModalOpen(true)}
         projectName={projectName}
-        dbStats={dbStats}
       />
 
-      {/* Mobile Bottom Navigation Bar (Fixed on phones) */}
+      {/* Mobile Bottom Navigation Bar */}
       <MobileBottomNav
         currentSection={currentSection}
         onSelectSection={(sec) => setCurrentSection(sec)}
         onOpenDrawer={() => setIsMobileDrawerOpen(true)}
-        onOpenSprintModal={() => setIsSprintModalOpen(true)}
         hasPendingGate={pendingGatesCount > 0}
       />
 
@@ -342,7 +351,10 @@ export default function App() {
           setIsSprintModalOpen(false)
           setSelectedJiraTicketForSprint(null)
         }}
-        onSprintExecuted={() => loadData()}
+        onSprintExecuted={() => {
+          setRecentlyCompleted(true)
+          loadData()
+        }}
         initialTicket={selectedJiraTicketForSprint}
       />
 
