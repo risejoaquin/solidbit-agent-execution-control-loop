@@ -59,7 +59,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 md:hidden flex animate-fade-in">
+    <div className="fixed inset-0 z-[100] md:hidden flex animate-fade-in">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
@@ -72,7 +72,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-zinc-200">
+              <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-750 flex items-center justify-center text-white">
                 <Layers className="w-4 h-4" />
               </div>
               <div>
@@ -110,10 +110,10 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   onClick={() => handleItemClick(item.action)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                     isActive
-                      ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/10'
+                      ? 'bg-white text-black font-bold shadow-sm'
                       : item.highlight
-                      ? 'text-zinc-200 bg-emerald-500/10 border border-emerald-500/25'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'
+                      ? 'text-zinc-200 bg-zinc-900 border border-zinc-750'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -137,7 +137,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               onClose()
               onOpenSprintModal()
             }}
-            className="w-full py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-white text-black font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs flex items-center justify-center gap-2 transition shadow-sm cursor-pointer"
           >
             <Play className="w-3.5 h-3.5 fill-black" />
             <span>Ejecutar Sprint</span>

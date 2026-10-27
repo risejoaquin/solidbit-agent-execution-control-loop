@@ -154,7 +154,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#080c10] text-zinc-100 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-black text-zinc-100 font-sans overflow-hidden">
       {/* Top Header */}
       <Header
         projectName={projectName}
@@ -168,7 +168,7 @@ export default function App() {
       <NetworkStatusBanner onRetry={loadData} />
 
       {/* Main Layout */}
-      <div className="flex flex-1 overflow-hidden bg-[#080c10] relative">
+      <div className="flex flex-1 overflow-hidden bg-black relative">
         {/* Left Sidebar (Desktop / Tablet) */}
         <LeftSidebar
           currentSection={currentSection}
@@ -180,7 +180,7 @@ export default function App() {
         {/* Center Main Viewport */}
         <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
           {/* Contextual Breadcrumbs */}
-          <div className="border-b border-[#1b2533]/50 pb-2">
+          <div className="border-b border-zinc-800 pb-2">
             <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
           </div>
 

@@ -80,13 +80,13 @@ export const ProjectsSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0e141d] border border-[#1b2533]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-zinc-950 border border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
               Gestor de Espacios de Trabajo & Repositorios (/api/projects)
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-200 border border-emerald-500/30">
               {projectsList.length} Proyectos Descubiertos
             </span>
           </div>
@@ -97,7 +97,7 @@ export const ProjectsSection: React.FC = () => {
 
         <button
           onClick={loadData}
-          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Escanear Proyectos</span>
@@ -114,17 +114,17 @@ export const ProjectsSection: React.FC = () => {
               className={`p-5 rounded-3xl transition space-y-4 border ${
                 isActive
                   ? 'bg-[#121a26] border-emerald-500/50 shadow-lg shadow-emerald-500/5'
-                  : 'bg-[#0e141d] border-[#1b2533] hover:border-zinc-700'
+                  : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700'
               }`}
             >
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 border border-emerald-500/20 flex items-center justify-center text-zinc-200">
                   <FolderGit2 className="w-5 h-5" />
                 </div>
                 <span
                   className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
                     isActive
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold'
+                      ? 'bg-white/10 text-zinc-200 border border-emerald-500/30 font-bold'
                       : 'bg-zinc-800 text-zinc-400'
                   }`}
                 >
@@ -141,7 +141,7 @@ export const ProjectsSection: React.FC = () => {
 
               {/* Detected scripts from package.json/Makefile */}
               {p.detected_scripts && p.detected_scripts.length > 0 && (
-                <div className="space-y-1.5 pt-2 border-t border-[#1b2533]">
+                <div className="space-y-1.5 pt-2 border-t border-zinc-800">
                   <span className="text-[10px] font-mono text-zinc-500 uppercase">Scripts Detectados:</span>
                   <div className="flex flex-wrap gap-1">
                     {p.detected_scripts.slice(0, 3).map((sc: string) => (
@@ -167,10 +167,10 @@ export const ProjectsSection: React.FC = () => {
       </div>
 
       {/* Workspace Files Tree */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+      <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-emerald-400" />
+            <Terminal className="w-4 h-4 text-zinc-200" />
             <h2 className="text-sm font-bold text-white">Árbol Físico de Archivos (/api/fs/tree)</h2>
           </div>
           <span className="text-xs text-zinc-400 font-mono">{fsTree.length} elementos raíz</span>
@@ -178,7 +178,7 @@ export const ProjectsSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* File list */}
-          <div className="p-3 rounded-2xl bg-[#070b10] border border-[#1b2533] max-h-80 overflow-y-auto custom-scroll space-y-1 font-mono text-xs">
+          <div className="p-3 rounded-2xl bg-[#070b10] border border-zinc-800 max-h-80 overflow-y-auto custom-scroll space-y-1 font-mono text-xs">
             {fsTree.map((item) => (
               <div
                 key={item.path}
@@ -191,9 +191,9 @@ export const ProjectsSection: React.FC = () => {
               >
                 <div className="flex items-center gap-2 truncate">
                   {item.is_dir ? (
-                    <FolderGit2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <FolderGit2 className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
                   ) : (
-                    <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <FileText className="w-3.5 h-3.5 text-zinc-200 shrink-0" />
                   )}
                   <span className="truncate">{item.name}</span>
                 </div>
@@ -205,10 +205,10 @@ export const ProjectsSection: React.FC = () => {
           </div>
 
           {/* Document Preview */}
-          <div className="p-4 rounded-2xl bg-[#070b10] border border-[#1b2533] max-h-80 overflow-y-auto custom-scroll">
+          <div className="p-4 rounded-2xl bg-[#070b10] border border-zinc-800 max-h-80 overflow-y-auto custom-scroll">
             {docContent ? (
               <div className="space-y-2">
-                <span className="text-xs font-mono font-bold text-emerald-400 block border-b border-white/5 pb-1">
+                <span className="text-xs font-mono font-bold text-zinc-200 block border-b border-white/5 pb-1">
                   {selectedDocName}
                 </span>
                 <pre className="font-mono text-xs text-zinc-300 whitespace-pre-wrap">{docContent}</pre>

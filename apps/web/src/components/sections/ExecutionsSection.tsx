@@ -125,7 +125,7 @@ export const ExecutionsSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0e141d] border border-[#1b2533]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-zinc-950 border border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
@@ -143,14 +143,14 @@ export const ExecutionsSection: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleCreateNewGate}
-            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-emerald-400" />
+            <Plus className="w-3.5 h-3.5 text-zinc-200" />
             <span>Crear Compuerta</span>
           </button>
           <button
             onClick={loadData}
-            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Actualizar</span>
@@ -160,8 +160,8 @@ export const ExecutionsSection: React.FC = () => {
 
       {/* Active HITL Gate Decision Dossier */}
       {selectedGate ? (
-        <div className="p-6 rounded-3xl bg-[#0e141d] border border-amber-500/40 space-y-5 shadow-2xl relative">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1b2533] pb-4">
+        <div className="p-6 rounded-3xl bg-zinc-950 border border-amber-500/40 space-y-5 shadow-2xl relative">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
                 <ShieldAlert className="w-5 h-5" />
@@ -183,7 +183,7 @@ export const ExecutionsSection: React.FC = () => {
 
             <div className="text-right">
               <span className="text-[10px] font-mono text-zinc-500 block">Autoridad Requerida</span>
-              <span className="text-xs font-bold text-emerald-400 font-mono">{operatorName}</span>
+              <span className="text-xs font-bold text-zinc-200 font-mono">{operatorName}</span>
             </div>
           </div>
 
@@ -193,7 +193,7 @@ export const ExecutionsSection: React.FC = () => {
               {dossier.decision_checklist.map((chk: any) => (
                 <div key={chk.id} className="p-3 rounded-2xl bg-black/40 border border-white/5 space-y-1">
                   <span className="text-[10px] font-mono text-zinc-500">{chk.name}</span>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-200">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>{chk.status}</span>
                   </div>
@@ -212,7 +212,7 @@ export const ExecutionsSection: React.FC = () => {
               type="text"
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
-              className="w-full bg-[#080c10] border border-[#1b2533] rounded-2xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500/60 font-sans"
+              className="w-full bg-black border border-zinc-800 rounded-2xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500/60 font-sans"
             />
           </div>
 
@@ -221,7 +221,7 @@ export const ExecutionsSection: React.FC = () => {
             <button
               onClick={() => handleDecision('APPROVED')}
               disabled={loading}
-              className="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/10"
+              className="flex-1 py-3 rounded-2xl bg-white hover:bg-zinc-200 text-black font-semibold font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/10"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Key className="w-4 h-4" />}
               <span>Aprobar y Emitir Token Soberano (POST /api/gates/decide)</span>
@@ -237,8 +237,8 @@ export const ExecutionsSection: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="p-8 rounded-3xl bg-[#0e141d] border border-[#1b2533] text-center space-y-2">
-          <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+        <div className="p-8 rounded-3xl bg-zinc-950 border border-zinc-800 text-center space-y-2">
+          <CheckCircle2 className="w-8 h-8 text-zinc-200 mx-auto" />
           <h3 className="text-sm font-bold text-white">Cero Compuertas Pendientes</h3>
           <p className="text-xs text-zinc-400">
             Todas las acciones y despliegues están al día en la tabla approvals de SQLite sacl_ops.db.
@@ -247,16 +247,16 @@ export const ExecutionsSection: React.FC = () => {
       )}
 
       {/* Real Runs from SQLite table */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+      <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h2 className="text-sm font-bold text-white">Historial de Corridas (Tabla 'runs' en SQLite WAL)</h2>
           <span className="text-xs text-zinc-400 font-mono">{runs.length} registradas</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
+          <table className="w-full min-w-[550px] text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-[#1b2533] text-[10px] text-zinc-500">
+              <tr className="border-b border-zinc-800 text-[10px] text-zinc-500">
                 <th className="pb-2 pl-2">Run ID</th>
                 <th className="pb-2">Job ID</th>
                 <th className="pb-2">Proyecto</th>
@@ -268,10 +268,10 @@ export const ExecutionsSection: React.FC = () => {
             <tbody className="divide-y divide-[#1b2533]/40">
               {runs.map((r, i) => (
                 <tr key={r.run_id || i} className="hover:bg-white/[0.02]">
-                  <td className="py-2.5 pl-2 font-bold text-blue-400">{r.run_id}</td>
+                  <td className="py-2.5 pl-2 font-bold text-zinc-300">{r.run_id}</td>
                   <td className="py-2.5 text-zinc-300">{r.job_id}</td>
                   <td className="py-2.5 text-white">{r.project || r.project_id}</td>
-                  <td className="py-2.5 text-emerald-400">{r.reconciled_verdict || 'PASS'}</td>
+                  <td className="py-2.5 text-zinc-200">{r.reconciled_verdict || 'PASS'}</td>
                   <td className="py-2.5 text-zinc-500 text-[11px]">{r.started_at}</td>
                   <td className="py-2.5 pr-2">
                     <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-800 text-zinc-300">

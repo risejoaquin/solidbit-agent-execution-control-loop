@@ -82,13 +82,13 @@ export const AgentsSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0e141d] border border-[#1b2533]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-zinc-950 border border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
               Agentes, Runtimes & Conexiones de Infraestructura
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-200 border border-emerald-500/30">
               {connections.length} Herramientas Conectadas
             </span>
           </div>
@@ -99,7 +99,7 @@ export const AgentsSection: React.FC = () => {
 
         <button
           onClick={loadData}
-          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Actualizar Estado</span>
@@ -118,26 +118,26 @@ export const AgentsSection: React.FC = () => {
               className={`p-4 rounded-3xl cursor-pointer transition-all border ${
                 isSelected
                   ? 'bg-[#121a26] border-emerald-500/60 shadow-lg shadow-emerald-500/5'
-                  : 'bg-[#0e141d] border-[#1b2533] hover:border-zinc-700'
+                  : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700'
               }`}
             >
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-zinc-900 text-zinc-300 border border-zinc-750">
                   {conn.id === 'agy' ? (
-                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                    <Sparkles className="w-5 h-5 text-zinc-200" />
                   ) : conn.category === 'vcs' ? (
-                    <Terminal className="w-5 h-5 text-blue-400" />
+                    <Terminal className="w-5 h-5 text-zinc-300" />
                   ) : conn.category === 'cloud' ? (
                     <Server className="w-5 h-5 text-purple-400" />
                   ) : (
-                    <Database className="w-5 h-5 text-emerald-400" />
+                    <Database className="w-5 h-5 text-zinc-200" />
                   )}
                 </div>
 
                 <span
                   className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
                     isOk
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-white/10 text-zinc-200 border border-emerald-500/30'
                       : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                   }`}
                 >
@@ -152,7 +152,7 @@ export const AgentsSection: React.FC = () => {
                 </p>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-[#1b2533] flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center justify-between text-[10px] font-mono text-zinc-500">
                 <span>Categoría: {conn.category}</span>
                 <button
                   onClick={(e) => {
@@ -160,7 +160,7 @@ export const AgentsSection: React.FC = () => {
                     handleTestConnection(conn.id)
                   }}
                   disabled={testingId === conn.id}
-                  className="text-emerald-400 hover:underline cursor-pointer"
+                  className="text-zinc-200 hover:underline cursor-pointer"
                 >
                   {testingId === conn.id ? 'Probando...' : 'Test CLI'}
                 </button>
@@ -171,10 +171,10 @@ export const AgentsSection: React.FC = () => {
       </div>
 
       {/* Real Actions Executed Table */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+      <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-400" />
+            <Activity className="w-4 h-4 text-zinc-200" />
             <h2 className="text-sm font-bold text-white">Historial de Acciones de Agentes (/api/actions/history)</h2>
           </div>
           <span className="text-xs text-zinc-400 font-mono">{actionHistory.length} ejecuciones</span>
@@ -186,7 +186,7 @@ export const AgentsSection: React.FC = () => {
           ) : (
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-[#1b2533] text-[10px] text-zinc-500">
+                <tr className="border-b border-zinc-800 text-[10px] text-zinc-500">
                   <th className="pb-2">Execution ID</th>
                   <th className="pb-2">Acción</th>
                   <th className="pb-2">Duración</th>
@@ -197,12 +197,12 @@ export const AgentsSection: React.FC = () => {
               <tbody className="divide-y divide-[#1b2533]/40">
                 {actionHistory.map((act, i) => (
                   <tr key={act.execution_id || i} className="hover:bg-white/[0.02]">
-                    <td className="py-2.5 font-bold text-blue-400">{act.execution_id}</td>
+                    <td className="py-2.5 font-bold text-zinc-300">{act.execution_id}</td>
                     <td className="py-2.5 text-white">{act.title || act.action_type}</td>
                     <td className="py-2.5 text-zinc-400">{act.duration_sec}s</td>
-                    <td className="py-2.5 text-emerald-400">{act.exit_code}</td>
+                    <td className="py-2.5 text-zinc-200">{act.exit_code}</td>
                     <td className="py-2.5 pr-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-900 text-zinc-300 border border-zinc-750">
                         {act.status}
                       </span>
                     </td>

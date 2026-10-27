@@ -87,13 +87,13 @@ export const ReportsSection: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-[#0e141d] border border-[#1b2533]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-zinc-950 border border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-white tracking-wide">
               Auditoría SQLite WAL (sacl_ops.db) & Contratos Congelados
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-200 border border-emerald-500/30">
               {dbStats.wal_mode ? 'WAL Mode ACTIVO' : 'SQLite DB'} &bull; {(dbStats.size_bytes / 1024).toFixed(1)} KB
             </span>
           </div>
@@ -105,9 +105,9 @@ export const ReportsSection: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleIntegrityCheck}
-            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-[#1b2533] hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
           >
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-zinc-200" />
             <span>PRAGMA Integrity</span>
           </button>
 
@@ -116,14 +116,14 @@ export const ReportsSection: React.FC = () => {
             disabled={checkpointing}
             className="px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-xs text-blue-300 flex items-center gap-1.5 transition cursor-pointer"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-blue-400" />
+            <RefreshCw className="w-3.5 h-3.5 text-zinc-300" />
             <span>{checkpointing ? 'Checkpointing...' : 'WAL Checkpoint'}</span>
           </button>
         </div>
       </div>
 
       {integrityStatus && (
-        <div className="p-4 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono text-emerald-400 flex items-center gap-2">
+        <div className="p-4 rounded-3xl bg-white/10 border border-emerald-500/30 text-xs font-mono text-zinc-200 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>{integrityStatus}</span>
         </div>
@@ -131,15 +131,15 @@ export const ReportsSection: React.FC = () => {
 
       {/* Real Frozen Contracts from backend /api/contracts */}
       {contractsData && (
-        <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
-          <div className="flex items-center justify-between border-b border-[#1b2533] pb-3">
+        <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
             <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-emerald-400" />
+              <Lock className="w-4 h-4 text-zinc-200" />
               <h2 className="text-sm font-bold text-white">
                 Contratos Inmutables Congelados (/api/contracts)
               </h2>
             </div>
-            <span className="text-[10px] font-mono text-emerald-400">
+            <span className="text-[10px] font-mono text-zinc-200">
               {contractsData.safety_summary || 'Hard Deny Supremacy'}
             </span>
           </div>
@@ -148,11 +148,11 @@ export const ReportsSection: React.FC = () => {
             {contractsData.contracts?.map((c: any) => (
               <div
                 key={c.id}
-                className="p-4 rounded-2xl bg-[#090e16] border border-[#1b2533] space-y-2 hover:border-zinc-700 transition"
+                className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2 hover:border-zinc-700 transition"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-emerald-400">{c.id}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="font-mono text-xs font-bold text-zinc-200">{c.id}</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-zinc-750">
                     {c.status}
                   </span>
                 </div>
@@ -165,10 +165,10 @@ export const ReportsSection: React.FC = () => {
       )}
 
       {/* Real SQLite Table Explorer */}
-      <div className="p-6 rounded-3xl bg-[#0e141d] border border-[#1b2533] space-y-4 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1b2533] pb-4">
+      <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
           <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-blue-400" />
+            <Database className="w-4 h-4 text-zinc-300" />
             <h2 className="text-sm font-bold text-white">Explorador de Tablas (/api/db/rows)</h2>
           </div>
 
@@ -180,7 +180,7 @@ export const ReportsSection: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl text-xs font-mono transition cursor-pointer ${
                   selectedTable === tbl
                     ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
-                    : 'bg-black/40 text-zinc-400 border border-[#1b2533] hover:text-white'
+                    : 'bg-black/40 text-zinc-400 border border-zinc-800 hover:text-white'
                 }`}
               >
                 {tbl} ({dbStats.tables[tbl] ?? 0})
@@ -198,7 +198,7 @@ export const ReportsSection: React.FC = () => {
           ) : (
             <table className="w-full text-left text-xs font-mono">
               <thead>
-                <tr className="border-b border-[#1b2533] text-[10px] text-zinc-500 uppercase">
+                <tr className="border-b border-zinc-800 text-[10px] text-zinc-500 uppercase">
                   {Object.keys(tableRows[0] || {}).map((k) => (
                     <th key={k} className="pb-2.5 pr-4 font-semibold">{k}</th>
                   ))}

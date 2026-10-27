@@ -189,8 +189,20 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-16 border-b border-zinc-800 bg-black/95 backdrop-blur-md px-3 sm:px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
-      {/* Left: Logo + Title + Project Subtitle */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      {/* Left: Hamburger (Mobile/Tablet) + Logo + Title + Project Subtitle */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {onToggleMobileMenu && (
+          <button
+            type="button"
+            id="btn-header-hamburger"
+            onClick={onToggleMobileMenu}
+            className="md:hidden w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 flex items-center justify-center transition cursor-pointer shrink-0"
+            aria-label="Abrir menú de navegación"
+            title="Abrir menú"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        )}
         <div
           onClick={() => onNavigateSection('dashboard')}
           className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 flex items-center justify-center shrink-0 cursor-pointer hover:bg-zinc-800 transition"
