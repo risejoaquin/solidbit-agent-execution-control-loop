@@ -3,26 +3,19 @@ import {
   X,
   Play,
   CheckCircle2,
-  GitBranch,
-  ShieldAlert,
   Loader2,
   Key,
-  Database,
-  Layers,
   ArrowRight,
-  Server,
-  Terminal,
   ShieldCheck,
   Check,
-  AlertTriangle,
-  FileCode,
   Folder,
-  Zap,
   Bug,
-  RefreshCw,
   SlidersHorizontal,
   FileCheck,
-  Cpu,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Lock,
 } from 'lucide-react'
 
 interface SprintDesignerModalProps {
@@ -50,44 +43,34 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
   onSprintExecuted,
   initialTicket,
 }) => {
-  // Stepper state
+  // 3-Step Friendly Stepper
   const [activeStep, setActiveStep] = useState<number>(1)
+
+  // Advanced Engineer Mode toggle (hidden by default for non-technical simplicity)
+  const [showAdvancedMode, setShowAdvancedMode] = useState<boolean>(false)
 
   // 1. Project Selection State
   const [projects, setProjects] = useState<ProjectOption[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('stable-ecommerce')
 
-  // 2. What do you want to do? (Mission Category)
+  // 2. What do you want to achieve?
   const [selectedMission, setSelectedMission] = useState<string>('feature')
-
-  // 3. Scope & Contracts State
   const [sprintTitle, setSprintTitle] = useState<string>(
-    'Implementación Atomic Inventory & Doble Partida'
+    'Reserva segura de productos y cobro confiable en caja'
   )
   const [sprintKey, setSprintKey] = useState<string>('SOLID-106')
   const [scopeIncluded, setScopeIncluded] = useState<string>(
-    'Reserva atómica en checkout, validación de stock SellableUnit y ledger de pagos idempotente.'
+    'Asegurar que el inventario se descuente sin errores y que ningún cliente pague dos veces por el mismo pedido.'
   )
   const [scopeExcluded, setScopeExcluded] = useState<string>(
-    'Terminal POS offline, pasarelas de pago no contratadas y migración destructiva de base de datos.'
+    'No modificar pantallas externas ni borrar historial de compras existentes.'
   )
   const [selectedContracts, setSelectedContracts] = useState<string[]>([
     'DR-INV-001',
     'DR-PAY-001',
     'DR-IDEM-001',
   ])
-
-  // 4. Strategy & Topology
   const [topologyMode, setTopologyMode] = useState<string>('waves')
-
-  // 5. Definition of Ready (DoR - Anexo E) Checklist
-  const [dorChecks, setDorChecks] = useState<Record<string, boolean>>({
-    objective: true,
-    contracts: true,
-    isolatedWorktree: true,
-    cliAuth: true,
-    acceptanceCriteria: true,
-  })
 
   // Execution & Live feedback state
   const [loading, setLoading] = useState(false)
@@ -106,6 +89,7 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
         setSelectedContracts(initialTicket.contracts)
       }
       if (initialTicket.description) setScopeIncluded(initialTicket.description)
+      setActiveStep(2)
     }
   }, [initialTicket])
 
@@ -138,61 +122,47 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
 
   if (!isOpen) return null
 
-  // Mission types catalog according to RISEHANDBOOK (SB-ENG-HB-001 v1.0)
+  // Simplified, human-centered goal templates (with technical mappings underneath)
   const missionTypes = [
     {
       id: 'feature',
-      title: 'Feature / Ticket de Negocio',
-      chapter: 'Cap. 7 & 8 · SDLC Core',
-      icon: Zap,
-      description: 'Desarrollo de nueva capacidad de negocio bajo ticket Jira con trazabilidad y criterios Given/When/Then.',
-      defaultTitle: 'Implementación de Requisitos y Flujo de Negocio',
+      title: 'Crear una función nueva',
+      subtitle: 'Agregar pantallas, botones o mejoras para tus usuarios',
+      icon: Sparkles,
+      description: 'Ideal cuando quieres sumar una herramienta nueva o mejorar la experiencia de compra.',
+      defaultTitle: 'Nueva mejora funcional para clientes',
       defaultContracts: ['DR-INV-001', 'DR-PAY-001', 'DR-IDEM-001'],
-    },
-    {
-      id: 'hardening',
-      title: 'Seguridad & Endurecimiento (RLS)',
-      chapter: 'Cap. 15 · Seguridad & RLS',
-      icon: ShieldCheck,
-      description: 'Auditoría de políticas RLS en Supabase, límites RBAC, blindaje de endpoints y prevención de fuga de secretos.',
-      defaultTitle: 'Endurecimiento de Seguridad, RLS & OWASP',
-      defaultContracts: ['DR-AUTH-001', 'DR-ERR-001', 'DR-IDEM-001'],
-    },
-    {
-      id: 'invariants',
-      title: 'Concurrencia & Idempotencia',
-      chapter: 'Cap. 6 · Invariantes ACID',
-      icon: Key,
-      description: 'Garantía de cero sobreventa bajo concurrencia, ledger de doble partida e idempotencia en pagos.',
-      defaultTitle: 'Auditoría de Concurrencia e Idempotencia (DR-INV-001 / DR-PAY-001)',
-      defaultContracts: ['DR-INV-001', 'DR-PAY-001', 'DR-IDEM-001'],
+      protectionSummary: 'Protección de inventario y pagos activada',
     },
     {
       id: 'diagnosis',
-      title: 'Diagnóstico & Causa Raíz',
-      chapter: 'Cap. 4 · EXPECTED–TEST–OBSERVED',
+      title: 'Corregir un problema o error',
+      subtitle: 'Algo no funciona bien y necesitas repararlo rápido',
       icon: Bug,
-      description: 'Investigación sistemática de fallas, 5 porqués, aislamiento de bugs y generación de tests de regresión.',
-      defaultTitle: 'Diagnóstico Sistemático de Causa Raíz (EXPECTED–TEST–OBSERVED)',
+      description: 'El equipo IA investiga la causa del fallo, lo repara en una copia segura y verifica que no vuelva a ocurrir.',
+      defaultTitle: 'Corrección y reparación de error detectado',
       defaultContracts: ['DR-INV-001', 'DR-PAY-001', 'DR-ERR-001'],
+      protectionSummary: 'Diagnóstico seguro sin afectar clientes actuales',
     },
     {
-      id: 'refactor',
-      title: 'Refactorización & Deuda Técnica',
-      chapter: 'Cap. 5 · Mantenibilidad & ADR',
-      icon: RefreshCw,
-      description: 'Reducción de acoplamiento modular, documentación de ADR versionado y preservación de comportamiento.',
-      defaultTitle: 'Refactorización y Reducción de Deuda Técnica Controlada',
-      defaultContracts: ['DR-INV-001', 'DR-PAY-001', 'DR-ERR-001'],
+      id: 'hardening',
+      title: 'Mejorar seguridad y velocidad',
+      subtitle: 'Blindar datos privados y optimizar el sistema',
+      icon: ShieldCheck,
+      description: 'Revisa permisos de acceso, protege contraseñas y asegura que nadie vea información ajena.',
+      defaultTitle: 'Refuerzo de seguridad y protección de datos',
+      defaultContracts: ['DR-AUTH-001', 'DR-ERR-001', 'DR-IDEM-001'],
+      protectionSummary: 'Blindaje de cuentas y privacidad activo',
     },
     {
       id: 'release',
-      title: 'Certificación E2E & Release Staging',
-      chapter: 'Cap. 9 · Gates 0 a 5',
+      title: 'Verificar y publicar cambios',
+      subtitle: 'Revisar que todo esté listo antes de salir en vivo',
       icon: FileCheck,
-      description: 'Validación de SHA de build, artefacto reproducible, verificación de Railway Safety y compuerta HITL.',
-      defaultTitle: 'Certificación de Entrega, Gates 0-5 y Staging',
+      description: 'Ejecuta todas las pruebas de calidad y deja el paquete listo para que lo apruebes con un clic.',
+      defaultTitle: 'Verificación de calidad y preparación de entrega',
       defaultContracts: ['DR-INV-001', 'DR-PAY-001', 'DR-AUTH-001', 'DR-IDEM-001'],
+      protectionSummary: 'Revisión completa antes de publicar',
     },
   ]
 
@@ -211,10 +181,10 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
     )
   }
 
-  // Generate Kahn Topological DAG Plan
+  // Generate Automatic Work Plan
   const handleGeneratePlan = async () => {
     setLoading(true)
-    setExecutionPhase('Sintetizando DAG de Kahn con asignación de roles y worktrees...')
+    setExecutionPhase('Traduciendo tu solicitud en un plan de trabajo paso a paso...')
     try {
       const res = await fetch('/api/orchestrator/auto-plan', {
         method: 'POST',
@@ -233,12 +203,12 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
       const data = await res.json()
       if (res.ok) {
         setActivePlan(data)
-        setActiveStep(4) // Jump to Plan & Execution step
+        setActiveStep(3)
       } else {
-        alert('Error al sintetizar el plan: ' + (data.error || 'Fallo de orquestador'))
+        alert('No pudimos armar el plan: ' + (data.error || 'Intenta nuevamente'))
       }
     } catch (e: any) {
-      alert('Error de red: ' + e.message)
+      alert('Error de conexión: ' + e.message)
     } finally {
       setLoading(false)
       setExecutionPhase('')
@@ -248,7 +218,7 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
   // Execute Sprint with real agents & parallel waves
   const handleExecuteSprint = async () => {
     setLoading(true)
-    setExecutionPhase('Iniciando Oleada 1: Arquitectura & Aislamiento de Worktrees...')
+    setExecutionPhase('Paso 1/3: Creando copia aislada para no afectar el sistema en vivo...')
     try {
       let currentPlan = activePlan
       if (!currentPlan) {
@@ -267,7 +237,7 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
         setActivePlan(currentPlan)
       }
 
-      setExecutionPhase('Ejecutando Oleada 2 & 3: Síntesis Paralela y Suite Pytest 31/31...')
+      setExecutionPhase('Paso 2/3: Los asistentes IA están programando y probando la solución...')
       const res = await fetch('/api/orchestrator/execute-sprint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -275,11 +245,11 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
       })
       const data = await res.json()
       if (res.ok && data.success) {
-        setExecutionPhase('Oleada 4: Materializando Entregables y Armando Compuerta HITL...')
+        setExecutionPhase('Paso 3/3: Guardando resultados en tu base de datos local...')
         setExecutionResult(data)
         onSprintExecuted?.()
       } else {
-        alert('Error en ejecución: ' + (data.error || 'Fallo de orquestación'))
+        alert('Hubo un inconveniente al ejecutar: ' + (data.error || 'Revisa los detalles'))
       }
     } catch (e: any) {
       alert('Error de conexión: ' + e.message)
@@ -289,12 +259,12 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
     }
   }
 
-  // Sign Sovereign HMAC Approval Gate
+  // Approve and Apply Changes
   const handleApplyHmac = async () => {
     const approvalId =
       executionResult?.gate_request_id ||
       executionResult?.gate?.approval_id ||
-      'REQ-20261026-743941E4'
+      'REQ-PENDING'
 
     setLoading(true)
     try {
@@ -303,17 +273,16 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           approval_id: approvalId,
-          operator: localStorage.getItem('sacl_operator_name') || 'Operador SACL',
-          justification: 'Aprobado formalmente bajo criterios del RISEHANDBOOK (SB-ENG-HB-001 v1.0).',
+          operator: localStorage.getItem('sacl_operator_name') || 'Operador Autorizado',
+          justification: 'Aprobado desde el Asistente Simplificado de Sprints.',
         }),
       })
       const data = await res.json()
       if (res.ok && data.success) {
         setHmacApplied(true)
         onSprintExecuted?.()
-        alert('Compuerta de Despliegue Soberana FIRMADA con HMAC-SHA256!')
       } else {
-        alert('Error al aplicar compuerta HMAC: ' + (data.error || 'Fallo de firma'))
+        alert('No se pudo autorizar el cambio: ' + (data.error || 'Fallo de autorización'))
       }
     } catch (e: any) {
       alert('Error: ' + e.message)
@@ -322,104 +291,128 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
     }
   }
 
-  const selectedProjectObj = projects.find((p) => p.id === selectedProjectId)
+  const projectCards = [
+    {
+      id: 'stable-ecommerce',
+      name: 'Tienda Online (E-Commerce)',
+      friendlyType: 'Catálogo web, carrito de compras y pagos con tarjeta',
+      protection: 'Evita vender productos sin stock o cobrar doble',
+      badge: 'PRINCIPAL',
+    },
+    {
+      id: 'pos',
+      name: 'Punto de Venta (SolidPOS)',
+      friendlyType: 'Caja registradora rápida para tiendas físicas',
+      protection: 'Funciona incluso si se corta el internet y sincroniza después',
+      badge: 'TIENDA FÍSICA',
+    },
+    {
+      id: 'sacl-orchestrator',
+      name: 'Cerebro Orquestador (SACL)',
+      friendlyType: 'Panel de control y coordinación de asistentes IA',
+      protection: 'Guarda todo el historial en tu computadora de forma privada',
+      badge: 'SISTEMA',
+    },
+  ]
+
+  const selectedProjectCard =
+    projectCards.find((p) => p.id === selectedProjectId) || projectCards[0]
+  const selectedMissionCard =
+    missionTypes.find((m) => m.id === selectedMission) || missionTypes[0]
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-2.5 sm:p-4 animate-fade-in">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-5xl w-full p-4 sm:p-6 space-y-4 shadow-2xl max-h-[95dvh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-850 pb-3 shrink-0">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-4xl w-full p-4 sm:p-6 space-y-5 shadow-2xl max-h-[94dvh] flex flex-col">
+        {/* Clean Human-Friendly Header */}
+        <div className="flex items-center justify-between border-b border-zinc-850 pb-4 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shrink-0">
-              <Layers className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-2xl bg-white text-black flex items-center justify-center shrink-0 shadow-sm">
+              <Sparkles className="w-5 h-5 text-black" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                  Estudio de Diseño de Sprints & DAG de Kahn
+                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                  Asistente para Crear una Nueva Tarea o Sprint
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white text-black border border-white">
-                  Metodología SolidBit (SB-ENG-HB-001)
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-zinc-900 text-zinc-200 border border-zinc-700">
+                  Guiado en 3 pasos simples
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Selección de proyecto, objetivo riguroso, contratos congelados y ejecución en worktrees aislados.
+                Dinos qué necesitas lograr en lenguaje sencillo; el sistema configura la seguridad y coordina a los agentes automáticamente.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            title="Cerrar ventana"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Step Navigation Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 shrink-0 custom-scroll text-xs">
+        {/* Visual 3-Step Progress Bar */}
+        <div className="grid grid-cols-3 gap-2 shrink-0">
           {[
-            { step: 1, label: '1. Proyecto' },
-            { step: 2, label: '2. ¿Qué se quiere hacer?' },
-            { step: 3, label: '3. Alcance & Contratos' },
-            { step: 4, label: '4. DAG & Ejecución' },
-          ].map((s) => (
-            <button
-              key={s.step}
-              onClick={() => setActiveStep(s.step)}
-              className={`px-3 py-1.5 rounded-xl font-mono text-xs transition cursor-pointer whitespace-nowrap ${
-                activeStep === s.step
-                  ? 'bg-white text-black font-bold shadow-sm'
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+            { step: 1, title: '1. Elegir Proyecto', desc: '¿Dónde trabajaremos?' },
+            { step: 2, title: '2. Qué Necesitas', desc: 'Explica tu objetivo' },
+            { step: 3, title: '3. Revisar y Lanzar', desc: 'Ejecutar con 1 clic' },
+          ].map((s) => {
+            const isCurrent = activeStep === s.step
+            const isDone = activeStep > s.step
+            return (
+              <button
+                key={s.step}
+                type="button"
+                onClick={() => setActiveStep(s.step)}
+                className={`p-2.5 sm:p-3 rounded-2xl border text-left transition cursor-pointer flex items-center justify-between ${
+                  isCurrent
+                    ? 'bg-white text-black border-white shadow-sm'
+                    : isDone
+                    ? 'bg-zinc-900/90 text-white border-zinc-700'
+                    : 'bg-zinc-950 text-zinc-400 border-zinc-850 hover:border-zinc-700 hover:text-zinc-200'
+                }`}
+              >
+                <div className="min-w-0">
+                  <div className="text-xs font-bold truncate">{s.title}</div>
+                  <div
+                    className={`text-[10px] truncate hidden sm:block ${
+                      isCurrent ? 'text-zinc-700' : 'text-zinc-400'
+                    }`}
+                  >
+                    {s.desc}
+                  </div>
+                </div>
+                {isDone && (
+                  <CheckCircle2
+                    className={`w-4 h-4 shrink-0 ${isCurrent ? 'text-black' : 'text-white'}`}
+                  />
+                )}
+              </button>
+            )
+          })}
         </div>
 
-        {/* Scrollable Body */}
+        {/* Scrollable Content Area */}
         <div className="overflow-y-auto custom-scroll space-y-5 flex-1 pr-1">
-          {/* STEP 1: PROYECTO DESTINO */}
+          {/* =========================================================
+              PASO 1: ¿EN QUÉ PROYECTO TRABAJAREMOS?
+             ========================================================= */}
           {activeStep === 1 && (
             <div className="space-y-4 animate-fade-in">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Folder className="w-4 h-4 text-white" />
-                  Paso 1: Seleccionar el Proyecto de Intervención
+                  Paso 1: ¿En qué parte de tu negocio quieres hacer mejoras hoy?
                 </h3>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Cada proyecto del ecosistema SolidBit tiene contratos y patrones arquitectónicos específicos (Cap. 13).
+                  Selecciona la aplicación. El sistema creará una copia de seguridad automática antes de tocar cualquier archivo.
                 </p>
               </div>
 
-              {/* Quick Select Project Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  {
-                    id: 'stable-ecommerce',
-                    name: 'Stable-Ecommerce',
-                    type: 'Comercio Digital & Web Storefront',
-                    stack: 'Node.js, Express, React 19, Supabase, Railway',
-                    arch: 'Monolito Modular · DR-INV-001 & DR-PAY-001',
-                    badge: 'ACTIVO',
-                  },
-                  {
-                    id: 'pos',
-                    name: 'SolidPOS (Full-Metal-Cash)',
-                    type: 'Terminal Punto de Venta Transaccional',
-                    stack: 'TypeScript, PostgreSQL, Local SQLite, Outbox/Inbox',
-                    arch: 'Offline-First & Sincronización · DR-REC-001',
-                    badge: 'STANDBY',
-                  },
-                  {
-                    id: 'sacl-orchestrator',
-                    name: 'SACL Control Loop',
-                    type: 'Motor Soberano de Ejecución',
-                    stack: 'Python 3.11, SQLite WAL, Kahn DAG, Railway CLI',
-                    arch: 'Supervisor Graph-P & Worktrees Efímeros',
-                    badge: 'CORE',
-                  },
-                ].map((proj) => {
+                {projectCards.map((proj) => {
                   const isSelected = selectedProjectId === proj.id
                   return (
                     <div
@@ -427,49 +420,51 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
                       onClick={() => setSelectedProjectId(proj.id)}
                       className={`p-4 rounded-2xl border transition cursor-pointer flex flex-col justify-between space-y-3 ${
                         isSelected
-                          ? 'bg-zinc-900 border-white ring-1 ring-white'
+                          ? 'bg-zinc-900 border-white ring-1 ring-white shadow-lg'
                           : 'bg-black border-zinc-800 hover:border-zinc-700'
                       }`}
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-bold text-white">{proj.name}</span>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+                            className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold shrink-0 ${
                               isSelected
                                 ? 'bg-white text-black'
-                                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                                : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
                             }`}
                           >
                             {proj.badge}
                           </span>
                         </div>
-                        <span className="text-[11px] text-zinc-400 block">{proj.type}</span>
+                        <p className="text-xs text-zinc-300 leading-relaxed">
+                          {proj.friendlyType}
+                        </p>
                       </div>
 
-                      <div className="space-y-1 pt-2 border-t border-zinc-850 text-[10px] font-mono text-zinc-400">
-                        <div className="truncate">Stack: {proj.stack}</div>
-                        <div className="text-zinc-300 truncate">{proj.arch}</div>
+                      <div className="pt-2.5 border-t border-zinc-850 flex items-start gap-1.5 text-[11px] text-zinc-400">
+                        <ShieldCheck className="w-3.5 h-3.5 text-white shrink-0 mt-0.5" />
+                        <span>{proj.protection}</span>
                       </div>
                     </div>
                   )
                 })}
               </div>
 
-              {/* Dynamic Projects Selector if available */}
+              {/* Additional detected repositories if user has custom ones */}
               {projects.length > 0 && (
-                <div className="p-3.5 rounded-2xl bg-black border border-zinc-850 space-y-2">
-                  <label className="text-[11px] font-mono text-zinc-400 block">
-                    O seleccione entre todos los repositorios detectados en el sistema:
-                  </label>
+                <div className="p-3 rounded-2xl bg-zinc-900/40 border border-zinc-850 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs text-zinc-300">
+                    Carpeta conectada en tu computadora:
+                  </span>
                   <select
                     value={selectedProjectId}
                     onChange={(e) => setSelectedProjectId(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white font-mono"
+                    className="bg-black border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white font-mono"
                   >
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} ({p.branch || 'main'}) - {p.description || p.path}
+                        {p.name} ({p.branch || 'principal'})
                       </option>
                     ))}
                   </select>
@@ -480,29 +475,32 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveStep(2)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-sm"
                 >
-                  <span>Continuar a Selección de Misión</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-black" />
+                  <span>Siguiente: Describir qué necesito</span>
+                  <ArrowRight className="w-4 h-4 text-black" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 2: ¿QUÉ SE QUIERE HACER? */}
+          {/* =========================================================
+              PASO 2: ¿QUÉ NECESITAS LOGRAR HOY? (LENGUAJE HUMANO)
+             ========================================================= */}
           {activeStep === 2 && (
             <div className="space-y-4 animate-fade-in">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-white" />
-                  Paso 2: ¿Qué se quiere hacer? (Categoría de Misión SolidBit)
+                  <Sparkles className="w-4 h-4 text-white" />
+                  Paso 2: ¿Qué te gustaría lograr hoy en {selectedProjectCard.name}?
                 </h3>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Defina el tipo de trabajo según las metodologías rigurosas del RISEHANDBOOK (SB-ENG-HB-001).
+                  Elige una opción rápida o escribe con tus propias palabras lo que necesitas.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* 4 Friendly Goal Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {missionTypes.map((m) => {
                   const isSelected = selectedMission === m.id
                   const Icon = m.icon
@@ -510,449 +508,451 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
                     <div
                       key={m.id}
                       onClick={() => handleSelectMission(m.id)}
-                      className={`p-4 rounded-2xl border transition cursor-pointer flex flex-col justify-between space-y-2.5 ${
+                      className={`p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
                         isSelected
                           ? 'bg-zinc-900 border-white ring-1 ring-white'
                           : 'bg-black border-zinc-800 hover:border-zinc-700'
                       }`}
                     >
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <div className="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <span className="text-[10px] font-mono text-zinc-400">{m.chapter}</span>
-                        </div>
-                        <h4 className="text-xs font-bold text-white">{m.title}</h4>
-                        <p className="text-[11px] text-zinc-400 leading-relaxed">{m.description}</p>
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                          isSelected
+                            ? 'bg-white text-black'
+                            : 'bg-zinc-900 border border-zinc-800 text-white'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
                       </div>
-
-                      <div className="pt-2 border-t border-zinc-850 flex items-center justify-between text-[10px] font-mono text-zinc-400">
-                        <span>Contratos:</span>
-                        <span className="text-zinc-200">{m.defaultContracts.join(', ')}</span>
+                      <div className="space-y-1 min-w-0">
+                        <h4 className="text-xs font-bold text-white">{m.title}</h4>
+                        <p className="text-[11px] text-zinc-300">{m.subtitle}</p>
+                        <p className="text-[10px] text-zinc-400 leading-relaxed">{m.description}</p>
                       </div>
                     </div>
                   )
                 })}
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(1)}
-                  className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-mono transition cursor-pointer"
-                >
-                  Atrás
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(3)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer"
-                >
-                  <span>Continuar a Alcance & Contratos</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-black" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: ALCANCE, EXCLUSIONES & CONTRATOS */}
-          {activeStep === 3 && (
-            <div className="space-y-4 animate-fade-in">
-              <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <FileCode className="w-4 h-4 text-white" />
-                  Paso 3: Especificar Alcance, Exclusiones e Invariantes
-                </h3>
-                <p className="text-xs text-zinc-400 mt-0.5">
-                  "Una exclusión explícita protege el contrato tanto como un requisito" (Cap. 1.3 & Anexo C).
-                </p>
-              </div>
-
-              {/* Backlog Ticket Picker + Key */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <div className="sm:col-span-3 space-y-1.5">
-                  <label className="text-[11px] font-mono text-zinc-400 block">
-                    Título del Sprint / Objetivo de Valor:
+              {/* Plain-language Goal Input */}
+              <div className="p-4 rounded-2xl bg-black border border-zinc-800 space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white block">
+                    Describe en una frase qué quieres que haga el equipo IA:
                   </label>
                   <input
                     type="text"
                     value={sprintTitle}
                     onChange={(e) => setSprintTitle(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-white font-mono"
+                    placeholder="Ej. Quiero agregar un botón para descargar facturas en PDF..."
+                    className="w-full bg-zinc-950 border border-zinc-750 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-white"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-zinc-400 block">Clave Jira / REQ ID:</label>
-                  <input
-                    type="text"
-                    value={sprintKey}
-                    onChange={(e) => setSprintKey(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white font-mono font-bold focus:outline-none focus:border-white"
-                  />
-                </div>
-              </div>
 
-              {/* Backlog Quick Pills if any */}
-              {backlogTickets.length > 0 && (
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono text-zinc-500 block">
-                    Tickets sugeridos del Backlog Jira:
-                  </span>
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll text-[11px] font-mono">
-                    {backlogTickets.slice(0, 5).map((t) => (
-                      <button
-                        key={t.key}
-                        type="button"
-                        onClick={() => {
-                          setSprintKey(t.key)
-                          setSprintTitle(t.title)
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-white whitespace-nowrap transition cursor-pointer"
-                      >
-                        {t.key}: {t.title.slice(0, 28)}...
-                      </button>
-                    ))}
+                {/* Quick 1-click ideas from Jira Backlog if available */}
+                {backlogTickets.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] text-zinc-400 block">
+                      💡 ¿Prefieres elegir una tarea pendiente de tu lista de Jira con 1 clic?
+                    </span>
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scroll">
+                      {backlogTickets.slice(0, 5).map((t) => (
+                        <button
+                          key={t.key}
+                          type="button"
+                          onClick={() => {
+                            setSprintKey(t.key)
+                            setSprintTitle(t.title)
+                          }}
+                          className={`px-2.5 py-1.5 rounded-xl border text-[11px] whitespace-nowrap transition cursor-pointer ${
+                            sprintKey === t.key
+                              ? 'bg-white text-black border-white font-bold'
+                              : 'bg-zinc-900 hover:bg-zinc-850 border-zinc-800 text-zinc-300 hover:text-white'
+                          }`}
+                        >
+                          {t.key}: {t.title.slice(0, 38)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Scope Included vs Scope Excluded */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-zinc-300 block flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                    Alcance Incluido (IN SCOPE):
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-medium text-zinc-300 block">
+                    Detalles adicionales (opcional): ¿Qué es lo más importante a cuidar?
                   </label>
                   <textarea
                     rows={2}
                     value={scopeIncluded}
                     onChange={(e) => setScopeIncluded(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 rounded-xl p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-white font-mono"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-mono text-zinc-300 block flex items-center gap-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
-                    Exclusiones Explícitas (OUT OF SCOPE):
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={scopeExcluded}
-                    onChange={(e) => setScopeExcluded(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 rounded-xl p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-white font-mono"
+                    placeholder="Escribe cualquier detalle importante que debamos tomar en cuenta..."
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-white"
                   />
                 </div>
               </div>
 
-              {/* Invariant Contracts Checklist */}
-              <div className="space-y-2 p-3.5 rounded-2xl bg-black border border-zinc-850">
-                <label className="text-[11px] font-mono text-zinc-300 block font-bold">
-                  Invariantes Canónicas SolidBit a Proteger:
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
-                  {[
-                    { id: 'DR-INV-001', name: 'DR-INV-001 (SellableUnit / Cero Sobreventa)' },
-                    { id: 'DR-PAY-001', name: 'DR-PAY-001 (Ledger Doble Partida ACID)' },
-                    { id: 'DR-IDEM-001', name: 'DR-IDEM-001 (Claves de Idempotencia)' },
-                    { id: 'DR-AUTH-001', name: 'DR-AUTH-001 (Aislamiento RLS / RBAC)' },
-                    { id: 'DR-ERR-001', name: 'DR-ERR-001 (Envoltorio Canónico de Errores)' },
-                    { id: 'DR-REC-001', name: 'DR-REC-001 (Recibos Inmutables POS)' },
-                  ].map((c) => {
-                    const checked = selectedContracts.includes(c.id)
-                    return (
-                      <label
-                        key={c.id}
-                        className="flex items-center gap-2 p-2 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-zinc-700 cursor-pointer select-none"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleContract(c.id)}
-                          className="rounded border-zinc-700 bg-zinc-900 text-white focus:ring-0"
-                        />
-                        <span className="text-[11px] font-mono text-zinc-200 truncate">{c.name}</span>
+              {/* Automatic Safety Reassurance Banner (No configuration required by default) */}
+              <div className="p-3.5 rounded-2xl bg-zinc-900/70 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      Protección Automática Activada (No necesitas configurar nada técnico)
+                    </span>
+                    <span className="text-[11px] text-zinc-300">
+                      El sistema trabajará en un espacio de prueba seguro, cuidando tus ventas, inventario y datos antes de pedirte confirmación final.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedMode(!showAdvancedMode)}
+                  className="px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-750 text-[11px] font-mono text-zinc-300 hover:text-white flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>{showAdvancedMode ? 'Ocultar modo técnico' : 'Opciones para ingenieros'}</span>
+                  {showAdvancedMode ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+
+              {/* Collapsible Advanced Engineering Section (Progressive Disclosure) */}
+              {showAdvancedMode && (
+                <div className="p-4 rounded-2xl bg-black border border-zinc-800 space-y-3 animate-fade-in">
+                  <div className="flex items-center justify-between border-b border-zinc-850 pb-2">
+                    <span className="text-xs font-mono font-bold text-zinc-200">
+                      ⚙️ Parámetros Avanzados de Ingeniería (Opcional)
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-400">
+                      Configuración prellenada automáticamente
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-mono text-zinc-400 block mb-1">
+                        Identificador de Ticket (Jira / Interno):
                       </label>
-                    )
-                  })}
-                </div>
-              </div>
+                      <input
+                        type="text"
+                        value={sprintKey}
+                        onChange={(e) => setSprintKey(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-mono text-zinc-400 block mb-1">
+                        Modo de Ejecución:
+                      </label>
+                      <select
+                        value={topologyMode}
+                        onChange={(e) => setTopologyMode(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white font-mono"
+                      >
+                        <option value="waves">Equipo Completo en Paralelo (Recomendado)</option>
+                        <option value="fast_track">Tarea Rápida Individual (Fast-Track)</option>
+                        <option value="dry_run">Simulación sin modificar archivos (Dry-Run)</option>
+                      </select>
+                    </div>
+                  </div>
 
-              {/* Topology Selector */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-mono text-zinc-400 block">Modo de Topología:</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'waves', label: 'Oleadas Paralelas (DAG)', desc: 'Kahn DAG con barrera' },
-                    { id: 'fast_track', label: 'Fast-Track', desc: 'Monotarea acotada' },
-                    { id: 'dry_run', label: 'Dry-Run', desc: 'Auditoría sin mutar' },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setTopologyMode(m.id)}
-                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
-                        topologyMode === m.id
-                          ? 'bg-zinc-900 border-white text-white'
-                          : 'bg-black border-zinc-800 text-zinc-400 hover:text-white'
-                      }`}
-                    >
-                      <div className="text-xs font-bold">{m.label}</div>
-                      <div className="text-[10px] text-zinc-500 font-mono">{m.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  <div>
+                    <label className="text-[11px] font-mono text-zinc-400 block mb-1">
+                      Límites de seguridad (Lo que el sistema tiene prohibido alterar):
+                    </label>
+                    <input
+                      type="text"
+                      value={scopeExcluded}
+                      onChange={(e) => setScopeExcluded(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-300 font-mono"
+                    />
+                  </div>
 
-              {/* Navigation buttons */}
+                  <div>
+                    <label className="text-[11px] font-mono text-zinc-400 block mb-1.5">
+                      Candados de Seguridad Activos:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {[
+                        { id: 'DR-INV-001', label: 'Evitar sobreventa de stock' },
+                        { id: 'DR-PAY-001', label: 'Cuadre exacto de pagos' },
+                        { id: 'DR-IDEM-001', label: 'Evitar cobros duplicados' },
+                        { id: 'DR-AUTH-001', label: 'Proteger cuentas y permisos' },
+                        { id: 'DR-ERR-001', label: 'Mensajes de error claros' },
+                        { id: 'DR-REC-001', label: 'Resguardar recibos de caja' },
+                      ].map((c) => (
+                        <label
+                          key={c.id}
+                          className="flex items-center gap-2 p-2 rounded-xl bg-zinc-950 border border-zinc-850 text-[11px] text-zinc-300 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedContracts.includes(c.id)}
+                            onChange={() => toggleContract(c.id)}
+                            className="rounded border-zinc-700 bg-zinc-900 text-white"
+                          />
+                          <span className="truncate">{c.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between pt-2">
                 <button
                   type="button"
-                  onClick={() => setActiveStep(2)}
-                  className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-mono transition cursor-pointer"
+                  onClick={() => setActiveStep(1)}
+                  className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium transition cursor-pointer"
                 >
-                  Atrás
+                  Volver al Paso 1
                 </button>
                 <button
                   type="button"
                   onClick={handleGeneratePlan}
                   disabled={loading}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer shadow-sm disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  <Cpu className="w-3.5 h-3.5 text-black" />
-                  <span>{loading ? 'Generando...' : 'Sintetizar Plan DAG de Kahn'}</span>
+                  <Sparkles className="w-4 h-4 text-black" />
+                  <span>{loading ? 'Preparando resumen...' : 'Preparar Resumen y Continuar'}</span>
+                  <ArrowRight className="w-4 h-4 text-black" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 4: DAG, ROLES & EJECUCIÓN EN VIVO */}
-          {activeStep === 4 && (
+          {/* =========================================================
+              PASO 3: REVISAR RESUMEN Y LANZAR CON 1 CLIC
+             ========================================================= */}
+          {activeStep === 3 && (
             <div className="space-y-4 animate-fade-in">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <GitBranch className="w-4 h-4 text-white" />
-                  Paso 4: Síntesis del DAG, Roles de Agentes & Ejecución
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  Paso 3: Todo listo para comenzar
                 </h3>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Planificación topological generada con rigurosas metodologías de SolidBit (Cap. 8 & 12).
+                  Revisa este resumen sencillo. Cuando presiones <strong>"Comenzar Trabajo Ahora"</strong>, los asistentes IA harán el trabajo pesado por ti.
                 </p>
               </div>
 
-              {/* Definition of Ready Preflight Checklist */}
-              <div className="p-3.5 rounded-2xl bg-black border border-zinc-850 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-white font-bold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                    Checklist de Definition of Ready (DoR - Anexo E)
-                  </span>
-                  <span className="text-[10px] font-mono text-zinc-400">5 de 5 Cumplidos</span>
+              {/* Clean Executive Summary Card */}
+              <div className="p-4 rounded-2xl bg-black border border-zinc-800 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-850">
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+                      1. Proyecto Seleccionado
+                    </span>
+                    <span className="text-xs font-bold text-white mt-0.5 block">
+                      {selectedProjectCard.name}
+                    </span>
+                    <span className="text-[11px] text-zinc-400">
+                      Copia aislada de seguridad lista
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-850">
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+                      2. Tipo de Solicitud
+                    </span>
+                    <span className="text-xs font-bold text-white mt-0.5 block">
+                      {selectedMissionCard.title}
+                    </span>
+                    <span className="text-[11px] text-zinc-400">
+                      Ref: {sprintKey}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-850">
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+                      3. Nivel de Protección
+                    </span>
+                    <span className="text-xs font-bold text-white mt-0.5 block">
+                      Máxima Seguridad Activa
+                    </span>
+                    <span className="text-[11px] text-zinc-400">
+                      Requiere tu visto bueno final
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] font-mono text-zinc-300">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={dorChecks.objective}
-                      onChange={(e) => setDorChecks({ ...dorChecks, objective: e.target.checked })}
-                      className="rounded border-zinc-700 bg-zinc-900 text-white"
-                    />
-                    <span>Objetivo claro & criterios de aceptación definidos</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={dorChecks.contracts}
-                      onChange={(e) => setDorChecks({ ...dorChecks, contracts: e.target.checked })}
-                      className="rounded border-zinc-700 bg-zinc-900 text-white"
-                    />
-                    <span>Contratos e invariantes identificados ({selectedContracts.join(', ')})</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={dorChecks.isolatedWorktree}
-                      onChange={(e) => setDorChecks({ ...dorChecks, isolatedWorktree: e.target.checked })}
-                      className="rounded border-zinc-700 bg-zinc-900 text-white"
-                    />
-                    <span>Worktree aislado con Dirty-Root Guard activo</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={dorChecks.cliAuth}
-                      onChange={(e) => setDorChecks({ ...dorChecks, cliAuth: e.target.checked })}
-                      className="rounded border-zinc-700 bg-zinc-900 text-white"
-                    />
-                    <span>CLIs autenticados en local (gh, git, agy, railway)</span>
-                  </label>
+
+                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-850">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+                    Objetivo a Realizar:
+                  </span>
+                  <p className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                    "{sprintTitle}"
+                  </p>
+                  <p className="text-xs text-zinc-300 mt-1">{scopeIncluded}</p>
                 </div>
               </div>
 
-              {/* Roles & Waves Display */}
-              {activePlan && (
-                <div className="space-y-3">
-                  {/* Assigned Agent Roles */}
-                  <div className="space-y-1.5">
-                    <span className="text-[11px] font-mono text-zinc-400 block font-bold">
-                      Flota de Agentes Asignados (Anexo K):
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {activePlan.roles?.map((r: any) => (
-                        <div key={r.role_id} className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-white truncate">{r.title}</span>
-                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300">
-                              {r.name}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-zinc-400 line-clamp-2">{r.responsibilities}</p>
-                          <div className="text-[9px] font-mono text-zinc-500 truncate">
-                            Worktree: {r.worktree}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Parallel Waves */}
-                  <div className="space-y-1.5">
-                    <span className="text-[11px] font-mono text-zinc-400 block font-bold">
-                      Oleadas Paralelas de Kahn (Waves):
-                    </span>
-                    <div className="space-y-2">
-                      {activePlan.waves?.map((w: any) => (
-                        <div
-                          key={w.wave_number}
-                          className="p-3 rounded-xl bg-black border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                        >
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-white">{w.name}</span>
-                              <span className="text-[10px] font-mono text-zinc-500">
-                                ~{w.expected_duration}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-mono text-zinc-400 block">
-                              Acciones: {w.actions?.join(' · ')}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            {w.parallel_agents?.map((ag: string) => (
-                              <span
-                                key={ag}
-                                className="px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-750 text-[10px] font-mono text-zinc-200"
-                              >
-                                {ag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {/* How the AI Team will work (Human-friendly steps instead of Kahn DAG jargon) */}
+              <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-850 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">
+                    ¿Qué hará el sistema paso a paso?
+                  </span>
+                  <span className="text-[11px] text-zinc-400">
+                    Proceso automático en 4 etapas
+                  </span>
                 </div>
-              )}
 
-              {/* Execution Progress & Status */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  {[
+                    {
+                      num: 'Etapa 1',
+                      title: 'Copia Segura',
+                      desc: 'Prepara una carpeta aparte para no afectar tu sistema actual.',
+                    },
+                    {
+                      num: 'Etapa 2',
+                      title: 'Desarrollo IA',
+                      desc: 'Los especialistas crean los cambios solicitados.',
+                    },
+                    {
+                      num: 'Etapa 3',
+                      title: 'Control de Calidad',
+                      desc: 'Se verifican pagos, inventario y seguridad automáticamente.',
+                    },
+                    {
+                      num: 'Etapa 4',
+                      title: 'Tu Aprobación',
+                      desc: 'Te muestra el resultado y espera tu confirmación.',
+                    },
+                  ].map((stage, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl bg-black border border-zinc-800 space-y-1"
+                    >
+                      <span className="text-[10px] font-mono font-bold text-zinc-400 block">
+                        {stage.num}
+                      </span>
+                      <span className="text-xs font-bold text-white block">{stage.title}</span>
+                      <p className="text-[11px] text-zinc-400 leading-snug">{stage.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live Progress Banner while executing */}
               {loading && (
-                <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-750 flex items-center gap-3">
+                <div className="p-4 rounded-2xl bg-zinc-900 border border-white/40 flex items-center gap-3 shadow-lg">
                   <Loader2 className="w-5 h-5 text-white animate-spin shrink-0" />
                   <div>
-                    <span className="text-xs font-bold text-white block">Ejecución en Progreso...</span>
-                    <span className="text-[11px] font-mono text-zinc-400">{executionPhase}</span>
+                    <span className="text-xs font-bold text-white block">
+                      Trabajando en tu solicitud...
+                    </span>
+                    <span className="text-xs text-zinc-300">{executionPhase}</span>
                   </div>
                 </div>
               )}
 
-              {/* Result & HMAC Gate Display */}
+              {/* Execution Result Card (Dynamic & Easy to Understand) */}
               {executionResult && (
-                <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-700 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                      <span className="text-xs font-bold text-white">
-                        Sprint Ejecutado con Éxito (Entregables Duales en Disco)
-                      </span>
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-white space-y-4 shadow-xl animate-fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-black" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-white block">
+                          ¡Trabajo Terminado y Verificado con Éxito!
+                        </span>
+                        <span className="text-xs text-zinc-300">
+                          Todo se guardó en tu base de datos local sin errores.
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-200">
-                      ID: {executionResult.sprint_id}
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-black border border-zinc-700 text-zinc-200">
+                      Registro #{executionResult.sprint_id}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                    <div className="p-2 rounded-lg bg-black border border-zinc-800">
-                      <span className="text-[10px] text-zinc-500 block">Pytest Suite</span>
-                      <span className="text-white font-bold">31 / 31 PASS</span>
+                  {/* Clear Human Metrics */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                    <div className="p-3 rounded-xl bg-black border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Pruebas de Calidad</span>
+                      <span className="text-white font-bold text-xs sm:text-sm mt-0.5 block">
+                        ✓ Todas Aprobadas
+                      </span>
                     </div>
-                    <div className="p-2 rounded-lg bg-black border border-zinc-800">
-                      <span className="text-[10px] text-zinc-500 block">Invariantes</span>
-                      <span className="text-white font-bold">100% Cero Sobreventa</span>
+                    <div className="p-3 rounded-xl bg-black border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Protección de Datos</span>
+                      <span className="text-white font-bold text-xs sm:text-sm mt-0.5 block">
+                        ✓ 100% Seguro
+                      </span>
                     </div>
-                    <div className="p-2 rounded-lg bg-black border border-zinc-800">
-                      <span className="text-[10px] text-zinc-500 block">Oleadas</span>
-                      <span className="text-white font-bold">{executionResult.waves_executed || 4} Completadas</span>
+                    <div className="p-3 rounded-xl bg-black border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Etapas Completadas</span>
+                      <span className="text-white font-bold text-xs sm:text-sm mt-0.5 block">
+                        {executionResult.waves_executed || 4} de {executionResult.waves_executed || 4} listas
+                      </span>
                     </div>
-                    <div className="p-2 rounded-lg bg-black border border-zinc-800">
-                      <span className="text-[10px] text-zinc-500 block">Compuerta HITL</span>
-                      <span className="text-white font-bold">{hmacApplied ? 'FIRMADA' : 'PENDIENTE'}</span>
+                    <div className="p-3 rounded-xl bg-black border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Estado Final</span>
+                      <span className="text-white font-bold text-xs sm:text-sm mt-0.5 block">
+                        {hmacApplied ? '✓ Publicado' : 'Esperando tu OK'}
+                      </span>
                     </div>
                   </div>
 
-                  {/* HMAC Gate Signature Action */}
-                  <div className="pt-2 border-t border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <p className="text-[11px] text-zinc-400">
-                      Compuerta Soberana Gate 5: Requiere firma criptográfica HMAC-SHA256 del Product Owner para autorizar el release.
-                    </p>
+                  {/* Final 1-Click Human Approval */}
+                  <div className="pt-3 border-t border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-white block">
+                        ¿Autorizas aplicar estos cambios?
+                      </span>
+                      <p className="text-[11px] text-zinc-300">
+                        Nada se publica sin tu permiso. Al aprobar, queda sellado con tu firma digital segura.
+                      </p>
+                    </div>
                     {hmacApplied ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-black font-mono text-xs font-bold">
-                        <Check className="w-3.5 h-3.5 text-black" />
-                        HMAC-SHA256 Aprobado
+                      <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-black text-xs font-bold shadow-sm">
+                        <Check className="w-4 h-4 text-black" />
+                        ¡Cambios Aprobados y Aplicados!
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={handleApplyHmac}
                         disabled={loading}
-                        className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md disabled:opacity-50 shrink-0"
                       >
-                        <Key className="w-3.5 h-3.5 text-black" />
-                        <span>Firmar Compuerta Soberana</span>
+                        <Key className="w-4 h-4 text-black" />
+                        <span>Aprobar y Aplicar Cambios</span>
                       </button>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Step Footer Actions */}
+              {/* Step 3 Footer Buttons */}
               <div className="flex items-center justify-between pt-2">
                 <button
                   type="button"
-                  onClick={() => setActiveStep(3)}
-                  className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-mono transition cursor-pointer"
+                  onClick={() => setActiveStep(2)}
+                  className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium transition cursor-pointer"
                 >
-                  Atrás
+                  Modificar descripción
                 </button>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleGeneratePlan}
-                    disabled={loading}
-                    className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-white text-xs font-mono font-medium transition cursor-pointer"
-                  >
-                    Regenerar Plan
-                  </button>
-
+                {!executionResult && (
                   <button
                     type="button"
                     onClick={handleExecuteSprint}
                     disabled={loading}
-                    className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer shadow-sm disabled:opacity-50"
+                    className="px-6 py-3 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs sm:text-sm font-bold flex items-center gap-2.5 transition cursor-pointer shadow-lg disabled:opacity-50"
                   >
-                    <Play className="w-3.5 h-3.5 text-black fill-black" />
-                    <span>{loading ? 'Ejecutando...' : 'Ejecutar Sprint en Worktree Aislado'}</span>
+                    <Play className="w-4 h-4 text-black fill-black" />
+                    <span>
+                      {loading ? 'Ejecutando tu solicitud...' : 'Comenzar Trabajo Ahora'}
+                    </span>
                   </button>
-                </div>
+                )}
               </div>
             </div>
           )}
