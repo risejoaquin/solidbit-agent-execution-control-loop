@@ -221,6 +221,7 @@ export default function App() {
         onNavigateSection={(sec) => setCurrentSection(sec)}
         onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
         onOpenDiffModal={() => setIsDiffModalOpen(true)}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
       />
 
       {/* Network Offline / Reconnection Banner */}
@@ -234,6 +235,7 @@ export default function App() {
           onSelectSection={(sec) => setCurrentSection(sec)}
           onOpenSprintModal={() => setIsSprintModalOpen(true)}
           dbStats={dbStats}
+          pendingGatesCount={pendingGatesCount}
         />
 
         {/* Center Main Viewport */}
