@@ -34,12 +34,16 @@ class CampaignsModule:
     def get_campaigns_overview(self) -> Dict[str, Any]:
         """Scans for active and prepared campaigns."""
         manifests = [
-            Path(
-                "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED/MANIFEST.json"
-            ),
-            Path(
-                "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_PRODUCTIZATION_READY_TO_LAUNCH_CAMPAIGN_v1_1_FIXED/MANIFEST.json"
-            ),
+            Path.home()
+            / "Documents"
+            / "Stable-Ecommerce-Orchestrator"
+            / "SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED"
+            / "MANIFEST.json",
+            Path.home()
+            / "Documents"
+            / "Stable-Ecommerce-Orchestrator"
+            / "SACL_PRODUCTIZATION_READY_TO_LAUNCH_CAMPAIGN_v1_1_FIXED"
+            / "MANIFEST.json",
             self.workspace_root / "MANIFEST.json",
         ]
 
@@ -187,7 +191,7 @@ class CampaignsModule:
                         ready_for_integration, started_at
                     ) VALUES (
                         ?, 'JOB-CAMPAIGN-ORCH', ?, 'Stable-Ecommerce', 'solidbit-control-loop', 'isolated_branch',
-                        'SACL_UI', 'C:/Users/Lucilfer/Documents/Stable-Ecommerce', 'runs/' || ?, 'RUNNING', 'NO', ?
+                        'SACL_UI', './workspace', 'runs/' || ?, 'RUNNING', 'NO', ?
                     );
                     """,
                     (run_id, campaign_id, run_id, now_iso),

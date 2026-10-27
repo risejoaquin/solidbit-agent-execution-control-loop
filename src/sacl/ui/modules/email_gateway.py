@@ -37,8 +37,8 @@ class EmailGatewayModule:
 
     def __init__(
         self,
-        sender_email: str = "lucilfer@selfcaresinners.com",
-        operator_email: str = "lawlieeet@outlook.es",
+        sender_email: str = "",
+        operator_email: str = "",
         launch_campaign_cb: Optional[Callable[[str], Dict[str, Any]]] = None,
         host: str = "127.0.0.1",
         port: int = 8765,
@@ -52,7 +52,7 @@ class EmailGatewayModule:
         self.port = port
         self.secret = secret or secrets.token_bytes(32)
         self.gate_url_builder = gate_url_builder
-        self.authorized_senders = [operator_email.lower(), sender_email.lower()]
+        self.authorized_senders = [e.lower() for e in (operator_email, sender_email) if e]
         self.inbound_webhook_token = inbound_webhook_token(self.secret)
 
         # In-memory audit trail of sent and received emails

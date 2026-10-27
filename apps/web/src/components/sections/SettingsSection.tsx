@@ -14,9 +14,9 @@ import {
 } from 'lucide-react'
 
 export const SettingsSection: React.FC = () => {
-  const [operatorName, setOperatorName] = useState('Joaquin Vallejo')
+  const [operatorName, setOperatorName] = useState('')
   const [operatorRole, setOperatorRole] = useState('Product Owner / Sovereign Authority')
-  const [operatorEmail, setOperatorEmail] = useState('risejoaquin@solidbit.io')
+  const [operatorEmail, setOperatorEmail] = useState('')
   const [secretKey, setSecretKey] = useState('sacl-sovereign-audit-secret-2026')
   const [ghStatus, setGhStatus] = useState<any>(null)
   const [prs, setPrs] = useState<any[]>([])

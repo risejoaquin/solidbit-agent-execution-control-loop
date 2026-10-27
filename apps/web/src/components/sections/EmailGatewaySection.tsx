@@ -256,7 +256,7 @@ export const EmailGatewaySection: React.FC = () => {
                 onChange={(e) => setSenderEmail(e.target.value)}
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-mono"
-                placeholder="lucilfer@selfcaresinners.com"
+                placeholder="notificaciones@tudominio.com"
               />
               <span className="text-[10px] text-zinc-500 mt-1 block">
                 Dominio verificado en Resend para la emisión automatizada.
@@ -273,7 +273,7 @@ export const EmailGatewaySection: React.FC = () => {
                 onChange={(e) => setOperatorEmail(e.target.value)}
                 required
                 className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 font-mono"
-                placeholder="lawlieeet@outlook.es"
+                placeholder="operador@empresa.com"
               />
               <span className="text-[10px] text-zinc-500 mt-1 block">
                 Recibe los resúmenes ejecutivos y enlaces firmados HMAC de compuertas HITL.

@@ -55,12 +55,12 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Sovereign Operator State
   const [operatorName, setOperatorName] = useState<string>(
-    localStorage.getItem('sacl_operator_name') || 'Joaquin Vallejo'
+    localStorage.getItem('sacl_operator_name') || 'Operador'
   )
   const [operatorRole, setOperatorRole] = useState<string>(
     localStorage.getItem('sacl_operator_role') || 'Owner'
   )
-  const [operatorEmail, setOperatorEmail] = useState<string>('risejoaquin@solidbit.io')
+  const [operatorEmail, setOperatorEmail] = useState<string>('')
   const [savingProfile, setSavingProfile] = useState<boolean>(false)
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([])

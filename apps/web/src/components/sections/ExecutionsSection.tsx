@@ -24,7 +24,7 @@ export const ExecutionsSection: React.FC = () => {
   const [dossier, setDossier] = useState<any>(null)
   const [runs, setRuns] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [operatorName, setOperatorName] = useState('Joaquin Vallejo')
+  const [operatorName, setOperatorName] = useState('Operador')
   const [justification, setJustification] = useState(
     'Aprobado por el Product Owner tras verificación empírica de pruebas unitarias y contratos congelados.'
   )

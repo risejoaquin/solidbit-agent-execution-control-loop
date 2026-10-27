@@ -56,6 +56,7 @@ def _load_operator_profile() -> Dict[str, Any]:
         except Exception:
             pass
     detected_name = os.environ.get("SACL_OPERATOR_NAME")
+    detected_email = os.environ.get("SACL_OPERATOR_EMAIL")
     if not detected_name:
         try:
             p_user = subprocess.run(
@@ -65,11 +66,27 @@ def _load_operator_profile() -> Dict[str, Any]:
                 detected_name = p_user.stdout.strip()
         except Exception:
             pass
+    if not detected_name:
+        try:
+            import getpass
+
+            detected_name = getpass.getuser()
+        except Exception:
+            pass
+    if not detected_email:
+        try:
+            p_email = subprocess.run(
+                ["git", "config", "user.email"], capture_output=True, text=True, timeout=2
+            )
+            if p_email.returncode == 0 and p_email.stdout.strip():
+                detected_email = p_email.stdout.strip()
+        except Exception:
+            pass
     return {
-        "name": detected_name or "Joaquin Vallejo",
+        "name": detected_name or "Operador SACL",
         "role": os.environ.get("SACL_OPERATOR_ROLE", "Product Owner / Sovereign Authority"),
-        "email": os.environ.get("SACL_OPERATOR_EMAIL", "risejoaquin@solidbit.io"),
-        "secret": "sacl-sovereign-audit-secret-2026",
+        "email": detected_email or "operator@localhost",
+        "secret": os.environ.get("SACL_AUDIT_SECRET", "sacl-sovereign-audit-secret-2026"),
         "signing_status": "AUTHENTICATED",
         "last_login": datetime.now(timezone.utc).isoformat(),
     }
@@ -383,7 +400,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                         {"type": "add", "text": '+   "invariantsEnforcement": "STRICT",'},
                         {
                             "type": "add",
-                            "text": '+   "operatorAttribution": "LUCILFER / @risejoaquin"',
+                            "text": '+   "operatorAttribution": "' + str(_operator_profile.get("name", "Operador SACL")) + '"',
                         },
                         {"type": "context", "text": "  }"},
                         {"type": "header", "text": "--- a/services/web-storefront/package.json"},
@@ -1397,7 +1414,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             user_msg = {
                 "id": msg_id,
                 "sender": "user",
-                "name": _operator_profile.get("name", "Joaquin Vallejo"),
+                "name": _operator_profile.get("name", "Operador SACL"),
                 "role": _operator_profile.get("role", "Product Owner"),
                 "text": msg_text,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -1407,7 +1424,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             broadcast_sse("chat_message", user_msg)
 
             # Invoke agy CLI runtime
-            agy_cmd = shutil.which("agy") or r"C:\Users\Lucilfer\AppData\Local\agy\bin\agy.exe"
+            agy_cmd = shutil.which("agy") or str(Path.home() / "AppData" / "Local" / "agy" / "bin" / "agy.exe")
             reply_text = ""
             tools_called = []
             if agy_cmd and Path(agy_cmd).exists():
@@ -1425,7 +1442,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                     logger.warning(f"Error invoking agy CLI: {e}")
 
             if not reply_text:
-                reply_text = f"Entendido, Joaquín. He procesado tu instrucción en el marco de SACL: '{msg_text}'. Los contratos (DR-INV-001, DR-PAY-001) y el DAG de Kahn están sincronizados en el orquestador."
+                reply_text = f"Entendido. He procesado tu instrucción en el marco de SACL: '{msg_text}'. Los contratos (DR-INV-001, DR-PAY-001) y el DAG de Kahn están sincronizados en el orquestador."
 
             reply_id = f"reply-{int(time.time() * 1000)}"
             agy_reply = {
@@ -1467,7 +1484,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         # 21. Orchestrator: Apply Approved Changes & Sign HMAC
         if path == "/api/orchestrator/apply-changes":
             approval_id = body.get("approval_id", "REQ-20261025-E43308B0")
-            operator = body.get("operator", "LUCILFER / risejoaquin")
+            operator = body.get("operator") or _operator_profile.get("name", "Operador SACL")
             justification = body.get(
                 "justification", "Aprobado post-inspección de pruebas e invariantes."
             )
@@ -1487,7 +1504,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(400, {"success": False, "error": "Falta parámetro 'skill_id'"})
                 return
             params = body.get("params", {})
-            operator = _operator_profile.get("name", "risejoaquin / LUCILFER")
+            operator = _operator_profile.get("name", "Operador SACL")
             res = self.service.workflow_engine.execute_skill(skill_id, params, operator=operator)
             broadcast_sse("workflow_executed", res)
             self._send_json(200 if res.get("success") else 400, res)

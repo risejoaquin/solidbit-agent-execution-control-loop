@@ -22,12 +22,18 @@ class EvidenceModule:
             self.evidence_dirs = evidence_dirs
         else:
             self.evidence_dirs = [
-                Path(
-                    "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED/evidence"
-                ),
-                Path(
-                    "C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/SACL_IMPLEMENTATION_CAMPAIGN_v1/runs/impl-20261007-203727-e69378/evidence"
-                ),
+                Path.home()
+                / "Documents"
+                / "Stable-Ecommerce-Orchestrator"
+                / "SACL_ORCHESTRATOR_IMPLEMENTATION_CAMPAIGN_v1_PREPARED"
+                / "evidence",
+                Path.home()
+                / "Documents"
+                / "Stable-Ecommerce-Orchestrator"
+                / "SACL_IMPLEMENTATION_CAMPAIGN_v1"
+                / "runs"
+                / "impl-20261007-203727-e69378"
+                / "evidence",
                 Path("evidence"),
             ]
 

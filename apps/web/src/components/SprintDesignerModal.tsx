@@ -303,7 +303,7 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           approval_id: approvalId,
-          operator: 'Joaquin Vallejo (Product Owner)',
+          operator: localStorage.getItem('sacl_operator_name') || 'Operador SACL',
           justification: 'Aprobado formalmente bajo criterios del RISEHANDBOOK (SB-ENG-HB-001 v1.0).',
         }),
       })

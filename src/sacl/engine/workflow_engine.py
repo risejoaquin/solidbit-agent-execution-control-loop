@@ -236,7 +236,7 @@ class WorkflowEngine:
         self,
         skill_id: str,
         params: Dict[str, Any],
-        operator: str = "risejoaquin / LUCILFER",
+        operator: str = "Operador SACL",
     ) -> Dict[str, Any]:
         """Executes a skill workflow within an isolated worktree and logs progress."""
         details = self.get_skill_details(skill_id)

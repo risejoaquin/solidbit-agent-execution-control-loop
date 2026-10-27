@@ -45,7 +45,7 @@ export const ChatSection: React.FC = () => {
   const [messages, setMessages] = useState<BackendChatMessage[]>([])
   const [inputText, setInputText] = useState('')
   const [loading, setLoading] = useState(false)
-  const [operatorName, setOperatorName] = useState('Joaquin Vallejo')
+  const [operatorName, setOperatorName] = useState('Operador')
   const [availableModels, setAvailableModels] = useState<AIModelItem[]>([])
   const [activeModel, setActiveModel] = useState<AIModelItem | null>(null)
   const [selectedModelId, setSelectedModelId] = useState<string>('claude-3-7-sonnet')

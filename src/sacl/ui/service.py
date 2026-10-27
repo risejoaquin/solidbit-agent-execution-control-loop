@@ -7,6 +7,7 @@ and human approval gate decisions across modular sub-services.
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -106,8 +107,8 @@ class UIService:
         self.subagents = SubagentsManager(self.workspace_root)
         self.chat = ChatModule(self)
         self.email_gateway = EmailGatewayModule(
-            sender_email="lucilfer@selfcaresinners.com",
-            operator_email="lawlieeet@outlook.es",
+            sender_email=os.environ.get("SACL_SENDER_EMAIL", ""),
+            operator_email=os.environ.get("SACL_OPERATOR_EMAIL", ""),
             launch_campaign_cb=self.campaigns.launch_campaign,
             host=self.host,
             port=self.port,
@@ -133,8 +134,9 @@ class UIService:
                 conn.execute(
                     """
                     INSERT OR IGNORE INTO projects (project_id, name, root_path)
-                    VALUES ('stable-ecommerce', 'Stable-Ecommerce', 'C:/Users/Lucilfer/Documents/Stable-Ecommerce');
-                    """
+                    VALUES ('stable-ecommerce', 'Stable-Ecommerce', ?);
+                    """,
+                    (str((Path.home() / "Documents" / "Stable-Ecommerce").as_posix()),),
                 )
                 conn.execute(
                     """

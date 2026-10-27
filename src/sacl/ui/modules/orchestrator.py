@@ -1047,7 +1047,7 @@ class OrchestratorModule:
     def apply_changes(
         self,
         approval_id: str = "REQ-GATE-AUTO",
-        operator: str = "LUCILFER / risejoaquin",
+        operator: str = "Operador SACL",
         justification: str = "Aprobado por el operador humano post-inspección de pruebas e invariantes.",
     ) -> Dict[str, Any]:
         """Step 8: Signs HMAC-SHA256 deployment token, records decision in SQLite, and marks Jira ticket as COMPLETED."""

@@ -466,7 +466,7 @@ class ActionExecutionModule:
 
 > **Run ID:** `{run_id}`
 
-> **Operador:** `LUCILFER / risejoaquin` (`@risejoaquin`)
+> **Operador:** `Operador SACL Autenticado`
 
 > **Worktree:** `integration`
 
@@ -759,7 +759,7 @@ Autorizar mediante token HMAC en el panel de compuertas de la UI o revocar.
                 }
             )
 
-            logs.append(f"[{now_str}] [AUTH] Railway: lucilfer (OK) | GitHub: @risejoaquin (OK)")
+            logs.append(f"[{now_str}] [AUTH] Sesiones CLI locales verificadas (OK)")
 
             steps.append(
                 {
