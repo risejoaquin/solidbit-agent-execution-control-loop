@@ -928,7 +928,7 @@ class OrchestratorModule:
             {
                 "id": "node-hitl-gate",
                 "label": "4. Compuerta Humana HITL & Token HMAC",
-                "agent_role": roles[4]["name"],
+                "agent_role": roles[-1]["name"],
                 "action": "HUMAN_APPROVAL_GATE",
                 "dependencies": ["node-qa-verification"],
                 "status": "READY",

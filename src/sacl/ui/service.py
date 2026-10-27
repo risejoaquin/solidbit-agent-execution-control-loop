@@ -176,16 +176,19 @@ class UIService:
             return None
         try:
             uri = f"file:{self.db_path.resolve().as_posix()}?mode=ro"
-            conn = sqlite3.connect(uri, uri=True, timeout=5.0)
+            conn = sqlite3.connect(uri, uri=True, timeout=1.5)
             conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA busy_timeout = 1500;")
             return conn
         except Exception as exc:
             logger.debug(f"Unable to open read-only DB: {exc}")
             return None
 
     def _get_read_write_conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path), timeout=10.0)
+        conn = sqlite3.connect(str(self.db_path), timeout=2.0)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA busy_timeout = 2000;")
         conn.execute("PRAGMA foreign_keys = ON;")
         return conn
 

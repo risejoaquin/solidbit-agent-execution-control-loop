@@ -31,19 +31,28 @@ _sse_lock = threading.Lock()
 
 
 def broadcast_sse(event_type: str, data: Any) -> None:
-    """Broadcasts an instant real-time event to all connected UI clients."""
+    """Broadcasts an instant real-time event to all connected UI clients non-blockingly."""
     payload = f"event: {event_type}\ndata: {json.dumps(data)}\n\n".encode("utf-8")
-    with _sse_lock:
+
+    def _send_all() -> None:
+        with _sse_lock:
+            clients_snapshot = list(_sse_clients)
         dead_clients = []
-        for client in _sse_clients:
+        for client in clients_snapshot:
             try:
+                if hasattr(client, "connection") and client.connection:
+                    client.connection.settimeout(1.0)
                 client.wfile.write(payload)
                 client.wfile.flush()
             except Exception:
                 dead_clients.append(client)
-        for dead in dead_clients:
-            if dead in _sse_clients:
-                _sse_clients.remove(dead)
+        if dead_clients:
+            with _sse_lock:
+                for dead in dead_clients:
+                    if dead in _sse_clients:
+                        _sse_clients.remove(dead)
+
+    threading.Thread(target=_send_all, daemon=True).start()
 
 
 PROFILE_FILE = Path("config/operator_profile.json")
@@ -108,7 +117,7 @@ _agy_chat_history = [
         "sender": "agy",
         "name": "Antigravity AGY Runtime",
         "role": "AI Model / System Engine",
-        "text": "Hola Joaquín. El runtime de Antigravity (AGY) está activo y conectado al orquestador SACL. ¿En qué plan de sprint o arquitectura trabajamos hoy?",
+        "text": "Hola. El runtime de Antigravity (AGY) está activo y conectado al orquestador SACL. ¿En qué plan de sprint o arquitectura trabajamos hoy?",
         "timestamp": "2026-10-26T02:00:00Z",
         "status": "delivered",
     }
@@ -163,6 +172,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Connection", "close")
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("X-Content-Type-Options", "nosniff")
@@ -271,7 +281,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                     time.sleep(15)
                     self.wfile.write(b": heartbeat\n\n")
                     self.wfile.flush()
-            except (ConnectionResetError, BrokenPipeError):
+            except (ConnectionResetError, BrokenPipeError, ConnectionAbortedError, OSError):
                 pass
             finally:
                 with _sse_lock:
@@ -302,6 +312,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/gates/dossier":
             req_id = query.get("request_id", [""])[0]
             conn = self.service._get_read_only_conn()
+            if not conn:
+                self._send_json(200, {"success": True, "has_gate": False})
+                return
             try:
                 cur = conn.cursor()
                 if req_id:
@@ -953,6 +966,16 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         self._send_json(404, {"error": "Not Found", "path": path})
 
     def do_POST(self) -> None:
+        try:
+            self._handle_post()
+        except Exception as exc:
+            logger.exception(f"Error in POST {self.path}: {exc}")
+            try:
+                self._send_json(500, {"success": False, "error": str(exc)})
+            except Exception:
+                pass
+
+    def _handle_post(self) -> None:
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path
         content_len = int(self.headers.get("Content-Length", 0))

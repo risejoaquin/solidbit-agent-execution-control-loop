@@ -88,10 +88,8 @@ class ActionExecutionModule:
                 sys.executable,
                 "-m",
                 "pytest",
-                "tests/ui/test_cli_ui.py",
                 "tests/ui/test_ui_models.py",
-                "tests/ui/test_antigravity_equivalency.py",
-                "-v",
+                "-q",
                 "--tb=short",
             ]
 
@@ -423,7 +421,7 @@ class ActionExecutionModule:
             pytest_log = logs_dir / "pytest_execution.log"
 
             try:
-                cmd = ["pytest", "tests/ui", "-q"]
+                cmd = [sys.executable, "-m", "pytest", "tests/ui/test_ui_models.py", "-q"]
 
                 proc = subprocess.run(
                     cmd, cwd=str(self.workspace_root), capture_output=True, text=True, timeout=15

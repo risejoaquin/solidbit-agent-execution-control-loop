@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Header } from './components/Header'
 import { LeftSidebar } from './components/LeftSidebar'
 import { CenterDashboard } from './components/CenterDashboard'
-import { RightSidebar } from './components/RightSidebar'
 import { MobileDrawer } from './components/MobileDrawer'
 import { MobileBottomNav } from './components/MobileBottomNav'
 import { SprintDesignerModal } from './components/SprintDesignerModal'
@@ -184,31 +183,31 @@ export default function App() {
   const getBreadcrumbs = () => {
     switch (currentSection) {
       case 'jira':
-        return [{ label: 'Jira Cloud & Backlog de Requerimientos', sectionId: 'jira' }]
+        return [{ label: 'Tablero de Tareas (Jira)', sectionId: 'jira' }]
       case 'email':
-        return [{ label: 'Email Gateway & Automatización Soberana', sectionId: 'email' }]
+        return [{ label: 'Avisos por Correo', sectionId: 'email' }]
       case 'chat':
-        return [{ label: 'Chat de Inferencia IA (AGY)', sectionId: 'chat' }]
+        return [{ label: 'Hablar con Asistente IA', sectionId: 'chat' }]
       case 'workflows':
-        return [{ label: 'Workflows & Skills (Antigravity)', sectionId: 'workflows' }]
+        return [{ label: 'Flujos Automáticos', sectionId: 'workflows' }]
       case 'designer':
       case 'roadmap':
-        return [{ label: 'Roadmap & DAG Topológico', sectionId: 'roadmap' }]
+        return [{ label: 'Mapa Visual del Flujo', sectionId: 'roadmap' }]
       case 'agents':
-        return [{ label: 'Flota de Agentes & Procesos OS', sectionId: 'agents' }]
+        return [{ label: 'Equipo de Agentes IA', sectionId: 'agents' }]
       case 'gates':
       case 'executions':
-        return [{ label: 'Compuertas Soberanas & Ejecuciones', sectionId: 'executions' }]
+        return [{ label: 'Mis Aprobaciones y Entregas', sectionId: 'executions' }]
       case 'projects':
-        return [{ label: 'Ecosistema de Proyectos & Worktrees', sectionId: 'projects' }]
+        return [{ label: 'Carpetas y Proyectos', sectionId: 'projects' }]
       case 'database':
       case 'reports':
-        return [{ label: 'Inspector SQLite WAL & Telemetría', sectionId: 'database' }]
+        return [{ label: 'Historial y Base de Datos Local', sectionId: 'database' }]
       case 'github':
       case 'settings':
-        return [{ label: 'Configuración & GitHub Hub', sectionId: 'github' }]
+        return [{ label: 'Ajustes y GitHub', sectionId: 'github' }]
       default:
-        return [{ label: 'Panel de Control Principal' }]
+        return [{ label: 'Inicio · Mi Proyecto' }]
     }
   }
 
@@ -313,14 +312,7 @@ export default function App() {
           )}
         </main>
 
-        {/* Right Sidebar (Wide screens only) */}
-        <RightSidebar
-          agents={agents}
-          events={events}
-          onSelectAgent={(agent) => alert(`Herramienta / Agente: ${agent.name} (${agent.role})`)}
-          onSelectEvent={(ev) => alert(`Evento SQLite: ${ev.event_type} - ${ev.payload_json}`)}
-          onNavigateSection={(sec) => setCurrentSection(sec)}
-        />
+
       </div>
 
       {/* Mobile Slide-Over Navigation Drawer */}
