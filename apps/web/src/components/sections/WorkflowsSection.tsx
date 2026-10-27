@@ -172,6 +172,67 @@ export const WorkflowsSection: React.FC = () => {
         </button>
       </section>
 
+      {/* 1.5 Declared SolidBit Master Flows (Workorders A-D, IMPL-001..009, Gates 0-5) */}
+      <section className="p-5 rounded-3xl bg-zinc-950 border border-zinc-850 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-white">
+              Flujos Maestros Declarados en SolidBit (Listos para Usar)
+            </h2>
+            <p className="text-xs text-zinc-400">
+              Diseñados en la carpeta de flujos del orquestador con compuertas humanas Gates 0 a 5 y reglas estrictas.
+            </p>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            DECLARADOS Y ACTIVOS
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          {[
+            {
+              code: 'FLUJO A · GOBERNANZA',
+              title: 'Aislamiento de Ramas y Reglas de Seguridad',
+              desc: 'Prepara ramas Git Worktree independientes sin tocar main ni exponer rutas locales.',
+              agent: 'Atlas & Centinela',
+            },
+            {
+              code: 'FLUJO B · CONTROLES GITHUB',
+              title: 'Protección de Ramas y CODEOWNERS',
+              desc: 'Verifica permisos de repositorio, bloqueo de force-push y revisión obligatoria.',
+              agent: 'Centinela',
+            },
+            {
+              code: 'FLUJO C · TRAZABILIDAD JIRA',
+              title: 'Sincronización de Sprints y DAG',
+              desc: 'Conecta historias SOLID-101..108 con oleadas de agentes y criterios de aceptación.',
+              agent: 'Atlas & Orión',
+            },
+            {
+              code: 'FLUJO D · AUDITORÍA QA (IMPL-001..009)',
+              title: 'Verificación de Reglas DR-INV-001 y DR-PAY-001',
+              desc: 'Ejecuta las 698 pruebas Pytest y sella el paquete de evidencia SHA-256.',
+              agent: 'Vega, Fénix & Nova',
+            },
+          ].map((fl) => (
+            <div
+              key={fl.code}
+              className="p-3.5 rounded-2xl bg-black border border-zinc-850 flex flex-col justify-between space-y-2"
+            >
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono font-bold text-emerald-400 block">
+                  {fl.code}
+                </span>
+                <div className="font-bold text-white">{fl.title}</div>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">{fl.desc}</p>
+              </div>
+              <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] text-zinc-300">
+                <span>Agentes: <strong>{fl.agent}</strong></span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* 2. Filter Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center p-1 rounded-2xl bg-zinc-950 border border-zinc-850 overflow-x-auto text-xs">

@@ -64,6 +64,16 @@ def _load_operator_profile() -> Dict[str, Any]:
             return json.loads(PROFILE_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
+    return {
+        "name": os.environ.get("SACL_OPERATOR_NAME") or "Operador Principal",
+        "role": os.environ.get("SACL_OPERATOR_ROLE", "Product Owner / Autoridad Principal"),
+        "email": os.environ.get("SACL_OPERATOR_EMAIL") or "operador@solidbit.mx",
+        "secret": os.environ.get("SACL_AUDIT_SECRET", "sacl-audit-secret-2026"),
+        "signing_status": "AUTHENTICATED",
+        "last_login": datetime.now(timezone.utc).isoformat(),
+    }
+
+def _unused_legacy_profile() -> Dict[str, Any]:
     detected_name = os.environ.get("SACL_OPERATOR_NAME")
     detected_email = os.environ.get("SACL_OPERATOR_EMAIL")
     if not detected_name:

@@ -1,8 +1,8 @@
 # SolidBit Agent Execution Control Loop (SACL V1) Current Orchestrator Compatibility Matrix
 
 > **Specification Version:** 1.0.0  
-> **Source Orchestrator:** `C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator`  
-> **Target System:** `C:\Users\Lucilfer\Documents\solidbit-agent-execution-control-loop`  
+> **Source Orchestrator:** `/workspace\Stable-Ecommerce-Orchestrator`  
+> **Target System:** `/workspace\solidbit-agent-execution-control-loop`  
 > **Status:** ARCHITECTURE FREEZE / LOCAL CANONICAL BASELINE  
 > **Implementation Authorization:** `IMPLEMENTATION_AUTHORIZED=NO`  
 > **Authoritative Precedence:** Explicit Joaquín Decisions > Proven Current-Orchestrator Behavior > SolidBit Governance > Industry Standards (Undefined Gaps Only)  
@@ -16,7 +16,7 @@ This document provides the authoritative inventory and migration mapping of all 
 ### Operational Lifecycle Transition Policy
 The operational coexistence and eventual decommissioning of the legacy orchestrator are governed by strict transition rules:
 1. **Untouched / Fully Operational Phase:**  
-   The legacy `Stable-Ecommerce-Orchestrator` (`C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator`) **remains untouched, fully operational, and available as the proven fallback runtime** throughout the construction and verification of SACL V1.
+   The legacy `Stable-Ecommerce-Orchestrator` (`/workspace\Stable-Ecommerce-Orchestrator`) **remains untouched, fully operational, and available as the proven fallback runtime** throughout the construction and verification of SACL V1.
 2. **Parity & E2E Certification Gate:**  
    SACL V1 must demonstrate complete functional parity across all 18 evaluated components and successfully pass the complete 8-step End-to-End Certification Suite (`docs/E2E_CERTIFICATION_PLAN.md`).
 3. **Archive & Read-Only Transition:**  
@@ -73,7 +73,7 @@ The audit identified **4 significant contradictions** where current script behav
 - **Architectural Resolution (ADR-002):** Operational state tracking is migrated to a local SQLite database (`sacl_ops.db`) operating with Write-Ahead Logging (`PRAGMA journal_mode=WAL;`) across 16 formal domains. Every proven state field from `orchestrator-common.ps1` and PID recycling checks are preserved. Heavy unstructured artifacts (logs, diffs, reports) remain strictly on the filesystem per Decision #23.
 
 ### Contradiction 3: Hardcoded Single-Project Topology vs Multi-Project Requirement
-- **Current Behavior:** Scripts hardcode product paths (`C:\Users\Lucilfer\Documents\Stable-Ecommerce`), remote origin regexes (`risejoaquin/stable-ecomerce`), specific branch names (`audit/ccp-40-*`), specific Jira keys (`CCP-*`), and specific PR numbers.
+- **Current Behavior:** Scripts hardcode product paths (`/workspace\Stable-Ecommerce`), remote origin regexes (`risejoaquin/stable-ecomerce`), specific branch names (`audit/ccp-40-*`), specific Jira keys (`CCP-*`), and specific PR numbers.
 - **SACL Target Scope:** Multi-project orchestration supporting multiple repositories (e.g. `Stable-Ecommerce`, `SolidPos`, `risejoaquin/solidbit-agent-execution-control-loop`).
 - **Conflict Assessment:** **OPERATIONAL CONTRADICTION**. Attempting to run current scripts against any project other than `Stable-Ecommerce` results in immediate script abortion.
 - **Architectural Resolution (ADR-009):** All repository paths and target configurations are parameterized within `manifest.json` and governed by the local Project Registry (`schemas/project-registry.schema.json`). The Project Registry is the sole local authority for local filesystem roots; packages cannot redirect execution outside registry policy. Concurrency is throttled to 1 mutating job per project.

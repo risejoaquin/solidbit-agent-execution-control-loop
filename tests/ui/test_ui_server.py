@@ -199,7 +199,7 @@ def test_ui_server_orchestrator_api(running_server):
     apply_payload = json.dumps(
         {
             "approval_id": "REQ-SERVER-TEST",
-            "operator": "LUCILFER",
+            "operator": "OPERADOR_SACL",
             "justification": "Test deployment gate approval",
         }
     ).encode("utf-8")

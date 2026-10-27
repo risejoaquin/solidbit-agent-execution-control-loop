@@ -93,7 +93,7 @@ SACL opera como un kernel orquestador local desacoplado de dependencias en la nu
 
 ### E. Email Gateway & Automatización Bidireccional
 * Integrado de forma nativa con **Resend** para notificaciones salientes y comandos entrantes.
-* **Reportes de Micro-Decisión:** Al finalizar una oleada o bloquearse una compuerta, el sistema envía un informe estructurado al operador (`lawlieeet@outlook.es`) desde la cuenta autorizada (`lucilfer@selfcaresinners.com`).
+* **Reportes de Micro-Decisión:** Al finalizar una oleada o bloquearse una compuerta, el sistema envía un informe estructurado al correo configurado del operador desde la cuenta de notificaciones del sistema.
 * **Inbound Webhook Autenticado:** Permite disparar DAGs de manera remota mediante correos firmados validados por tokens criptográficos y firmas Svix.
 
 ### F. Selector Universal de Modelos de IA

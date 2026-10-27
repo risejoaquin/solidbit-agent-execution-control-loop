@@ -28,7 +28,7 @@ If you discover a security vulnerability within SACL:
 1. **Do NOT report security vulnerabilities via public GitHub issues.**
 2. Send an encrypted email or report directly to the Sovereign Authority:
    - **Primary Contact:** Joaquín Vallejo ([@risejoaquin](https://github.com/risejoaquin))
-   - **Email:** `joaquin@solidbit.dev` or `lucilfer@solidbit.dev`
+   - **Email:** `security@solidbit.dev`
 3. Please include:
    - Description of the vulnerability and attack vector.
    - Exact steps to reproduce or proof-of-concept (PoC).

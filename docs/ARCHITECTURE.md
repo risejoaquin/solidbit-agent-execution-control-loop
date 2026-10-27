@@ -436,16 +436,16 @@ SACL V1 parameterizes all repository paths and targets dynamically inside `manif
   "wave_id": "WAVE-01",
   "projects": {
     "stable-ecommerce": {
-      "path": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce",
+      "path": "/workspace/Stable-Ecommerce",
       "default_branch": "main",
       "remote_pattern": ".*risejoaquin/stable-ecomerce.*",
-      "worktree_root": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce-Orchestrator\\worktrees"
+      "worktree_root": "/workspace/Stable-Ecommerce-Orchestrator\\worktrees"
     },
     "solidbit-control-loop": {
-      "path": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+      "path": "/workspace/solidbit-agent-execution-control-loop",
       "default_branch": "main",
       "remote_pattern": ".*risejoaquin/solidbit-agent-execution-control-loop.*",
-      "worktree_root": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop\\worktrees"
+      "worktree_root": "/workspace/solidbit-agent-execution-control-loop\\worktrees"
     }
   },
   "agents": [
@@ -478,7 +478,7 @@ SACL V1 enforces strict physical and logical separation between relational state
 
 ### 5.2 Canonical Relational Architecture (`sacl_ops.db`)
 
-The canonical DDL implements the complete 16-domain relational architecture codified in [`db/migrations/001_init.sql`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) and specified in [`docs/SQLITE_DATA_MODEL.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md):
+The canonical DDL implements the complete 16-domain relational architecture codified in [`db/migrations/001_init.sql`](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) and specified in [`docs/SQLITE_DATA_MODEL.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md):
 
 ```sql
 PRAGMA journal_mode = WAL;          -- Write-Ahead Logging for non-blocking concurrent reads
@@ -647,105 +647,105 @@ CREATE INDEX IF NOT EXISTS idx_mail_inbox_nonce ON mail_inbox(nonce);
 
 ## 6. Architecture Decision Records (Canonical ADR Set: ADR-001 through ADR-014)
 
-The physical ADR files located under [`docs/adr/`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/) represent the authoritative, constitutional decisions governing SACL V1. Every ADR number and title below matches its physical counterpart exactly:
+The physical ADR files located under [`docs/adr/`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/) represent the authoritative, constitutional decisions governing SACL V1. Every ADR number and title below matches its physical counterpart exactly:
 
 ### ADR-001: Gmail Self-Mailbox Transport via Gmail API and Cloud Pub/Sub Pull for Asynchronous Control Loop
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Transport Layer & Ingress Architecture
 - **Context:** Decoupling high-level cognitive supervision (ChatGPT Web) from local Windows host execution without exposing local network listeners or public webhooks.
 - **Decision:** Gmail (`uniquedraken@gmail.com`) acts as the asynchronous store-and-forward transport channel. Ingress is event-driven via Gmail API `users.watch` and Google Cloud Pub/Sub pull/StreamingPull subscriber (outbound connection only). Pub/Sub notification is strictly an untrusted wake signal. Authoritative changes and packages are fetched via Gmail History API (`users.history.list`) using persisted `historyId` cursors. Automatic watch renewal, startup reconciliation, and periodic fallback polling only. Outbound results dispatched directly via Gmail REST API (`users.messages.send`) with RFC 2822 threading. Zero SMTP in V1. Self-mail workflow supported.
-- **Physical Document:** [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md)
+- **Physical Document:** [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md)
 
 ### ADR-002: SQLite Operational State Store (`sacl_ops.db`)
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Data Tier & Operational Persistence
 - **Context:** Legacy orchestrator tracked state across loose JSON files, risking race conditions and crash inconsistency.
 - **Decision:** Replace loose JSON files with a local relational SQLite database (`sacl_ops.db`) in WAL mode structured across 16 formal operational domains. Connection bootstrap executes: `PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON;`. Preserves all proven legacy tracking properties (`agent`, `status`, `pid`, `started_at`, `finished_at`, `exit_code`, `commit_sha`, `report_path`, `result_verdict`, `error_message`). Long-term analytics warehouse is deferred.
-- **Physical Document:** [`docs/adr/ADR-002-sqlite-operational-state-store.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-002-sqlite-operational-state-store.md)
+- **Physical Document:** [`docs/adr/ADR-002-sqlite-operational-state-store.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-002-sqlite-operational-state-store.md)
 
 ### ADR-003: Persistent IDLE Supervisor Daemon (`Graph-P`) with Zero Idle Token Burn
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Host Daemon & Execution Lifecycle
 - **Context:** The system must supervise execution and manage leases without incurring continuous LLM token costs or resource leaks.
 - **Decision:** `Graph-P` supervisor maintains a strict Zero Idle LLM Token Posture—remaining strictly IDLE with zero running LLM workers when no jobs are pending. Singleton mutual exclusion lease (`SUPERVISOR_SINGLETON`) with 10s heartbeat and 60s expiration. Spawns an ephemeral Directed Acyclic Graph engine (`Graph-H`) per wave package, which tears down completely upon completion.
-- **Physical Document:** [`docs/adr/ADR-003-persistent-idle-supervisor.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-003-persistent-idle-supervisor.md)
+- **Physical Document:** [`docs/adr/ADR-003-persistent-idle-supervisor.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-003-persistent-idle-supervisor.md)
 
 ### ADR-004: Self-Contained Runnable Wave Package Compatibility Model
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Package Specification, Authority Boundaries & Runtime Conventions
 - **Context:** Wave packages must execute deterministically without implicit host dependencies or runtime internet downloads, while preserving legacy package conventions.
 - **Decision:** Standardize wave packages as self-contained ZIP archives containing `manifest.json`, `prompts/`, `config/`, `inputs/`, `contracts/`, `schemas/`, and `scripts/`. Packages are strictly declarative in authority: they declare requested operations but cannot grant execution trust to attached code (`authorized_scripts` is prohibited). Local Operation Registry owns trusted handlers. Root PowerShell entrypoints preserved for backwards compatibility.
-- **Physical Document:** [`docs/adr/ADR-004-wave-package-compatibility.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-004-wave-package-compatibility.md)
+- **Physical Document:** [`docs/adr/ADR-004-wave-package-compatibility.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-004-wave-package-compatibility.md)
 
 ### ADR-005: Sovereign Decision Precedence Hierarchy
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Architecture Governance, Precedence & Conflict Resolution
 - **Context:** Preventing architecture erosion, preference creep, or silent overrides across multi-agent development cycles.
 - **Decision:** Establish a strict four-tier canonical precedence hierarchy: (1) Explicit Joaquín Decisions (`DECISION_BASELINE.md`), (2) Proven Current-Orchestrator Behavior (`Stable-Ecommerce-Orchestrator`), (3) Existing Governance & Contracts, (4) Industry Standards for undefined gaps only. Higher tiers unconditionally supersede lower tiers. Prohibition of silent overrides.
-- **Physical Document:** [`docs/adr/ADR-005-decision-precedence.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-005-decision-precedence.md)
+- **Physical Document:** [`docs/adr/ADR-005-decision-precedence.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-005-decision-precedence.md)
 
 ### ADR-006: Prohibition of Arbitrary Remote Code Execution and Governed Worker Execution
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Security Boundary, Package Trust & Worker Sandboxing
 - **Context:** Headless worker execution (`agy.exe --dangerously-skip-permissions`) presents severe prompt-injection and arbitrary code execution (ACE) risks if unconstrained.
 - **Decision:** Packages cannot self-authorize attached code. Autoexecution is strictly restricted to locally installed handlers registered in the Local Operation Registry (`schemas/operation-registry.schema.json`). Headless worker controllers (`WORKER.ps1`) require `-BypassAcknowledged`, pre-inject immutable machine governance guard headers (`GOVERNED_EXECUTION=TRUE`, `MERGE=NOT_AUTHORIZED`, `DEPLOY=NOT_AUTHORIZED`), confine execution to isolated Git worktrees (`wt-*`), and fail closed on path traversal (Zip Slip defense).
-- **Physical Document:** [`docs/adr/ADR-006-no-arbitrary-remote-code.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-006-no-arbitrary-remote-code.md)
+- **Physical Document:** [`docs/adr/ADR-006-no-arbitrary-remote-code.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-006-no-arbitrary-remote-code.md)
 
 ### ADR-007: Sovereign Human Authority Gate for Irreversible Operations
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Authority Model, Approval Contracts & Human Action Gate
 - **Context:** Autonomous agents must not self-authorize code merges into `main`, production deployments, or tracker transitions.
 - **Decision:** Human developer (Joaquín) remains the sole sovereign principal. Irreversible operations require explicit human approval via a generic bounded action-approval contract (`job_id + action + scope + request_id + expires_at`). Approval resumes the same logical run without spawning disconnected runs. Approvals cannot exceed the hard local policy envelope or override hard denies.
-- **Physical Document:** [`docs/adr/ADR-007-human-authority.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-007-human-authority.md)
+- **Physical Document:** [`docs/adr/ADR-007-human-authority.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-007-human-authority.md)
 
 ### ADR-008: Structural Process Separation of Mail Gateway and Orchestrator Core (`Graph-P`)
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Subsystem Topology & Process Architecture
 - **Context:** Isolating external transport intake from internal job execution to enforce zero-privilege edge security.
 - **Decision:** Mail Gateway daemon and `Graph-P` supervisor execute as completely separate OS processes. Mail Gateway has zero execution privileges (no git access, no PowerShell execution, no worker spawning). Gateway stages validated packages and registers records in SQLite `sacl_ops.db`; `Graph-P` polls or receives local signals to initiate execution.
-- **Physical Document:** [`docs/adr/ADR-008-mail-gateway-separation.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-008-mail-gateway-separation.md)
+- **Physical Document:** [`docs/adr/ADR-008-mail-gateway-separation.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-008-mail-gateway-separation.md)
 
 ### ADR-009: Multi-Project Parameterization via Manifest vs Hardcoded Single-Repo Paths
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Workspace Manager, Project Registry Authority & Concurrency
 - **Context:** Legacy orchestrator hardcoded single-repo paths (`Stable-Ecommerce`). SACL must support multi-repository orchestration without allowing packages to redirect execution arbitrarily.
 - **Decision:** Parameterize target repositories in `manifest.json`. The local Project Registry (`schemas/project-registry.schema.json`) is the sole local authority for filesystem roots; packages requesting unauthorized paths fail closed (`POLICY_DENIED_UNAUTHORIZED_TARGET_ROOT`). Mutating concurrency baseline: initially exactly 1 mutating job per project, with concurrent read-only allowed.
-- **Physical Document:** [`docs/adr/ADR-009-multiproject-core.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-009-multiproject-core.md)
+- **Physical Document:** [`docs/adr/ADR-009-multiproject-core.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-009-multiproject-core.md)
 
 ### ADR-010: At-Least-Once Delivery and Idempotent Ingestion Semantics
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Messaging Protocol, Event Synchronization & Deduplication
 - **Context:** Email and Pub/Sub transport inherently exhibit at-least-once delivery; consumers must be strictly idempotent.
 - **Decision:** Implement at-least-once transport semantics with deterministic deduplication on `(message_id, nonce)`. Re-delivery of identical message (`same JOB_ID` + `same SHA-256`) is idempotently ignored. Conflicting payload (`same JOB_ID` + `different SHA-256`) is rejected fail-closed. Valid retries require a new nonce.
-- **Physical Document:** [`docs/adr/ADR-010-at-least-once-idempotent-processing.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-010-at-least-once-idempotent-processing.md)
+- **Physical Document:** [`docs/adr/ADR-010-at-least-once-idempotent-processing.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-010-at-least-once-idempotent-processing.md)
 
 ### ADR-011: Filesystem Retention for Heavy Artifacts and SQLite Metadata Model
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Data Tier, Storage Hierarchy & Artifact Contracts
 - **Context:** Heavy unstructured logs, diffs, and reports degrade SQLite WAL performance if stored as BLOBs.
 - **Decision:** Retain heavy unstructured artifacts strictly on filesystem under `artifacts/runs/<runId>/`. SQLite stores only metadata, foreign keys, and relative filesystem paths. Mandatory dual deliverables: human-readable `SUMMARY.md` and machine-readable `SUMMARY.json`.
-- **Physical Document:** [`docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md)
+- **Physical Document:** [`docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md)
 
 ### ADR-012: Strict Prohibition of Remote Production Execution in SACL V1
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Scope Boundaries, Permission Lattice & Safety Policy
 - **Context:** Automated mutating commands against Railway, production databases, GitHub rulesets, or Jira pose catastrophic operational risk.
 - **Decision:** Remote production execution is strictly disabled in SACL V1 (fail-closed). Automated merges, deploys, production DB writes, and secret exports are permanently denied by Hard Local Policy (`schemas/hard-policy.schema.json`). Commands targeting remote production emit offline dry-run action plans (`.plan.json` / `.plan.md`) for human execution.
-- **Physical Document:** [`docs/adr/ADR-012-no-remote-production-v1.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-012-no-remote-production-v1.md)
+- **Physical Document:** [`docs/adr/ADR-012-no-remote-production-v1.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-012-no-remote-production-v1.md)
 
 ### ADR-013: Multi-Dimensional Run Status Reconciliation and Diagnostic Timeouts
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Execution State Reconciliation & Process Supervision
 - **Context:** Process exit code alone is insufficient to verify agent task completion. Killing timed-out processes destroys forensic context.
 - **Decision:** Run status reconciliation requires four verification factors: (1) OS process observation, (2) SQLite persisted state, (3) physical output verification on disk, and (4) structured regex marker extraction (`^(?:AGENT_[A-Z0-9_-]+_RESULT|RESULT|FINAL_RESULT)\s*=\s*(PASS|PARTIAL|BLOCKED)`). Fallback verdict `'PASS (Report Present)'` preserved. Workers exceeding timeouts transition to `TIMEOUT_RUNNING` and are never auto-killed. 3-way PID recycling verification (OS handle + whitelist image + 300s `StartTime` window tolerance).
-- **Physical Document:** [`docs/adr/ADR-013-run-status-reconciliation.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-013-run-status-reconciliation.md)
+- **Physical Document:** [`docs/adr/ADR-013-run-status-reconciliation.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-013-run-status-reconciliation.md)
 
 ### ADR-014: V1 Transport Authentication Model and Deferral of Package Signing
 - **Status:** ACCEPTED
 - **Scope:** SACL V1 Transport Security & Cryptographic Boundary
 - **Context:** ChatGPT Web cannot possess long-lived HMAC secrets or private signing keys without unacceptable exposure risks.
 - **Decision:** Adopt a secretless Control Plane posture. Cryptographic package signing is formally deferred to future waves when a dedicated, isolated key-custody signer exists. V1 authentication relies on transport-layer authentication (Gmail OAuth2/TLS), strict sender whitelisting (`uniquedraken@gmail.com`), attachment SHA-256 integrity tracking, anti-replay nonces, Anti-Zip Slip extraction defenses, and local policy preflight verification.
-- **Physical Document:** [`docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md)
+- **Physical Document:** [`docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md)
 
 ---
 

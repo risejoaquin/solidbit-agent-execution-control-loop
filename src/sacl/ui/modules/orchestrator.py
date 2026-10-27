@@ -37,7 +37,7 @@ class OrchestratorModule:
     # Canonical SolidBit Invariant Contracts Catalog
     CANONICAL_CONTRACTS = {
         "DR-INV-001": {
-            "name": "SellableUnit & Zero-Oversell Atomic Ledger",
+            "name": "Inventario Atómico y Cero Sobreventa (SellableUnit)",
             "keywords": [
                 "inventario",
                 "stock",
@@ -51,7 +51,7 @@ class OrchestratorModule:
             "risk": "CRITICAL",
         },
         "DR-PAY-001": {
-            "name": "Double-Entry Transactional Payment Ledger",
+            "name": "Libro Mayor de Pagos de Partida Doble y Cero Sobrecargos",
             "keywords": [
                 "pago",
                 "checkout",
@@ -65,7 +65,7 @@ class OrchestratorModule:
             "risk": "CRITICAL",
         },
         "DR-IDEM-001": {
-            "name": "SQLite WAL Mutating Endpoint Idempotency Keys",
+            "name": "Llaves de Idempotencia para Operaciones de Escritura",
             "keywords": [
                 "idempotencia",
                 "wal",
@@ -79,7 +79,7 @@ class OrchestratorModule:
             "risk": "HIGH",
         },
         "DR-AUTH-001": {
-            "name": "RBAC, Tenant Isolation & Zero-Bypass Boundary",
+            "name": "Control de Acceso por Roles (RBAC) y Aislamiento de Cuentas",
             "keywords": [
                 "auth",
                 "oauth",
@@ -93,7 +93,7 @@ class OrchestratorModule:
             "risk": "CRITICAL",
         },
         "DR-REC-001": {
-            "name": "POS Offline Crash Consistency & Receipt Audit",
+            "name": "Recuperación ante Interrupciones y Auditoría de Recibos POS",
             "keywords": [
                 "crash",
                 "recovery",
@@ -107,7 +107,7 @@ class OrchestratorModule:
             "risk": "HIGH",
         },
         "DR-ERR-001": {
-            "name": "Canonical Error Envelopes ({ error: { code, message } })",
+            "name": "Formato Estándar de Errores Legibles para el Usuario",
             "keywords": ["error", "envelope", "exception", "fault", "response", "handler"],
             "risk": "MEDIUM",
         },
@@ -187,7 +187,7 @@ class OrchestratorModule:
         return {
             "active_project": {
                 "name": project_name,
-                "path": str(self.workspace_root),
+                "path": f"~/Proyectos/{project_name}",
                 "branch": branch,
                 "commit": commit_hash,
                 "is_clean": is_clean,
@@ -334,7 +334,7 @@ class OrchestratorModule:
         contract_tickets = [
             {
                 "key": "SOLID-106",
-                "title": "E2E Authentication, Mobile Notifications & Real-Time Telemetry",
+                "title": "Autenticación E2E, Notificaciones Móviles y Telemetría en Tiempo Real",
                 "phase": "Fase 4: E2E Auth & Telemetría",
                 "contracts": ["DR-AUTH-001", "DR-IDEM-001"],
                 "status": "IN_PROGRESS",
@@ -345,7 +345,7 @@ class OrchestratorModule:
             },
             {
                 "key": "SOLID-104",
-                "title": "DAG Scheduler Engine with Worktree Isolation & Hard Deny Supremacy",
+                "title": "Coordinador de Oleadas con Aislamiento de Ramas y Reglas de Protección",
                 "phase": "Fase 2: Motor de Control SACL",
                 "contracts": ["DR-INV-001", "DR-IDEM-001", "DR-REC-001"],
                 "status": "READY_FOR_SPRINT",
@@ -356,7 +356,7 @@ class OrchestratorModule:
             },
             {
                 "key": "SOLID-102",
-                "title": "Atomic Inventory Ledger SellableUnit & Zero-Oversell (DR-INV-001)",
+                "title": "Inventario Atómico y Cero Sobreventa de Productos (DR-INV-001)",
                 "phase": "Fase 1: Arquitectura & Contratos",
                 "contracts": ["DR-INV-001"],
                 "status": "READY_FOR_SPRINT",
@@ -367,7 +367,7 @@ class OrchestratorModule:
             },
             {
                 "key": "SOLID-101",
-                "title": "Payment Double-Entry Ledger & Zero-Overcharge (DR-PAY-001)",
+                "title": "Libro Mayor de Pagos de Partida Doble y Cero Sobrecargos (DR-PAY-001)",
                 "phase": "Fase 1: Arquitectura & Contratos",
                 "contracts": ["DR-PAY-001"],
                 "status": "READY_FOR_SPRINT",
@@ -378,7 +378,7 @@ class OrchestratorModule:
             },
             {
                 "key": "SOLID-107",
-                "title": "Mobile Decision Gateway & Resend Notification Webhooks",
+                "title": "Compuertas de Decisión Móvil y Avisos por Correo Resend",
                 "phase": "Fase 4: E2E Auth & Telemetría",
                 "contracts": ["DR-IDEM-001"],
                 "status": "READY_FOR_SPRINT",
@@ -389,7 +389,7 @@ class OrchestratorModule:
             },
             {
                 "key": "SOLID-108",
-                "title": "Production Deployment & Canary Verification with Rollback",
+                "title": "Despliegue Controlado a Producción con Verificación y Reversión",
                 "phase": "Fase 5: Despliegue Principal",
                 "contracts": ["DR-INV-001", "DR-PAY-001", "DR-REC-001"],
                 "status": "PLANNED",
@@ -818,7 +818,7 @@ class OrchestratorModule:
                 {
                     "role_id": "architect-spec",
                     "name": "spec-enforcer",
-                    "title": "Architect & Contract Enforcer (SB-ENG-HB-001)",
+                    "title": "Atlas · Coordinador de Arquitectura y Reglas",
                     "responsibilities": f"Verificar y congelar contratos ({', '.join(contracts_enforced)}), auditar esquemas y dirty check.",
                     "worktree": "worktrees/integration",
                     "phase": "Wave 1: Arquitectura & Preflight",
@@ -826,7 +826,7 @@ class OrchestratorModule:
                 {
                     "role_id": "coder-alpha",
                     "name": "worktree-coder-alpha",
-                    "title": "Senior Coder (Lógica Central)",
+                    "title": "Vega · Arquitecta de Datos y Lógica Central",
                     "responsibilities": f"Implementación de lógica para {ticket['title'][:35]} en rama aislada.",
                     "worktree": "worktrees/coder-alpha",
                     "phase": "Wave 2: Síntesis en Paralelo",
@@ -834,7 +834,7 @@ class OrchestratorModule:
                 {
                     "role_id": "coder-beta",
                     "name": "worktree-coder-beta",
-                    "title": "Senior Coder (Idempotencia & Adaptadores)",
+                    "title": "Orion · Constructor de Interfaces y Adaptadores",
                     "responsibilities": "Implementación de adaptadores de idempotencia (DR-IDEM-001) y RPCs.",
                     "worktree": "worktrees/coder-beta",
                     "phase": "Wave 2: Síntesis en Paralelo",
@@ -842,7 +842,7 @@ class OrchestratorModule:
                 {
                     "role_id": "qa-auditor",
                     "name": "zero-bypass-qa",
-                    "title": "Independent QA & Security Auditor",
+                    "title": "Nova · Inspectora de Calidad y Pruebas Automatizadas",
                     "responsibilities": "Ejecución de suite Pytest, verificación de semáforo de contratos y auditoría RLS.",
                     "worktree": "worktrees/integration",
                     "phase": "Wave 3: Aseguramiento de Calidad",
@@ -850,7 +850,7 @@ class OrchestratorModule:
                 {
                     "role_id": "gate-sentinel",
                     "name": "hitl-sentinel",
-                    "title": "Human Gate & Staging Sentinel",
+                    "title": "Centinela · Guardián de Compuertas Humanas y Seguridad",
                     "responsibilities": "Generación del reporte Dual Deliverable, cálculo de diff y token HMAC de autorización.",
                     "worktree": "worktrees/integration",
                     "phase": "Wave 4: Gobernanza & Despliegue",

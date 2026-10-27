@@ -92,3 +92,7 @@ scratch/
 
 packages/
 runs/
+
+config/imported_projects.json
+config/operator_profile.json
+config/connections.local.json

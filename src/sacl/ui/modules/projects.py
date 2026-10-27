@@ -68,7 +68,7 @@ class ProjectsModule:
 
     def _save_imported_paths(self, paths: Optional[List[str]] = None) -> None:
         if paths is None:
-            paths = [p["path"] for p in self.projects]
+            paths = [p.get("real_path") or p["path"] for p in self.projects]
         try:
             IMPORTED_PROJECTS_FILE.parent.mkdir(parents=True, exist_ok=True)
             IMPORTED_PROJECTS_FILE.write_text(
@@ -83,6 +83,11 @@ class ProjectsModule:
             )
         except Exception as e:
             logger.warning(f"Could not save imported_projects.json: {e}")
+
+    @staticmethod
+    def _mask_display_path(item: Path) -> str:
+        """Masks the OS username or host directory structure so paths never leak."""
+        return f"~/Proyectos/{item.name}"
 
     def _inspect_single_folder(self, item: Path) -> Dict[str, Any]:
         """Inspects a single explicitly imported directory."""
@@ -176,7 +181,8 @@ class ProjectsModule:
             "id": p_id,
             "name": display_name,
             "description": f"Rama activa: {branch} · {len(docs_list)} documentos",
-            "path": str(item),
+            "path": self._mask_display_path(item),
+            "display_path": self._mask_display_path(item),
             "tech_stack": tech,
             "status": "ACTIVE" if (p_id == self.active_project_id) else "STANDBY",
             "branch": branch,
@@ -206,8 +212,9 @@ class ProjectsModule:
             }
 
         real_target = target.resolve()
+        masked_target = self._mask_display_path(real_target)
         existing = next(
-            (p for p in self.projects if Path(p["path"]).resolve() == real_target), None
+            (p for p in self.projects if p["path"] == masked_target or p["id"] == real_target.name.lower()), None
         )
         if existing:
             self.active_project_id = existing["id"]

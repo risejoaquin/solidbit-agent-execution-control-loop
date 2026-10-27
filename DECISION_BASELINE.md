@@ -53,7 +53,7 @@ The following foundational decisions were established directly by the sovereign 
 
 | # | Sovereign Decision / Requirement | Classification | Governing Subsystem | Description & Constitutional Mandate |
 | :-: | :--- | :--- | :--- | :--- |
-| **10** | **Target Repository** | Repository Scope | Workspace Manager | Target canonical repository is `risejoaquin/solidbit-agent-execution-control-loop` located on host at `C:\Users\Lucilfer\Documents\solidbit-agent-execution-control-loop`. |
+| **10** | **Target Repository** | Repository Scope | Workspace Manager | Target canonical repository is `risejoaquin/solidbit-agent-execution-control-loop` located on host at `/workspace\solidbit-agent-execution-control-loop`. |
 | **11** | **Reuse & Refactor Current Orchestrator** | Implementation Strategy | Core Architecture | Reuse and refactor proven scripts and patterns from `Stable-Ecommerce-Orchestrator`; do not start from zero. Preserve battle-tested mechanics. |
 | **12** | **ChatGPT Web Control Plane** | Architecture Boundary | Control Plane | ChatGPT Web serves as the Cloud Control Plane for high-level strategic reasoning, execution planning, and wave package authoring. It holds zero host execution privileges and zero private signing secrets. |
 | **13** | **Gmail Asynchronous Transport** | Transport Architecture | Transport Gateway | Gmail serves strictly as the cloud-to-local asynchronous store-and-forward transport channel. Gmail is transport only, not execution authority. |
@@ -284,7 +284,7 @@ The local **Project Registry** (`config/projects.json`, conforming to `schemas/p
 The operational relationship between `Stable-Ecommerce-Orchestrator` and SACL V1 is governed by strict transition phases:
 
 1. **Operational Parity Phase (Current):**
-   - The legacy `Stable-Ecommerce-Orchestrator` (`C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator`) **remains fully operational and untouched**.
+   - The legacy `Stable-Ecommerce-Orchestrator` (`/workspace\Stable-Ecommerce-Orchestrator`) **remains fully operational and untouched**.
    - No scripts, configs, or state files in the legacy orchestrator may be deleted or modified during SACL V1 development.
 2. **E2E Certification Gate:**
    - SACL V1 must achieve full functional parity across all 18 evaluated capabilities and pass the complete 8-step End-to-End Certification Suite (`docs/E2E_CERTIFICATION_PLAN.md`).

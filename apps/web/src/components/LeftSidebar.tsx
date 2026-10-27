@@ -16,6 +16,7 @@ import {
   SlidersHorizontal,
   Layers,
 } from 'lucide-react'
+import { useLanguage } from '../context/LanguageContext'
 
 interface NavItem {
   id: string
@@ -39,46 +40,51 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   pendingGatesCount = 0,
   projectsCount = 1,
 }) => {
+  const { t } = useLanguage()
   const [showSupportChannels, setShowSupportChannels] = useState<boolean>(false)
 
   // FASE 1 (OOUX & MECE): 5 Mutually Exclusive Canonical Domain Entities
   const canonicalDomainEntities: NavItem[] = [
     {
       id: 'dashboard',
-      label: '1. Sprint Actual',
-      subtitle: 'Flujo operativo y estado',
+      label: t('1. Sprint Actual', '1. Current Sprint'),
+      subtitle: t('Flujo operativo y estado', 'Operational flow & state'),
       icon: Home,
       action: () => onSelectSection('dashboard'),
       badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
     },
     {
       id: 'projects',
-      label: '2. Proyectos',
-      subtitle: `${projectsCount} ${projectsCount === 1 ? 'carpeta vinculada' : 'carpetas vinculadas'}`,
+      label: t('2. Proyectos', '2. Projects'),
+      subtitle: `${projectsCount} ${
+        projectsCount === 1
+          ? t('carpeta vinculada', 'linked folder')
+          : t('carpetas vinculadas', 'linked folders')
+      }`,
       icon: Folder,
       action: () => onSelectSection('projects'),
     },
     {
       id: 'roadmap',
-      label: '3. Mapa de Flujo',
-      subtitle: 'Secuencia de etapas y tareas',
+      label: t('3. Mapa de Flujo', '3. Workflow Map'),
+      subtitle: t('Secuencia de etapas y tareas', 'Stage & task sequence'),
       icon: GitBranch,
       action: () => onSelectSection('roadmap'),
     },
     {
       id: 'agents',
-      label: '4. Equipo de Asistentes',
-      subtitle: 'Especialistas y pruebas',
+      label: t('4. Escuadrón de Agentes', '4. Agent Squad'),
+      subtitle: t('Personajes interactivos en vivo', 'Interactive character personas'),
       icon: Bot,
       action: () => onSelectSection('agents'),
     },
     {
       id: 'executions',
-      label: '5. Aprobaciones',
+      label: t('5. Aprobaciones', '5. Approvals'),
       subtitle:
         pendingGatesCount > 0
-          ? `${pendingGatesCount} esperando autorización`
-          : 'Decisiones e historial',
+          ? `${pendingGatesCount} ${t('esperando autorización', 'awaiting authorization')}`
+          : t('Decisiones e historial', 'Decisions & history'),
       icon: ShieldCheck,
       action: () => onSelectSection('executions'),
       badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
@@ -89,43 +95,43 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const supportChannels: NavItem[] = [
     {
       id: 'jira',
-      label: 'Requerimientos y Tareas',
+      label: t('Requerimientos y Tareas', 'Requirements & Backlog'),
       icon: CheckSquare,
       action: () => onSelectSection('jira'),
     },
     {
       id: 'connections',
-      label: 'Conexiones del Sistema',
+      label: t('Conexiones del Sistema', 'System Connections'),
       icon: Key,
       action: () => onSelectSection('connections'),
     },
     {
       id: 'email',
-      label: 'Notificaciones por Correo',
+      label: t('Notificaciones por Correo', 'Email Notifications'),
       icon: Mail,
       action: () => onSelectSection('email'),
     },
     {
       id: 'chat',
-      label: 'Asistente de Consulta',
+      label: t('Asistente de Consulta', 'Query Assistant'),
       icon: MessageSquare,
       action: () => onSelectSection('chat'),
     },
     {
       id: 'workflows',
-      label: 'Catálogo de Flujos',
+      label: t('Flujos Declarados SolidBit', 'Declared SolidBit Flows'),
       icon: Layers,
       action: () => onSelectSection('workflows'),
     },
     {
       id: 'database',
-      label: 'Registro de Actividad',
+      label: t('Registro de Actividad', 'Activity Log'),
       icon: BarChart2,
       action: () => onSelectSection('database'),
     },
     {
       id: 'github',
-      label: 'Perfil y Sincronización',
+      label: t('Perfil y Sincronización', 'Profile & Sync'),
       icon: Settings,
       action: () => onSelectSection('github'),
     },
@@ -135,9 +141,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     <aside className="hidden md:flex w-64 border-r border-zinc-850 bg-[#09090b] flex-col justify-between shrink-0 p-4 select-none overflow-y-auto custom-scroll">
       <div className="space-y-6">
         {/* Canonical 5 OOUX Domain Entities (Zero duplicated action buttons — Invariant 2) */}
-        <nav className="space-y-1.5" aria-label="Entidades del Dominio">
+        <nav className="space-y-1.5" aria-label={t('Entidades del Dominio', 'Domain Entities')}>
           <div className="px-2.5 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
-            Entidades de Trabajo (OOUX)
+            {t('Entidades de Trabajo (OOUX)', 'Workspace Entities (OOUX)')}
           </div>
           {canonicalDomainEntities.map((item) => {
             const Icon = item.icon
@@ -195,7 +201,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           >
             <span className="flex items-center gap-2">
               <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-500" />
-              <span>Canales y Configuración</span>
+              <span>{t('Canales y Configuración', 'Channels & Settings')}</span>
             </span>
             {showSupportChannels ? (
               <ChevronUp className="w-3.5 h-3.5" />
@@ -243,11 +249,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           className="w-full p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900/80 border border-zinc-850 transition cursor-pointer text-left space-y-1"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-zinc-200">Entorno Privado en tu PC</span>
+            <span className="text-[11px] font-bold text-zinc-200">
+              {t('Entorno Privado en tu PC', 'Private Local Workspace')}
+            </span>
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
           </div>
           <p className="text-[10px] text-zinc-400 leading-snug">
-            Tus proyectos y autorizaciones se procesan directamente en este equipo.
+            {t(
+              'Tus proyectos y autorizaciones se procesan directamente en este equipo.',
+              'Your projects and approvals are processed directly on this machine.'
+            )}
           </p>
         </button>
       </div>

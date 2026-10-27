@@ -10,7 +10,7 @@
 ## 1. Context
 
 In `Stable-Ecommerce-Orchestrator`, the orchestration scripts were tightly coupled to a single specific product repository:
-- Hardcoded local paths: `C:\Users\Lucilfer\Documents\Stable-Ecommerce`.
+- Hardcoded local paths: `/workspace\Stable-Ecommerce`.
 - Hardcoded git remote URLs and regex validations: `risejoaquin/stable-ecomerce`.
 - Hardcoded feature branches: `audit/ccp-40-*`.
 - Hardcoded pull request numbers: `#11`, `#12`, `#13`, `#14`, `#15`, `#20`, `#21`, `#23`.
@@ -48,11 +48,11 @@ We decide to **eliminate all hardcoded repository paths, branch names, and remot
        {
          "project_id": "solidbit-agent-execution-control-loop",
          "repository": "risejoaquin/solidbit-agent-execution-control-loop",
-         "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+         "target_local_repo": "/workspace/solidbit-agent-execution-control-loop",
          "default_branch": "main",
          "allowed_worktree_base": "worktrees",
          "allowed_target_roots": [
-           "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop"
+           "/workspace/solidbit-agent-execution-control-loop"
          ],
          "allow_target_override": false,
          "concurrency_policy": {

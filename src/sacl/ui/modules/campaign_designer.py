@@ -21,14 +21,14 @@ class CampaignDesignerModule:
 
     DEFAULT_DAG = {
         "campaign_id": "CUSTOM_SPRINT_CAMPAIGN_v1",
-        "name": "Custom Autonomous Sprint DAG",
+        "name": "Flujo Autónomo de Sprint Gobernado (DAG)",
         "version": "1.0.0",
-        "description": "Visual multi-node DAG created via SACL Decision Shell.",
+        "description": "Grafo visual multi-agente creado en el Centro de Control SolidBit.",
         "nodes": [
             {
                 "id": "node-clean-tree",
-                "label": "1. Git Isolation & Worktree",
-                "agent_role": "Architect Agent",
+                "label": "1. Aislamiento de Rama Segura (Worktree)",
+                "agent_role": "Atlas · Coordinador de Ramas",
                 "action": "WORKTREE_PROVISION",
                 "gate_required": False,
                 "timeout_sec": 30,
@@ -36,8 +36,8 @@ class CampaignDesignerModule:
             },
             {
                 "id": "node-invariants",
-                "label": "2. Invariants Audit (DR-INV-001)",
-                "agent_role": "QA Security Auditor",
+                "label": "2. Auditoría de Reglas de Negocio (DR-INV-001)",
+                "agent_role": "Vega · Arquitecta de Datos",
                 "action": "CONTRACT_VERIFY",
                 "gate_required": False,
                 "timeout_sec": 60,
@@ -45,8 +45,8 @@ class CampaignDesignerModule:
             },
             {
                 "id": "node-codegen",
-                "label": "3. Agent Code Synthesis",
-                "agent_role": "Senior Coder AGY",
+                "label": "3. Construcción de Código en Paralelo",
+                "agent_role": "Orion · Constructor de Interfaces y Lógica",
                 "action": "AGENT_CODEGEN",
                 "gate_required": False,
                 "timeout_sec": 300,
@@ -54,8 +54,8 @@ class CampaignDesignerModule:
             },
             {
                 "id": "node-test-suite",
-                "label": "4. Automated Test Suite",
-                "agent_role": "QA Security Auditor",
+                "label": "4. Suite de Pruebas Automatizadas (Pytest)",
+                "agent_role": "Nova · Inspectora de Calidad QA",
                 "action": "RUN_TESTS",
                 "gate_required": False,
                 "timeout_sec": 120,
@@ -63,8 +63,8 @@ class CampaignDesignerModule:
             },
             {
                 "id": "node-preview-gate",
-                "label": "5. Staging Preview Gate",
-                "agent_role": "HITL Gate Sentinel",
+                "label": "5. Compuerta de Autorización Humana (Gate 5)",
+                "agent_role": "Centinela · Guardián de Seguridad y Compuertas",
                 "action": "HUMAN_APPROVAL_GATE",
                 "gate_required": True,
                 "timeout_sec": 3600,
@@ -72,8 +72,8 @@ class CampaignDesignerModule:
             },
             {
                 "id": "node-deploy-preview",
-                "label": "6. Ephemeral Preview Deploy",
-                "agent_role": "Transport Worker",
+                "label": "6. Empaquetado y Sellado de Evidencia SHA-256",
+                "agent_role": "Fénix · Especialista en Evidencia y Recuperación",
                 "action": "STAGE_PREVIEW",
                 "gate_required": False,
                 "timeout_sec": 180,

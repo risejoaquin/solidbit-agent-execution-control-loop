@@ -1,7 +1,7 @@
 """Email Gateway & Bi-directional Agent Automation Module for SACL UI.
 
-Handles dispatching completion & gate decision emails to the operator (lawlieeet@outlook.es)
-from the system address (lucilfer@selfcaresinners.com), as well as ingesting inbound emails
+Handles dispatching completion & gate decision emails to the operator (operador@solidbit.mx)
+from the system address (notificaciones@solidbit.mx), as well as ingesting inbound emails
 to autonomously trigger agent DAGs and workorders.
 
 Inbound webhooks are only accepted when they are authenticated, either by a valid

@@ -37,7 +37,7 @@
   },
   "worktree": {
     "branch": "docs/sacl-protocol-materialization",
-    "worktree_path": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+    "worktree_path": "/workspace/solidbit-agent-execution-control-loop",
     "commit_sha": null,
     "is_clean": true,
     "modified_files": [

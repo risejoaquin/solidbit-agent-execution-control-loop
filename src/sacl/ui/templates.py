@@ -1,11 +1,11 @@
-"""Compiled Engineering & Operations Console Template V5 (Autor: LUCILFER / risejoaquin)."""
+"""Compiled Engineering & Operations Console Template V5 (Autor: Operador Principal)."""
 
 HTML_APPLICATION = """<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SolidBit SACL · Control de Operaciones · Autor LUCILFER / risejoaquin</title>
+  <title>SolidBit SACL · Control de Operaciones · Autor Operador Principal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -585,7 +585,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
 <!-- Decision Buttons -->
         <div class="pt-4 border-t bd flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="text-xs text-zinc-400 mono">
-            Operador autenticado: <strong class="text-white">LUCILFER / risejoaquin</strong>
+            Operador autenticado: <strong class="text-white">Operador Principal</strong>
           </div>
           <div class="flex items-center gap-2.5">
             <button onclick="submitDossierDecision('REJECTED')" class="btn btn-secondary text-xs px-4 py-2 text-red-400 hover:text-red-300 hover:border-red-500/40">
@@ -1288,7 +1288,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
               <i data-lucide="terminal" class="w-4 h-4"></i>
               <span>SACL Sovereign Orchestrator · Interactive Executive Shell</span>
             </div>
-            <span class="mono text-[10px] text-zinc-500 font-semibold">AUTOR: LUCILFER / risejoaquin</span>
+            <span class="mono text-[10px] text-zinc-500 font-semibold">AUTOR: Operador Principal</span>
           </div>
           <p class="text-xs text-zinc-300 font-mono leading-relaxed">
             Consola de comandos directa del orquestador. Ejecuta pipelines de SDLC, audita contratos DR-INV-001 o reconcilia crashes con código de salida y telemetría en tiempo real.
@@ -1504,9 +1504,9 @@ HTML_APPLICATION = """<!DOCTYPE html>
     <div class="flex-1 overflow-y-auto p-5 space-y-5 custom-scroll">
       <div class="section-canvas p-5 space-y-2.5">
         <div class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Autoría & Control
-        <div class="text-base font-bold text-white">LUCILFER / risejoaquin</div>
+        <div class="text-base font-bold text-white">Operador Principal</div>
         <div class="text-xs text-zinc-400">Cuenta GitHub activa: <span class="mono text-emerald-400 font-semibold">@risejoaquin</span></div>
-        <div class="text-xs text-zinc-400">Email Resend: <span class="mono text-zinc-300">lucilfer@selfcaresinners.com</span></div>
+        <div class="text-xs text-zinc-400">Email Resend: <span class="mono text-zinc-300">notificaciones@solidbit.mx</span></div>
       </div>
 
       <div class="space-y-2.5">
@@ -1960,7 +1960,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({
             request_id: reqId,
             decision: 'APPROVED',
-            justification: 'Autorizado por operador local LUCILFER / risejoaquin'
+            justification: 'Autorizado por operador local Operador Principal'
           })
         });
         const data = await res.json();
@@ -2035,7 +2035,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
           body: JSON.stringify({
             request_id: reqId,
             decision: 'REJECTED',
-            justification: 'Compuerta rechazada por operador local LUCILFER / risejoaquin'
+            justification: 'Compuerta rechazada por operador local Operador Principal'
           })
         });
         const data = await res.json();
@@ -2206,7 +2206,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
                   ${r.status}
                 </span>
               </td>
-              <td class="py-3 px-4 text-zinc-400">${typeof r.approver === 'string' && r.approver.includes('identity') ? 'LUCILFER (CLI)' : (r.approver || 'Sistema')}</td>
+              <td class="py-3 px-4 text-zinc-400">${typeof r.approver === 'string' && r.approver.includes('identity') ? 'Operador (CLI)' : (r.approver || 'Sistema')}</td>
               <td class="py-3 pl-4 text-zinc-500">${r.decided_at || r.requested_at || '--'}</td>
             </tr>
           `).join('');
@@ -2231,7 +2231,7 @@ HTML_APPLICATION = """<!DOCTYPE html>
       openTerminalDrawer();
       appendTerminalLog(`========================================`);
       appendTerminalLog(`[DISPATCH] Lanzando acción: ${actionType.toUpperCase()}`);
-      appendTerminalLog(`[TIMESTAMP] ${new Date().toLocaleTimeString()} | Operador: LUCILFER / risejoaquin`);
+      appendTerminalLog(`[TIMESTAMP] ${new Date().toLocaleTimeString()} | Operador: Operador Principal`);
       showToast(`Iniciando ${actionType}...`, 'info');
 
       try {
@@ -4081,7 +4081,7 @@ function initSSE() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             approval_id: currentGateRequestId || 'REQ-20261025-E43308B0',
-            operator: 'LUCILFER / risejoaquin',
+            operator: 'Operador Principal',
             justification: 'Aprobado post-inspección de pruebas unitarias e invariantes inmutables.'
           })
         });

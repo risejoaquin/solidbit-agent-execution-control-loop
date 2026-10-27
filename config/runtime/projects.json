@@ -5,11 +5,11 @@
     {
       "project_id": "solidbit-agent-execution-control-loop",
       "repository": "risejoaquin/solidbit-agent-execution-control-loop",
-      "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+      "target_local_repo": "/workspace/solidbit-agent-execution-control-loop",
       "default_branch": "main",
       "allowed_worktree_base": "worktrees",
       "allowed_target_roots": [
-        "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop"
+        "/workspace/solidbit-agent-execution-control-loop"
       ],
       "allow_target_override": false,
       "concurrency_policy": {
@@ -24,11 +24,11 @@
     {
       "project_id": "stable-ecommerce",
       "repository": "risejoaquin/stable-ecommerce",
-      "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce",
+      "target_local_repo": "/workspace/Stable-Ecommerce",
       "default_branch": "main",
       "allowed_worktree_base": "worktrees",
       "allowed_target_roots": [
-        "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce"
+        "/workspace/Stable-Ecommerce"
       ],
       "allow_target_override": false,
       "concurrency_policy": {

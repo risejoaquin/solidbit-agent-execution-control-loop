@@ -130,11 +130,11 @@ class LegacyPackageAdapter:
         # 6. Source orchestrator and target local repo
         if "source_orchestrator" not in data or not data["source_orchestrator"]:
             data["source_orchestrator"] = (
-                r"C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator"
+                r"/workspace\Stable-Ecommerce-Orchestrator"
             )
         if "target_local_repo" not in data or not data["target_local_repo"]:
             data["target_local_repo"] = (
-                r"C:\Users\Lucilfer\Documents\solidbit-agent-execution-control-loop"
+                r"/workspace\solidbit-agent-execution-control-loop"
             )
 
         # 7. Agents list

@@ -143,13 +143,13 @@ def test_email_gateway_module():
         return {"success": True, "launched": cid}
 
     mod = EmailGatewayModule(
-        sender_email="lucilfer@selfcaresinners.com",
-        operator_email="lawlieeet@outlook.es",
+        sender_email="notificaciones@solidbit.mx",
+        operator_email="operador@solidbit.mx",
         launch_campaign_cb=mock_launch,
     )
     cfg = mod.get_config()
-    assert cfg["sender_email"] == "lucilfer@selfcaresinners.com"
-    assert cfg["operator_email"] == "lawlieeet@outlook.es"
+    assert cfg["sender_email"] == "notificaciones@solidbit.mx"
+    assert cfg["operator_email"] == "operador@solidbit.mx"
 
     # Outbound test
     report = mod.send_task_completion_report(
@@ -159,11 +159,11 @@ def test_email_gateway_module():
         gate_request_id="REQ-TEST",
     )
     assert report["success"] is True
-    assert "lawlieeet@outlook.es" in report["message"]
+    assert "operador@solidbit.mx" in report["message"]
 
     # Inbound test from authorized operator
     inbound = mod.process_inbound_email(
-        sender="lawlieeet@outlook.es",
+        sender="operador@solidbit.mx",
         subject="EJECUTAR SPRINT-01",
         body_text="Iniciar pruebas completas",
     )
@@ -323,7 +323,7 @@ def test_orchestrator_module(tmp_path: Path):
     assert (latest_run / "evidence" / "invariants_audit.json").exists()
 
     # Apply approved changes & sign HMAC
-    apply_res = mod.apply_changes(approval_id="REQ-TEST-GATE", operator="LUCILFER")
+    apply_res = mod.apply_changes(approval_id="REQ-TEST-GATE", operator="OPERADOR_SACL")
     assert apply_res["success"] is True
     assert apply_res["status"] == "CHANGES_APPLIED"
     assert "hmac-sha256:" in apply_res["hmac_signature"]

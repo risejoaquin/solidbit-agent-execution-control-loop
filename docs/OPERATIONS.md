@@ -221,7 +221,7 @@ Operators observe ongoing execution without taking database write locks or inter
 The operational relationship between `Stable-Ecommerce-Orchestrator` and SACL V1 is governed by strict transition phases:
 
 1. **Untouched / Fully Operational Phase (Current):**
-   - The legacy `Stable-Ecommerce-Orchestrator` (`C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator`) **remains untouched and fully operational**.
+   - The legacy `Stable-Ecommerce-Orchestrator` (`/workspace\Stable-Ecommerce-Orchestrator`) **remains untouched and fully operational**.
    - It remains available as the proven fallback runtime while SACL V1 is constructed.
 2. **Parity & E2E Certification Gate:**
    - SACL V1 must achieve full functional parity across all 18 evaluated capabilities and pass the complete 8-step End-to-End Certification Suite (`docs/E2E_CERTIFICATION_PLAN.md`).

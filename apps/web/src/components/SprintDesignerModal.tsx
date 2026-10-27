@@ -872,6 +872,33 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
                     </span>
                   </div>
 
+                  {/* Clear Human Metrics + Assigned SolidBit Character Squad */}
+                  <div className="p-3.5 rounded-xl bg-black border border-zinc-800 space-y-2">
+                    <span className="text-[11px] font-bold text-emerald-400 block">
+                      Escuadrón de Personajes SolidBit Asignado (Flujos IMPL-001..009 y Gates 0–5):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                      <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-zinc-200">
+                        <strong className="text-sky-400">Atlas:</strong> Rama aislada lista
+                      </div>
+                      <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-zinc-200">
+                        <strong className="text-emerald-400">Vega:</strong> DR-INV-001 / DR-PAY-001
+                      </div>
+                      <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-zinc-200">
+                        <strong className="text-violet-400">Orión:</strong> Flujo UI sincronizado
+                      </div>
+                      <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-zinc-200">
+                        <strong className="text-amber-400">Centinela:</strong> Compuerta Gate 5
+                      </div>
+                      <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-zinc-200">
+                        <strong className="text-orange-400">Fénix:</strong> Evidencia SHA-256
+                      </div>
+                      <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-zinc-200">
+                        <strong className="text-pink-400">Nova:</strong> Suite Pytest verificada
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Clear Human Metrics */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                     <div className="p-3 rounded-xl bg-black border border-zinc-800">

@@ -597,7 +597,7 @@ export const TechAuthHubSection: React.FC = () => {
                   required
                   placeholder={
                     authModalTool.id === 'resend'
-                      ? 're_3GoppTX7_...'
+                      ? 're_xxxxxxxxxxxx'
                       : authModalTool.id === 'gh'
                       ? 'ghp_...'
                       : 'Pega aquí tu token de acceso...'
