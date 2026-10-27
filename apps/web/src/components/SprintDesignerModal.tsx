@@ -29,6 +29,7 @@ interface SprintDesignerModalProps {
   isOpen: boolean
   onClose: () => void
   onSprintExecuted?: () => void
+  initialTicket?: any | null
 }
 
 interface ProjectOption {
@@ -47,6 +48,7 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
   isOpen,
   onClose,
   onSprintExecuted,
+  initialTicket,
 }) => {
   // Stepper state
   const [activeStep, setActiveStep] = useState<number>(1)
@@ -94,6 +96,18 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
   const [executionResult, setExecutionResult] = useState<any>(null)
   const [hmacApplied, setHmacApplied] = useState(false)
   const [backlogTickets, setBacklogTickets] = useState<any[]>([])
+
+  // Pre-load from Jira ticket if launched from Jira Backlog
+  useEffect(() => {
+    if (initialTicket) {
+      if (initialTicket.title) setSprintTitle(initialTicket.title)
+      if (initialTicket.key) setSprintKey(initialTicket.key)
+      if (initialTicket.contracts && initialTicket.contracts.length > 0) {
+        setSelectedContracts(initialTicket.contracts)
+      }
+      if (initialTicket.description) setScopeIncluded(initialTicket.description)
+    }
+  }, [initialTicket])
 
   // Load projects & context backlog
   useEffect(() => {

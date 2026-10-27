@@ -16,6 +16,8 @@ import {
   HelpCircle,
   Database,
   ExternalLink,
+  CheckSquare,
+  Sparkles,
 } from 'lucide-react'
 
 interface MobileDrawerProps {
@@ -48,6 +50,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Inicio', icon: Home, action: () => onSelectSection('dashboard') },
     { id: 'chat', label: 'Chat IA (AGY)', icon: MessageSquare, action: () => onSelectSection('chat'), highlight: true },
+    { id: 'sprint', label: 'Diseñar Sprint', icon: Sparkles, action: onOpenSprintModal },
+    { id: 'jira', label: 'Jira Backlog', icon: CheckSquare, action: () => onSelectSection('jira') },
     { id: 'connections', label: 'Sesiones CLI & Auth', icon: Key, action: () => onSelectSection('connections') },
     { id: 'workflows', label: 'Workflows & Skills (AGY)', icon: Layers, action: () => onSelectSection('workflows') },
     { id: 'designer', label: 'Roadmap & DAG', icon: GitBranch, action: () => onSelectSection('designer') },

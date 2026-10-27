@@ -18,6 +18,7 @@ import { SettingsSection } from './components/sections/SettingsSection'
 import { WorkflowsSection } from './components/sections/WorkflowsSection'
 import { TechAuthHubSection } from './components/sections/TechAuthHubSection'
 import { EmailGatewaySection } from './components/sections/EmailGatewaySection'
+import { JiraSection } from './components/sections/JiraSection'
 import { DiffInspectorModal } from './components/DiffInspectorModal'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
@@ -28,6 +29,7 @@ export default function App() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false)
   const [isDiffModalOpen, setIsDiffModalOpen] = useState<boolean>(false)
   const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
+  const [selectedJiraTicketForSprint, setSelectedJiraTicketForSprint] = useState<any | null>(null)
 
   // Dynamic state loaded strictly from backend APIs (Zero mocks, Zero hardcoding)
   const [tasks, setTasks] = useState<TaskItem[]>([])
@@ -133,6 +135,8 @@ export default function App() {
 
   const getBreadcrumbs = () => {
     switch (currentSection) {
+      case 'jira':
+        return [{ label: 'Jira Cloud & Backlog de Requerimientos', sectionId: 'jira' }]
       case 'email':
         return [{ label: 'Email Gateway & Automatización Soberana', sectionId: 'email' }]
       case 'chat':
@@ -202,6 +206,15 @@ export default function App() {
               events={events}
               onOpenSprintModal={() => setIsSprintModalOpen(true)}
               onNavigateSection={(sec) => setCurrentSection(sec)}
+            />
+          )}
+
+          {currentSection === 'jira' && (
+            <JiraSection
+              onLaunchSprintForTicket={(ticket) => {
+                setSelectedJiraTicketForSprint(ticket)
+                setIsSprintModalOpen(true)
+              }}
             />
           )}
 

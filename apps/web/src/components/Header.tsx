@@ -13,6 +13,7 @@ import {
   Key,
   Menu,
   GitBranch,
+  CheckSquare,
 } from 'lucide-react'
 import type { NotificationItem } from '../types/orchestrator'
 
@@ -506,16 +507,29 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Prominent Action CTA: + Diseñar Sprint & Jira (Icon on mobile, Full on sm+) */}
+        {/* Dedicated Jira Backlog Shortcut */}
+        <button
+          type="button"
+          onClick={() => onNavigateSection('jira')}
+          id="btn-header-jira-nav"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white transition cursor-pointer shrink-0"
+          title="Ver Jira Backlog & Requerimientos"
+        >
+          <CheckSquare className="w-3.5 h-3.5 text-zinc-300" />
+          <span>Jira Backlog</span>
+        </button>
+
+        {/* Dedicated Sprint Execution Studio CTA */}
         <button
           type="button"
           onClick={onOpenSprintModal}
           id="btn-design-sprint-cta"
-          className="p-2 sm:px-4 sm:py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer shrink-0"
-          title="Diseñar Sprint & Jira"
+          className="p-2 sm:px-4 sm:py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer shrink-0"
+          title="Abrir Sprint Execution Studio (DAG Kahn)"
         >
-          <span className="text-sm font-extrabold leading-none">+</span>
-          <span className="hidden sm:inline">Diseñar Sprint & Jira</span>
+          <Sparkles className="w-3.5 h-3.5 fill-black" />
+          <span className="hidden sm:inline">Diseñar Sprint</span>
+          <span className="sm:hidden">Sprint</span>
         </button>
       </div>
     </header>

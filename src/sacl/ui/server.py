@@ -860,7 +860,16 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"success": True, "history": _agy_chat_history})
             return
 
-        if path == "/api/orchestrator/jira-status":
+        # REST API: Dedicated Jira Cloud & Backlog Endpoints
+        if path in ("/api/jira/tickets", "/api/jira/backlog"):
+            backlog = self.service.orchestrator.discover_dynamic_backlog()
+            status = self.service.orchestrator.check_jira_status()
+            self._send_json(200, {"success": True, "tickets": backlog, "count": len(backlog), "connection": status})
+            return
+
+        if path in ("/api/jira/status", "/api/orchestrator/jira-status"):
+            self._send_json(200, self.service.orchestrator.check_jira_status())
+            return
             self._send_json(200, self.service.orchestrator.check_jira_status())
             return
 
@@ -1268,6 +1277,61 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             res = gh_mod.create_pull_request(title=title, body=pr_body, base=base, draft=draft)
             broadcast_sse("github_pr_created", res)
             self._send_json(200, res)
+            return
+
+        # Dedicated Jira Ticket Creation & Status Transition
+        if path == "/api/jira/tickets":
+            from datetime import datetime, timezone
+            key = body.get("key") or f"JIRA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            title = body.get("title", "Requerimiento SDLC")
+            desc = body.get("description", "")
+            priority = body.get("priority", "MEDIUM")
+            status = body.get("status", "READY_FOR_SPRINT")
+            issue_type = body.get("issue_type", "Story")
+            criteria = body.get("acceptance_criteria", [])
+            contracts = body.get("contracts", [])
+
+            ticket = {
+                "key": key.upper(),
+                "title": title,
+                "description": desc,
+                "priority": priority,
+                "status": status,
+                "issue_type": issue_type,
+                "acceptance_criteria": criteria,
+                "contracts": contracts,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "source": "jira_tracker_ui",
+            }
+            self.service.orchestrator._custom_tickets.insert(0, ticket)
+            broadcast_sse("jira_ticket_created", ticket)
+            self._send_json(200, {"success": True, "ticket": ticket, "message": f"Ticket {ticket['key']} registrado exitosamente."})
+            return
+
+        if path == "/api/jira/transition":
+            from datetime import datetime, timezone
+            ticket_key = body.get("ticket_key")
+            new_status = body.get("status", "IN_PROGRESS")
+            if not ticket_key:
+                self._send_json(400, {"success": False, "error": "Falta el parámetro 'ticket_key'"})
+                return
+            updated = False
+            for t in self.service.orchestrator._custom_tickets:
+                if t.get("key") == ticket_key:
+                    t["status"] = new_status
+                    t["updated_at"] = datetime.now(timezone.utc).isoformat()
+                    updated = True
+                    break
+            if not updated:
+                self.service.orchestrator._custom_tickets.append({
+                    "key": ticket_key,
+                    "title": f"Ticket {ticket_key}",
+                    "status": new_status,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                })
+            payload = {"ticket_key": ticket_key, "status": new_status}
+            broadcast_sse("jira_ticket_transitioned", payload)
+            self._send_json(200, {"success": True, "ticket_key": ticket_key, "status": new_status})
             return
 
         # 18b. Orchestrator: Create/Update Sprint & Sync Jira or SQLite WAL
