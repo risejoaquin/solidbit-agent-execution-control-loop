@@ -1121,10 +1121,20 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             jira_key = body.get("jira_key")
             custom_goal = body.get("custom_goal")
             mode = body.get("mode", "waves")
+            project_id = body.get("project_id") or "stable-ecommerce"
+            mission_type = body.get("mission_type") or "feature"
+            scope_included = body.get("scope_included")
+            scope_excluded = body.get("scope_excluded")
+            contracts = body.get("contracts")
             plan = self.service.orchestrator.auto_plan_sprint(
                 jira_key=jira_key,
                 custom_goal=custom_goal,
                 mode=mode,
+                project_id=project_id,
+                mission_type=mission_type,
+                scope_included=scope_included,
+                scope_excluded=scope_excluded,
+                contracts=contracts,
             )
             broadcast_sse("sprint_planned", plan)
             self._send_json(200, plan)

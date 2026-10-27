@@ -127,7 +127,7 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
             <h1 className="text-lg font-bold text-white tracking-wide">
               {dagData?.name || 'Roadmap & DAG Topológico de Kahn'}
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-200 border border-emerald-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-200 border border-zinc-700">
               {dagNodes.length} Nodos &bull; {dagData?.campaign_id || 'DAG Activo'}
             </span>
           </div>
@@ -192,8 +192,8 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
           </button>
 
           <button
-            onClick={onOpenSprintModal}
-            className="px-4 py-2 rounded-2xl bg-white hover:bg-zinc-200 text-black font-semibold font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-emerald-500/10 cursor-pointer"
+            id="btn-open-sprint-designer" onClick={onOpenSprintModal}
+            className="px-4 py-2 rounded-2xl bg-white hover:bg-zinc-200 text-black font-semibold font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-sm cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Diseñar Sprint</span>
@@ -203,7 +203,7 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
 
       {/* Validation Result Banner */}
       {validationResult && (
-        <div className="p-4 rounded-3xl bg-white/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+        <div className="p-4 rounded-3xl bg-white/10 border border-zinc-700 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-zinc-200 font-bold">
             <CheckCircle2 className="w-4 h-4" />
             <span>{validationResult.message || 'Validación de DAG Acíclico Exitosa (Cero Ciclos)'}</span>

@@ -493,131 +493,304 @@ class OrchestratorModule:
         jira_key: Optional[str] = None,
         custom_goal: Optional[str] = None,
         mode: str = "waves",
+        project_id: Optional[str] = None,
+        mission_type: Optional[str] = None,
+        scope_included: Optional[str] = None,
+        scope_excluded: Optional[str] = None,
+        contracts: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
-        """Step 4 & 5: Architect Agent decomposes ticket into assigned roles, parallel waves, and dynamic DAG."""
+        """Step 4 & 5: Architect Agent decomposes ticket into assigned roles, parallel waves, and dynamic DAG.
+        Adheres to SolidBit RISEHANDBOOK (SB-ENG-HB-001 v1.0) and 9-phase SDLC.
+        """
         backlog = self.discover_dynamic_backlog()
         ticket = next((t for t in backlog if t["key"] == jira_key), None)
+        
+        project_id = project_id or "stable-ecommerce"
+        mission_type = mission_type or "feature"
+
+        # Mission descriptions & titles based on SolidBit Handbook
+        mission_defaults = {
+            "feature": ("Implementación de Requisitos y Flujo de Negocio", "SDLC-FEATURE", ["DR-INV-001", "DR-PAY-001", "DR-IDEM-001"]),
+            "hardening": ("Endurecimiento de Seguridad, RLS & OWASP (Cap. 15)", "SDLC-HARDEN", ["DR-AUTH-001", "DR-ERR-001", "DR-IDEM-001"]),
+            "invariants": ("Auditoría de Concurrencia e Idempotencia (DR-INV-001 / DR-PAY-001)", "SDLC-INVARIANTS", ["DR-INV-001", "DR-PAY-001", "DR-IDEM-001"]),
+            "diagnosis": ("Diagnóstico Sistemático de Causa Raíz (EXPECTED–TEST–OBSERVED)", "SDLC-DIAGNOSIS", ["DR-INV-001", "DR-PAY-001", "DR-ERR-001"]),
+            "refactor": ("Refactorización y Reducción de Deuda Técnica (Cap. 5)", "SDLC-REFACTOR", ["DR-INV-001", "DR-PAY-001", "DR-ERR-001"]),
+            "release": ("Certificación de Entrega, Gates 0-5 y Staging (Cap. 9)", "SDLC-RELEASE", ["DR-INV-001", "DR-PAY-001", "DR-AUTH-001", "DR-IDEM-001"]),
+        }
+        
+        default_title, default_epic, default_contracts = mission_defaults.get(mission_type, mission_defaults["feature"])
 
         if not ticket:
-            detected_contracts = self._detect_contracts(f"{jira_key or ''} {custom_goal or ''}")
+            detected_contracts = contracts or self._detect_contracts(f"{jira_key or ''} {custom_goal or ''}")
+            if not detected_contracts:
+                detected_contracts = default_contracts
+
             ticket = {
-                "key": jira_key or f"SOLID-REQ-{int(time.time()) % 1000}",
-                "title": custom_goal or "Implementación de Requisitos y Contratos Inmutables",
-                "phase": "Sprint Personalizado",
+                "key": jira_key or f"SOLID-{int(time.time()) % 1000}",
+                "title": custom_goal or default_title,
+                "phase": f"Sprint SolidBit: {mission_type.upper()}",
                 "contracts": detected_contracts,
                 "status": "READY_FOR_SPRINT",
-                "description": custom_goal or "Objetivo definido directamente por el operador en el orquestador.",
-                "priority": "HIGH",
-                "epic": "SDLC-CUSTOM",
+                "description": custom_goal or f"Misión de {mission_type} en {project_id}.",
+                "priority": "HIGH" if mission_type in ("hardening", "invariants") else "MEDIUM",
+                "epic": default_epic,
                 "source": "custom_auto_plan",
+                "project_id": project_id,
+                "scope_included": scope_included or "Componentes del alcance primario autorizados en el ticket",
+                "scope_excluded": scope_excluded or "Sistemas externos y migraciones destructivas fuera de alcance",
             }
             self._custom_tickets.append(ticket)
 
         sprint_id = f"SPRINT-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{ticket['key']}"
-        contracts_enforced = ticket.get("contracts", ["DR-INV-001", "DR-PAY-001"])
+        contracts_enforced = contracts or ticket.get("contracts") or default_contracts
 
-        # 1. Dynamically Assigned Agent Roles
-        roles = [
-            {
-                "role_id": "architect-spec",
-                "name": "spec-enforcer",
-                "title": "Architect & Contract Enforcer",
-                "responsibilities": f"Verificar y congelar contratos ({', '.join(contracts_enforced)}), auditar esquemas y dirty check.",
-                "worktree": "worktrees/integration",
-                "phase": "Wave 1: Arquitectura & Preflight",
-            },
-            {
-                "role_id": "coder-alpha",
-                "name": "worktree-coder-alpha",
-                "title": "Senior Coder (Lógica Central)",
-                "responsibilities": f"Implementación de lógica para {ticket['title'][:35]} en rama aislada.",
-                "worktree": "worktrees/coder-alpha",
-                "phase": "Wave 2: Síntesis en Paralelo",
-            },
-            {
-                "role_id": "coder-beta",
-                "name": "worktree-coder-beta",
-                "title": "Senior Coder (Idempotencia & Adaptadores)",
-                "responsibilities": "Implementación de adaptadores de idempotencia (DR-IDEM-001) y RPCs.",
-                "worktree": "worktrees/coder-beta",
-                "phase": "Wave 2: Síntesis en Paralelo",
-            },
-            {
-                "role_id": "qa-auditor",
-                "name": "zero-bypass-qa",
-                "title": "Independent QA & Security Auditor",
-                "responsibilities": "Ejecución de suite Pytest, verificación de semáforo de contratos y auditoría RLS.",
-                "worktree": "worktrees/integration",
-                "phase": "Wave 3: Aseguramiento de Calidad",
-            },
-            {
-                "role_id": "gate-sentinel",
-                "name": "hitl-sentinel",
-                "title": "Human Gate & Staging Sentinel",
-                "responsibilities": "Generación del reporte Dual Deliverable, cálculo de diff y token HMAC de autorización.",
-                "worktree": "worktrees/integration",
-                "phase": "Wave 4: Gobernanza & Despliegue",
-            },
-        ]
-
-        # 2. Parallel Waves Definition
-        waves = [
-            {
-                "wave_number": 1,
-                "name": "Wave 1 · Arquitectura & Contratos",
-                "parallel_agents": ["spec-enforcer"],
-                "actions": ["CONTRACT_AUDIT", "PREFLIGHT_CHECK"],
-                "expected_duration": "0.15s",
-                "status": "PLANNED",
-            },
-            {
-                "wave_number": 2,
-                "name": "Wave 2 · Síntesis en Paralelo (Worktrees Aislados)",
-                "parallel_agents": ["worktree-coder-alpha", "worktree-coder-beta"],
-                "actions": ["PARALLEL_CODEGEN", "IDEMPOTENCY_ADAPTERS"],
-                "expected_duration": "0.30s",
-                "status": "PLANNED",
-            },
-            {
-                "wave_number": 3,
-                "name": "Wave 3 · Verificación Zero-Bypass QA",
-                "parallel_agents": ["zero-bypass-qa"],
-                "actions": ["RUN_PYTEST_SUITE", "RLS_AUDIT"],
-                "expected_duration": "0.35s",
-                "status": "PLANNED",
-            },
-            {
-                "wave_number": 4,
-                "name": "Wave 4 · Compuerta Humana & Staging",
-                "parallel_agents": ["hitl-sentinel"],
-                "actions": ["HUMAN_APPROVAL_GATE", "EMIT_HMAC"],
-                "expected_duration": "En espera de decisión",
-                "status": "PLANNED",
-            },
-        ]
+        # Dynamically Assigned Agent Roles customized per mission type
+        if mission_type == "hardening":
+            roles = [
+                {
+                    "role_id": "security-architect",
+                    "name": "spec-enforcer",
+                    "title": "Security & RLS Architect (Cap. 15)",
+                    "responsibilities": f"Auditar políticas RLS en Supabase, límites RBAC y contratos ({', '.join(contracts_enforced)}).",
+                    "worktree": "worktrees/security-spec",
+                    "phase": "Wave 1: Auditoría de Seguridad & Modelado",
+                },
+                {
+                    "role_id": "auth-coder",
+                    "name": "worktree-coder-alpha",
+                    "title": "Senior Backend (Access Control Guard)",
+                    "responsibilities": "Implementación de validación de tokens y aislamiento estricto de inquilinos.",
+                    "worktree": "worktrees/coder-alpha",
+                    "phase": "Wave 2: Endurecimiento de Endpoints",
+                },
+                {
+                    "role_id": "crypto-coder",
+                    "name": "worktree-coder-beta",
+                    "title": "Crypto & Secret Guard (OWASP ASVS)",
+                    "responsibilities": "Firma HMAC de webhooks, rotación de secretos y sanitización de payloads.",
+                    "worktree": "worktrees/coder-beta",
+                    "phase": "Wave 2: Endurecimiento de Endpoints",
+                },
+                {
+                    "role_id": "pentest-qa",
+                    "name": "zero-bypass-qa",
+                    "title": "Independent Security & RLS QA Sentinel",
+                    "responsibilities": "Ejecución de pruebas de acceso negativo, inyección y bypass de permisos.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 3: Verificación de Seguridad",
+                },
+                {
+                    "role_id": "gate-sentinel",
+                    "name": "hitl-sentinel",
+                    "title": "Human Security Authority Gatekeeper",
+                    "responsibilities": "Verificación de cero vulnerabilidades críticas y firma de compuerta Gate 5.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 4: Aprobación Humana Soberana",
+                },
+            ]
+            waves = [
+                {
+                    "wave_number": 1,
+                    "name": "Wave 1 · Auditoría de Superficie & Políticas RLS",
+                    "parallel_agents": ["spec-enforcer"],
+                    "actions": ["RLS_AUDIT", "THREAT_MODEL_CHECK"],
+                    "expected_duration": "0.15s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 2,
+                    "name": "Wave 2 · Endurecimiento de Endpoints & Middleware",
+                    "parallel_agents": ["worktree-coder-alpha", "worktree-coder-beta"],
+                    "actions": ["HARDEN_ENDPOINTS", "HMAC_SECRET_SEAL"],
+                    "expected_duration": "0.30s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 3,
+                    "name": "Wave 3 · Pruebas de Permisos Negativos & Penetración",
+                    "parallel_agents": ["zero-bypass-qa"],
+                    "actions": ["RUN_SECURITY_TESTS", "RBAC_VALIDATION"],
+                    "expected_duration": "0.35s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 4,
+                    "name": "Wave 4 · Compuerta de Seguridad & Token HMAC",
+                    "parallel_agents": ["hitl-sentinel"],
+                    "actions": ["HUMAN_APPROVAL_GATE", "EMIT_HMAC"],
+                    "expected_duration": "En espera de decisión",
+                    "status": "PLANNED",
+                },
+            ]
+        elif mission_type == "diagnosis":
+            roles = [
+                {
+                    "role_id": "investigator",
+                    "name": "root-cause-investigator",
+                    "title": "Lead Diagnostician (EXPECTED–TEST–OBSERVED)",
+                    "responsibilities": "Aislar síntomas, reproducir el fallo de forma controlada y aplicar 5 porqués.",
+                    "worktree": "worktrees/investigation",
+                    "phase": "Wave 1: Reproducción Controlada",
+                },
+                {
+                    "role_id": "coder-alpha",
+                    "name": "worktree-coder-alpha",
+                    "title": "Senior Patch Engineer",
+                    "responsibilities": "Implementar corrección quirúrgica mínima sin alterar contratos congelados.",
+                    "worktree": "worktrees/coder-alpha",
+                    "phase": "Wave 2: Corrección Acotada",
+                },
+                {
+                    "role_id": "qa-auditor",
+                    "name": "zero-bypass-qa",
+                    "title": "Regression Prevention QA Sentinel",
+                    "responsibilities": "Generar test de regresión automatizado y validar que el bug no vuelva a ocurrir.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 3: Pruebas de Regresión",
+                },
+                {
+                    "role_id": "gate-sentinel",
+                    "name": "hitl-sentinel",
+                    "title": "Post-Mortem & Fix Authority Gate",
+                    "responsibilities": "Verificar reporte EXPECTED–TEST–OBSERVED y validar cierre del ticket.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 4: Cierre con Evidencia",
+                },
+            ]
+            waves = [
+                {
+                    "wave_number": 1,
+                    "name": "Wave 1 · Reproducción Controlada & Análisis de Causa Raíz",
+                    "parallel_agents": ["root-cause-investigator"],
+                    "actions": ["REPRODUCE_BUG", "ISOLATE_VARIABLES"],
+                    "expected_duration": "0.20s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 2,
+                    "name": "Wave 2 · Parche Quirúrgico en Worktree Aislado",
+                    "parallel_agents": ["worktree-coder-alpha"],
+                    "actions": ["APPLY_MINIMAL_FIX"],
+                    "expected_duration": "0.25s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 3,
+                    "name": "Wave 3 · Suite de Regresión Completa",
+                    "parallel_agents": ["zero-bypass-qa"],
+                    "actions": ["RUN_PYTEST_SUITE", "REGRESSION_CONFIRMATION"],
+                    "expected_duration": "0.35s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 4,
+                    "name": "Wave 4 · Aprobación Post-Mortem & Emisión de Cierre",
+                    "parallel_agents": ["hitl-sentinel"],
+                    "actions": ["HUMAN_APPROVAL_GATE", "EMIT_HMAC"],
+                    "expected_duration": "En espera de decisión",
+                    "status": "PLANNED",
+                },
+            ]
+        else: # Standard Feature, Invariants, Refactor, Release
+            roles = [
+                {
+                    "role_id": "architect-spec",
+                    "name": "spec-enforcer",
+                    "title": "Architect & Contract Enforcer (SB-ENG-HB-001)",
+                    "responsibilities": f"Verificar y congelar contratos ({', '.join(contracts_enforced)}), auditar esquemas y dirty check.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 1: Arquitectura & Preflight",
+                },
+                {
+                    "role_id": "coder-alpha",
+                    "name": "worktree-coder-alpha",
+                    "title": "Senior Coder (Lógica Central)",
+                    "responsibilities": f"Implementación de lógica para {ticket['title'][:35]} en rama aislada.",
+                    "worktree": "worktrees/coder-alpha",
+                    "phase": "Wave 2: Síntesis en Paralelo",
+                },
+                {
+                    "role_id": "coder-beta",
+                    "name": "worktree-coder-beta",
+                    "title": "Senior Coder (Idempotencia & Adaptadores)",
+                    "responsibilities": "Implementación de adaptadores de idempotencia (DR-IDEM-001) y RPCs.",
+                    "worktree": "worktrees/coder-beta",
+                    "phase": "Wave 2: Síntesis en Paralelo",
+                },
+                {
+                    "role_id": "qa-auditor",
+                    "name": "zero-bypass-qa",
+                    "title": "Independent QA & Security Auditor",
+                    "responsibilities": "Ejecución de suite Pytest, verificación de semáforo de contratos y auditoría RLS.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 3: Aseguramiento de Calidad",
+                },
+                {
+                    "role_id": "gate-sentinel",
+                    "name": "hitl-sentinel",
+                    "title": "Human Gate & Staging Sentinel",
+                    "responsibilities": "Generación del reporte Dual Deliverable, cálculo de diff y token HMAC de autorización.",
+                    "worktree": "worktrees/integration",
+                    "phase": "Wave 4: Gobernanza & Despliegue",
+                },
+            ]
+            waves = [
+                {
+                    "wave_number": 1,
+                    "name": "Wave 1 · Arquitectura & Contratos",
+                    "parallel_agents": ["spec-enforcer"],
+                    "actions": ["CONTRACT_AUDIT", "PREFLIGHT_CHECK"],
+                    "expected_duration": "0.15s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 2,
+                    "name": "Wave 2 · Síntesis en Paralelo (Worktrees Aislados)",
+                    "parallel_agents": ["worktree-coder-alpha", "worktree-coder-beta"],
+                    "actions": ["PARALLEL_CODEGEN", "IDEMPOTENCY_ADAPTERS"],
+                    "expected_duration": "0.30s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 3,
+                    "name": "Wave 3 · Verificación Zero-Bypass QA",
+                    "parallel_agents": ["zero-bypass-qa"],
+                    "actions": ["RUN_PYTEST_SUITE", "RLS_AUDIT"],
+                    "expected_duration": "0.35s",
+                    "status": "PLANNED",
+                },
+                {
+                    "wave_number": 4,
+                    "name": "Wave 4 · Compuerta Humana & Staging",
+                    "parallel_agents": ["hitl-sentinel"],
+                    "actions": ["HUMAN_APPROVAL_GATE", "EMIT_HMAC"],
+                    "expected_duration": "En espera de decisión",
+                    "status": "PLANNED",
+                },
+            ]
 
         # 3. Dynamic DAG Nodes
         dag_nodes = [
             {
                 "id": "node-contracts",
-                "label": f"1. Congelar Contratos ({', '.join(contracts_enforced)})",
-                "agent_role": "spec-enforcer",
+                "label": f"1. Congelar Contratos ({', '.join(contracts_enforced[:3])})",
+                "agent_role": roles[0]["name"],
                 "action": "CONTRACT_AUDIT",
                 "dependencies": [],
                 "status": "READY",
             },
             {
                 "id": "node-coder-alpha",
-                "label": "2a. Síntesis Lógica Central (Worktree Alpha)",
-                "agent_role": "worktree-coder-alpha",
+                "label": f"2a. Síntesis {roles[1]['title'][:25]} (Worktree Alpha)",
+                "agent_role": roles[1]["name"],
                 "action": "PARALLEL_CODEGEN",
                 "dependencies": ["node-contracts"],
                 "status": "READY",
             },
             {
                 "id": "node-coder-beta",
-                "label": "2b. Idempotencia & Adaptadores (Worktree Beta)",
-                "agent_role": "worktree-coder-beta",
+                "label": f"2b. Adaptadores {roles[2]['title'][:25]} (Worktree Beta)",
+                "agent_role": roles[2]["name"],
                 "action": "IDEMPOTENCY_ADAPTERS",
                 "dependencies": ["node-contracts"],
                 "status": "READY",
@@ -625,7 +798,7 @@ class OrchestratorModule:
             {
                 "id": "node-qa-verification",
                 "label": "3. Suite Pytest Zero-Bypass & Invariantes",
-                "agent_role": "zero-bypass-qa",
+                "agent_role": roles[3]["name"],
                 "action": "RUN_PYTEST_SUITE",
                 "dependencies": ["node-coder-alpha", "node-coder-beta"],
                 "status": "READY",
@@ -633,7 +806,7 @@ class OrchestratorModule:
             {
                 "id": "node-hitl-gate",
                 "label": "4. Compuerta Humana HITL & Token HMAC",
-                "agent_role": "hitl-sentinel",
+                "agent_role": roles[4]["name"],
                 "action": "HUMAN_APPROVAL_GATE",
                 "dependencies": ["node-qa-verification"],
                 "status": "READY",
@@ -645,6 +818,8 @@ class OrchestratorModule:
             "title": f"{ticket['key']}: {ticket['title']}",
             "jira_ticket": ticket,
             "topology_mode": mode,
+            "project_id": project_id,
+            "mission_type": mission_type,
             "contracts_enforced": contracts_enforced,
             "roles": roles,
             "waves": waves,
