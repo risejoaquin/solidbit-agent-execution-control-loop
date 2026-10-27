@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { formatSmartDateTime } from '../../utils/dateFormat'
 import {
   Cpu,
   GitBranch,
@@ -102,7 +103,7 @@ export const TechAuthHubSection: React.FC = () => {
         [toolId]: {
           success: !!isSuccess,
           message: msg,
-          timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          timestamp: formatSmartDateTime(new Date()),
         },
       }))
       // Refresh state
@@ -113,7 +114,7 @@ export const TechAuthHubSection: React.FC = () => {
         [toolId]: {
           success: false,
           message: `Error al ejecutar prueba de diagnóstico: ${err}`,
-          timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          timestamp: formatSmartDateTime(new Date()),
         },
       }))
     } finally {

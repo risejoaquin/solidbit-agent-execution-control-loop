@@ -17,6 +17,20 @@ import { SlashCommandMenu, type SlashCommandItem } from '../SlashCommandMenu'
 import { MentionPicker, type MentionItem } from '../MentionPicker'
 import { ToolCallCard, type ToolCallData } from '../ToolCallCard'
 import { DiffInspectorModal } from '../DiffInspectorModal'
+import { formatSmartDateTime } from '../../utils/dateFormat'
+import { ChevronDown, Cpu, Check } from 'lucide-react'
+
+interface AIModelItem {
+  id: string
+  name: string
+  provider: string
+  tier: string
+  badge: string
+  description: string
+  context_window: string
+  default_temp: number
+  is_active?: boolean
+}
 
 interface BackendChatMessage {
   id: string
@@ -32,6 +46,11 @@ export const ChatSection: React.FC = () => {
   const [inputText, setInputText] = useState('')
   const [loading, setLoading] = useState(false)
   const [operatorName, setOperatorName] = useState('Joaquin Vallejo')
+  const [availableModels, setAvailableModels] = useState<AIModelItem[]>([])
+  const [activeModel, setActiveModel] = useState<AIModelItem | null>(null)
+  const [selectedModelId, setSelectedModelId] = useState<string>('claude-3-7-sonnet')
+  const [showModelDropdown, setShowModelDropdown] = useState<boolean>(false)
+  const [modelSwitching, setModelSwitching] = useState<boolean>(false)
 
   // Slash commands and mentions state
   const [commandsRegistry, setCommandsRegistry] = useState<SlashCommandItem[]>([])
@@ -78,6 +97,18 @@ export const ChatSection: React.FC = () => {
       const cmdData = await cmdRes.json()
       if (cmdData.commands) {
         setCommandsRegistry(cmdData.commands)
+      }
+    } catch {}
+
+    try {
+      const mRes = await fetch('/api/model/config')
+      if (mRes.ok) {
+        const mData = await mRes.json()
+        if (mData.available_models) setAvailableModels(mData.available_models)
+        if (mData.active_model) {
+          setActiveModel(mData.active_model)
+          setSelectedModelId(mData.active_model.id)
+        }
       }
     } catch {}
   }
@@ -142,6 +173,24 @@ export const ChatSection: React.FC = () => {
     inputRef.current?.focus()
   }
 
+  const handleSelectModel = async (model: AIModelItem) => {
+    setSelectedModelId(model.id)
+    setActiveModel(model)
+    setShowModelDropdown(false)
+    setModelSwitching(true)
+    try {
+      await fetch('/api/model/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model_id: model.id }),
+      })
+    } catch (e) {
+      console.warn('Error saving model selection:', e)
+    } finally {
+      setModelSwitching(false)
+    }
+  }
+
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputText).trim()
     if (!text || loading) return
@@ -169,7 +218,7 @@ export const ChatSection: React.FC = () => {
       const res = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text, model_id: 'SACL_ORCHESTRATOR' }),
+        body: JSON.stringify({ prompt: text, model_id: selectedModelId }),
       })
       const data = await res.json()
       if (data.success && data.assistant_message) {
@@ -238,6 +287,87 @@ export const ChatSection: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* AI Model Selector Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              id="btn-select-model"
+              onClick={() => setShowModelDropdown(!showModelDropdown)}
+              className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-xs text-white flex items-center gap-2 transition cursor-pointer"
+              title="Seleccionar modelo de inferencia IA"
+            >
+              <Cpu className="w-3.5 h-3.5 text-white" />
+              <div className="flex items-center gap-1.5 text-left">
+                <span className="font-semibold text-white max-w-[140px] sm:max-w-[180px] truncate">
+                  {activeModel?.name || selectedModelId}
+                </span>
+                {activeModel?.badge && (
+                  <span className="hidden sm:inline-block px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 text-[9px] font-mono">
+                    {activeModel.badge}
+                  </span>
+                )}
+              </div>
+              <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Model Dropdown Menu */}
+            {showModelDropdown && (
+              <div
+                id="model-selector-menu"
+                className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-2.5 z-50 text-left space-y-1.5 max-h-96 overflow-y-auto custom-scroll animate-fade-in"
+              >
+                <div className="px-2 py-1 border-b border-zinc-850 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">
+                    Motores de Inferencia (AGY / SACL)
+                  </span>
+                  <span className="text-[10px] text-zinc-500 font-mono">
+                    {availableModels.length} disponibles
+                  </span>
+                </div>
+
+                {availableModels.map((m) => {
+                  const isCurrent = m.id === selectedModelId
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => handleSelectModel(m)}
+                      className={`w-full p-2.5 rounded-xl text-left transition cursor-pointer border ${
+                        isCurrent
+                          ? 'bg-zinc-900 border-zinc-700 text-white'
+                          : 'bg-zinc-950/60 border-transparent hover:bg-zinc-900/60 hover:border-zinc-800 text-zinc-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                          {m.name}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {m.badge && (
+                            <span className="px-1.5 py-0.2 rounded bg-zinc-850 text-zinc-300 border border-zinc-750 text-[9px] font-mono">
+                              {m.badge}
+                            </span>
+                          )}
+                          {isCurrent && <Check className="w-3.5 h-3.5 text-white" />}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-0.5 line-clamp-2">
+                        {m.description}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5 text-[10px] text-zinc-500 font-mono">
+                        <span>{m.provider}</span>
+                        <span>&bull;</span>
+                        <span>Ctx: {m.context_window}</span>
+                        <span>&bull;</span>
+                        <span>Temp: {m.default_temp}</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => setIsDiffModalOpen(true)}
             className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-xs text-zinc-300 flex items-center gap-1.5 transition cursor-pointer"
@@ -313,7 +443,7 @@ export const ChatSection: React.FC = () => {
                   </div>
                   {msg.timestamp && (
                     <span className="text-[10px] text-zinc-500 font-mono">
-                      {new Date(msg.timestamp).toLocaleTimeString()}
+                      {formatSmartDateTime(msg.timestamp, false)}
                     </span>
                   )}
                 </div>

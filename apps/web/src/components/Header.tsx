@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { formatSmartDateTime, formatRelativeTime } from '../utils/dateFormat'
 import {
   Bell,
   ShieldAlert,
@@ -44,30 +45,15 @@ export const Header: React.FC<HeaderProps> = ({
   const [operatorEmail, setOperatorEmail] = useState<string>('risejoaquin@solidbit.io')
   const [savingProfile, setSavingProfile] = useState<boolean>(false)
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: 'notif-1',
-      title: 'Compuerta Requerida (HITL)',
-      message: 'REQ-20261026-743941E4: Aprobación HMAC requerida para aplicar cambios.',
-      type: 'gate',
-      time: 'Reciente',
-      actionUrl: 'executions',
-    },
-    {
-      id: 'notif-2',
-      title: 'Pytest Suite Verde (Exit 0)',
-      message: '31 pruebas de UI y contratos completadas con éxito.',
-      type: 'success',
-      time: 'hace 5 min',
-    },
-    {
-      id: 'notif-3',
-      title: 'DAG de Kahn Generado',
-      message: '4 Oleadas concurrentes sincronizadas con SQLite WAL.',
-      type: 'info',
-      time: 'hace 10 min',
-    },
-  ])
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [dismissedNotifIds, setDismissedNotifIds] = useState<Set<string>>(() => {
+    try {
+      const stored = sessionStorage.getItem('sacl_dismissed_notifs')
+      return new Set(stored ? JSON.parse(stored) : [])
+    } catch {
+      return new Set()
+    }
+  })
 
   const popoverRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
@@ -90,7 +76,62 @@ export const Header: React.FC<HeaderProps> = ({
     return () => clearInterval(timer)
   }, [])
 
-  // Load operator profile from backend
+  // Load real operator profile and genuine notifications from backend
+  const loadNotifications = async () => {
+    try {
+      const items: NotificationItem[] = []
+
+      // 1. Genuine pending HITL gates from backend
+      try {
+        const gatesRes = await fetch('/api/gates/pending')
+        if (gatesRes.ok) {
+          const gatesData = await gatesRes.json()
+          const list = gatesData.pending_gates || gatesData.gates || []
+          for (const g of list) {
+            const notifId = `gate-${g.id || g.request_id}`
+            if (!dismissedNotifIds.has(notifId)) {
+              items.push({
+                id: notifId,
+                title: 'Compuerta HITL Pendiente',
+                message: `${g.request_id || g.id}: ${g.reason || g.action || 'Firma soberana requerida'}`,
+                type: 'gate',
+                time: formatRelativeTime(g.created_at || g.timestamp),
+                actionUrl: 'executions',
+              })
+            }
+          }
+        }
+      } catch {}
+
+      // 2. Real SQLite events from local database
+      try {
+        const evRes = await fetch('/api/db/rows?table=events&limit=6')
+        if (evRes.ok) {
+          const evData = await evRes.json()
+          if (evData.rows && Array.isArray(evData.rows)) {
+            for (const ev of evData.rows) {
+              const notifId = `ev-${ev.event_id}`
+              if (!dismissedNotifIds.has(notifId)) {
+                items.push({
+                  id: notifId,
+                  title: `Evento SQLite: ${ev.event_type}`,
+                  message: ev.severity ? `[${ev.severity}] ${ev.run_id || 'Sistema'}` : (ev.run_id || 'Operación duradera'),
+                  type: ev.severity === 'FATAL' || ev.severity === 'ERROR' ? 'gate' : 'info',
+                  time: formatRelativeTime(ev.created_at),
+                  actionUrl: 'database',
+                })
+              }
+            }
+          }
+        }
+      } catch {}
+
+      setNotifications(items)
+    } catch (e) {
+      console.warn('Error loading real notifications:', e)
+    }
+  }
+
   useEffect(() => {
     fetch('/api/settings/profile')
       .then((r) => r.json())
@@ -103,28 +144,36 @@ export const Header: React.FC<HeaderProps> = ({
       })
       .catch(() => {})
 
-    // Subscribe to SSE events for notifications
+    loadNotifications()
+
+    // Subscribe to SSE events for real-time notifications
     try {
       const sse = new EventSource('/api/events/stream')
       sse.addEventListener('gate', (e: MessageEvent) => {
-        setNotifications((prev) => [
-          {
-            id: `gate-${Date.now()}`,
-            title: 'Nueva Compuerta HITL',
-            message: 'Compuerta de decisión requiere firma soberana.',
-            type: 'gate',
-            time: 'Ahora',
-            actionUrl: 'executions',
-          },
-          ...prev,
-        ])
+        try {
+          const payload = JSON.parse(e.data)
+          const newId = `gate-${payload.request_id || payload.id || Date.now()}`
+          setNotifications((prev) => [
+            {
+              id: newId,
+              title: 'Nueva Compuerta HITL',
+              message: payload.reason || payload.action || 'Firma HMAC requerida.',
+              type: 'gate',
+              time: 'Ahora',
+              actionUrl: 'executions',
+            },
+            ...prev.filter((p) => p.id !== newId),
+          ])
+        } catch {
+          loadNotifications()
+        }
       })
       sse.addEventListener('sprint_executed', () => {
         setNotifications((prev) => [
           {
             id: `exec-${Date.now()}`,
             title: 'Oleadas Ejecutadas',
-            message: 'Entregables físicos generados en disco.',
+            message: 'Entregables físicos generados en disco en SQLite WAL.',
             type: 'success',
             time: 'Ahora',
             actionUrl: 'executions',
@@ -132,11 +181,12 @@ export const Header: React.FC<HeaderProps> = ({
           ...prev,
         ])
       })
+      sse.addEventListener('job', () => loadNotifications())
       return () => sse.close()
     } catch {
       // ignore
     }
-  }, [])
+  }, [dismissedNotifIds])
 
   // Close modals on outside click
   useEffect(() => {
@@ -347,8 +397,16 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setNotifications([])}
-                  className="text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+                  onClick={() => {
+                    const idsToDismiss = new Set(dismissedNotifIds)
+                    notifications.forEach((n) => idsToDismiss.add(n.id))
+                    setDismissedNotifIds(idsToDismiss)
+                    try {
+                      sessionStorage.setItem('sacl_dismissed_notifs', JSON.stringify(Array.from(idsToDismiss)))
+                    } catch {}
+                    setNotifications([])
+                  }}
+                  className="text-zinc-400 hover:text-white transition cursor-pointer font-medium"
                 >
                   Marcar como leídas
                 </button>

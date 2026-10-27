@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { formatSmartDateTime } from '../utils/dateFormat'
 import {
   Terminal,
   Search,
@@ -64,9 +65,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
           lvl = 'SUCCESS'
         }
 
-        const dateStr = ev.created_at
-          ? new Date(ev.created_at).toLocaleTimeString()
-          : new Date(Date.now() - (initialEvents.length - idx) * 45000).toLocaleTimeString()
+        const dateStr = formatSmartDateTime(ev.created_at)
 
         return {
           id: String(ev.event_id || idx),
@@ -83,7 +82,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
       setLogs([
         {
           id: 'log-0',
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: formatSmartDateTime(new Date()),
           subsystem: 'KERNEL',
           level: 'SUCCESS',
           message: 'SolidBit SACL Kernel inicializado en modo transaccional WAL.',
@@ -91,7 +90,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
         },
         {
           id: 'log-1',
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: formatSmartDateTime(new Date()),
           subsystem: 'AGY',
           level: 'INFO',
           message: 'Host AGY detectado (Antigravity CLI v2.0) en runtime local.',
@@ -99,7 +98,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
         },
         {
           id: 'log-2',
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: formatSmartDateTime(new Date()),
           subsystem: 'WAL',
           level: 'SUCCESS',
           message: 'Base de datos sacl_ops.db verificada: 22 estados canónicos consistentes.',
@@ -107,7 +106,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
         },
         {
           id: 'log-3',
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: formatSmartDateTime(new Date()),
           subsystem: 'GATE',
           level: 'AUDIT',
           message: 'Compuertas soberanas habilitadas: Zero unauthorized deploy (HMAC-SHA256).',
@@ -125,7 +124,7 @@ export const LogTerminal: React.FC<LogTerminalProps> = ({
       const handleIncoming = (evType: string, data: any) => {
         const newEntry: LogEntry = {
           id: `live-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          timestamp: new Date().toLocaleTimeString(),
+          timestamp: formatSmartDateTime(new Date()),
           subsystem: evType.includes('gate') ? 'GATE' : (evType.includes('job') ? 'AGY' : 'WAL'),
           level: evType.includes('error') ? 'ERROR' : (evType.includes('gate') ? 'WARN' : 'INFO'),
           message: typeof data === 'string' ? data : (data?.message || JSON.stringify(data)),

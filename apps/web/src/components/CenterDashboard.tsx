@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { formatSmartDateTime } from '../utils/dateFormat'
 
 import {
 
@@ -254,7 +255,7 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
 
                 durationMs: Math.round((data.duration_sec || 0.8) * 1000),
 
-                updatedAt: new Date().toLocaleTimeString(),
+                updatedAt: formatSmartDateTime(new Date()),
 
               }
 

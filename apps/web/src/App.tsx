@@ -17,6 +17,7 @@ import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
 import { WorkflowsSection } from './components/sections/WorkflowsSection'
 import { TechAuthHubSection } from './components/sections/TechAuthHubSection'
+import { EmailGatewaySection } from './components/sections/EmailGatewaySection'
 import { DiffInspectorModal } from './components/DiffInspectorModal'
 import type { TaskItem, AgentItem, CommitItem, Project, ActivityEvent } from './types/orchestrator'
 import type { TechnologyItem } from './components/ConnectedTechnologiesMatrix'
@@ -35,7 +36,7 @@ export default function App() {
   const [commits, setCommits] = useState<CommitItem[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [events, setEvents] = useState<ActivityEvent[]>([])
-  const [dbStats, setDbStats] = useState<any>({ jobs: 2, runs: 28, events: 28 })
+  const [dbStats, setDbStats] = useState<{ jobs: number; runs: number; events: number }>({ jobs: 0, runs: 0, events: 0 })
 
   // Initial data loading from live backend endpoints
   const loadData = async () => {
@@ -103,9 +104,9 @@ export default function App() {
       const dbData = await dbRes.json()
       if (dbData.tables) {
         setDbStats({
-          jobs: dbData.tables.jobs || 2,
-          runs: dbData.tables.runs || 28,
-          events: dbData.tables.events || 28,
+          jobs: Number(dbData.tables.jobs ?? 0),
+          runs: Number(dbData.tables.runs ?? 0),
+          events: Number(dbData.tables.events ?? 0),
         })
       }
     } catch (e) {
@@ -132,6 +133,8 @@ export default function App() {
 
   const getBreadcrumbs = () => {
     switch (currentSection) {
+      case 'email':
+        return [{ label: 'Email Gateway & Automatización Soberana', sectionId: 'email' }]
       case 'chat':
         return [{ label: 'Chat de Inferencia IA (AGY)', sectionId: 'chat' }]
       case 'workflows':
@@ -200,6 +203,10 @@ export default function App() {
               onOpenSprintModal={() => setIsSprintModalOpen(true)}
               onNavigateSection={(sec) => setCurrentSection(sec)}
             />
+          )}
+
+          {currentSection === 'email' && (
+            <EmailGatewaySection />
           )}
 
           {currentSection === 'chat' && (

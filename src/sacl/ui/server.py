@@ -800,7 +800,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             return
 
         # 13. REST API: AI Model Selector & Parameters
-        if path == "/api/model/config":
+        if path in ("/api/model/config", "/api/models/config"):
             self._send_json(200, self.service.models.get_config())
             return
 

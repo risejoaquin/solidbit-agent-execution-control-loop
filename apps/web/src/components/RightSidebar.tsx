@@ -1,4 +1,5 @@
 import React from 'react'
+import { formatSmartDateTime } from '../utils/dateFormat'
 import {
   Bot,
   Clock,
@@ -150,7 +151,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       {ev.event_type}
                     </span>
                     <span className="text-[9px] font-mono text-zinc-500">
-                      {ev.created_at ? new Date(ev.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'ahora'}
+                      {formatSmartDateTime(ev.created_at, false)}
                     </span>
                   </div>
                   <div className="text-[11px] text-zinc-300 truncate max-w-[240px]">
