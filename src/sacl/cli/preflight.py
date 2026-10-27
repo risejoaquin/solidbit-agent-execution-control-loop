@@ -37,15 +37,35 @@ def execute_preflight(args: argparse.Namespace) -> int:
 
     checks_passed = True
 
+    import sys
+
     # 1. Host Tools Verification
     tools = [
         ("Git CLI", ["git", "--version"]),
-        (
-            "PowerShell CLI",
-            ["powershell.exe", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"],
-        ),
-        ("Antigravity CLI", ["agy.exe", "--version"]),
     ]
+    if sys.platform == "win32":
+        tools.append(
+            (
+                "PowerShell CLI",
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-Command",
+                    "$PSVersionTable.PSVersion.ToString()",
+                ],
+            )
+        )
+    elif shutil.which("pwsh"):
+        tools.append(
+            (
+                "PowerShell CLI",
+                ["pwsh", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"],
+            )
+        )
+    else:
+        tools.append(("Shell (POSIX)", ["bash", "--version"]))
+
+    tools.append(("Antigravity CLI", ["agy.exe", "--version"]))
 
     print("[1] Host Executable Tools Check:")
     for name, cmd in tools:

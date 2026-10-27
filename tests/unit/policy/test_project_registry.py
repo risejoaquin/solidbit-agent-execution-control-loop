@@ -6,6 +6,8 @@ Packages identify registered projects but cannot redirect execution outside
 local registry policy.
 """
 
+from pathlib import Path
+
 import pytest
 
 from sacl.contracts.exceptions import ContractValidationError, PolicyDeniedError
@@ -17,7 +19,11 @@ from sacl.policy.project_registry import (
 
 
 @pytest.fixture
-def sample_registry_dict():
+def sample_registry_dict(tmp_path: Path):
+    strict_root = str((tmp_path / "Repos" / "TestStrict").resolve())
+    override_p1 = str((tmp_path / "Repos" / "TestOverride" / "primary").resolve())
+    override_p2 = str((tmp_path / "Repos" / "TestOverride" / "secondary").resolve())
+    inactive_root = str((tmp_path / "Repos" / "Inactive").resolve())
     return {
         "schema": "solidbit.project-registry.v1",
         "version": "1.0.0",
@@ -25,10 +31,10 @@ def sample_registry_dict():
             {
                 "project_id": "test-project-strict",
                 "repository": "risejoaquin/test-project-strict",
-                "target_local_repo": "C:\\Repos\\TestStrict",
+                "target_local_repo": strict_root,
                 "default_branch": "main",
                 "allowed_worktree_base": "worktrees",
-                "allowed_target_roots": ["C:\\Repos\\TestStrict"],
+                "allowed_target_roots": [strict_root],
                 "allow_target_override": False,
                 "concurrency_policy": {
                     "max_mutating_jobs": 1,
@@ -42,13 +48,10 @@ def sample_registry_dict():
             {
                 "project_id": "test-project-override",
                 "repository": "risejoaquin/test-project-override",
-                "target_local_repo": "C:\\Repos\\TestOverride\\primary",
+                "target_local_repo": override_p1,
                 "default_branch": "main",
                 "allowed_worktree_base": "wt",
-                "allowed_target_roots": [
-                    "C:\\Repos\\TestOverride\\primary",
-                    "C:\\Repos\\TestOverride\\secondary",
-                ],
+                "allowed_target_roots": [override_p1, override_p2],
                 "allow_target_override": True,
                 "concurrency_policy": {
                     "max_mutating_jobs": 1,
@@ -62,7 +65,7 @@ def sample_registry_dict():
             {
                 "project_id": "inactive-project",
                 "repository": "risejoaquin/inactive-project",
-                "target_local_repo": "C:\\Repos\\Inactive",
+                "target_local_repo": inactive_root,
                 "default_branch": "main",
                 "risk_tier": "SAFE_NOW",
                 "enforce_dirty_root_check": True,
@@ -103,48 +106,51 @@ def test_unknown_project_rejected(sample_registry_dict):
 
 
 def test_non_redirection_invariant_strict(sample_registry_dict):
+    import sys
+
     manager = ProjectRegistryManager.from_dict(sample_registry_dict)
+    strict_root = sample_registry_dict["projects"][0]["target_local_repo"]
 
     # Valid matching target path
-    validated = manager.validate_target_root("test-project-strict", "C:\\Repos\\TestStrict")
-    assert normalize_fs_path(validated) == normalize_fs_path("C:\\Repos\\TestStrict")
+    validated = manager.validate_target_root("test-project-strict", strict_root)
+    assert normalize_fs_path(validated) == normalize_fs_path(strict_root)
 
     # Path normalization check (forward slashes, trailing slashes, casing)
-    validated_norm = manager.validate_target_root("test-project-strict", "c:/repos/teststrict/")
-    assert normalize_fs_path(validated_norm) == normalize_fs_path("C:\\Repos\\TestStrict")
+    slash_variant = strict_root.replace("\\", "/") + "/"
+    if sys.platform == "win32":
+        slash_variant = slash_variant.lower()
+    validated_norm = manager.validate_target_root("test-project-strict", slash_variant)
+    assert normalize_fs_path(validated_norm) == normalize_fs_path(strict_root)
 
     # Arbitrary path redirection attempt MUST raise PolicyDeniedError
     with pytest.raises(PolicyDeniedError) as excinfo:
-        manager.validate_target_root("test-project-strict", "C:\\Windows\\System32")
+        manager.validate_target_root("test-project-strict", strict_root + "_forbidden_redirect")
     assert "Non-Redirection Invariant Violation" in excinfo.value.message
 
     with pytest.raises(PolicyDeniedError) as excinfo:
-        manager.validate_target_root("test-project-strict", "C:\\Repos\\OtherProject")
+        manager.validate_target_root("test-project-strict", strict_root + "/other_sub")
     assert "Non-Redirection Invariant Violation" in excinfo.value.message
 
 
 def test_non_redirection_invariant_with_override_enabled(sample_registry_dict):
     manager = ProjectRegistryManager.from_dict(sample_registry_dict)
+    p1 = sample_registry_dict["projects"][1]["allowed_target_roots"][0]
+    p2 = sample_registry_dict["projects"][1]["allowed_target_roots"][1]
 
     # Authorized target roots
-    val1 = manager.validate_target_root("test-project-override", "C:\\Repos\\TestOverride\\primary")
-    val2 = manager.validate_target_root(
-        "test-project-override", "C:\\Repos\\TestOverride\\secondary"
-    )
-    assert normalize_fs_path(val1) == normalize_fs_path("C:\\Repos\\TestOverride\\primary")
-    assert normalize_fs_path(val2) == normalize_fs_path("C:\\Repos\\TestOverride\\secondary")
+    val1 = manager.validate_target_root("test-project-override", p1)
+    val2 = manager.validate_target_root("test-project-override", p2)
+    assert normalize_fs_path(val1) == normalize_fs_path(p1)
+    assert normalize_fs_path(val2) == normalize_fs_path(p2)
 
     # Subpath within authorized root is allowed
-    val_sub = manager.validate_target_root(
-        "test-project-override", "C:\\Repos\\TestOverride\\secondary\\subdir"
-    )
-    assert normalize_fs_path(val_sub) == normalize_fs_path(
-        "C:\\Repos\\TestOverride\\secondary\\subdir"
-    )
+    sub_path = str(Path(p2) / "subdir")
+    val_sub = manager.validate_target_root("test-project-override", sub_path)
+    assert normalize_fs_path(val_sub) == normalize_fs_path(sub_path)
 
     # Unauthorized root outside allowed_target_roots MUST fail closed
     with pytest.raises(PolicyDeniedError) as excinfo:
-        manager.validate_target_root("test-project-override", "C:\\Repos\\ArbitraryRoot")
+        manager.validate_target_root("test-project-override", p1 + "_arbitrary_unauthorized")
     assert "Non-Redirection Invariant Violation" in excinfo.value.message
 
 
@@ -180,4 +186,5 @@ def test_risk_tier_and_post_gate_detection(sample_registry_dict):
 def test_worktree_base_resolution(sample_registry_dict):
     manager = ProjectRegistryManager.from_dict(sample_registry_dict)
     base = manager.get_worktree_base("test-project-strict")
-    assert normalize_fs_path(base) == normalize_fs_path("C:\\Repos\\TestStrict\\worktrees")
+    strict_root = sample_registry_dict["projects"][0]["target_local_repo"]
+    assert normalize_fs_path(base) == normalize_fs_path(Path(strict_root) / "worktrees")

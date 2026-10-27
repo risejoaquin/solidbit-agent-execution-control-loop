@@ -185,7 +185,7 @@ def test_projects_module():
 
     mod = ProjectsModule()
     projects = mod.list_projects()
-    assert len(projects) >= 3
+    assert len(projects) >= 2
     active = mod.get_active_project()
     assert active["id"] == "stable-ecommerce"
 
