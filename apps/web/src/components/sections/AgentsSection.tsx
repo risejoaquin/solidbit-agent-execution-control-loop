@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Bot,
   Play,
@@ -6,15 +6,11 @@ import {
   Loader2,
   Terminal,
   ShieldCheck,
-  ChevronDown,
-  ChevronUp,
-  Sparkles,
-  FileCode2,
-  Lock,
   Zap,
   Send,
-  FolderGit2,
-  Award,
+  Sparkles,
+  GitCommit,
+  Layers,
 } from 'lucide-react'
 import type { DomainStateMeta, OperationalDomainState } from '../../types/domainState'
 import { useLanguage } from '../../context/LanguageContext'
@@ -27,1101 +23,326 @@ interface AgentsSectionProps {
   onNavigateToResolution?: () => void
 }
 
-interface AgentCharacter {
+interface RobotAgent {
   id: string
-  workorderId: string
-  codeName: string
-  characterName: string
-  titleEs: string
-  titleEn: string
-  personalityEs: string
-  personalityEn: string
-  prepareQuoteEs: string
-  prepareQuoteEn: string
-  workingQuoteEs: string
-  workingQuoteEn: string
-  doneQuoteEs: string
-  doneQuoteEn: string
-  specialtyEs: string
-  specialtyEn: string
-  ownedPaths: string[]
+  name: string
+  phaseNumber: number
+  phaseTitle: string
+  diagramRole: string
+  specialty: string
   worktree: string
   accentColor: string
   badgeBg: string
   actionKey: string
-  avatarType: 'atlas' | 'vega' | 'orion' | 'centinela' | 'fenix' | 'nova'
+  presets: string[]
 }
 
-const SOLIDBIT_CHARACTERS: AgentCharacter[] = [
+const ROBOT_AGENTS: RobotAgent[] = [
   {
     id: 'atlas',
-    workorderId: 'IMPL-SCHED-001',
-    codeName: 'AG-SCHEDULER',
-    characterName: 'Atlas',
-    titleEs: 'Coordinador de Oleadas y Guardián de Ramas',
-    titleEn: 'Wave Coordinator & Branch Guardian',
-    personalityEs: 'Estratega metódico que organiza el orden exacto de las tareas y aísla cada rama para que ningún cambio choque.',
-    personalityEn: 'Methodical strategist who organizes task order and isolates every branch so changes never collide.',
-    prepareQuoteEs: '«Revisando el mapa de dependencias y preparando tu rama aislada... ¡Listo para coordinar la oleada!»',
-    prepareQuoteEn: '“Checking dependency graph and preparing your isolated branch... Ready to coordinate the wave!”',
-    workingQuoteEs: '«Particionando oleadas con algoritmo de Kahn y bloqueando rutas críticas en paralelo...»',
-    workingQuoteEn: '“Partitioning waves with Kahn algorithm and locking critical paths in parallel...”',
-    doneQuoteEs: '«¡Ramas verificadas y orden de ejecución asegurado sin conflictos!»',
-    doneQuoteEn: '“Branches verified and execution order secured with zero conflicts!”',
-    specialtyEs: 'Aislamiento Git Worktree, particionado de oleadas y bloqueo de colisiones.',
-    specialtyEn: 'Git Worktree isolation, wave partitioning, and collision locking.',
-    ownedPaths: ['src/sacl/dag/', 'src/sacl/worker/', 'worktrees/scheduler'],
+    name: 'Atlas',
+    phaseNumber: 1,
+    phaseTitle: 'Agente Fase 1 · Diseño',
+    diagramRole: 'Diseñar sprint con chat o métodos establecidos de lo que se quiere hacer',
+    specialty: 'Planificación de sprint, particionado de oleadas y grafo DAG.',
     worktree: 'worktrees/scheduler',
     accentColor: '#38bdf8',
     badgeBg: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
     actionKey: 'doctor',
-    avatarType: 'atlas',
+    presets: [
+      'Refactorizar invariantes de pago y stock con contratos DR-INV-001',
+      'Diseñar arquitectura de microservicios para inventario',
+      'Verificar consistencia del grafo DAG sin colisiones',
+    ],
   },
   {
     id: 'vega',
-    workorderId: 'IMPL-DB-001',
-    codeName: 'AG-DB-IMPLEMENTER',
-    characterName: 'Vega',
-    titleEs: 'Arquitecta de Datos, Inventario y Pagos',
-    titleEn: 'Database, Inventory & Payments Architect',
-    personalityEs: 'Especialista en precisión financiera y stock. Cuida que jamás se venda una pieza de más ni se duplique un cobro.',
-    personalityEn: 'Financial and stock precision specialist. Ensures zero overselling and zero duplicate charges.',
-    prepareQuoteEs: '«Blindando libros contables DR-PAY-001 y stock atómico DR-INV-001 antes de escribir en disco...»',
-    prepareQuoteEn: '“Shielding DR-PAY-001 ledgers and DR-INV-001 atomic stock before writing to disk...”',
-    workingQuoteEs: '«Verificando integridad transaccional WAL y ejecutando pruebas de concurrencia de inventario...»',
-    workingQuoteEn: '“Verifying WAL transactional integrity and running inventory concurrency tests...”',
-    doneQuoteEs: '«¡Base de datos íntegra! Cero sobreventa y partida doble verificadas al 100%.»',
-    doneQuoteEn: '“Database intact! Zero oversell and double-entry verified 100%.”',
-    specialtyEs: 'Reglas DR-INV-001 (Cero Sobreventa), DR-PAY-001 (Partida Doble) y persistencia SQLite WAL.',
-    specialtyEn: 'DR-INV-001 (Zero Oversell), DR-PAY-001 (Double-Entry) & SQLite WAL persistence.',
-    ownedPaths: ['src/sacl/state/', 'db/migrations/', 'contracts/'],
-    worktree: 'worktrees/db-storage',
+    name: 'Vega',
+    phaseNumber: 2,
+    phaseTitle: 'Agente Fase 2 · Implementación',
+    diagramRole: 'Implementa lo decidido y muestra los resultados de código',
+    specialty: 'Escritura de código en worktree aislado, Pytest unitarios y contratos.',
+    worktree: 'worktrees/db_implementer',
     accentColor: '#34d399',
     badgeBg: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-    actionKey: 'security_audit',
-    avatarType: 'vega',
-  },
-  {
-    id: 'orion',
-    workorderId: 'IMPL-UI-001',
-    codeName: 'AG-UI-SHELL',
-    characterName: 'Orión',
-    titleEs: 'Constructor de Interfaces y Flujos de Usuario',
-    titleEn: 'Interface & User Flow Builder',
-    personalityEs: 'Diseñador de interacción enfocado en claridad visual, velocidad de respuesta y experiencias intuitivas.',
-    personalityEn: 'Interaction designer focused on visual clarity, responsiveness, and intuitive experiences.',
-    prepareQuoteEs: '«Ajustando componentes interactivos, estados finitos y vistas en Español México...»',
-    prepareQuoteEn: '“Tuning interactive components, finite states, and localized views...”',
-    workingQuoteEs: '«Sincronizando interfaz React 19 con eventos en tiempo real y validando flujos de usuario...»',
-    workingQuoteEn: '“Synchronizing React 19 interface with real-time events and validating user flows...”',
-    doneQuoteEs: '«¡Interfaz sincronizada y lista para operar con un solo clic!»',
-    doneQuoteEn: '“Interface synchronized and ready for one-click operation!”',
-    specialtyEs: 'Consola de decisiones rápidas, diseño OOUX y flujos guiados paso a paso.',
-    specialtyEn: 'Quick decision console, OOUX design, and step-by-step guided flows.',
-    ownedPaths: ['apps/web/src/', 'src/sacl/ui/'],
-    worktree: 'worktrees/ui-shell',
-    accentColor: '#a78bfa',
-    badgeBg: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
-    actionKey: 'qa',
-    avatarType: 'orion',
-  },
-  {
-    id: 'centinela',
-    workorderId: 'IMPL-GATE-001 / SEC-001',
-    codeName: 'AG-SECURITY-GATE',
-    characterName: 'Centinela',
-    titleEs: 'Guardián de Seguridad y Compuertas Humanas',
-    titleEn: 'Security & Human Gate Guardian',
-    personalityEs: 'Protector incorruptible. Bloquea cualquier intento de publicar sin tu permiso y oculta claves o rutas privadas.',
-    personalityEn: 'Incorruptible protector. Blocks any unauthorized deploy and redacts private keys or paths.',
-    prepareQuoteEs: '«Escaneando que no exista ni una sola ruta privada ni clave expuesta... ¡Escudo activo!»',
-    prepareQuoteEn: '“Scanning to ensure zero private paths or exposed keys... Shield active!”',
-    workingQuoteEs: '«Auditando reglas Hard-Deny, redactando secretos y validando compuertas Gates 0 a 5...»',
-    workingQuoteEn: '“Auditing Hard-Deny rules, redacting secrets, and validating Gates 0 to 5...”',
-    doneQuoteEs: '«¡Cero fugas detectadas! Ningún cambio saldrá a producción sin tu firma.»',
-    doneQuoteEn: '“Zero leaks detected! No change will reach production without your signature.”',
-    specialtyEs: 'Políticas Hard-Deny, limpieza de datos sensibles y compuertas humanas (Gates 0–5).',
-    specialtyEn: 'Hard-Deny policies, sensitive data sanitization, and human gates (Gates 0–5).',
-    ownedPaths: ['src/sacl/approval/', 'src/sacl/policy/', 'governance/'],
-    worktree: 'worktrees/security-gates',
-    accentColor: '#fbbf24',
-    badgeBg: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-    actionKey: 'security_audit',
-    avatarType: 'centinela',
-  },
-  {
-    id: 'fenix',
-    workorderId: 'IMPL-REC-001 / EVID-001',
-    codeName: 'AG-RECOVERY-EVIDENCE',
-    characterName: 'Fénix',
-    titleEs: 'Especialista en Recuperación y Sellado de Evidencia',
-    titleEn: 'Recovery & Evidence Sealing Specialist',
-    personalityEs: 'Resiliente y forense. Si algo se interrumpe, recupera el estado exacto y empaqueta los reportes firmados.',
-    personalityEn: 'Resilient and forensic. If interrupted, recovers exact state and packages signed reports.',
-    prepareQuoteEs: '«Preparando reconciliación en 4 puntos y sellado criptográfico SHA-256 de tus entregables...»',
-    prepareQuoteEn: '“Preparing 4-point reconciliation and SHA-256 cryptographic sealing of deliverables...”',
-    workingQuoteEs: '«Verificando procesos activos, limpiando bloqueos huérfanos y sellando reportes en disco...»',
-    workingQuoteEn: '“Verifying active processes, cleaning orphan locks, and sealing disk reports...”',
-    doneQuoteEs: '«¡Estado reconciliado y paquete de evidencia sellado con éxito!»',
-    doneQuoteEn: '“State reconciled and evidence package sealed successfully!”',
-    specialtyEs: 'Reconciliación en 4 puntos, recuperación tras cortes y paquetes de evidencia SHA-256.',
-    specialtyEn: '4-point reconciliation, crash recovery, and SHA-256 evidence packages.',
-    ownedPaths: ['src/sacl/recovery/', 'src/sacl/results/', 'reports/'],
-    worktree: 'worktrees/recovery-evidence',
-    accentColor: '#fb923c',
-    badgeBg: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
-    actionKey: 'doctor',
-    avatarType: 'fenix',
+    actionKey: 'test',
+    presets: [
+      'Ejecutar suite Pytest y verificar contratos DR-INV-001 en verde',
+      'Implementar bloqueo atómico de inventario con SELECT FOR UPDATE',
+      'Comprobar idempotencia en pasarela de pagos',
+    ],
   },
   {
     id: 'nova',
-    workorderId: 'IMPL-QA-001 / FINAL-001',
-    codeName: 'AG-QA-AUDITOR',
-    characterName: 'Nova',
-    titleEs: 'Inspectora de Calidad y Auditoría Final',
-    titleEn: 'Quality Inspector & Final Auditor',
-    personalityEs: 'Exigente y transparente. Ejecuta pruebas reales en tu código y emite el dictamen final antes de que apruebes.',
-    personalityEn: 'Demanding and transparent. Runs real tests on your code and issues the final verdict before approval.',
-    prepareQuoteEs: '«Calibrando batería de pruebas automatizadas... ¡Lista para verificar cada línea de código!»',
-    prepareQuoteEn: '“Calibrating automated test battery... Ready to verify every line of code!”',
-    workingQuoteEs: '«Ejecutando suite Pytest real en segundo plano y validando contratos de principio a fin...»',
-    workingQuoteEn: '“Running real Pytest suite in background and validating end-to-end contracts...”',
-    doneQuoteEs: '«¡Todas las pruebas pasaron en verde! El dictamen está listo para tu revisión.»',
-    doneQuoteEn: '“All tests passed green! The verdict is ready for your review.”',
-    specialtyEs: 'Ejecución real de suite Pytest (698 pruebas), regresión sin simulaciones y dictamen final.',
-    specialtyEn: 'Real Pytest suite execution (698 tests), zero-mock regression, and final verdict.',
-    ownedPaths: ['tests/unit/', 'tests/integration/', 'tests/security/', 'tests/ui/'],
-    worktree: 'worktrees/qa-integration',
-    accentColor: '#f472b6',
-    badgeBg: 'bg-pink-500/15 text-pink-300 border-pink-500/30',
-    actionKey: 'qa',
-    avatarType: 'nova',
+    name: 'Nova',
+    phaseNumber: 3,
+    phaseTitle: 'Agente Fase 3 · Despliegue',
+    diagramRole: 'Sube los cambios a Git y libera el entorno de trabajo',
+    specialty: 'Commit atómico, push a rama remota, liberación de worktree y cierre.',
+    worktree: 'worktrees/integration',
+    accentColor: '#c084fc',
+    badgeBg: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+    actionKey: 'release_worktree',
+    presets: [
+      'Integrar cambios en rama principal y podar worktrees temporales',
+      'Generar reporte criptográfico de auditoría SQLite WAL',
+      'Verificar hash de commit y estado final de producción',
+    ],
   },
 ]
-
-const AGENT_SPECIFIC_PRESETS: Record<
-  string,
-  {
-    placeholderEs: string
-    placeholderEn: string
-    presetsEs: string[]
-    presetsEn: string[]
-  }
-> = {
-  atlas: {
-    placeholderEs: 'Ej: Particionar oleadas con algoritmo de Kahn y aislar ramas...',
-    placeholderEn: 'E.g.: Partition waves with Kahn algorithm and isolate branches...',
-    presetsEs: [
-      'Particionar oleadas con algoritmo Kahn',
-      'Aislar rama en Git Worktree',
-      'Chequear colisiones de dependencias',
-      'Verificar lock de rutas críticas',
-    ],
-    presetsEn: [
-      'Partition waves with Kahn algorithm',
-      'Isolate branch in Git Worktree',
-      'Check dependency collisions',
-      'Verify critical path locks',
-    ],
-  },
-  vega: {
-    placeholderEs: 'Ej: Auditar que DR-INV-001 no permita sobreventa en checkout...',
-    placeholderEn: 'E.g.: Audit that DR-INV-001 prevents overselling at checkout...',
-    presetsEs: [
-      'Verificar reglas de inventario DR-INV-001',
-      'Auditar partida doble de pagos DR-PAY-001',
-      'Verificar persistencia SQLite WAL',
-      'Comprobar bloqueos de concurrencia',
-    ],
-    presetsEn: [
-      'Verify DR-INV-001 inventory rules',
-      'Audit DR-PAY-001 double-entry payments',
-      'Verify SQLite WAL persistence',
-      'Check concurrency locks',
-    ],
-  },
-  orion: {
-    placeholderEs: 'Ej: Validar diseño Bento Grid y responsividad de componentes React 19...',
-    placeholderEn: 'E.g.: Validate Bento Grid layout & React 19 component responsiveness...',
-    presetsEs: [
-      'Inspeccionar componentes React 19',
-      'Validar layout Bento Grid y accesibilidad',
-      'Ajustar micro-interacciones de usuario',
-      'Optimizar latencia y renderizado',
-    ],
-    presetsEn: [
-      'Inspect React 19 components',
-      'Validate Bento Grid layout & a11y',
-      'Tune user micro-interactions',
-      'Optimize latency & rendering',
-    ],
-  },
-  centinela: {
-    placeholderEs: 'Ej: Escanear repositorio para asegurar cero claves expuestas...',
-    placeholderEn: 'E.g.: Scan repository to ensure zero exposed keys...',
-    presetsEs: [
-      'Verificar compuertas Gates 0 a 5',
-      'Escanear reglas Hard-Deny y secretos',
-      'Auditar firmas HMAC y aprobaciones',
-      'Bloquear despliegue sin autorización',
-    ],
-    presetsEn: [
-      'Verify Gates 0 to 5 checkpoints',
-      'Scan Hard-Deny rules and secrets',
-      'Audit HMAC signatures & approvals',
-      'Block unauthorized deployments',
-    ],
-  },
-  fenix: {
-    placeholderEs: 'Ej: Probar reversión atómica de transacciones y recuperación WAL...',
-    placeholderEn: 'E.g.: Test atomic transaction rollback and WAL recovery...',
-    presetsEs: [
-      'Verificar puntos de recuperación WAL',
-      'Probar reversión atómica de transacciones',
-      'Auditar idempotencia de scripts',
-      'Restaurar estado seguro de base de datos',
-    ],
-    presetsEn: [
-      'Verify WAL recovery checkpoints',
-      'Test atomic transaction rollback',
-      'Audit script idempotency',
-      'Restore database safe state',
-    ],
-  },
-  nova: {
-    placeholderEs: 'Ej: Ejecutar suite de pruebas Pytest y medir cobertura...',
-    placeholderEn: 'E.g.: Run Pytest test suite and measure coverage...',
-    presetsEs: [
-      'Correr pruebas de calidad Pytest',
-      'Medir cobertura de código (>90%)',
-      'Ejecutar pruebas de mutación',
-      'Verificar contratos OpenAPI/JSON',
-    ],
-    presetsEn: [
-      'Run Pytest quality suite',
-      'Measure code coverage (>90%)',
-      'Execute mutation testing',
-      'Verify OpenAPI/JSON contracts',
-    ],
-  },
-}
-
-export const CharacterAvatarSVG: React.FC<{
-  type: AgentCharacter['avatarType']
-  state: 'idle' | 'preparing' | 'working' | 'done'
-  accent: string
-}> = ({ type, state, accent }) => {
-  const isWorking = state === 'working'
-  const isPreparing = state === 'preparing'
-  const isDone = state === 'done'
-
-  return (
-    <div className="relative w-20 h-20 flex items-center justify-center select-none shrink-0">
-      {/* Animated Aura Ring when preparing or working */}
-      {(isPreparing || isWorking) && (
-        <span
-          className={`absolute inset-0 rounded-2xl border-2 ${
-            isWorking ? 'animate-ping opacity-40' : 'animate-pulse opacity-60'
-          }`}
-          style={{ borderColor: accent }}
-        />
-      )}
-
-      {/* Character Body Container with Idle Float / Working Bounce */}
-      <svg
-        viewBox="0 0 100 100"
-        className={`w-20 h-20 transition-transform duration-300 ${
-          isWorking
-            ? 'scale-110 -translate-y-1'
-            : isPreparing
-            ? 'scale-105 -translate-y-0.5'
-            : 'hover:scale-105'
-        }`}
-      >
-        <defs>
-          <radialGradient id={`glow-${type}`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={accent} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={accent} stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
-        {/* Background Aura */}
-        <circle cx="50" cy="52" r="42" fill={`url(#glow-${type})`} />
-
-        {/* Base Shoulders / Armor */}
-        <path
-          d="M22 86 C22 68, 78 68, 78 86 Z"
-          fill="#18181b"
-          stroke={accent}
-          strokeWidth="2.5"
-        />
-        {/* Chest Core Emblem */}
-        <circle
-          cx="50"
-          cy="77"
-          r="5"
-          fill={isWorking || isDone ? '#34d399' : accent}
-          className={isWorking ? 'animate-pulse' : ''}
-        />
-
-        {/* Head / Helmet by Character Type */}
-        {type === 'atlas' && (
-          <>
-            <rect
-              x="28"
-              y="24"
-              width="44"
-              height="40"
-              rx="12"
-              fill="#09090b"
-              stroke={accent}
-              strokeWidth="2.5"
-            />
-            {/* Antenna */}
-            <line x1="50" y1="12" x2="50" y2="24" stroke={accent} strokeWidth="3" />
-            <circle
-              cx="50"
-              cy="10"
-              r="4"
-              fill={isWorking ? '#34d399' : accent}
-              className={isWorking || isPreparing ? 'animate-ping' : ''}
-            />
-          </>
-        )}
-
-        {type === 'vega' && (
-          <>
-            <path
-              d="M26 44 C26 22, 74 22, 74 44 L70 62 C70 65, 30 65, 30 62 Z"
-              fill="#09090b"
-              stroke={accent}
-              strokeWidth="2.5"
-            />
-            {/* Crown Data Crest */}
-            <polygon points="50,15 43,26 57,26" fill={accent} />
-          </>
-        )}
-
-        {type === 'orion' && (
-          <>
-            <circle
-              cx="50"
-              cy="44"
-              r="22"
-              fill="#09090b"
-              stroke={accent}
-              strokeWidth="2.5"
-            />
-            {/* Side Headphones / Visor Pods */}
-            <rect x="22" y="38" width="6" height="14" rx="3" fill={accent} />
-            <rect x="72" y="38" width="6" height="14" rx="3" fill={accent} />
-          </>
-        )}
-
-        {type === 'centinela' && (
-          <>
-            {/* Knight Shield Helmet */}
-            <path
-              d="M27 28 L50 18 L73 28 L70 58 L50 66 L30 58 Z"
-              fill="#09090b"
-              stroke={accent}
-              strokeWidth="2.5"
-            />
-            <line x1="50" y1="18" x2="50" y2="34" stroke={accent} strokeWidth="2" />
-          </>
-        )}
-
-        {type === 'fenix' && (
-          <>
-            <rect
-              x="28"
-              y="25"
-              width="44"
-              height="38"
-              rx="14"
-              fill="#09090b"
-              stroke={accent}
-              strokeWidth="2.5"
-            />
-            {/* Phoenix Wings Crest */}
-            <path d="M26 32 L16 20 L28 42 Z" fill={accent} />
-            <path d="M74 32 L84 20 L72 42 Z" fill={accent} />
-          </>
-        )}
-
-        {type === 'nova' && (
-          <>
-            <rect
-              x="29"
-              y="24"
-              width="42"
-              height="39"
-              rx="16"
-              fill="#09090b"
-              stroke={accent}
-              strokeWidth="2.5"
-            />
-            {/* Star Halo */}
-            <circle cx="50" cy="14" r="3.5" fill={accent} />
-            <circle cx="37" cy="18" r="2" fill={accent} />
-            <circle cx="63" cy="18" r="2" fill={accent} />
-          </>
-        )}
-
-        {/* Visor Screen */}
-        <rect
-          x="34"
-          y="35"
-          width="32"
-          height="16"
-          rx="6"
-          fill="#18181b"
-          stroke={accent}
-          strokeWidth="1.2"
-        />
-
-        {/* Expressive Eyes based on state */}
-        {isWorking ? (
-          <>
-            {/* Determined Focused Eyes + Scanning Beam */}
-            <path d="M38 41 L46 43 L38 45" stroke="#34d399" strokeWidth="2.5" fill="none" />
-            <path d="M62 41 L54 43 L62 45" stroke="#34d399" strokeWidth="2.5" fill="none" />
-          </>
-        ) : isDone ? (
-          <>
-            {/* Happy Arcs */}
-            <path d="M38 44 Q42 39 46 44" stroke="#34d399" strokeWidth="2.5" fill="none" />
-            <path d="M54 44 Q58 39 62 44" stroke="#34d399" strokeWidth="2.5" fill="none" />
-          </>
-        ) : (
-          <>
-            {/* Glowing Eyes */}
-            <circle
-              cx="42"
-              cy="43"
-              r={isPreparing ? '3.5' : '2.8'}
-              fill={accent}
-              className="transition-all"
-            />
-            <circle
-              cx="58"
-              cy="43"
-              r={isPreparing ? '3.5' : '2.8'}
-              fill={accent}
-              className="transition-all"
-            />
-          </>
-        )}
-
-        {/* Action Floating Sparks when Preparing or Working */}
-        {(isPreparing || isWorking) && (
-          <>
-            <circle cx="18" cy="28" r="2.5" fill={accent} className="animate-ping" />
-            <circle cx="82" cy="28" r="2.5" fill={accent} className="animate-ping" />
-          </>
-        )}
-      </svg>
-
-      {/* Live Status Badge on Avatar Corner */}
-      <span
-        className={`absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold border ${
-          isWorking
-            ? 'bg-emerald-500 text-black border-emerald-300 animate-pulse'
-            : isPreparing
-            ? 'bg-amber-400 text-black border-amber-200'
-            : isDone
-            ? 'bg-emerald-950 text-emerald-300 border-emerald-500/40'
-            : 'bg-zinc-900 text-zinc-400 border-zinc-700'
-        }`}
-      >
-        {isWorking ? 'ACTIVO' : isPreparing ? 'LISTO' : isDone ? 'OK' : 'EN ESPERA'}
-      </span>
-    </div>
-  )
-}
 
 export const AgentsSection: React.FC<AgentsSectionProps> = ({
   onAgentLaunched,
   domainState,
-  onResolveBlocker,
   onNavigateToResolution,
 }) => {
   const { t } = useLanguage()
-  const resolvedState: OperationalDomainState =
-    typeof domainState === 'string'
-      ? domainState
-      : domainState?.state || 'COMPLETED'
-  const handleBlocker = onResolveBlocker || onNavigateToResolution
-  const [selectedCharId, setSelectedCharId] = useState<string>('atlas')
-  const [charStates, setCharStates] = useState<
-    Record<string, 'idle' | 'preparing' | 'working' | 'done'>
-  >({
-    atlas: 'preparing',
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('atlas')
+  const [agentStates, setAgentStates] = useState<Record<string, 'idle' | 'working' | 'done'>>({
+    atlas: 'idle',
     vega: 'idle',
-    orion: 'idle',
-    centinela: 'idle',
-    fenix: 'idle',
     nova: 'idle',
   })
-  const [customInstruction, setCustomInstruction] = useState<string>('')
-  const [runningWave, setRunningWave] = useState<boolean>(false)
-  const [activeBubbleText, setActiveBubbleText] = useState<string>('')
+  const [customOrder, setCustomOrder] = useState<string>('')
   const [actionResult, setActionResult] = useState<any | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
-  const [showTechLogs, setShowTechLogs] = useState<boolean>(false)
-  const [workorders, setWorkorders] = useState<any[]>([])
 
-  const selectedChar =
-    SOLIDBIT_CHARACTERS.find((c) => c.id === selectedCharId) || SOLIDBIT_CHARACTERS[0]
+  const selectedAgent = ROBOT_AGENTS.find((a) => a.id === selectedAgentId) || ROBOT_AGENTS[0]
 
-  useEffect(() => {
-    fetch('/api/campaigns')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.workorders) setWorkorders(d.workorders)
-      })
-      .catch(() => {})
-  }, [])
-
-  // Select a character and trigger its "Preparing to act" animation & voice bubble
-  const handleSelectCharacter = (char: AgentCharacter) => {
-    setSelectedCharId(char.id)
-    setCharStates((prev) => {
-      const next = { ...prev }
-      Object.keys(next).forEach((k) => {
-        if (next[k] === 'preparing') next[k] = 'idle'
-      })
-      if (next[char.id] !== 'working') {
-        next[char.id] = 'preparing'
-      }
-      return next
-    })
-    setActiveBubbleText(t(char.prepareQuoteEs, char.prepareQuoteEn))
-  }
-
-  // Trigger a single character's real action with pre-action animation -> live execution -> completion
-  const handleRunCharacterMission = async (char: AgentCharacter) => {
-    if (resolvedState === 'HALTED_BY_CONFLICT' || resolvedState === 'AWAITING_APPROVAL') return
-
+  const handleRunAgentOrder = async (agent: RobotAgent, orderText?: string) => {
+    const textToRun = orderText || customOrder.trim() || agent.presets[0]
     setActionError(null)
     setActionResult(null)
 
-    // Phase 1: Character prepares visually
-    setCharStates((prev) => ({ ...prev, [char.id]: 'preparing' }))
-    setActiveBubbleText(t(char.prepareQuoteEs, char.prepareQuoteEn))
-
-    await new Promise((r) => setTimeout(r, 650))
-
-    // Phase 2: Character enters active working animation & calls real backend
-    setCharStates((prev) => ({ ...prev, [char.id]: 'working' }))
-    setActiveBubbleText(
-      customInstruction.trim()
-        ? `«${t('Ejecutando tu orden:', 'Executing your order:')} "${customInstruction.trim()}"»`
-        : t(char.workingQuoteEs, char.workingQuoteEn)
-    )
+    setAgentStates((prev) => ({ ...prev, [agent.id]: 'working' }))
 
     try {
       const res = await fetch('/api/actions/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: char.actionKey,
+          action: agent.actionKey,
           params: {
-            character: char.characterName,
-            workorder_id: char.workorderId,
-            goal:
-              customInstruction.trim() ||
-              t(char.specialtyEs, char.specialtyEn),
+            character: agent.name,
+            goal: textToRun,
+            worktree: agent.worktree,
           },
         }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
-        setActionError(
-          data.error ||
-            t(
-              'El agente encontró un problema al ejecutar la tarea.',
-              'The agent encountered an issue while executing the task.'
-            )
-        )
-        setCharStates((prev) => ({ ...prev, [char.id]: 'idle' }))
+        setActionError(data.error || 'Error al ejecutar la orden con el agente.')
+        setAgentStates((prev) => ({ ...prev, [agent.id]: 'idle' }))
       } else {
         setActionResult(data)
-        setCharStates((prev) => ({ ...prev, [char.id]: 'done' }))
-        setActiveBubbleText(t(char.doneQuoteEs, char.doneQuoteEn))
+        setAgentStates((prev) => ({ ...prev, [agent.id]: 'done' }))
         if (onAgentLaunched) onAgentLaunched(data)
       }
     } catch (e: any) {
-      setActionError(
-        e.message ||
-          t(
-            'Error de conexión con el servidor local.',
-            'Connection error with local server.'
-          )
-      )
-      setCharStates((prev) => ({ ...prev, [char.id]: 'idle' }))
+      setActionError('Error de conexión con el daemon de agentes.')
+      setAgentStates((prev) => ({ ...prev, [agent.id]: 'idle' }))
     }
   }
-
-  // Run the entire SolidBit 6-character squad in choreographed wave order
-  const handleRunFullSquadWave = async () => {
-    if (runningWave) return
-    setRunningWave(true)
-    setActionError(null)
-    setActionResult(null)
-
-    for (const char of SOLIDBIT_CHARACTERS) {
-      setSelectedCharId(char.id)
-      setCharStates((prev) => ({ ...prev, [char.id]: 'preparing' }))
-      setActiveBubbleText(t(char.prepareQuoteEs, char.prepareQuoteEn))
-      await new Promise((r) => setTimeout(r, 450))
-
-      setCharStates((prev) => ({ ...prev, [char.id]: 'working' }))
-      setActiveBubbleText(t(char.workingQuoteEs, char.workingQuoteEn))
-      await new Promise((r) => setTimeout(r, 650))
-
-      setCharStates((prev) => ({ ...prev, [char.id]: 'done' }))
-    }
-
-    // Execute real backend verification at the end of the squad wave
-    try {
-      const res = await fetch('/api/actions/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'qa' }),
-      })
-      const data = await res.json()
-      setActionResult(data)
-      setActiveBubbleText(
-        t(
-          '«¡Escuadrón SolidBit completó las 6 órdenes de trabajo IMPL-001 a IMPL-FINAL-001 con éxito!»',
-          '“SolidBit Squad completed all 6 workorders IMPL-001 to IMPL-FINAL-001 successfully!”'
-        )
-      )
-      if (onAgentLaunched) onAgentLaunched(data)
-    } catch (e: any) {
-      setActionError(e.message)
-    } finally {
-      setRunningWave(false)
-    }
-  }
-
-  const isBlocked =
-    resolvedState === 'HALTED_BY_CONFLICT' || resolvedState === 'AWAITING_APPROVAL'
 
   return (
-    <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6 text-left">
-      {/* Header: Character Squad Overview */}
-      <div className="p-6 rounded-2xl bg-zinc-950 border border-zinc-850 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>
-              {t(
-                'Escuadrón Interactivo SolidBit · 6 Especialistas con Órdenes Reales',
-                'Interactive SolidBit Squad · 6 Specialists with Real Workorders'
-              )}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            {t(
-              'Conoce y Dirige a tu Equipo de Agentes',
-              'Meet & Direct Your Agent Squad'
-            )}
+    <div className="space-y-6 max-w-5xl mx-auto animate-fade-in pb-12 text-left">
+      {/* Header KISS */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-[#0C0C0E] border border-white/5 shadow-xl space-y-1">
+        <div className="flex items-center gap-2.5">
+          <Bot className="w-5 h-5 text-emerald-400" />
+          <h1 className="text-lg font-extrabold text-white tracking-tight">
+            Escuadrón de Agentes · Flujo de 3 Fases
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl leading-relaxed">
-            {t(
-              'Haz clic en cualquier personaje para ver cómo se prepara, asignarle una orden directa o lanzar la oleada completa según los flujos declarados de SolidBit.',
-              'Click any character to watch them prepare, assign a direct task, or launch the full wave following declared SolidBit workflows.'
-            )}
-          </p>
         </div>
-
-        {/* Single Primary Action per Hick's Law */}
-        <div className="flex items-center gap-3 shrink-0">
-          {isBlocked && handleBlocker ? (
-            <button
-              type="button"
-              onClick={handleBlocker}
-              className="px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs transition cursor-pointer shadow-lg"
-            >
-              {t('Resolver Compuerta Pendiente Primero', 'Resolve Pending Gate First')}
-            </button>
-          ) : (
-            <button
-              type="button"
-              id="btn-run-selected-character"
-              disabled={
-                charStates[selectedChar.id] === 'working' || runningWave
-              }
-              onClick={() => handleRunCharacterMission(selectedChar)}
-              className="px-5 py-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-lg disabled:opacity-50"
-            >
-              {charStates[selectedChar.id] === 'working' ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>
-                    {t(
-                      `${selectedChar.characterName} trabajando...`,
-                      `${selectedChar.characterName} working...`
-                    )}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 fill-black" />
-                  <span>
-                    {t(
-                      `Poner en Acción a ${selectedChar.characterName}`,
-                      `Put ${selectedChar.characterName} into Action`
-                    )}
-                  </span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
+        <p className="text-xs text-zinc-400">
+          Los 3 robots autónomos que ejecutan el ciclo completo: Diseño (1) → Implementación (2) → Despliegue (3).
+        </p>
       </div>
 
-      {/* Master-Detail Layout: Compact Roster on Left (4 cols) & Active Terminal on Right (8 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Compact Specialist Roster with 1-Line Technical Specs */}
-        <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between pb-1">
-            <span className="text-xs font-mono uppercase text-zinc-400 font-bold tracking-wider">
-              {t('Escuadrón Especialista (6)', 'Specialist Squad (6)')}
-            </span>
-            <span className="text-[10px] font-mono text-emerald-400 font-semibold">
-              Zero-Token Idle
-            </span>
-          </div>
+      {/* Los 3 Robots en Grid de 3 Columnas (Fieles al Dibujo) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {ROBOT_AGENTS.map((agent) => {
+          const isSelected = selectedAgentId === agent.id
+          const st = agentStates[agent.id] || 'idle'
 
-          <div className="space-y-2.5">
-            {SOLIDBIT_CHARACTERS.map((char) => {
-              const st = charStates[char.id] || 'idle'
-              const isSelected = selectedCharId === char.id
-
-              return (
-                <div
-                  key={char.id}
-                  onClick={() => handleSelectCharacter(char)}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
-                    isSelected
-                      ? 'bg-[#18181B] border-white shadow-xl ring-1 ring-white/20'
-                      : 'bg-[#0C0C0E] border-white/5 hover:border-zinc-700 hover:bg-zinc-900/50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${char.badgeBg}`}
-                    >
-                      {char.workorderId}
-                    </span>
-                    <span className="text-[10px] font-mono text-zinc-500">
-                      {char.codeName}
-                    </span>
+          return (
+            <div
+              key={agent.id}
+              onClick={() => setSelectedAgentId(agent.id)}
+              className={`p-5 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
+                isSelected
+                  ? 'bg-zinc-900/90 border-white/20 shadow-2xl scale-[1.01]'
+                  : 'bg-[#0C0C0E] hover:bg-zinc-900/50 border-white/5'
+              }`}
+            >
+              <div className="space-y-3">
+                {/* Robot SVG Avatar + Phase Badge */}
+                <div className="flex items-center justify-between">
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center border shadow-inner"
+                    style={{
+                      backgroundColor: `${agent.accentColor}15`,
+                      borderColor: `${agent.accentColor}40`,
+                    }}
+                  >
+                    <svg viewBox="0 0 100 100" className="w-9 h-9" fill="none">
+                      <line x1="50" y1="18" x2="50" y2="28" stroke={agent.accentColor} strokeWidth="3" strokeLinecap="round" />
+                      <circle cx="50" cy="15" r="4.5" fill={agent.accentColor} />
+                      <rect x="25" y="28" width="50" height="38" rx="8" fill="#18181B" stroke={agent.accentColor} strokeWidth="3" />
+                      <rect x="33" y="36" width="34" height="22" rx="4" fill="#09090B" stroke="#27272A" strokeWidth="1.5" />
+                      <circle cx="42" cy="46" r="3" fill={agent.accentColor} />
+                      <circle cx="58" cy="46" r="3" fill={agent.accentColor} />
+                      <path d="M42 53 Q50 56 58 53" stroke={agent.accentColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                      <rect x="35" y="66" width="30" height="18" rx="4" fill="#18181B" stroke={agent.accentColor} strokeWidth="2.5" />
+                      <line x1="20" y1="42" x2="25" y2="42" stroke={agent.accentColor} strokeWidth="3" strokeLinecap="round" />
+                      <line x1="75" y1="42" x2="80" y2="42" stroke={agent.accentColor} strokeWidth="3" strokeLinecap="round" />
+                    </svg>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="shrink-0 scale-90 -ml-1">
-                      <CharacterAvatarSVG
-                        type={char.avatarType}
-                        state={st}
-                        accent={char.accentColor}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-extrabold text-white truncate">
-                          {char.characterName}
-                        </h3>
-                        {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        )}
-                      </div>
-                      <p className="text-[11px] font-medium text-zinc-300 truncate">
-                        {t(char.titleEs, char.titleEn)}
-                      </p>
-
-                      {/* 1-Line Technical Specs instead of verbose lore */}
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 pt-0.5">
-                        <span className="truncate text-sky-400">
-                          {char.worktree}
-                        </span>
-                        <span>&bull;</span>
-                        <span className="truncate text-emerald-400">
-                          {char.ownedPaths[0]}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {(st === 'preparing' || st === 'working') && (
-                    <div className="mt-2.5 pt-2 border-t border-zinc-800/80 space-y-1">
-                      <div className="flex items-center justify-between text-[10px] font-semibold">
-                        <span
-                          style={{ color: char.accentColor }}
-                          className="flex items-center gap-1"
-                        >
-                          <Zap className="w-3 h-3" />
-                          {st === 'working'
-                            ? t('Ejecutando orden en vivo...', 'Executing order live...')
-                            : t('Preparando herramientas...', 'Preparing tools...')}
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: st === 'working' ? '100%' : '40%',
-                            backgroundColor: char.accentColor,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${agent.badgeBg}`}
+                  >
+                    Fase {agent.phaseNumber}
+                  </span>
                 </div>
-              )
-            })}
-          </div>
-        </div>
 
-        {/* Right Column: Active Agent Interaction Terminal & Live Telemetry (8 cols) */}
-        <div className="lg:col-span-8 space-y-5">
-          <div className="p-6 rounded-3xl bg-[#0C0C0E] border border-white/5 space-y-5 shadow-2xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-800">
-              <div className="flex items-start sm:items-center gap-4">
-                <CharacterAvatarSVG
-                  type={selectedChar.avatarType}
-                  state={charStates[selectedChar.id] || 'idle'}
-                  accent={selectedChar.accentColor}
-                />
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-lg font-extrabold text-white">
-                      {selectedChar.characterName}
+                <div>
+                  <h3 className="text-base font-extrabold text-white flex items-center gap-1.5">
+                    <span>{agent.name}</span>
+                    <span className="text-xs font-mono font-normal text-zinc-400">
+                      (Agente {agent.phaseNumber})
                     </span>
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${selectedChar.badgeBg}`}
-                    >
-                      {selectedChar.workorderId}
-                    </span>
-                    <span className="text-xs text-zinc-400 font-mono">
-                      ({selectedChar.worktree})
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-300 font-medium">
-                    {t(selectedChar.specialtyEs, selectedChar.specialtyEn)}
+                  </h3>
+                  <p className="text-xs text-zinc-300 mt-1 font-medium leading-relaxed">
+                    «{agent.diagramRole}»
                   </p>
-
-                  <div className="mt-2 p-3 rounded-xl bg-black border border-white/5 text-xs text-emerald-300 font-medium italic">
-                    {activeBubbleText ||
-                      t(selectedChar.prepareQuoteEs, selectedChar.prepareQuoteEn)}
-                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+              {/* Status and Action */}
+              <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+                <span className="font-mono text-[10px] text-zinc-400">
+                  {st === 'working' ? (
+                    <span className="text-amber-400 flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Procesando
+                    </span>
+                  ) : st === 'done' ? (
+                    <span className="text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Completado
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500">En espera</span>
+                  )}
+                </span>
+
                 <button
                   type="button"
-                  disabled={runningWave || isBlocked}
-                  onClick={handleRunFullSquadWave}
-                  className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-750 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedAgentId(agent.id)
+                    handleRunAgentOrder(agent)
+                  }}
+                  disabled={st === 'working'}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold transition cursor-pointer flex items-center gap-1"
                 >
-                  {runningWave ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                      <span>{t('Coordinando...', 'Coordinating...')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Bot className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{t('Coordinar Oleada Completa', 'Coordinate Full Wave')}</span>
-                    </>
-                  )}
+                  <Play className="w-3 h-3 fill-black" />
+                  <span>Probar</span>
                 </button>
               </div>
             </div>
-
-            {/* Direct Assignment Input with Dynamic Contextual Presets (Fixing Context Leak) */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Send className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>
-                    {t(
-                      `¿Qué orden técnica deseas asignarle a ${selectedChar.characterName}?`,
-                      `What technical order would you like to assign to ${selectedChar.characterName}?`
-                    )}
-                  </span>
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={customInstruction}
-                    onChange={(e) => setCustomInstruction(e.target.value)}
-                    placeholder={
-                      (AGENT_SPECIFIC_PRESETS[selectedChar.id]
-                        ? t(
-                            AGENT_SPECIFIC_PRESETS[selectedChar.id].placeholderEs,
-                            AGENT_SPECIFIC_PRESETS[selectedChar.id].placeholderEn
-                          )
-                        : t(
-                            `Ej: Ejecutar misión especializada para ${selectedChar.characterName}...`,
-                            `E.g.: Execute specialized mission for ${selectedChar.characterName}...`
-                          ))
-                    }
-                    className="flex-1 bg-black border border-zinc-800 focus:border-white rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
-                  />
-                  <button
-                    type="button"
-                    disabled={charStates[selectedChar.id] === 'working' || isBlocked}
-                    onClick={() => handleRunCharacterMission(selectedChar)}
-                    className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 disabled:opacity-40 text-black text-xs font-extrabold transition cursor-pointer shrink-0 shadow-md flex items-center justify-center gap-2"
-                  >
-                    {charStates[selectedChar.id] === 'working' ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
-                        <span>Ejecutando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-3.5 h-3.5 fill-black" />
-                        <span>{t('Ejecutar Orden', 'Run Order')}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Strictly Dynamic Contextual Prompt Presets */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase">
-                    {t(
-                      `Sugerencias técnicas para ${selectedChar.characterName}:`,
-                      `Technical suggestions for ${selectedChar.characterName}:`
-                    )}
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(
-                      AGENT_SPECIFIC_PRESETS[selectedChar.id]
-                        ? AGENT_SPECIFIC_PRESETS[selectedChar.id].presetsEs.map((p, idx) =>
-                            t(p, AGENT_SPECIFIC_PRESETS[selectedChar.id].presetsEn[idx])
-                          )
-                        : []
-                    ).map((preset, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setCustomInstruction(preset)}
-                        className="px-2.5 py-1 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-[11px] text-zinc-300 hover:text-white transition cursor-pointer font-mono"
-                      >
-                        {preset}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Owned Paths & Governance */}
-              <div className="p-4 rounded-xl bg-black border border-white/5 space-y-2 font-mono text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-zinc-200 flex items-center gap-1.5">
-                    <FolderGit2 className="w-3.5 h-3.5 text-sky-400" />
-                    {t('Áreas exclusivas bajo su custodia:', 'Exclusive paths under custody:')}
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                    <Lock className="w-3 h-3" />
-                    {t('Aislamiento Worktree', 'Worktree Isolation')}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedChar.ownedPaths.map((p) => (
-                    <span
-                      key={p}
-                      className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300"
-                    >
-                      {p}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Action Result / Live Terminal Output */}
-            {actionError && (
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200">
-                {actionError}
-              </div>
-            )}
-
-            {actionResult && (
-              <div className="pt-2">
-                <StructuredPayloadViewer
-                  execution={actionResult}
-                  onRequireHITL={() => {
-                    if (onNavigateToResolution) onNavigateToResolution()
-                  }}
-                  onRetryTask={() => handleRunCharacterMission(selectedChar)}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+          )
+        })}
       </div>
 
-      {/* Declared SolidBit Workorders Table (IMPL-DB-001 through IMPL-FINAL-001) */}
-      {workorders.length > 0 && (
-        <div className="p-6 rounded-2xl bg-zinc-950 border border-zinc-850 space-y-4">
-          <div className="flex items-center justify-between">
+      {/* Consola de Órdenes Interactiva para el Agente Seleccionado (KISS) */}
+      <div className="p-6 rounded-3xl bg-[#0C0C0E] border border-white/10 space-y-4 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-3">
+            <span
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: selectedAgent.accentColor }}
+            />
             <div>
-              <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                <Award className="w-4 h-4 text-emerald-400" />
-                <span>
-                  {t(
-                    'Órdenes de Trabajo Declaradas en SolidBit (Workorders)',
-                    'Declared SolidBit Workorders'
-                  )}
-                </span>
+              <h2 className="text-sm font-extrabold text-white">
+                Asignar Orden a {selectedAgent.name} ({selectedAgent.phaseTitle})
               </h2>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {t(
-                  'Cada orden asigna un área exclusiva de trabajo y un personaje responsable.',
-                  'Each workorder assigns an exclusive workspace area and a responsible character.'
-                )}
-              </p>
+              <p className="text-xs text-zinc-400">{selectedAgent.specialty}</p>
             </div>
           </div>
+          <span className="text-xs font-mono text-zinc-500">{selectedAgent.worktree}</span>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {workorders.map((wo: any) => (
-              <div
-                key={wo.id}
-                className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-850 flex flex-col justify-between gap-2"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono font-bold text-emerald-400">
-                      {wo.id}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-800 text-zinc-300">
-                      {wo.status === 'COMPLETED'
-                        ? t('Completado', 'Completed')
-                        : wo.status === 'PASSING'
-                        ? t('Pruebas en Verde', 'Passing')
-                        : t('Listo', 'Ready')}
-                    </span>
-                  </div>
-                  <div className="text-xs font-bold text-white">{wo.title}</div>
-                </div>
-                <div className="text-[11px] text-zinc-400 flex items-center gap-1.5 pt-1 border-t border-zinc-800/60">
-                  <FileCode2 className="w-3.5 h-3.5 text-zinc-500" />
-                  <span>{wo.agent}</span>
-                </div>
-              </div>
-            ))}
+        {/* Input + Presets */}
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={customOrder}
+              onChange={(e) => setCustomOrder(e.target.value)}
+              placeholder={`Escribe una instrucción para ${selectedAgent.name}...`}
+              className="flex-1 bg-black border border-zinc-800 focus:border-white rounded-2xl px-4 py-2.5 text-xs text-white placeholder-zinc-500 font-mono focus:outline-none"
+            />
+            <button
+              type="button"
+              disabled={agentStates[selectedAgent.id] === 'working'}
+              onClick={() => handleRunAgentOrder(selectedAgent)}
+              className="px-5 py-2.5 rounded-2xl bg-white hover:bg-zinc-200 disabled:opacity-40 text-black text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 shrink-0"
+            >
+              {agentStates[selectedAgent.id] === 'working' ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  <span>Ejecutando...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5 text-black" />
+                  <span>Enviar Orden</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
+              Plantillas Rápidas para {selectedAgent.name}:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {selectedAgent.presets.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setCustomOrder(preset)
+                    handleRunAgentOrder(selectedAgent, preset)
+                  }}
+                  className="px-3 py-1 rounded-xl bg-black hover:bg-zinc-800 border border-zinc-800 text-[11px] text-zinc-300 hover:text-white transition cursor-pointer font-mono"
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Action Error / Output */}
+        {actionError && (
+          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200">
+            {actionError}
+          </div>
+        )}
+
+        {actionResult && (
+          <div className="pt-2">
+            <StructuredPayloadViewer
+              execution={actionResult}
+              onRequireHITL={() => {
+                if (onNavigateToResolution) onNavigateToResolution()
+              }}
+              onRetryTask={() => handleRunAgentOrder(selectedAgent)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
