@@ -12,16 +12,16 @@ from __future__ import annotations
 
 import zipfile
 from dataclasses import dataclass
-from typing import Any, List, Optional, Union
+from typing import Optional
 
 from sacl.contracts.invariants import MAX_ATTACHMENT_SIZE_BYTES
 from sacl.security.exceptions import ResourceLimitExceededError, SecurityError
 
 # Canonical Quotas per docs/SECURITY_MODEL.md §4.3 & docs/MAIL_PROTOCOL.md §3.7
 DEFAULT_MAX_COMPRESSED_BYTES: int = MAX_ATTACHMENT_SIZE_BYTES  # 25 MB = 26,214,400 bytes
-DEFAULT_MAX_UNCOMPRESSED_BYTES: int = 104_857_600              # 100 MB = 104,857,600 bytes
-DEFAULT_MAX_TOTAL_FILE_COUNT: int = 1000                       # 1,000 files
-DEFAULT_MAX_COMPRESSION_RATIO: float = 20.0                    # 20:1 ratio
+DEFAULT_MAX_UNCOMPRESSED_BYTES: int = 104_857_600  # 100 MB = 104,857,600 bytes
+DEFAULT_MAX_TOTAL_FILE_COUNT: int = 1000  # 1,000 files
+DEFAULT_MAX_COMPRESSION_RATIO: float = 20.0  # 20:1 ratio
 
 
 @dataclass(frozen=True)
@@ -123,7 +123,11 @@ def assert_concurrency_within_limit(
         raise SecurityError(
             f"CONCURRENCY_LIMIT_REACHED: Stage '{stage_id}' active workers ({active_count}) "
             f"reached MaxParallel ({max_parallel}). Queuing/throttling required.",
-            details={"active_count": active_count, "max_parallel": max_parallel, "stage_id": stage_id},
+            details={
+                "active_count": active_count,
+                "max_parallel": max_parallel,
+                "stage_id": stage_id,
+            },
         )
 
 

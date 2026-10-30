@@ -6,7 +6,7 @@ Hard deny always wins. Bounded approvals cannot override hard denials.
 """
 
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
+
 import pytest
 
 from sacl.contracts.exceptions import (
@@ -16,7 +16,7 @@ from sacl.contracts.exceptions import (
     HardDenyViolation,
     PolicyDeniedError,
 )
-from sacl.contracts.invariants import HARD_DENIED_ACTIONS, RiskTier
+from sacl.contracts.invariants import HARD_DENIED_ACTIONS
 from sacl.contracts.models import (
     ApprovalToken,
     Approver,
@@ -24,11 +24,9 @@ from sacl.contracts.models import (
     RuntimeSafety,
     WorkspaceSafety,
 )
-from sacl.policy.approval import ApprovalManager, format_iso_datetime
+from sacl.policy.approval import format_iso_datetime
 from sacl.policy.hard_policy import HardPolicyEngine
 from sacl.policy.lattice import PermissionLattice, PolicyEngine
-from sacl.policy.operation_registry import OperationRegistryManager
-from sacl.policy.project_registry import ProjectRegistryManager
 
 
 @pytest.fixture
@@ -92,7 +90,9 @@ def test_lattice_success_all_layers_agree(default_project_policy):
 
 
 @pytest.mark.parametrize("denied_action", list(HARD_DENIED_ACTIONS))
-def test_layer1_hard_deny_always_wins_unconditionally(default_project_policy, valid_approval, denied_action):
+def test_layer1_hard_deny_always_wins_unconditionally(
+    default_project_policy, valid_approval, denied_action
+):
     lattice = PermissionLattice(hard_policy_engine=HardPolicyEngine())
 
     # 1. Denied without approval
@@ -112,7 +112,10 @@ def test_layer1_hard_deny_always_wins_unconditionally(default_project_policy, va
             project_policy=default_project_policy,
             approval_grant=valid_approval,
         )
-    assert "strictly prohibited by Hard Local Policy" in excinfo.value.message or "Approval Override Prohibited" in excinfo.value.message
+    assert (
+        "strictly prohibited by Hard Local Policy" in excinfo.value.message
+        or "Approval Override Prohibited" in excinfo.value.message
+    )
 
 
 def test_layer2_project_policy_denial(default_project_policy):
@@ -218,11 +221,14 @@ def test_policy_engine_end_to_end_evaluate_operation(default_project_policy, val
     engine = PolicyEngine()
 
     # Allowed operation
-    assert engine.evaluate_lattice(
-        action="target_docs_write",
-        requested_permissions=["target_docs_write"],
-        project_policy=default_project_policy,
-    ) is True
+    assert (
+        engine.evaluate_lattice(
+            action="target_docs_write",
+            requested_permissions=["target_docs_write"],
+            project_policy=default_project_policy,
+        )
+        is True
+    )
 
     # Hard denied operation
     with pytest.raises(HardDenyViolation):

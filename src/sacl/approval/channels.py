@@ -9,15 +9,14 @@ Constitutional Invariants (ADR-007, docs/MAIL_PROTOCOL.md):
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Optional, Tuple
 
 from sacl.approval.models import ApprovalRequest, ApprovalToken, Approver, utc_now_iso
 from sacl.approval.validator import BoundedApprovalValidator, token_to_schema_dict
 from sacl.contracts.exceptions import ContractValidationError, PolicyDeniedError
 from sacl.contracts.invariants import ApprovalChannel, ApprovalDecision
-
 
 DEFAULT_SOVEREIGN_IDENTITY = "Joaquín"
 AUTHORIZED_EMAIL_SENDERS = {"uniquedraken@gmail.com"}
@@ -74,7 +73,9 @@ class GmailChannelHandler:
         default_identity: str = DEFAULT_SOVEREIGN_IDENTITY,
     ) -> None:
         self.authorized_senders = (
-            set(authorized_senders) if authorized_senders is not None else set(AUTHORIZED_EMAIL_SENDERS)
+            set(authorized_senders)
+            if authorized_senders is not None
+            else set(AUTHORIZED_EMAIL_SENDERS)
         )
         self.default_identity = default_identity
 
@@ -131,7 +132,9 @@ class GmailChannelHandler:
         request_id = req_match.group(1).upper()
 
         # Extract decision
-        dec_match = re.search(r"DECISION\s*:\s*(APPROVED|REJECTED|DEFERRED)", body_text, re.IGNORECASE)
+        dec_match = re.search(
+            r"DECISION\s*:\s*(APPROVED|REJECTED|DEFERRED)", body_text, re.IGNORECASE
+        )
         if not dec_match:
             # Fallback check simple keyword
             if re.search(r"\bAPPROVED\b", body_text, re.IGNORECASE):
@@ -182,7 +185,10 @@ class ManualChannelHandler:
         token = ApprovalToken.from_dict(data)
         # Verify that channel is MANUAL or valid
         if token.approver.channel != ApprovalChannel.MANUAL.value:
-            if token.approver.channel not in {ApprovalChannel.CLI.value, ApprovalChannel.GMAIL.value}:
+            if token.approver.channel not in {
+                ApprovalChannel.CLI.value,
+                ApprovalChannel.GMAIL.value,
+            }:
                 raise ContractValidationError(
                     schema_name="approval",
                     message=f"Invalid channel '{token.approver.channel}' in manual token file.",

@@ -10,14 +10,13 @@ from __future__ import annotations
 
 import datetime
 import logging
-from pathlib import Path
 import random
 import sqlite3
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, List, Optional, Tuple
 
 from sacl.transport.envelope import build_outbound_mime
-from sacl.transport.exceptions import TransportError
 from sacl.transport.gmail_adapter import IGmailApiAdapter
 
 logger = logging.getLogger("sacl.transport.outbox")

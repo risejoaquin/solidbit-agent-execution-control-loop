@@ -6,15 +6,12 @@ and Windows reserved DOS device names per SACL-SPEC-PKG-v1 and SECURITY_MODEL.md
 
 from __future__ import annotations
 
-import os
-import re
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import FrozenSet, List, Optional
-import zipfile
+from typing import FrozenSet
 
 from sacl.contracts.invariants import MAX_ATTACHMENT_SIZE_BYTES
-
 
 # ============================================================================
 # CANONICAL RESOURCE & DECOMPRESSION QUOTAS
@@ -39,30 +36,32 @@ MAX_COMPRESSION_RATIO: float = 20.0
 # (docs/SECURITY_MODEL.md §4.3 Step 3)
 # ============================================================================
 
-RESERVED_DEVICE_NAMES: FrozenSet[str] = frozenset({
-    "CON",
-    "PRN",
-    "AUX",
-    "NUL",
-    "COM1",
-    "COM2",
-    "COM3",
-    "COM4",
-    "COM5",
-    "COM6",
-    "COM7",
-    "COM8",
-    "COM9",
-    "LPT1",
-    "LPT2",
-    "LPT3",
-    "LPT4",
-    "LPT5",
-    "LPT6",
-    "LPT7",
-    "LPT8",
-    "LPT9",
-})
+RESERVED_DEVICE_NAMES: FrozenSet[str] = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
+    }
+)
 
 
 # ============================================================================
@@ -70,17 +69,20 @@ RESERVED_DEVICE_NAMES: FrozenSet[str] = frozenset({
 # (docs/EXECUTION_PACKAGE_SPEC.md §5.2 line 149)
 # ============================================================================
 
-PROHIBITED_BINARY_EXTENSIONS: FrozenSet[str] = frozenset({
-    ".exe",
-    ".dll",
-    ".cmd",
-    ".msi",
-})
+PROHIBITED_BINARY_EXTENSIONS: FrozenSet[str] = frozenset(
+    {
+        ".exe",
+        ".dll",
+        ".cmd",
+        ".msi",
+    }
+)
 
 
 # ============================================================================
 # CONFIGURABLE RESOURCE LIMITS CONTAINER
 # ============================================================================
+
 
 @dataclass(frozen=True)
 class PackageResourceLimits:
@@ -98,7 +100,10 @@ class PackageResourceLimits:
 # SECURITY INSPECTION HELPER FUNCTIONS
 # ============================================================================
 
-def is_reserved_device_name(path_str: str, reserved_names: FrozenSet[str] = RESERVED_DEVICE_NAMES) -> bool:
+
+def is_reserved_device_name(
+    path_str: str, reserved_names: FrozenSet[str] = RESERVED_DEVICE_NAMES
+) -> bool:
     """Checks if any segment in path matches a Windows DOS device name.
 
     Examples: 'nul', 'con.txt', 'dir/aux.dat', 'COM1' -> True.
@@ -124,7 +129,9 @@ def has_alternate_data_stream(path_str: str) -> bool:
     return ":" in path_str
 
 
-def is_prohibited_binary(path_str: str, prohibited_exts: FrozenSet[str] = PROHIBITED_BINARY_EXTENSIONS) -> bool:
+def is_prohibited_binary(
+    path_str: str, prohibited_exts: FrozenSet[str] = PROHIBITED_BINARY_EXTENSIONS
+) -> bool:
     """Checks if file extension is an uninspected executable binary."""
     ext = Path(path_str).suffix.lower()
     return ext in prohibited_exts

@@ -7,7 +7,6 @@ and modified file tracking.
 
 from __future__ import annotations
 
-import os
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,12 +16,8 @@ from sacl.contracts.exceptions import DirtyRootError
 from sacl.contracts.interfaces import IWorkspaceManager
 from sacl.workspace.dirty_root import check_clean_root, parse_porcelain_status
 from sacl.workspace.exceptions import (
-    BranchProtectionError,
-    PrimaryCheckoutViolationError,
-    RepositoryValidationError,
     WorkspaceError,
     WorktreeCollisionError,
-    WorktreeNotFoundError,
 )
 from sacl.workspace.git_runner import GitRunner
 from sacl.workspace.guards import (
@@ -36,6 +31,7 @@ from sacl.workspace.guards import (
 @dataclass(frozen=True)
 class WorktreeInfo:
     """Parsed metadata for a registered Git worktree."""
+
     path: Path
     head_sha: Optional[str] = None
     branch: Optional[str] = None
@@ -213,20 +209,27 @@ class WorkspaceManager(IWorkspaceManager):
             ["show-ref", "--verify", "--quiet", f"refs/heads/{clean_branch}"],
             cwd=repo_path,
         )
-        local_branch_exists = (check_local.exit_code == 0)
+        local_branch_exists = check_local.exit_code == 0
 
         # Check if remote tracking branch exists
         check_remote = self.git_runner.run(
             ["show-ref", "--verify", "--quiet", f"refs/remotes/origin/{clean_branch}"],
             cwd=repo_path,
         )
-        remote_branch_exists = (check_remote.exit_code == 0)
+        remote_branch_exists = check_remote.exit_code == 0
 
         # 8. Create worktree
         if local_branch_exists:
             cmd = ["worktree", "add", str(resolved_target), clean_branch]
         elif remote_branch_exists:
-            cmd = ["worktree", "add", "-b", clean_branch, str(resolved_target), f"origin/{clean_branch}"]
+            cmd = [
+                "worktree",
+                "add",
+                "-b",
+                clean_branch,
+                str(resolved_target),
+                f"origin/{clean_branch}",
+            ]
         else:
             cmd = ["worktree", "add", "-b", clean_branch, str(resolved_target), base_ref]
 
@@ -238,7 +241,9 @@ class WorkspaceManager(IWorkspaceManager):
         if not resolved_target.exists():
             raise WorkspaceError(f"Worktree path '{resolved_target}' not found after provisioning.")
 
-        branch_res = self.git_runner.run(["rev-parse", "--abbrev-ref", "HEAD"], cwd=resolved_target, check=True)
+        branch_res = self.git_runner.run(
+            ["rev-parse", "--abbrev-ref", "HEAD"], cwd=resolved_target, check=True
+        )
         current_branch = normalize_branch_name(branch_res.stdout)
         if current_branch != clean_branch:
             raise WorkspaceError(

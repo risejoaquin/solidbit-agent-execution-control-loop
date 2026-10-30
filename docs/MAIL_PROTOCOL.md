@@ -419,5 +419,5 @@ To maintain unbroken conversation threads in ChatGPT Web and email clients:
 - **Zero Plaintext Secrets:** Mail credentials (OAuth2 refresh tokens, client secrets, service account keys) must never be stored in plain text configuration files, repositories, or SQLite tables.
 - **Credential Storage:**
   - Credentials must be stored in the **Windows Credential Manager** under the target `SACL_Gmail_OAuth_uniquedraken`.
-  - Alternatively, credentials can be protected on disk using the **Windows Data Protection API (DPAPI)** scoped to the `Lucilfer` host user account.
+  - Alternatively, credentials can be protected on disk using the **Windows Data Protection API (DPAPI)** scoped to the `workspace` host user account.
 - **Antigravity Isolation:** Antigravity CLI workers (`agy.exe`) execute in separate processes and secondary git worktrees. They have zero environment variable access, file access, or OS privileges to read Windows Credential Manager or DPAPI tokens.

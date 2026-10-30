@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -294,7 +293,9 @@ class BackgroundHeartbeater:
         if self._thread and self._thread.is_alive():
             return
         self._stop_event.clear()
-        self._thread = threading.Thread(target=self._run, daemon=True, name=f"heartbeat-{self.component}")
+        self._thread = threading.Thread(
+            target=self._run, daemon=True, name=f"heartbeat-{self.component}"
+        )
         self._thread.start()
 
     def stop(self) -> None:

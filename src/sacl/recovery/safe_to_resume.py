@@ -158,7 +158,9 @@ def evaluate_agent_safe_to_resume(
             can_resume=False,
             requires_blind_restart=False,
             reason=f"Agent '{agent_id}' produced deliverables with DONE_REVIEW_REQUIRED marker.",
-            blockers=[f"Agent '{agent_id}' deliverables mandate human review before downstream use."],
+            blockers=[
+                f"Agent '{agent_id}' deliverables mandate human review before downstream use."
+            ],
             next_safe_action=f"Human review required for deliverable report of agent '{agent_id}'.",
             details={"agent_id": agent_id, "verdict": extracted_verdict},
         )
@@ -179,7 +181,11 @@ def evaluate_agent_safe_to_resume(
                     f"({report_size_bytes} bytes) exists with verdict '{extracted_verdict}'."
                 ),
                 next_safe_action=f"Reconcile agent '{agent_id}' to COMPLETE without re-executing.",
-                details={"agent_id": agent_id, "verdict": extracted_verdict, "size_bytes": report_size_bytes},
+                details={
+                    "agent_id": agent_id,
+                    "verdict": extracted_verdict,
+                    "size_bytes": report_size_bytes,
+                },
             )
         elif extracted_verdict == Verdict.BLOCKED.value:
             return SafeToResumeDecision(
@@ -203,7 +209,11 @@ def evaluate_agent_safe_to_resume(
         ),
         blockers=[f"Missing deliverable report for agent '{agent_id}'."],
         next_safe_action="Initiate a fresh, idempotent job attempt with a new run ID and dedicated attempt logs.",
-        details={"agent_id": agent_id, "has_report": has_report, "report_size_bytes": report_size_bytes},
+        details={
+            "agent_id": agent_id,
+            "has_report": has_report,
+            "report_size_bytes": report_size_bytes,
+        },
     )
 
 
@@ -242,13 +252,20 @@ def evaluate_run_safe_to_resume(
     has_missing_deliverables = any(
         d.outcome == SafeToResumeOutcome.CANNOT_RESUME_INTERRUPTED for d in agent_decisions
     )
-    all_completed = all(
-        d.outcome in {SafeToResumeOutcome.IMMUTABLE_COMPLETED, SafeToResumeOutcome.RECONCILE_OUTPUTS}
-        for d in agent_decisions
-    ) if agent_decisions else False
+    all_completed = (
+        all(
+            d.outcome
+            in {SafeToResumeOutcome.IMMUTABLE_COMPLETED, SafeToResumeOutcome.RECONCILE_OUTPUTS}
+            for d in agent_decisions
+        )
+        if agent_decisions
+        else False
+    )
 
     if has_surviving_workers:
-        surviving_count = sum(1 for d in agent_decisions if d.outcome == SafeToResumeOutcome.RESUME_SUPERVISION)
+        surviving_count = sum(
+            1 for d in agent_decisions if d.outcome == SafeToResumeOutcome.RESUME_SUPERVISION
+        )
         return SafeToResumeDecision(
             outcome=SafeToResumeOutcome.RESUME_SUPERVISION,
             can_resume=True,

@@ -6,6 +6,7 @@ Supports Windows Credential Manager / DPAPI integration and in-memory mock adapt
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import abc
 import datetime
@@ -101,14 +102,18 @@ class InMemoryOAuth2CredentialProvider(IOAuth2CredentialProvider):
 
         # Standard OAuth2 token refresh via HTTP POST
         if not self._client_id or not self._client_secret:
-            raise TransportAuthError("Cannot refresh access token: client_id or client_secret missing.")
+            raise TransportAuthError(
+                "Cannot refresh access token: client_id or client_secret missing."
+            )
 
-        payload = urllib.parse.urlencode({
-            "client_id": self._client_id,
-            "client_secret": self._client_secret,
-            "refresh_token": self._refresh_token,
-            "grant_type": "refresh_token",
-        }).encode("utf-8")
+        payload = urllib.parse.urlencode(
+            {
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+                "refresh_token": self._refresh_token,
+                "grant_type": "refresh_token",
+            }
+        ).encode("utf-8")
 
         req = urllib.request.Request(
             self._token_url,
@@ -118,12 +123,14 @@ class InMemoryOAuth2CredentialProvider(IOAuth2CredentialProvider):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with safe_urlopen(req, timeout=15) as resp:
                 resp_data = json.loads(resp.read().decode("utf-8"))
                 return self._apply_token_response(resp_data)
         except urllib.error.HTTPError as e:
             err_body = e.read().decode("utf-8", errors="replace")
-            raise TransportAuthError(f"HTTP {e.code} during OAuth2 token refresh: {err_body}") from e
+            raise TransportAuthError(
+                f"HTTP {e.code} during OAuth2 token refresh: {err_body}"
+            ) from e
         except Exception as e:
             raise TransportAuthError(f"Network error during OAuth2 token refresh: {e}") from e
 
@@ -181,8 +188,6 @@ class WindowsCredentialManagerProvider(IOAuth2CredentialProvider):
         """Attempts to load credentials via Windows win32cred / ctypes if available."""
         try:
             # We check ctypes/win32cred without failing if not available or unconfigured
-            import ctypes
-            from ctypes import wintypes
             # If win32cred is available in environment
             # In headless test environments, this will gracefully return None and use fallback
             return None

@@ -1,204 +1,231 @@
-# SolidBit Agent Execution Control Loop (SACL V1)
+# SolidBit SACL — Agent Execution Control Loop
 
-> **Specification Status:** Architecture Materialized & Frozen for V1  
-> **Constitutional Baseline:** [`DECISION_BASELINE.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md)  
-> **Implementation Authorization:** `IMPLEMENTATION_AUTHORIZED=NO` (Awaiting human review and sign-off)  
-> **Safety Mode:** Fail-Closed Staging / Remote Production Execution Disabled in V1  
+> **Control Plane Determinista, Telemetría de Procesos del SO y Gobernanza Soberana para Flotas de Agentes de IA Autónomos**  
+> *Diseñado e implementado por **Joaquín Vallejo** ([@risejoaquin](https://github.com/risejoaquin)) bajo la metodología **SolidBit SDLC (`SB-ENG-HB-001 v1.0`)**.*
 
----
-
-## 1. Executive Overview
-
-The **SolidBit Agent Execution Control Loop (SACL V1)** is a deterministic, governed multi-agent execution control loop for Antigravity AI coding agents (`agy.exe`) operating on Windows host workstations. SACL decouples high-level strategic reasoning and wave package authoring—handled by the **Cloud Control Plane (ChatGPT Web)**—from local host execution via asynchronous store-and-forward transport (**Gmail** `uniquedraken@gmail.com`).
-
-Locally, SACL enforces uncompromising security and operational stability through:
-- An isolated **Mail Gateway** daemon handling inbound package ingestion via event-driven **Gmail API `users.watch`** and **Google Cloud Pub/Sub Pull** notifications, authoritative history fetching with monotonic `historyId` cursors, and zero execution privileges.
-- A **Policy & Validation Engine** enforcing the effective-permission lattice (`hard local policy ∩ project policy ∩ package requested permissions ∩ valid approval grant`), environment preflights, package manifest schemas, branch inviolability (`MAIN_BRANCH_NOT_ALLOWED`), primary checkout isolation (`PRIMARY_CHECKOUT_NOT_ALLOWED`), and the inviolable **Local Dirty-Root Rule**.
-- A local **Operational State Store (SQLite `sacl_ops.db`)** operating in Write-Ahead Logging (WAL) mode across **16 structured operational domains** for ACID transaction management, instance leasing, and agent lifecycle state tracking.
-- A persistent supervisor daemon (**`Graph-P`**) maintaining a **Zero Idle LLM Token Posture**—remaining strictly idle with zero running LLM workers when no jobs are pending.
-- An ephemeral Directed Acyclic Graph execution engine (**`Graph-H`**) instantiated per job wave, executing phased agent stages with concurrency throttling (`$MaxParallel`), injecting immutable machine governance headers, and tearing down upon wave completion.
-- A **Filesystem Artifact Store** retaining heavy unstructured logs, git diffs, reports, and dual summaries (`SUMMARY.md` and `SUMMARY.json`) strictly on disk under `artifacts/runs/<runId>/`.
-- A **Multi-Project Engine** governed by the local **Project Registry**, which acts as the sole local authority for filesystem roots, restricting packages from redirecting execution outside local registry policy.
-- A **Concurrency Baseline** restricting execution initially to **one mutating job per project** while permitting concurrent read-only operations, coordinated via hierarchical locks (`system/project/repo/worktree/resource`).
-- A strict **Human Authority Gate** emitting `FINAL_DEVELOPMENT_AUTHORIZATION.txt`, with precisely defined **Controlled GitHub Write Semantics**: direct push to `main`/`master`/release is permanently hard denied, merge is hard denied in V1, while feature/task branch push and PR creation require locally trusted operations, project policy, requested package permissions, and valid bounded human approval (W0.3 itself performs zero GitHub writes).
-- A **Local Kill Switch** (`STOP.ps1`) coupled with proven non-killing diagnostic timeouts (`TIMEOUT_RUNNING`) and 3-way PID recycling defense.
-- A defined **Legacy Transition Policy**: `Stable-Ecommerce-Orchestrator` remains fully operational and untouched until SACL achieves verified parity and passes E2E certification, after which it transitions to archive / read-only.
+[![CI/CD Status](https://img.shields.io/github/actions/workflow/status/risejoaquin/solidbit-agent-execution-control-loop/ci.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=GitHub%20Actions%20CI)](https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions)
+[![Test Suite](https://img.shields.io/badge/Pytest-698%2F698%20PASSED%20(100%25)-10b981?style=flat-square&logo=pytest&logoColor=white)](https://github.com/risejoaquin/solidbit-agent-execution-control-loop/actions)
+[![Linter](https://img.shields.io/badge/Ruff-0%20errors%20%7C%20clean-blue?style=flat-square&logo=python&logoColor=white)](https://github.com/astral-sh/ruff)
+[![Persistence](https://img.shields.io/badge/Storage-SQLite%20V1%20WAL%20(ACID)-003B57?style=flat-square&logo=sqlite&logoColor=white)](#3-capa-de-persistencia-local-soberana-sqlite-wal)
+[![Frontend](https://img.shields.io/badge/Frontend-Vite%20%2B%20React%2019%20%2B%20Tailwind-61DAFB?style=flat-square&logo=react&logoColor=black)](#6-interfaz-unificada-de-misión-dual-spa-react--cli)
+[![Security Policy](https://img.shields.io/badge/Security-Hard%20Deny%20Supremacy-red?style=flat-square&logo=securityscorecard&logoColor=white)](#5-compuertas-soberanas-hitl-con-firmas-criptográficas-hmac)
 
 ---
 
-## 2. Canonical Precedence Hierarchy
+## 1. Por qué creé SACL: El problema real en producción
 
-Every design, implementation detail, schema, and operational behavior in SACL V1 strictly complies with the four-level canonical precedence hierarchy codified in [`DECISION_BASELINE.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md):
+Cuando comencé a operar múltiples agentes de codificación autónomos (como Claude 3.7 Sonnet, Gemini 2.0/3.8 o Antigravity CLI) en repositorios complejos de comercio electrónico y microservicios, me encontré rápidamente con los límites del estado del arte:
 
-```
-+==================================================================================================+
-|                               SACL CANONICAL PRECEDENCE HIERARCHY                                |
-+==================================================================================================+
-|  TIER 1: Explicit Joaquín Decisions                                                             |
-|          Inviolable baseline decisions established directly by the human sovereign architect.   |
-|          Physically codified in DECISION_BASELINE.md.                                            |
-+--------------------------------------------------------------------------------------------------+
-|  TIER 2: Proven Current-Orchestrator Behavior                                                    |
-|          Validated operational patterns proven on disk in Stable-Ecommerce-Orchestrator.         |
-|          (Local Dirty-Root Rule, Worktree Isolation, Non-Killing Timeouts, PID Recycling Guard).  |
-+--------------------------------------------------------------------------------------------------+
-|  TIER 3: Existing Governance & Contracts                                                         |
-|          Codified policies, schemas, freeze remediation baselines, and execution contracts.      |
-|          (ARCHITECTURE_INVARIANTS.json, W0.1/W0.2 Freeze Baselines, Machine Governance Headers).  |
-+--------------------------------------------------------------------------------------------------+
-|  TIER 4: Industry Standards (Undefined Technical Gaps Only)                                      |
-|          RFCs, POSIX/Windows conventions, and industry patterns.                                |
-|          STANDARDS FILL UNDEFINED TECHNICAL GAPS ONLY. NEVER SILENTLY OVERRIDE TIERS 1-3.       |
-+==================================================================================================+
-```
+1. **Colisiones destructivas en Git:** Múltiples agentes trabajando sobre el mismo directorio raíz sobreescriben archivos ajenos, ensucian el árbol de trabajo (`dirty root`) e introducen merge commits imposibles de auditar.
+2. **"Activity Theater" y quema de tokens en bucles vacíos:** Los agentes suelen simular actividad continua consumiendo miles de tokens innecesarios sin producir un solo cambio verificable en disco ni ejecutar pruebas reales.
+3. **Pérdida de invariantes de negocio:** Ningún LLM garantiza por sí solo que contratos críticos de inventario, stock concurrente o pasarelas de pago no sean modificados de forma silenciosa.
+4. **Falta de compuertas de detención soberana:** Si un agente falla una prueba o toma un camino erróneo, la mayoría de los frameworks continúan ejecutando tareas posteriores en cascada, multiplicando el daño.
 
-1. **Explicit Joaquín Decisions:** Inviolable user decisions captured in `DECISION_BASELINE.md` (ChatGPT Web control plane, Gmail transport, `sacl_ops.db` SQLite store, Graph-P idle posture, Graph-H ephemeral DAG, remote production disabled in V1, etc.).
-2. **Proven Current-Orchestrator Behavior:** Validated disk evidence and production mechanics proven in `Stable-Ecommerce-Orchestrator` (worktree isolation, local dirty-root rule, non-killing timeouts, PID recycling defense, regex result markers, cross-agent diff collision checks).
-3. **Existing Governance & Contracts:** Repository contracts, machine guard headers (`GOVERNED_EXECUTION=TRUE`), permission lattice, and human gate requirements.
-4. **Industry Standards (Undefined Technical Gaps Only):** RFC and POSIX/Windows conventions applied exclusively to fill undefined technical implementation gaps without overriding higher-level rules.
+Construí **SACL (SolidBit Agent Execution Control Loop)** para resolver esto desde la ingeniería de sistemas: un plano de control **fail-closed**, determinista y soberano que trata a los agentes de IA no como generadores mágicos de código, sino como **procesos del sistema operativo sujetos a límites estrictos, aislamiento de espacio de trabajo, verificación criptográfica y compuertas de aprobación humana (HITL)**.
 
 ---
 
-## 3. Core Subsystems & Architecture Overview
+## 2. Arquitectura del Sistema
 
-```mermaid
-flowchart LR
-    subgraph Cloud [Cloud Control Plane]
-        CPT["ChatGPT Web<br>(Strategic Planning & Packaging)"]
-    end
+SACL opera como un kernel orquestador local desacoplado de dependencias en la nube:
 
-    subgraph Transport [Asynchronous Event-Driven Transport]
-        GM["Gmail (uniquedraken@gmail.com)<br>Gmail API users.watch"]
-        PS["Google Cloud Pub/Sub<br>(Pull / StreamingPull Queue)"]
-    end
-
-    subgraph Host [Local Host Execution Environment]
-        MG["Mail Gateway Daemon<br>(Pub/Sub Wake & History Fetch)"]
-        POL["Policy & Validation Engine<br>(Permission Lattice & Dirty-Root)"]
-        DB[("Operational State Store<br>sacl_ops.db (16 Domains, WAL)")]
-        GP["Graph-P Persistent Supervisor<br>(Hierarchical Leases & IDLE Daemon)"]
-        GH["Graph-H Ephemeral DAG Engine<br>(Phased Stages & Concurrency)"]
-        FS[("Filesystem Artifact Store<br>artifacts/runs/<runId>/")]
-        WRK["Worker Controller<br>(agy.exe + Machine Guards)"]
-        MON["MONITOR.ps1<br>(Read-Only Console Dashboard)"]
-        GATE["Human Authority Gate<br>(FINAL_DEVELOPMENT_AUTHORIZATION.txt)"]
-    end
-
-    CPT -->|1. Inbound Wave ZIP| GM
-    GM -->|2. users.watch Wake Notification| PS
-    PS -->|3. Pub/Sub Pull Wake Signal| MG
-    MG -->|4. Authoritative History API (historyId)| GM
-    MG -->|5. Register Inbound Job & Stage ZIP| DB
-    MG -.->|6. Wakeup Signal| GP
-    GP -->|7. Acquire Project Lease & Validate| POL
-    POL -->|8. Preflight & Dirty-Root Check| DB
-    GP -->|9. Spawn Ephemeral DAG| GH
-    GH -->|10. Manage Worktrees & Workers| WRK
-    WRK -->|11. Stream Logs & State| DB
-    WRK -->|12. Heavy Artifacts & Reports| FS
-    GH -->|13. Cross-Agent Overlap Evaluation| DB
-    GH -->|14. Generate Dual Summaries| FS
-    GH -->|15. Complete & Tear Down| GP
-    GP -->|16. Check Authorization Boundary| GATE
-    GP -->|17. Update Status COMPLETED| DB
-    MG -->|18. Package Response & Send via Gmail API| GM
-    GM -->|19. Result ZIP| CPT
-    MON -.->|Read-Only Inspection mode=ro| DB
+```text
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                      OPERADOR HUMANO SOBERANO                          │
+ │            (UI Web React 19 / Terminal CLI / Email Gateway)            │
+ └───────────────────────────────────┬────────────────────────────────────┘
+                                     │ HMAC-SHA256 Token / HITL Decision
+                                     ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                     SACL CONTROL PLANE (KERNEL)                        │
+ │  ┌──────────────────────────────────────────────────────────────────┐  │
+ │  │        Planificador DAG de Kahn & Particionado en Oleadas        │  │
+ │  └──────────────────────────────┬───────────────────────────────────┘  │
+ │                                 │                                      │
+ │   ┌─────────────────────────────┼──────────────────────────────┐       │
+ │   ▼                             ▼                              ▼       │
+ │ ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐     │
+ │ │  Worker Worktree │   │  Worker Worktree │   │  Worker Worktree │     │
+ │ │  (Oleada 1: Cód) │   │  (Oleada 2: Tests)│  │ (Oleada 3: Docs) │     │
+ │ └─────────┬────────┘   └─────────┬────────┘   └─────────┬────────┘     │
+ │           └─────────────────────┼──────────────────────┘              │
+ │                                 ▼                                      │
+ │  ┌──────────────────────────────────────────────────────────────────┐  │
+ │  │        Reconciliación Forense en 4 Puntos & Validación Invariante│  │
+ │  │             (DR-INV-001, DR-PAY-001, DR-IDEM-001)                │  │
+ │  └──────────────────────────────┬───────────────────────────────────┘  │
+ └─────────────────────────────────┼──────────────────────────────────────┘
+                                   │
+                                   ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │            PERSISTENCIA LOCAL SOBERANA (SQLite V1 en modo WAL)         │
+ │   Jobs (3) │ Runs (26) │ Eventos (26) │ Leases │ Auditoría Inmutable   │
+ └────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Subsystem Summary
-
-| Subsystem | Role | Primary Invariants |
-| :--- | :--- | :--- |
-| **Control Plane (ChatGPT Web)** | Strategic planning, prompt engineering, task decomposition, runnable wave package authoring. | Zero host credentials; zero direct local network access; authoring boundary only. |
-| **Gmail & Pub/Sub Transport** | Asynchronous event-driven communication channel via `uniquedraken@gmail.com`. | Transport only, not authority; primary ingress via `users.watch` + Pub/Sub pull; `historyId` cursor; OAuth2 auth (App Passwords removed); unread state never source of truth; fallback polling only. |
-| **Mail Gateway** | Edge intake daemon pulling Pub/Sub wake signals and fetching Gmail history. | Zero execution privilege; strict ZIP path sanitization (Anti-ZipSlip); deduplication on `(message_id, nonce)`. |
-| **Policy Engine** | Preflight gatekeeper verifying tooling, manifest schemas, and repo state. | Effective-permission lattice (`hard deny` always wins); Local Dirty-Root Rule; `MAIN_BRANCH_NOT_ALLOWED`; `PRIMARY_CHECKOUT_NOT_ALLOWED`. |
-| **Project Registry** | Local authority for local filesystem roots. | Governs repository bindings and canonical roots; packages cannot redirect execution outside local registry policy. |
-| **Graph-P Supervisor** | Persistent local supervisor maintaining singleton lease and state coordination. | Zero Idle LLM Token Posture (remains IDLE when no pending jobs); 1 mutating job per project; SQLite hierarchical leasing. |
-| **Graph-H DAG Runner** | Ephemeral DAG execution engine dynamically spawned per job wave. | Phased topological stages; `$MaxParallel` concurrency throttling; machine governance injection; full teardown on seal. |
-| **Operational State Store** | Local relational database (`sacl_ops.db`) in WAL mode across 16 domains. | Single source of operational truth; ACID transactions; 3-way PID recycling checks; forward-only schema migrations. |
-| **Filesystem Artifact Store** | Structured directory storage under `artifacts/runs/<runId>/`. | Heavy artifacts (logs, diffs, reports) never enter SQLite; dual deliverables `SUMMARY.md` and `SUMMARY.json`. |
-| **Human Authority Gate** | Safety boundary guarding all irreversible operations. | Emits `FINAL_DEVELOPMENT_AUTHORIZATION.txt`; no autonomous merges/deploys; remote production disabled in V1. |
-| **Local Kill Switch** | Emergency process control (`STOP.ps1`). | Respects non-killing diagnostic timeouts (`TIMEOUT_RUNNING`); 3-way verified process termination. |
 
 ---
 
-## 4. Repository Layout & Target Directory Structure
+## 3. Capacidades y Módulos Fundamentales
 
+### A. Planificador de DAG Topológico (Algoritmo de Kahn)
+* Resuelve dependencias entre tareas técnicas de forma determinista y sin ciclos.
+* Divide las ejecuciones en **Oleadas Concurrentes Seguras**: dos tareas que tocan dominios independientes corren en paralelo; tareas con dependencias se detienen ante la primera falla (*fail-closed*).
+* Si un nodo devuelve un código de salida diferente de `0`, todo el sub-árbol dependiente entra en estado de contención inmediata.
+
+### B. Persistencia Soberana en Disco (SQLite V1 en Modo WAL)
+* **Cero fuga de metadatos:** Toda la auditoría transaccional vive en el disco local (`control_loop.db` y `sacl_ops.db`), sin enviar logs, esquemas ni credenciales a servidores cloud.
+* **Durabilidad ACID estricta:** Opera bajo **Write-Ahead Logging (WAL)** con control de concurrencia optimista (*CAS - Compare-And-Swap*), garantizando integridad absoluta en caso de reinicio de la máquina.
+* **Inspección en tiempo real:** Registra cada `Job`, cada `Run`, salidas estándar (`stdout`/`stderr`), errores capturados y el historial de eventos forenses.
+
+### C. Aislamiento Físico en Git Worktrees & La Regla "Dirty-Root"
+* Los agentes de IA tienen **estrictamente prohibido** operar sobre la raíz del repositorio de trabajo.
+* SACL aprovisiona automáticamente **worktrees efímeros independientes** en carpetas dedicadas para cada oleada.
+* **Protocolo de Reconciliación en 4 Puntos:** Antes de admitir cualquier commit en la rama de integración, el sistema verifica:
+  1. Ausencia de colisiones de archivos no rastreados.
+  2. Compilación limpia y suites de tests unitarios (exit code 0).
+  3. Integridad total de contratos congelados (`DR-INV-001`, `DR-PAY-001`, `DR-IDEM-001`).
+  4. Generación de entregables físicos auditables en disco.
+
+### D. Compuertas Soberanas HITL (Human-in-the-Loop)
+* Ninguna acción crítica (modificación de infraestructura, despliegue o fusión de código a producción) se ejecuta sin intervención del operador.
+* Las compuertas generan un identificador de solicitud único (ej. `REQ-20261026-743941E4`) y exigen una **firma criptográfica HMAC-SHA256**.
+* Si el operador rechaza o la compuerta expira, el DAG aborta de forma segura revirtiendo el worktree efímero.
+
+### E. Email Gateway & Automatización Bidireccional
+* Integrado de forma nativa con **Resend** para notificaciones salientes y comandos entrantes.
+* **Reportes de Micro-Decisión:** Al finalizar una oleada o bloquearse una compuerta, el sistema envía un informe estructurado al correo configurado del operador desde la cuenta de notificaciones del sistema.
+* **Inbound Webhook Autenticado:** Permite disparar DAGs de manera remota mediante correos firmados validados por tokens criptográficos y firmas Svix.
+
+### F. Selector Universal de Modelos de IA
+* Interfaz de inferencia multi-proveedor que permite al operador alternar en caliente el motor de razonamiento según el tipo de tarea:
+  - **Claude 3.7 Sonnet (via AGY):** Razonamiento híbrido profundo para arquitectura de código e invariantes estrictas.
+  - **Gemini 3.8 Flash (High Reasoning):** Inferencia sub-segundo nativa de Antigravity para análisis de contratos y ejecución rápida de DAGs.
+  - **Claude Sonnet 5.5 / Opus 5.5:** Especialistas en síntesis y pruebas de estrés de seguridad.
+  - **GPT-4o:** Validación de esquemas multimodales y documentación.
+  - **GPT-OSS 120B:** Modelo soberano desconectado (*air-gapped*) para auditorías confidenciales.
+
+### G. Filosofía "Zero-Token Idle" (Cero Teatro)
+* SACL no maquilla el frontend con gráficos inventados ni procesos simulados en bucle.
+* Cuando no hay agentes ejecutándose, la consola reporta con honestidad: **`0 Procesos Activos`** y **`0 Tokens Consumidos`**.
+* Solo se muestran métricas y eventos reales provenientes de los procesos del sistema operativo.
+
+---
+
+## 4. Resultados Empíricos y Verificación de Calidad
+
+Los estándares de ingeniería del proyecto se verifican de manera continua y hermética tanto en entornos locales (Windows y Linux) como en GitHub Actions CI/CD:
+
+```text
+============================= Resumen de Validación =============================
+Platform:              Windows 11 & Ubuntu 24.04 (Cross-platform hermetic)
+Python:                3.11.9
+Pytest Suite:          698 PASSED (100% verde) en 106.88s
+Ruff Linting:          0 errores | Todas las reglas estrictas cumplidas
+Vite React 19 Build:   0 errores | Bundle de producción generado en 639 ms
+Contratos Congelados:  DR-INV-001 (Inventario), DR-PAY-001 (Pagos) blindados
+Pull Requests:         PRs #3, #7, #8, #9 con checks pasando en GitHub
+==================================================================================
 ```
+
+---
+
+## 5. Estructura del Repositorio
+
+El proyecto está organizado en una arquitectura modular desacoplada:
+
+```text
 solidbit-agent-execution-control-loop/
-├── DECISION_BASELINE.md                           # Constitutional baseline & architecture invariants (Root Authority)
-├── README.md                                      # Repository overview and entrypoint (this document)
-├── contracts/                                     # Machine-readable architecture invariants (architecture-invariants.json)
-├── docs/                                          # Canonical architectural governance documents
-│   ├── ARCHITECTURE.md                            # Comprehensive system architecture & ADR set (001-014)
-│   ├── AUTHORITY_MODEL.md                         # Human authority model, permission lattice, and gating
-│   ├── CONCURRENCY_AND_LOCKING.md                 # Hierarchical locks, 1 mutating job per project, SQLite WAL
-│   ├── CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md # Detailed audit and migration mapping of legacy capabilities
-│   ├── E2E_CERTIFICATION_PLAN.md                  # Sandboxed 8-step test certification & legacy transition gate
-│   ├── EXECUTION_PACKAGE_SPEC.md                  # Declarative runnable wave package specification
-│   ├── FREEZE_REMEDIATION.md                      # Audit finding remediation & freeze reconciliation report
-│   ├── MAIL_PROTOCOL.md                           # Inbound/outbound email transport, Pub/Sub, routing hints
-│   ├── OBSERVABILITY.md                           # 16 SQLite domains, 4-part reconciliation, dual deliverables
-│   ├── OPERATIONS.md                              # Host operations, daemon lifecycle, and deployment guide
-│   ├── RECOVERY_MODEL.md                          # Cold-start crash recovery, orphan reconciliation, idempotency
-│   ├── RESULT_PROTOCOL.md                         # 4-factor reconciliation, regex markers, legacy fallbacks
-│   ├── RETRY_AND_TIMEOUT_POLICY.md                # Non-killing timeouts, exponential backoff, retry rules
-│   ├── SECURITY_MODEL.md                          # Defense-in-depth, Anti-Zip Slip, secretless control plane
-│   ├── SQLITE_DATA_MODEL.md                       # DDL schema across 16 domains, WAL PRAGMAs, indexing
-│   ├── STATE_MACHINE.md                           # 12-state canonical job lifecycle and graph node state machine
-│   ├── THREAT_MODEL.md                            # STRIDE vulnerability analysis across 5 trust boundaries
-│   ├── TRACEABILITY_MATRIX.md                     # Bidirectional traceability from decisions to verification
-│   └── adr/                                       # Architectural Decision Records (ADR-001 through ADR-014)
-├── schemas/                                       # JSON Schema Draft 2020-12 specifications
-│   ├── project-registry.schema.json               # Local authority for project roots and concurrency policy
-│   ├── manifest.schema.json                       # Package manifest specification (requires job_id)
-│   ├── hard-policy.schema.json                    # Hard local policy schema
-│   ├── approval.schema.json                       # Bounded action-approval schema
-│   ├── summary.schema.json                        # Universal run summary schema
-│   └── ...
-├── examples/                                      # Valid JSON example instances validating against schemas
-│   ├── project-registry.valid.json
-│   ├── manifest.valid.json
-│   └── ...
-├── db/                                            # Database migrations
-│   └── migrations/
-│       └── 001_init.sql                           # SQLite relational DDL across 16 operational domains
-├── artifacts/                                     # Execution run artifacts and evidence
-│   └── runs/                                      # Run directories (<runId>/evidence, logs, reports, state)
-└── src/                                           # Planned modular implementation subsystems (Future Waves)
+├── apps/
+│   └── web/                   # Frontend Vite + React 19 + Tailwind CSS
+│       ├── src/
+│       │   ├── components/    # Tablero principal, terminal de logs y modales
+│       │   │   └── sections/  # Secciones: Email Gateway, Chat IA, Auth Hub, etc.
+│       │   ├── utils/         # Formateador contextual de fechas (dateFormat.ts)
+│       │   └── types/         # Tipos TypeScript para contratos y telemetría
+│       └── dist/              # Build optimizado para producción
+├── src/
+│   └── sacl/                  # Núcleo del control plane (Python)
+│       ├── approval/          # Gestor de compuertas HITL y validación HMAC
+│       ├── cli/               # Comandos de consola y servidor local UI
+│       ├── contracts/         # Contratos congelados e interfaces inmutables
+│       ├── dag/               # Algoritmo de Kahn, particionado y barreras
+│       ├── observability/     # Emisión de eventos y telemetría forense
+│       ├── policy/            # Lattice de permisos y hard policies
+│       ├── recovery/          # Detección de caída y reconciliación de worktree
+│       ├── results/           # Colección y empaquetado de entregables
+│       ├── state/             # Motor SQLite WAL, migraciones y repositorios
+│       ├── ui/                # Servidor HTTP/SSE nativo y templates soberanos
+│       └── worker/            # Supervisión de procesos de agentes y timeouts
+├── tests/                     # 698 pruebas unitarias, de integración y seguridad
+│   ├── integration/           # Concurrencia de DAG, supervisor y pasarelas
+│   ├── security/              # Modelo de amenazas STRIDE y guardas de acceso
+│   ├── ui/                    # Pruebas de equivalencia de API y servidor UI
+│   └── unit/                  # Validación exhaustiva de contratos e invariantes
+└── pyproject.toml             # Configuración central de Python, Pytest y Ruff
 ```
 
 ---
 
-## 5. Proven Current-Orchestrator Invariants
+## 6. Guía Rápida de Inicio
 
-SACL V1 directly inherits and preserves the battle-tested invariants established in `Stable-Ecommerce-Orchestrator`:
+### Requisitos Previos
+* **Python:** 3.11 o superior.
+* **Node.js:** v20 o superior (con npm).
+* **Git:** 2.40 o superior con soporte de worktrees.
 
-1. **Local Dirty-Root Rule:** The primary product checkout (`.git` common dir) may legitimately contain uncommitted human changes. Automation never runs `git reset --hard`, `git clean -fd`, `git checkout .`, or automatic `git stash`. If the primary checkout is dirty, worktree provisioning halts and prevents destructive modifications.
-2. **Worktree Confinement & Branch Inviolability:** Agents operate strictly inside isolated worktrees (`git worktree add -b <branch> <path> origin/<branch>`). Working on `main` (`MAIN_BRANCH_NOT_ALLOWED`) or inside the primary checkout (`PRIMARY_CHECKOUT_NOT_ALLOWED`) is strictly forbidden.
-3. **Non-Killing Diagnostic Timeouts:** When an agent exceeds its execution timeout, the supervisor marks it as `TIMEOUT_RUNNING` and raises an alert. The process is **never killed automatically**, preserving transient context, logs, and partial deliverables for human diagnosis.
-4. **3-Way PID Recycling Defense:** Before any process operation or status evaluation, the supervisor verifies: (1) process is active in OS; (2) process executable name matches an allowed whitelist (`agy`, `powershell`, `pwsh`, `cmd`, `node`, `conhost`); and (3) `StartTime` matches the database record within a 300-second window.
-5. **Canonical Result Protocol:** Agent verdicts are evaluated against explicit structured regex markers (`^(?:AGENT_[A-Z0-9_-]+_RESULT|RESULT|FINAL_RESULT)\s*=\s*(PASS|PARTIAL|BLOCKED)`). Fallback evaluation strictly preserves `'PASS (Report Present)'`.
-6. **Pre-Merge Collision Detection:** Cross-agent file diffs (`git diff --name-only origin/main...HEAD`) are compared across worktrees. Concurrent modifications to the same file block integration (`READY_FOR_INTEGRATION=NO`).
-7. **Human Authority Gate & Controlled GitHub Writes:** Autonomous agents have zero authority to merge branches into `main`, deploy code, mutate GitHub rulesets, or transition production issues. Direct main/master/release push is hard denied; merge is hard denied in V1. Feature/task branch push and PR creation can occur only through locally trusted operations when project policy, package request, and valid bounded human approval all allow it; W0.3 itself performs no GitHub write.
-8. **V1 Remote Production Prohibition:** Live mutations against remote production infrastructure (Railway CLI, GitHub ruleset API, Jira issue mutations) are disabled in V1 and fail closed.
+### 1. Clonar e Instalar Dependencias
+```bash
+git clone https://github.com/risejoaquin/solidbit-agent-execution-control-loop.git
+cd solidbit-agent-execution-control-loop
+
+# Entorno virtual de Python
+python -m venv .venv
+# En Windows:
+.venv\Scripts\activate
+# En Linux/macOS:
+source .venv/bin/activate
+
+pip install -e .[dev]
+```
+
+### 2. Ejecutar la Suite de Pruebas Automatizadas
+```bash
+# Ejecutar los 698 tests unitarios y de integración
+pytest tests/ -v
+
+# Verificar estilo y tipado con Ruff
+ruff check src/ tests/
+```
+
+### 3. Compilar el Frontend React 19
+```bash
+cd apps/web
+npm install
+npm run build
+cd ../..
+```
+
+### 4. Iniciar el Servidor de Misión Control (UI Soberana)
+```bash
+# Inicia el backend en puerto 8765 y sirve la telemetría en tiempo real
+python -m sacl.cli ui --port 8765
+```
+
+Abre tu navegador en `http://localhost:8765` para acceder a la consola conversacional, el centro de compuertas HITL y la gestión de flotas.
 
 ---
 
-## 6. Current Governance Status
+## 7. Metodología de Ingeniería: SolidBit RISEHANDBOOK
 
-```properties
-DECISION_BASELINE_VERSION = 1.0.0
-SPECIFICATION_VERSION    = 1.0.0
-PRECEDENCE_HIERARCHY     = 4_TIER_CANONICAL
-MUTATING_CONCURRENCY     = 1_PER_PROJECT (HIERARCHICAL_LOCKS)
-PROJECT_REGISTRY         = LOCAL_ROOT_AUTHORITY
-GMAIL_INGRESS            = users.watch + Cloud Pub/Sub Pull + historyId
-PACKAGE_SCRIPTS          = DECLARATIVE_ONLY (LOCAL_HANDLERS_AUTHORITATIVE)
-REMOTE_PRODUCTION        = DISABLED_FAIL_CLOSED
-LEGACY_ORCHESTRATOR      = UNTOUCHED_UNTIL_E2E_CERTIFIED
-IMPLEMENTATION_AUTHORIZED= NO
-STATUS                   = ARCHITECTURE_FREEZE_CONSISTENT
-```
+Este proyecto sigue estrictamente el estándar de calidad **SolidBit SDLC (`SB-ENG-HB-001 v1.0`)**:
+
+* **Principio de Verdad Absoluta:** Ninguna interfaz de usuario puede proyectar un estado inventado o simular ejecuciones que no existen en el sistema operativo.
+* **Contratos Inmutables:** Los esquemas y modelos de datos críticos no se refactorizan sin una prueba formal de equivalencia.
+* **Durabilidad Forense:** Toda falla técnica debe quedar registrada con su stacktrace y contexto completo en la base de datos transaccional SQLite WAL para auditoría post-mortem.
+
+---
+
+## 8. Licencia y Créditos
+
+Desarrollado y mantenido por **Joaquín Vallejo** ([@risejoaquin](https://github.com/risejoaquin)).  
+Distribuido bajo la licencia [Apache 2.0](LICENSE).

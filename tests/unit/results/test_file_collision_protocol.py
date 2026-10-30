@@ -9,9 +9,10 @@ Adheres strictly to:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import sqlite3
+from datetime import datetime, timezone
+
 import pytest
 
 from sacl.results.collision import CollisionDetector, normalize_file_path
@@ -96,7 +97,9 @@ def test_file_collision_detected_and_blocks_integration(seeded_db: sqlite3.Conne
     assert cursor.fetchone()[0] == "NO"
 
     # Verify SQLite file_conflicts table row was inserted
-    cursor.execute("SELECT file_path, agents_involved, resolution FROM file_conflicts WHERE run_id = 'run-col-001'")
+    cursor.execute(
+        "SELECT file_path, agents_involved, resolution FROM file_conflicts WHERE run_id = 'run-col-001'"
+    )
     conf_row = cursor.fetchone()
     assert conf_row[0] == "docs/spec.md"
     assert json.loads(conf_row[1]) == ["AG-ARCH", "AG-SEC"]

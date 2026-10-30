@@ -77,11 +77,15 @@ class ErrorRecorder:
         """Records a structured error into SQLite errors table and emits an audit event."""
         cat = category.upper()
         if cat not in ALL_ERROR_CATEGORIES:
-            raise ValueError(f"Invalid category '{category}'; must be one of {sorted(ALL_ERROR_CATEGORIES)}")
+            raise ValueError(
+                f"Invalid category '{category}'; must be one of {sorted(ALL_ERROR_CATEGORIES)}"
+            )
 
         sev = severity.upper()
         if sev not in ALL_ERROR_SEVERITIES:
-            raise ValueError(f"Invalid severity '{severity}'; must be one of {sorted(ALL_ERROR_SEVERITIES)}")
+            raise ValueError(
+                f"Invalid severity '{severity}'; must be one of {sorted(ALL_ERROR_SEVERITIES)}"
+            )
 
         corr = get_current_correlation()
         active_job = job_id or corr.job_id
@@ -90,13 +94,17 @@ class ErrorRecorder:
         active_agent = agent_id or corr.agent_id
 
         if exception and not stack_trace:
-            stack_trace = "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+            stack_trace = "".join(
+                traceback.format_exception(type(exception), exception, exception.__traceback__)
+            )
 
         context_json = json.dumps(context or {})
         occurred_at = datetime.now(timezone.utc).isoformat()
 
         conn = self._get_connection()
-        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(self._db_source)
+        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(
+            self._db_source
+        )
 
         try:
             cursor = conn.cursor()
@@ -152,7 +160,9 @@ class ErrorRecorder:
     def get_errors_for_run(self, run_id: str) -> List[ErrorRecord]:
         """Retrieves all errors recorded for a specific execution run."""
         conn = self._get_connection()
-        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(self._db_source)
+        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(
+            self._db_source
+        )
 
         try:
             cursor = conn.cursor()
@@ -172,7 +182,9 @@ class ErrorRecorder:
     def get_recent_errors(self, limit: int = 20) -> List[ErrorRecord]:
         """Retrieves the most recent diagnostic errors across all runs."""
         conn = self._get_connection()
-        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(self._db_source)
+        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(
+            self._db_source
+        )
 
         try:
             cursor = conn.cursor()

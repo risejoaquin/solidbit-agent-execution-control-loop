@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -84,3 +84,15 @@ artifacts/
 logs/
 reports/
 worktrees/
+
+.sacl_ui_secret
+src/.sacl_ui_secret
+
+scratch/
+
+packages/
+runs/
+
+config/imported_projects.json
+config/operator_profile.json
+config/connections.local.json

@@ -195,7 +195,7 @@ Every wave run must materialize both canonical summary formats under `runs/<runI
    - File collision and overlap report.
    - Immediate Next Safe Action.
 2. **`SUMMARY.json` (Machine Governance Format):**
-   - Strictly conforms to [summary.schema.json](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/summary.schema.json).
+   - Strictly conforms to [summary.schema.json](file:////workspace/solidbit-agent-execution-control-loop/schemas/summary.schema.json).
    - Validates `architecture_freeze_ready`, `ready_for_integration`, and records `implementation_authorized: boolean`.
    - In Wave 0, Wave 0.1, and Wave 0.2, `implementation_authorized: false` is maintained.
    - In subsequent functional development waves, `implementation_authorized` may reflect `true` when explicit human sign-off is granted.

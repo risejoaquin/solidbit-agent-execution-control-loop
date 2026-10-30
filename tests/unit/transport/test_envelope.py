@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import email
-import pytest
 
-from sacl.contracts.models import AttachmentMetadata, MailEnvelope
 from sacl.contracts.schema_validator import SchemaValidator
 from sacl.transport.envelope import (
     build_outbound_mime,

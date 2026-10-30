@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from sacl.contracts.invariants import AgentStatus, Verdict
+from sacl.contracts.invariants import Verdict
 from sacl.legacy.compatibility import (
     check_dirty_root,
     extract_legacy_result,
@@ -62,7 +59,9 @@ def test_extract_legacy_result_wave3_marker():
 
 def test_extract_legacy_result_log_marker_fallback():
     logs = "Log line 1\nLog line 2\nRESULT = PARTIAL\n"
-    verdict, reason = extract_legacy_result(report_content="", log_content=logs, report_exists=False)
+    verdict, reason = extract_legacy_result(
+        report_content="", log_content=logs, report_exists=False
+    )
     assert verdict == "PARTIAL"
     assert reason == "LOG_REGEX_MARKER"
 
@@ -121,7 +120,9 @@ def test_check_dirty_root_with_git(tmp_path):
 def test_verify_legacy_process():
     now = datetime.now(timezone.utc)
     ins = MockInspector(running=True, name="powershell.exe", start_time=now)
-    is_running, reason = verify_legacy_process(pid=1234, started_at_iso=now.isoformat(), inspector=ins)
+    is_running, reason = verify_legacy_process(
+        pid=1234, started_at_iso=now.isoformat(), inspector=ins
+    )
     assert is_running
     assert reason == "VERIFIED_RUNNING"
 
@@ -129,6 +130,8 @@ def test_verify_legacy_process():
 def test_verify_legacy_process_recycled_name():
     now = datetime.now(timezone.utc)
     ins = MockInspector(running=True, name="calc.exe", start_time=now)
-    is_running, reason = verify_legacy_process(pid=1234, started_at_iso=now.isoformat(), inspector=ins)
+    is_running, reason = verify_legacy_process(
+        pid=1234, started_at_iso=now.isoformat(), inspector=ins
+    )
     assert not is_running
     assert "MISMATCH" in reason

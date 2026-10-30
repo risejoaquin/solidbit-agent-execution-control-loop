@@ -13,28 +13,24 @@ from RUN-WAVE.ps1, WORKER.ps1, and FINALIZE.ps1:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-import json
 import logging
 import os
-from pathlib import Path
 import shutil
 import subprocess
-import sys
-import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import uuid
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, List, Optional, Tuple, Union
 
-from sacl.contracts.exceptions import DirtyRootError, SaclError
-from sacl.contracts.invariants import AgentStatus, Verdict
-from sacl.contracts.models import AgentResult, Manifest, RunSummary
+from sacl.contracts.exceptions import DirtyRootError
+from sacl.contracts.invariants import AgentStatus
+from sacl.contracts.models import AgentResult
 from sacl.legacy.adapter import LegacyPackageAdapter
 from sacl.legacy.compatibility import (
     check_dirty_root,
     extract_legacy_result,
     generate_governance_header,
-    verify_legacy_process,
 )
 from sacl.legacy.packager import WaveZipPackager
 from sacl.legacy.state_bridge import LegacyStateBridge
@@ -101,7 +97,9 @@ class LegacyOperatorExperience:
         """
         # 1. ACK_REQUIRED check (matches RUN-WAVE.ps1#L7)
         if not bypass_acknowledged and not test_mode:
-            raise PermissionError("ACK_REQUIRED: --dangerously-skip-permissions grants broad host access")
+            raise PermissionError(
+                "ACK_REQUIRED: --dangerously-skip-permissions grants broad host access"
+            )
 
         src_pkg = Path(package_path).resolve()
         if not src_pkg.exists():
@@ -119,7 +117,9 @@ class LegacyOperatorExperience:
             pkg_root = src_pkg
 
         # 2. Load manifest
-        manifest_source = src_pkg if (src_pkg.is_file() and src_pkg.suffix.lower() == ".json") else pkg_root
+        manifest_source = (
+            src_pkg if (src_pkg.is_file() and src_pkg.suffix.lower() == ".json") else pkg_root
+        )
         manifest = self.adapter.load_manifest(manifest_source)
 
         # 3. Target repo & Preflight Dirty Root check
@@ -164,7 +164,9 @@ class LegacyOperatorExperience:
 
         # 5. Phased Agent Execution
         # If package has config/dependencies.json, compile graph
-        graph = self.adapter.build_execution_graph(pkg_root, manifest=manifest, max_parallel=max_parallel)
+        graph = self.adapter.build_execution_graph(
+            pkg_root, manifest=manifest, max_parallel=max_parallel
+        )
 
         agent_results: List[AgentResult] = []
         overall_failed = False
@@ -211,7 +213,9 @@ class LegacyOperatorExperience:
                     run_prompt_file.write_text(rendered, encoding="utf-8")
                 else:
                     gov_h = generate_governance_header(worktree_path=effective_repo)
-                    run_prompt_file.write_text(f"{gov_h}\n# Task for {agent_id}\n", encoding="utf-8")
+                    run_prompt_file.write_text(
+                        f"{gov_h}\n# Task for {agent_id}\n", encoding="utf-8"
+                    )
 
                 # Initial state RUNNING
                 self.state_bridge.write_agent_state(
@@ -228,16 +232,22 @@ class LegacyOperatorExperience:
                 if test_mode or mock_worker_func:
                     # Execute mock worker
                     if mock_worker_func:
-                        exit_code = mock_worker_func(agent_id, prompt_file, report_file, stdout_file, stderr_file)
+                        exit_code = mock_worker_func(
+                            agent_id, prompt_file, report_file, stdout_file, stderr_file
+                        )
                     else:
                         exit_code = self._default_mock_worker(agent_id, report_file, stdout_file)
 
                     verdict, v_reason = extract_legacy_result(
-                        report_content=report_file.read_text(encoding="utf-8") if report_file.exists() else None,
+                        report_content=report_file.read_text(encoding="utf-8")
+                        if report_file.exists()
+                        else None,
                         report_exists=report_file.exists(),
                         exit_code=exit_code,
                     )
-                    status_val = AgentStatus.COMPLETE.value if exit_code == 0 else AgentStatus.FAILED.value
+                    status_val = (
+                        AgentStatus.COMPLETE.value if exit_code == 0 else AgentStatus.FAILED.value
+                    )
                     if exit_code != 0:
                         overall_failed = True
 
@@ -284,7 +294,9 @@ class LegacyOperatorExperience:
 
                     # Concurrency throttling: wait if batch reaches max_parallel
                     if len(running_batch) >= max_parallel:
-                        self._wait_batch(running_batch, reports_dir, state_dir, logs_dir, agent_results)
+                        self._wait_batch(
+                            running_batch, reports_dir, state_dir, logs_dir, agent_results
+                        )
                         running_batch.clear()
 
             # Wait for remaining workers in this phase
@@ -326,7 +338,9 @@ class LegacyOperatorExperience:
 
         # 8. Record in SQLite if connection provided
         if db_conn:
-            self.state_bridge.import_legacy_run_to_sacl(run_dir_path, db_conn, project=manifest.project)
+            self.state_bridge.import_legacy_run_to_sacl(
+                run_dir_path, db_conn, project=manifest.project
+            )
 
         return OperatorRunResult(
             run_id=run_id,

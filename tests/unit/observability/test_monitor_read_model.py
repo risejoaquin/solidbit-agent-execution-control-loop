@@ -1,9 +1,8 @@
 """Unit tests for SACL V1 live monitor read models and ASCII dashboard rendering."""
 
 import sqlite3
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-import pytest
 
 from sacl.observability.monitor import (
     DashboardSnapshot,
@@ -164,7 +163,7 @@ def test_monitor_read_model_read_only(sqlite_temp_db: sqlite3.Connection, tmp_pa
     # Concurrency and leases
     assert snapshot.active_workers_count == 2  # AG-ARCH, AG-SCHEMA
     assert len(snapshot.leases) == 2
-    assert any("SYSTEM" in l.lease_name for l in snapshot.leases)
+    assert any("SYSTEM" in ls.lease_name for ls in snapshot.leases)
 
     # Alert generation
     assert any("TIMEOUT_RUNNING" in alert for alert in snapshot.alerts)
@@ -326,4 +325,3 @@ def test_monitor_read_model_conflicts_and_done_review(sqlite_temp_db: sqlite3.Co
     ag = snapshot.agents[0]
     assert ag.agent_id == "AG-GATE"
     assert ag.verdict == "DONE_REVIEW_REQUIRED"
-

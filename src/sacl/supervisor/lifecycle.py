@@ -12,146 +12,187 @@ coordinates automatic lease cleanup upon reaching terminal outcomes.
 from __future__ import annotations
 
 import json
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
-from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, FrozenSet, List, Optional, Tuple, Union
 
 from sacl.contracts.exceptions import ArchitectureInvariantError
 from sacl.contracts.invariants import (
     ALL_JOB_STATES,
-    PRIMARY_JOB_STATES,
-    SIDE_JOB_STATES,
     JobSideStatus,
     JobStatus,
 )
 from sacl.observability.events import (
     AuditEventType,
-    GATE_HALTED,
     Severity,
-    create_audit_event,
 )
-
-STATUS_CHANGE = AuditEventType.STATUS_CHANGE.value
 from sacl.supervisor.lease import LeaseCoordinator
 
+STATUS_CHANGE = AuditEventType.STATUS_CHANGE.value
 
 # =============================================================================
 # CANONICAL JOB TRANSITION MATRIX (STATE_MACHINE.md §3.3)
 # =============================================================================
 
 VALID_JOB_TRANSITIONS: Dict[str, FrozenSet[str]] = {
-    JobStatus.RECEIVED.value: frozenset({
-        JobStatus.AUTHENTICATED.value,
-        JobSideStatus.REJECTED.value,
-        JobSideStatus.QUARANTINED.value,
-    }),
-    JobStatus.AUTHENTICATED.value: frozenset({
-        JobStatus.VALIDATED.value,
-        JobSideStatus.REJECTED.value,
-    }),
-    JobStatus.VALIDATED.value: frozenset({
-        JobStatus.PERSISTED.value,
-        JobSideStatus.REJECTED.value,
-        JobSideStatus.POLICY_DENIED.value,
-    }),
-    JobStatus.PERSISTED.value: frozenset({
-        JobStatus.QUEUED.value,
-        JobSideStatus.POLICY_DENIED.value,
-        JobSideStatus.BLOCKED.value,
-    }),
-    JobStatus.QUEUED.value: frozenset({
-        JobStatus.DISPATCHED.value,
-        JobSideStatus.CANCELLED.value,
-        JobSideStatus.BLOCKED.value,
-        JobSideStatus.POLICY_DENIED.value,
-    }),
-    JobStatus.DISPATCHED.value: frozenset({
-        JobStatus.RUNNING.value,
-        JobSideStatus.FAILED.value,
-        JobSideStatus.CANCELLED.value,
-    }),
-    JobStatus.RUNNING.value: frozenset({
-        JobStatus.VERIFYING.value,
-        JobSideStatus.WAITING_APPROVAL.value,
-        JobSideStatus.RETRY_WAIT.value,
-        JobSideStatus.BLOCKED.value,
-        JobSideStatus.FAILED.value,
-        JobSideStatus.CANCELLED.value,
-        JobSideStatus.INTERRUPTED.value,
-        JobSideStatus.TIMED_OUT.value,
-    }),
-    JobSideStatus.WAITING_APPROVAL.value: frozenset({
-        JobStatus.RUNNING.value,
-        JobSideStatus.BLOCKED.value,
-        JobSideStatus.CANCELLED.value,
-    }),
-    JobSideStatus.RETRY_WAIT.value: frozenset({
-        JobStatus.RUNNING.value,
-        JobSideStatus.FAILED.value,
-        JobSideStatus.CANCELLED.value,
-    }),
-    JobStatus.VERIFYING.value: frozenset({
-        JobStatus.RESULT_PACKAGED.value,
-        JobSideStatus.FAILED.value,
-    }),
-    JobStatus.RESULT_PACKAGED.value: frozenset({
-        JobStatus.RESULT_SENT.value,
-        JobSideStatus.FAILED.value,
-    }),
-    JobStatus.RESULT_SENT.value: frozenset({
-        JobStatus.COMPLETED.value,
-        JobSideStatus.FAILED.value,
-    }),
-    JobStatus.COMPLETED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-    }),
-    JobSideStatus.FAILED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-    }),
-    JobSideStatus.CANCELLED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-    }),
-    JobSideStatus.INTERRUPTED.value: frozenset({
-        JobStatus.VERIFYING.value,
-        JobSideStatus.FAILED.value,
-    }),
-    JobSideStatus.TIMED_OUT.value: frozenset({
-        JobStatus.ARCHIVED.value,
-        JobSideStatus.FAILED.value,
-    }),
-    JobSideStatus.BLOCKED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-        JobStatus.QUEUED.value,
-        JobStatus.RUNNING.value,
-    }),
-    JobSideStatus.POLICY_DENIED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-    }),
-    JobSideStatus.REJECTED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-    }),
-    JobSideStatus.QUARANTINED.value: frozenset({
-        JobStatus.ARCHIVED.value,
-    }),
+    JobStatus.RECEIVED.value: frozenset(
+        {
+            JobStatus.AUTHENTICATED.value,
+            JobSideStatus.REJECTED.value,
+            JobSideStatus.QUARANTINED.value,
+        }
+    ),
+    JobStatus.AUTHENTICATED.value: frozenset(
+        {
+            JobStatus.VALIDATED.value,
+            JobSideStatus.REJECTED.value,
+        }
+    ),
+    JobStatus.VALIDATED.value: frozenset(
+        {
+            JobStatus.PERSISTED.value,
+            JobSideStatus.REJECTED.value,
+            JobSideStatus.POLICY_DENIED.value,
+        }
+    ),
+    JobStatus.PERSISTED.value: frozenset(
+        {
+            JobStatus.QUEUED.value,
+            JobSideStatus.POLICY_DENIED.value,
+            JobSideStatus.BLOCKED.value,
+        }
+    ),
+    JobStatus.QUEUED.value: frozenset(
+        {
+            JobStatus.DISPATCHED.value,
+            JobSideStatus.CANCELLED.value,
+            JobSideStatus.BLOCKED.value,
+            JobSideStatus.POLICY_DENIED.value,
+        }
+    ),
+    JobStatus.DISPATCHED.value: frozenset(
+        {
+            JobStatus.RUNNING.value,
+            JobSideStatus.FAILED.value,
+            JobSideStatus.CANCELLED.value,
+        }
+    ),
+    JobStatus.RUNNING.value: frozenset(
+        {
+            JobStatus.VERIFYING.value,
+            JobSideStatus.WAITING_APPROVAL.value,
+            JobSideStatus.RETRY_WAIT.value,
+            JobSideStatus.BLOCKED.value,
+            JobSideStatus.FAILED.value,
+            JobSideStatus.CANCELLED.value,
+            JobSideStatus.INTERRUPTED.value,
+            JobSideStatus.TIMED_OUT.value,
+        }
+    ),
+    JobSideStatus.WAITING_APPROVAL.value: frozenset(
+        {
+            JobStatus.RUNNING.value,
+            JobSideStatus.BLOCKED.value,
+            JobSideStatus.CANCELLED.value,
+        }
+    ),
+    JobSideStatus.RETRY_WAIT.value: frozenset(
+        {
+            JobStatus.RUNNING.value,
+            JobSideStatus.FAILED.value,
+            JobSideStatus.CANCELLED.value,
+        }
+    ),
+    JobStatus.VERIFYING.value: frozenset(
+        {
+            JobStatus.RESULT_PACKAGED.value,
+            JobSideStatus.FAILED.value,
+        }
+    ),
+    JobStatus.RESULT_PACKAGED.value: frozenset(
+        {
+            JobStatus.RESULT_SENT.value,
+            JobSideStatus.FAILED.value,
+        }
+    ),
+    JobStatus.RESULT_SENT.value: frozenset(
+        {
+            JobStatus.COMPLETED.value,
+            JobSideStatus.FAILED.value,
+        }
+    ),
+    JobStatus.COMPLETED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+        }
+    ),
+    JobSideStatus.FAILED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+        }
+    ),
+    JobSideStatus.CANCELLED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+        }
+    ),
+    JobSideStatus.INTERRUPTED.value: frozenset(
+        {
+            JobStatus.VERIFYING.value,
+            JobSideStatus.FAILED.value,
+        }
+    ),
+    JobSideStatus.TIMED_OUT.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+            JobSideStatus.FAILED.value,
+        }
+    ),
+    JobSideStatus.BLOCKED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+            JobStatus.QUEUED.value,
+            JobStatus.RUNNING.value,
+        }
+    ),
+    JobSideStatus.POLICY_DENIED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+        }
+    ),
+    JobSideStatus.REJECTED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+        }
+    ),
+    JobSideStatus.QUARANTINED.value: frozenset(
+        {
+            JobStatus.ARCHIVED.value,
+        }
+    ),
     JobStatus.ARCHIVED.value: frozenset(),  # Terminal sink state
 }
 
-TERMINAL_JOB_STATES: FrozenSet[str] = frozenset({
-    JobStatus.COMPLETED.value,
-    JobStatus.ARCHIVED.value,
-    JobSideStatus.FAILED.value,
-    JobSideStatus.CANCELLED.value,
-    JobSideStatus.POLICY_DENIED.value,
-    JobSideStatus.REJECTED.value,
-    JobSideStatus.QUARANTINED.value,
-    JobSideStatus.TIMED_OUT.value,
-})
+TERMINAL_JOB_STATES: FrozenSet[str] = frozenset(
+    {
+        JobStatus.COMPLETED.value,
+        JobStatus.ARCHIVED.value,
+        JobSideStatus.FAILED.value,
+        JobSideStatus.CANCELLED.value,
+        JobSideStatus.POLICY_DENIED.value,
+        JobSideStatus.REJECTED.value,
+        JobSideStatus.QUARANTINED.value,
+        JobSideStatus.TIMED_OUT.value,
+    }
+)
 
-RELEASE_LEASE_STATES: FrozenSet[str] = TERMINAL_JOB_STATES | frozenset({
-    JobSideStatus.BLOCKED.value,
-    JobSideStatus.INTERRUPTED.value,
-})
+RELEASE_LEASE_STATES: FrozenSet[str] = TERMINAL_JOB_STATES | frozenset(
+    {
+        JobSideStatus.BLOCKED.value,
+        JobSideStatus.INTERRUPTED.value,
+    }
+)
 
 
 class JobLifecycleManager:
@@ -376,10 +417,14 @@ class JobLifecycleManager:
         - Automatic project lease release upon reaching terminal or blocked states.
         - Append-only audit logging of STATUS_CHANGE.
         """
-        target_status = to_status.value if isinstance(to_status, (JobStatus, JobSideStatus)) else str(to_status)
+        target_status = (
+            to_status.value if isinstance(to_status, (JobStatus, JobSideStatus)) else str(to_status)
+        )
 
         if target_status not in ALL_JOB_STATES:
-            raise ArchitectureInvariantError(f"Target state '{target_status}' is not a valid canonical job state")
+            raise ArchitectureInvariantError(
+                f"Target state '{target_status}' is not a valid canonical job state"
+            )
 
         now_dt = datetime.now(timezone.utc)
         now_iso = now_dt.isoformat()
@@ -479,7 +524,11 @@ class JobLifecycleManager:
                 sev = Severity.INFO.value
                 if target_status in {JobSideStatus.FAILED.value, JobSideStatus.TIMED_OUT.value}:
                     sev = Severity.ERROR.value
-                elif target_status in {JobSideStatus.BLOCKED.value, JobSideStatus.WAITING_APPROVAL.value, JobSideStatus.INTERRUPTED.value}:
+                elif target_status in {
+                    JobSideStatus.BLOCKED.value,
+                    JobSideStatus.WAITING_APPROVAL.value,
+                    JobSideStatus.INTERRUPTED.value,
+                }:
                     sev = Severity.WARN.value
 
                 self.audit_emitter.emit(

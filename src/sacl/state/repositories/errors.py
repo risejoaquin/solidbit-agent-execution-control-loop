@@ -5,19 +5,27 @@ Domain 15: Structured operational error diagnostics repository.
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, List, Optional, Union
 
 from sacl.contracts.models import ErrorRecord
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import json_dumps_safe, json_loads_safe, utc_now
 
-VALID_ERROR_CATEGORIES = frozenset({
-    'INFRASTRUCTURE', 'POLICY', 'VALIDATION', 'EXECUTION',
-    'TIMEOUT', 'COLLISION', 'TRANSPORT', 'APPROVAL', 'RECOVERY'
-})
+VALID_ERROR_CATEGORIES = frozenset(
+    {
+        "INFRASTRUCTURE",
+        "POLICY",
+        "VALIDATION",
+        "EXECUTION",
+        "TIMEOUT",
+        "COLLISION",
+        "TRANSPORT",
+        "APPROVAL",
+        "RECOVERY",
+    }
+)
 
-VALID_ERROR_SEVERITIES = frozenset({'WARN', 'ERROR', 'FATAL'})
+VALID_ERROR_SEVERITIES = frozenset({"WARN", "ERROR", "FATAL"})
 
 
 class ErrorRepository(BaseRepository):
@@ -55,7 +63,19 @@ class ErrorRepository(BaseRepository):
         """
         cursor = self.execute(
             sql,
-            (job_id, run_id, node_id, agent_id, error_code, category, severity, message, stack_trace, ctx_json, now),
+            (
+                job_id,
+                run_id,
+                node_id,
+                agent_id,
+                error_code,
+                category,
+                severity,
+                message,
+                stack_trace,
+                ctx_json,
+                now,
+            ),
         )
         self.commit()
         return cursor.lastrowid  # type: ignore[return-value]
@@ -101,7 +121,7 @@ class ErrorRepository(BaseRepository):
             params.append(severity)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM errors {where_clause} ORDER BY error_id ASC LIMIT ?;"
+        sql = f"SELECT * FROM errors {where_clause} ORDER BY error_id ASC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
 
         rows = self.fetchall_dict(sql, params)

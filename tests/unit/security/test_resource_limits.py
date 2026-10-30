@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import io
 import zipfile
-from pathlib import Path
+
 import pytest
 
 from sacl.security.exceptions import ResourceLimitExceededError, SecurityError
@@ -35,10 +35,10 @@ class TestResourceLimitQuotas:
     """Tests archive quota validation against zip bomb attacks (Threat D1 / TH-11)."""
 
     def test_default_quota_constants(self) -> None:
-        assert DEFAULT_MAX_COMPRESSED_BYTES == 26_214_400      # 25 MB
-        assert DEFAULT_MAX_UNCOMPRESSED_BYTES == 104_857_600   # 100 MB
-        assert DEFAULT_MAX_TOTAL_FILE_COUNT == 1000            # 1,000 files
-        assert DEFAULT_MAX_COMPRESSION_RATIO == 20.0           # 20:1 ratio
+        assert DEFAULT_MAX_COMPRESSED_BYTES == 26_214_400  # 25 MB
+        assert DEFAULT_MAX_UNCOMPRESSED_BYTES == 104_857_600  # 100 MB
+        assert DEFAULT_MAX_TOTAL_FILE_COUNT == 1000  # 1,000 files
+        assert DEFAULT_MAX_COMPRESSION_RATIO == 20.0  # 20:1 ratio
 
     def test_exceeding_compressed_size_limit_fails(self) -> None:
         quotas = ResourceQuotas(max_compressed_bytes=100)
@@ -83,10 +83,12 @@ class TestResourceLimitQuotas:
 
     def test_valid_archive_within_quotas_passes(self) -> None:
         validator = ResourceLimitValidator()
-        raw, zf = build_in_memory_zip({
-            "manifest.json": b'{"schema": "solidbit.execution-package.v1"}',
-            "readme.md": b"# Test Package",
-        })
+        raw, zf = build_in_memory_zip(
+            {
+                "manifest.json": b'{"schema": "solidbit.execution-package.v1"}',
+                "readme.md": b"# Test Package",
+            }
+        )
         # Should not raise
         validator.validate_archive_metadata(zf, compressed_size=len(raw), package_id="VALID-PKG")
 

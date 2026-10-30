@@ -82,9 +82,9 @@ The **W0.1 Freeze Remediation Baseline (Item 7)** and Joaquín's architectural d
   ```
 
 #### 3. Verification & Physical Artifacts
-- **Physical Documentation:** Formally codified in [`docs/MAIL_PROTOCOL.md §2.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md), [`docs/ARCHITECTURE.md §2.2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md), and [`docs/OPERATIONS.md §2.3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/OPERATIONS.md).
-- **JSON Schema:** Validated by [`schemas/mail-envelope.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/mail-envelope.schema.json) under property `routing_subject`.
-- **Architectural Decision Record:** Formally accepted in [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md).
+- **Physical Documentation:** Formally codified in [`docs/MAIL_PROTOCOL.md §2.1`](file:////workspace/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md), [`docs/ARCHITECTURE.md §2.2`](file:////workspace/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md), and [`docs/OPERATIONS.md §2.3`](file:////workspace/solidbit-agent-execution-control-loop/docs/OPERATIONS.md).
+- **JSON Schema:** Validated by [`schemas/mail-envelope.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/mail-envelope.schema.json) under property `routing_subject`.
+- **Architectural Decision Record:** Formally accepted in [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md).
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -114,9 +114,9 @@ The **W0.1 Freeze Remediation Baseline (Items 5 and 6)**, supported by explicit 
   7. *Local Machine Governance & Human Authority Gates:* Pre-injected guard headers and mandatory human review before any irreversible action.
 
 #### 3. Verification & Physical Artifacts
-- **Architectural Decision Record:** Formally codified in [`docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md).
-- **Physical Documentation:** Updated across [`docs/SECURITY_MODEL.md §4.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SECURITY_MODEL.md), [`docs/MAIL_PROTOCOL.md §2.3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md), [`docs/THREAT_MODEL.md §2.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/THREAT_MODEL.md), and [`docs/OPERATIONS.md §2.4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/OPERATIONS.md).
-- **JSON Schema:** [`schemas/mail-envelope.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/mail-envelope.schema.json) marks `signature_hmac` as optional future hardening, not required in V1.
+- **Architectural Decision Record:** Formally codified in [`docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md).
+- **Physical Documentation:** Updated across [`docs/SECURITY_MODEL.md §4.1`](file:////workspace/solidbit-agent-execution-control-loop/docs/SECURITY_MODEL.md), [`docs/MAIL_PROTOCOL.md §2.3`](file:////workspace/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md), [`docs/THREAT_MODEL.md §2.1`](file:////workspace/solidbit-agent-execution-control-loop/docs/THREAT_MODEL.md), and [`docs/OPERATIONS.md §2.4`](file:////workspace/solidbit-agent-execution-control-loop/docs/OPERATIONS.md).
+- **JSON Schema:** [`schemas/mail-envelope.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/mail-envelope.schema.json) marks `signature_hmac` as optional future hardening, not required in V1.
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -146,9 +146,9 @@ A naming and structural divergence existed between the high-level architecture i
 - Any legacy references to non-canonical tables (such as `jobs` in early draft documentation) are formally updated to `runs`.
 
 #### 3. Verification & Physical Artifacts
-- **Physical DDL Migration:** Implemented in [`db/migrations/001_init.sql`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql).
-- **Physical Documentation:** Exhaustively specified in [`docs/SQLITE_DATA_MODEL.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md) and [`docs/ARCHITECTURE.md §2.7`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md).
-- **Architectural Decision Record:** Formally accepted in [`docs/adr/ADR-002-sqlite-operational-state-store.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-002-sqlite-operational-state-store.md).
+- **Physical DDL Migration:** Implemented in [`db/migrations/001_init.sql`](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql).
+- **Physical Documentation:** Exhaustively specified in [`docs/SQLITE_DATA_MODEL.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md) and [`docs/ARCHITECTURE.md §2.7`](file:////workspace/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md).
+- **Architectural Decision Record:** Formally accepted in [`docs/adr/ADR-002-sqlite-operational-state-store.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-002-sqlite-operational-state-store.md).
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -181,9 +181,9 @@ The **W0.1 Freeze Remediation Baseline (Item 11)** mandated preserving the legac
 - The JSON schema `schemas/result.schema.json` includes `"PASS (Report Present)"` in its `result_verdict` enum.
 
 #### 3. Verification & Physical Artifacts
-- **Physical DDL Migration:** Verified in [`db/migrations/001_init.sql` (Line 90)](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql).
-- **Physical Documentation:** Documented in [`docs/RESULT_PROTOCOL.md §2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/RESULT_PROTOCOL.md), [`docs/SQLITE_DATA_MODEL.md §5.4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md), and [`docs/OBSERVABILITY.md §3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/OBSERVABILITY.md).
-- **JSON Schema:** Validated in [`schemas/result.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/result.schema.json).
+- **Physical DDL Migration:** Verified in [`db/migrations/001_init.sql` (Line 90)](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql).
+- **Physical Documentation:** Documented in [`docs/RESULT_PROTOCOL.md §2`](file:////workspace/solidbit-agent-execution-control-loop/docs/RESULT_PROTOCOL.md), [`docs/SQLITE_DATA_MODEL.md §5.4`](file:////workspace/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md), and [`docs/OBSERVABILITY.md §3`](file:////workspace/solidbit-agent-execution-control-loop/docs/OBSERVABILITY.md).
+- **JSON Schema:** Validated in [`schemas/result.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/result.schema.json).
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -205,9 +205,9 @@ The **W0.1 Freeze Remediation Baseline (Items 8 and 9)** and `AG-QA.REPORT.md` (
   - *Legitimate Retry / Recovery:* Re-submitting the same `JOB_ID` with a new `nonce` and updated `message_id` creates a new execution attempt record while preserving the logical job history.
 
 #### 3. Verification & Physical Artifacts
-- **Architectural Decision Record:** Formally codified in [`docs/adr/ADR-010-at-least-once-idempotent-processing.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-010-at-least-once-idempotent-processing.md).
-- **Physical Documentation:** Codified in [`docs/MAIL_PROTOCOL.md §2.4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md), [`docs/RECOVERY_MODEL.md §6`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/RECOVERY_MODEL.md), and [`docs/OPERATIONS.md §2.2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/OPERATIONS.md).
-- **JSON Schema:** Validated in [`schemas/mail-envelope.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/mail-envelope.schema.json).
+- **Architectural Decision Record:** Formally codified in [`docs/adr/ADR-010-at-least-once-idempotent-processing.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-010-at-least-once-idempotent-processing.md).
+- **Physical Documentation:** Codified in [`docs/MAIL_PROTOCOL.md §2.4`](file:////workspace/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md), [`docs/RECOVERY_MODEL.md §6`](file:////workspace/solidbit-agent-execution-control-loop/docs/RECOVERY_MODEL.md), and [`docs/OPERATIONS.md §2.2`](file:////workspace/solidbit-agent-execution-control-loop/docs/OPERATIONS.md).
+- **JSON Schema:** Validated in [`schemas/mail-envelope.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/mail-envelope.schema.json).
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -225,9 +225,9 @@ The **W0.1 Freeze Remediation Baseline (Item 10)** and `AG-QA.REPORT.md` (Findin
 2. **`SUMMARY.json`:** Machine-readable JSON summary validating strictly against `schemas/summary.schema.json` for programmatic consumption by the Cloud Control Plane.
 
 #### 3. Verification & Physical Artifacts
-- **Architectural Decision Record:** Formally codified in [`docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md).
-- **Physical Documentation:** Codified in [`docs/EXECUTION_PACKAGE_SPEC.md §1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md), [`docs/OBSERVABILITY.md §4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/OBSERVABILITY.md), and [`docs/RESULT_PROTOCOL.md §5`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/RESULT_PROTOCOL.md).
-- **JSON Schema & Example:** Defined in [`schemas/summary.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/summary.schema.json) and validated in [`examples/summary.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/summary.valid.json).
+- **Architectural Decision Record:** Formally codified in [`docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-011-filesystem-artifacts-sqlite-metadata.md).
+- **Physical Documentation:** Codified in [`docs/EXECUTION_PACKAGE_SPEC.md §1`](file:////workspace/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md), [`docs/OBSERVABILITY.md §4`](file:////workspace/solidbit-agent-execution-control-loop/docs/OBSERVABILITY.md), and [`docs/RESULT_PROTOCOL.md §5`](file:////workspace/solidbit-agent-execution-control-loop/docs/RESULT_PROTOCOL.md).
+- **JSON Schema & Example:** Defined in [`schemas/summary.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/summary.schema.json) and validated in [`examples/summary.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/summary.valid.json).
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -243,8 +243,8 @@ The **W0.1 Freeze Remediation Baseline (Item 14)** and `AG-QA.REPORT.md` (Findin
 - **Structured Modular Library Implementation:** Reusable, refactored core logic belongs under the structured `src/` hierarchy (`src/workspace/`, `src/executor/`, `src/scheduler/`, `src/validator/`, `src/supervisor/`, `src/gateway/`) to be implemented during subsequent functional development waves.
 
 #### 3. Verification & Physical Artifacts
-- **Physical Documentation:** Documented in [`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md §5`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md), [`README.md §4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/README.md), and [`docs/ARCHITECTURE.md §7.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md).
-- **Architectural Decision Record:** Codified in [`docs/adr/ADR-004-wave-package-compatibility.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-004-wave-package-compatibility.md).
+- **Physical Documentation:** Documented in [`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md §5`](file:////workspace/solidbit-agent-execution-control-loop/docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md), [`README.md §4`](file:////workspace/solidbit-agent-execution-control-loop/README.md), and [`docs/ARCHITECTURE.md §7.1`](file:////workspace/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md).
+- **Architectural Decision Record:** Codified in [`docs/adr/ADR-004-wave-package-compatibility.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-004-wave-package-compatibility.md).
 - **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -274,66 +274,66 @@ Following the initial Wave 0.1 snapshot materialization, a Direct Human Semantic
 1. **Context & Inconsistency:** The W0.1 canonical documents silently substituted legacy IMAP/SMTP polling and IMAP IDLE for the established Gmail API event design. `users.watch`, Pub/Sub pull subscriptions, and `historyId` tracking were omitted.
 2. **Canonical Resolution:** Restored the event-driven architecture: Gmail API `users.watch` publishes mailbox changes to a Google Cloud Pub/Sub topic; local Mail Gateway subscribes via outbound Pull/StreamingPull (zero inbound open ports, no public webhooks); Pub/Sub notifications serve strictly as wake signals; authoritative message metadata and attachments are fetched via Gmail History API (`users.history.list`) using the persisted `historyId` cursor in SQLite table `mail_messages`/`mail_cursors`; automatic watch renewal prior to expiration; startup reconciliation from persisted cursor; periodic direct polling retained strictly as degraded fallback; outbound results dispatched directly via Gmail REST API (`users.messages.send`); zero SMTP in V1.
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §3.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) (`primary_ingress = "gmail_api_users_watch_pubsub_pull"`, `cursor = "historyId"`).
-   - Detailed in [`docs/MAIL_PROTOCOL.md §1–§2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md) and [`docs/ARCHITECTURE.md §2.2–§2.3, §3.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md).
-   - Formally accepted in [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md).
-   - Implemented in database migration [`db/migrations/001_init.sql`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) Domain 11 (`mail_messages` with `history_id`).
+   - Codified in [`DECISION_BASELINE.md §3.1`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) (`primary_ingress = "gmail_api_users_watch_pubsub_pull"`, `cursor = "historyId"`).
+   - Detailed in [`docs/MAIL_PROTOCOL.md §1–§2`](file:////workspace/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md) and [`docs/ARCHITECTURE.md §2.2–§2.3, §3.1`](file:////workspace/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md).
+   - Formally accepted in [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md).
+   - Implemented in database migration [`db/migrations/001_init.sql`](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) Domain 11 (`mail_messages` with `history_id`).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-02: Declarative Package Authority & Removal of `authorized_scripts`
 1. **Context & Inconsistency:** W0.1 manifest schema included `authorized_scripts`, and `EXECUTION_PACKAGE_SPEC` asserted that a script listed in that field could run after policy validation. Because wave packages arrive from external transport, an untrusted package cannot self-authorize executable code.
 2. **Canonical Resolution:** Packages are strictly declarative in authority. The manifest field `authorized_scripts` is permanently removed and prohibited as an authority field. Packages request stable operation IDs via `requested_operations`. Local SACL core autoexecution only invokes locally trusted handlers from the Local Operation Registry (`schemas/operation-registry.schema.json`) owned and maintained on the local host. Preserved the `scripts/` directory inside package archives for backward compatibility and manual review only.
 3. **Verification Evidence:**
-   - Manifest schema [`schemas/manifest.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/manifest.schema.json) requires `requested_operations` and prohibits `authorized_scripts`.
-   - Local Operation Registry schema [`schemas/operation-registry.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/operation-registry.schema.json) and valid instance [`examples/operation-registry.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/operation-registry.valid.json).
-   - Codified in [`docs/AUTHORITY_MODEL.md §3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md) and [`docs/EXECUTION_PACKAGE_SPEC.md §1, §3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md).
-   - Formally accepted in [`docs/adr/ADR-006-no-arbitrary-remote-code.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-006-no-arbitrary-remote-code.md).
+   - Manifest schema [`schemas/manifest.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/manifest.schema.json) requires `requested_operations` and prohibits `authorized_scripts`.
+   - Local Operation Registry schema [`schemas/operation-registry.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/operation-registry.schema.json) and valid instance [`examples/operation-registry.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/operation-registry.valid.json).
+   - Codified in [`docs/AUTHORITY_MODEL.md §3`](file:////workspace/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md) and [`docs/EXECUTION_PACKAGE_SPEC.md §1, §3`](file:////workspace/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md).
+   - Formally accepted in [`docs/adr/ADR-006-no-arbitrary-remote-code.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-006-no-arbitrary-remote-code.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-03: Four-Layer Effective-Permission Lattice & Hard Local Denials
 1. **Context & Inconsistency:** The four-layer permission lattice was absent from W0.1 governance documents. Furthermore, `policy.schema.json` permitted operational booleans such as `production_deploy=true`, `production_db_write=true`, `secret_export=true`, and `remote_execution_enabled=true` without a hard local policy contract to constrain them.
 2. **Canonical Resolution:** Established the mathematical four-layer lattice: $\text{Effective Permissions} = \text{Hard Local Policy} \cap \text{Project Policy} \cap \text{Package Requested Permissions} \cap \text{Valid Approval Grant}$. Hard deny always wins; approval cannot override a hard deny. Hard Local Policy (`schemas/hard-policy.schema.json`) strictly encodes permanent hard denies for V1: `remote_production_execution`, `github_merge`, `production_db_write`, `secret_export`, `arbitrary_remote_code`, `main_branch_execution`, `primary_checkout_mutation`, `hard_reset`, `auto_stash`.
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §3.3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) (`hard_deny_wins = true`, `approval_can_override_hard_deny = false`, `remote_production_v1 = false`).
-   - Hard policy schema [`schemas/hard-policy.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/hard-policy.schema.json) and validated instance [`examples/hard-policy.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/hard-policy.valid.json).
-   - Codified in [`docs/AUTHORITY_MODEL.md §2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md) and [`docs/SECURITY_MODEL.md §1–§2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SECURITY_MODEL.md).
-   - Formally accepted in [`docs/adr/ADR-012-no-remote-production-v1.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-012-no-remote-production-v1.md).
+   - Codified in [`DECISION_BASELINE.md §3.3`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) (`hard_deny_wins = true`, `approval_can_override_hard_deny = false`, `remote_production_v1 = false`).
+   - Hard policy schema [`schemas/hard-policy.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/hard-policy.schema.json) and validated instance [`examples/hard-policy.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/hard-policy.valid.json).
+   - Codified in [`docs/AUTHORITY_MODEL.md §2`](file:////workspace/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md) and [`docs/SECURITY_MODEL.md §1–§2`](file:////workspace/solidbit-agent-execution-control-loop/docs/SECURITY_MODEL.md).
+   - Formally accepted in [`docs/adr/ADR-012-no-remote-production-v1.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-012-no-remote-production-v1.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-04: Restoration of Canonical 12-State Job Lifecycle & Node States
 1. **Context & Inconsistency:** W0.1 `STATE_MACHINE.md` and related documents replaced the canonical job lifecycle with a simplified run state model (`INITIALIZED`, `RUNNING`, `COMPLETE`, `FAILED`), omitting essential intermediate and side states.
 2. **Canonical Resolution:** Restored the canonical 12-state linear job lifecycle: `RECEIVED` $\rightarrow$ `AUTHENTICATED` $\rightarrow$ `VALIDATED` $\rightarrow$ `PERSISTED` $\rightarrow$ `QUEUED` $\rightarrow$ `DISPATCHED` $\rightarrow$ `RUNNING` $\rightarrow$ `VERIFYING` $\rightarrow$ `RESULT_PACKAGED` $\rightarrow$ `RESULT_SENT` $\rightarrow$ `COMPLETED` $\rightarrow$ `ARCHIVED`. Restored all 10 side states and outcomes: `WAITING_APPROVAL`, `RETRY_WAIT`, `BLOCKED`, `FAILED`, `CANCELLED`, `INTERRUPTED`, `TIMED_OUT`, `POLICY_DENIED`, `REJECTED`, `QUARANTINED`. Restored Graph-H node states: `PENDING` $\rightarrow$ `READY` $\rightarrow$ `RUNNING` $\rightarrow$ `SUCCEEDED` with side outcomes `RETRYABLE_FAILURE`, `FAILED`, `BLOCKED`, `WAITING_APPROVAL`, `CANCELLED`.
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §3.4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) (`job_lifecycle`, `job_side_states`, `graph_node_states`).
-   - Complete state machine and transition matrices codified in [`docs/STATE_MACHINE.md §2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/STATE_MACHINE.md).
-   - Enforced by CHECK constraints in [`db/migrations/001_init.sql`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) Domain 4 (`jobs.status`) and Domain 6 (`graph_nodes.status`).
+   - Codified in [`DECISION_BASELINE.md §3.4`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) (`job_lifecycle`, `job_side_states`, `graph_node_states`).
+   - Complete state machine and transition matrices codified in [`docs/STATE_MACHINE.md §2`](file:////workspace/solidbit-agent-execution-control-loop/docs/STATE_MACHINE.md).
+   - Enforced by CHECK constraints in [`db/migrations/001_init.sql`](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) Domain 4 (`jobs.status`) and Domain 6 (`graph_nodes.status`).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-05: Codification of 16 SQLite Operational Domains
 1. **Context & Inconsistency:** The W0.1 DDL contained only 10 tables, omitting structured domains for schema migrations, projects, packages, mail cursors, jobs, nodes, attempts, approvals, artifacts, results, leases, heartbeats, and errors.
 2. **Canonical Resolution:** Codified the complete relational schema across 16 formal operational domains in SQLite (`sacl_ops.db`): (1) `schema_migrations`, (2) `projects`, (3) `packages`, (4) `jobs`, (5) `runs`, (6) `graph_nodes`, (7) `node_attempts`, (8) `agents`, (9) `agent_dependencies` / `dag_stages`, (10) `file_modifications` / `file_conflicts`, (11) `mail_messages` / `mail_cursors`, (12) `mail_outbox`, (13) `audit_events` / `events`, (14) `approvals`, (15) `artifacts` / `results`, (16) `leases` (`supervisor_locks`), `heartbeats`, `errors`. Backward-compatible tables are preserved. Connection bootstrap enforces WAL, busy_timeout 5000, synchronous NORMAL, and foreign_keys ON.
 3. **Verification Evidence:**
-   - Migration file [`db/migrations/001_init.sql`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) executes cleanly in disposable SQLite in-memory instance.
-   - Comprehensive entity-relationship model and schema specifications codified in [`docs/SQLITE_DATA_MODEL.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md).
-   - Formally accepted in [`docs/adr/ADR-002-sqlite-operational-state-store.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-002-sqlite-operational-state-store.md).
+   - Migration file [`db/migrations/001_init.sql`](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) executes cleanly in disposable SQLite in-memory instance.
+   - Comprehensive entity-relationship model and schema specifications codified in [`docs/SQLITE_DATA_MODEL.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/SQLITE_DATA_MODEL.md).
+   - Formally accepted in [`docs/adr/ADR-002-sqlite-operational-state-store.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-002-sqlite-operational-state-store.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-06: Generic Bounded Action-Approval Contract
 1. **Context & Inconsistency:** The W0.1 approval schema was freeze-specific and did not enforce binding to job ID, action, scope, request ID, or expiration timestamp.
 2. **Canonical Resolution:** Replaced with a generic bounded action-approval contract bound strictly to: `JOB_ID + ACTION + SCOPE + REQUEST_ID + expires_at`. Documented resumption semantics: approval resumes the same logical run without spawning disconnected runs. Approvals cannot exceed the hard local policy envelope or override hard denies.
 3. **Verification Evidence:**
-   - Approval schema [`schemas/approval.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/approval.schema.json) requires `request_id`, `job_id`, `action`, `scope`, `expires_at`, `decision`, `approver`. Validated against [`examples/approval.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/approval.valid.json).
-   - Codified in [`docs/AUTHORITY_MODEL.md §4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md) and [`DECISION_BASELINE.md §3.5`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md).
-   - Database table `approvals` codified in [`db/migrations/001_init.sql`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) Domain 14.
-   - Formally accepted in [`docs/adr/ADR-007-human-authority.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-007-human-authority.md).
+   - Approval schema [`schemas/approval.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/approval.schema.json) requires `request_id`, `job_id`, `action`, `scope`, `expires_at`, `decision`, `approver`. Validated against [`examples/approval.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/approval.valid.json).
+   - Codified in [`docs/AUTHORITY_MODEL.md §4`](file:////workspace/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md) and [`DECISION_BASELINE.md §3.5`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md).
+   - Database table `approvals` codified in [`db/migrations/001_init.sql`](file:////workspace/solidbit-agent-execution-control-loop/db/migrations/001_init.sql) Domain 14.
+   - Formally accepted in [`docs/adr/ADR-007-human-authority.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-007-human-authority.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-07: Materialization of `DECISION_BASELINE.md` & `architecture-invariants.json`
 1. **Context & Inconsistency:** Canonical specifications referenced `DECISION_BASELINE.md` as the root physical baseline of explicit human decisions, but the file was absent from the canonical repository root and W0.1 gates.
-2. **Canonical Resolution:** Codified root [`DECISION_BASELINE.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) distinguishing explicit Joaquín decisions from derived/ratified SACL architecture decisions, canonical precedence rules, and architecture invariants. Codified machine-readable equivalent [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) conforming to `solidbit.architecture-invariants.v1`.
+2. **Canonical Resolution:** Codified root [`DECISION_BASELINE.md`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) distinguishing explicit Joaquín decisions from derived/ratified SACL architecture decisions, canonical precedence rules, and architecture invariants. Codified machine-readable equivalent [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) conforming to `solidbit.architecture-invariants.v1`.
 3. **Verification Evidence:**
-   - Both [`DECISION_BASELINE.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) physically exist on disk and validate cleanly.
-   - Formally accepted in [`docs/adr/ADR-005-decision-precedence.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-005-decision-precedence.md).
+   - Both [`DECISION_BASELINE.md`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) physically exist on disk and validate cleanly.
+   - Formally accepted in [`docs/adr/ADR-005-decision-precedence.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-005-decision-precedence.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-08: ADR Index & Numbering Harmonization
@@ -355,26 +355,26 @@ Following the initial Wave 0.1 snapshot materialization, a Direct Human Semantic
    - ADR-014: V1 Transport Authentication Model and Deferral of Package Signing
 3. **Verification Evidence:**
    - Verified 14/14 physical ADR files exist under `docs/adr/`.
-   - Verified [`docs/ARCHITECTURE.md §6`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md) index exactly matches physical files.
-   - Verified [`docs/TRACEABILITY_MATRIX.md §6`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/TRACEABILITY_MATRIX.md) maps all 14 ADRs to their implementing subsystems.
+   - Verified [`docs/ARCHITECTURE.md §6`](file:////workspace/solidbit-agent-execution-control-loop/docs/ARCHITECTURE.md) index exactly matches physical files.
+   - Verified [`docs/TRACEABILITY_MATRIX.md §6`](file:////workspace/solidbit-agent-execution-control-loop/docs/TRACEABILITY_MATRIX.md) maps all 14 ADRs to their implementing subsystems.
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P2-01: Mandatory `job_id` in Package Manifest Schema
 1. **Context & Inconsistency:** The manifest schema made `job_id` optional, compromising the transport routing hint grammar and idempotency deduplication design.
-2. **Canonical Resolution:** Made `job_id` mandatory in [`schemas/manifest.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/manifest.schema.json) for remotely transported execution packages, constrained by pattern `^[A-Za-z0-9_.-]+$`.
+2. **Canonical Resolution:** Made `job_id` mandatory in [`schemas/manifest.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/manifest.schema.json) for remotely transported execution packages, constrained by pattern `^[A-Za-z0-9_.-]+$`.
 3. **Verification Evidence:**
-   - Manifest schema [`schemas/manifest.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/manifest.schema.json) includes `"job_id"` in `required` array.
-   - Example instance [`examples/manifest.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/manifest.valid.json) validates with mandatory `job_id`.
-   - Codified in [`docs/EXECUTION_PACKAGE_SPEC.md §3.2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md).
+   - Manifest schema [`schemas/manifest.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/manifest.schema.json) includes `"job_id"` in `required` array.
+   - Example instance [`examples/manifest.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/manifest.valid.json) validates with mandatory `job_id`.
+   - Codified in [`docs/EXECUTION_PACKAGE_SPEC.md §3.2`](file:////workspace/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P2-02: Universal Run Summary Schema Support for Human Authorization
 1. **Context & Inconsistency:** `summary.schema.json` constrained `implementation_authorized` to `false` via a `const` restriction, permanently forbidding representation of explicit human implementation authorization.
 2. **Canonical Resolution:** Updated `schemas/summary.schema.json` to define `implementation_authorized` as `type: "boolean"`. W0/W0.1/W0.2 instances remain `false` during architecture freeze, but the schema now properly allows representing subsequent explicit human authorization grants. A summary boolean remains evidence, not authority.
 3. **Verification Evidence:**
-   - Summary schema [`schemas/summary.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/summary.schema.json) defines `"implementation_authorized": { "type": "boolean" }`.
-   - Example instance [`examples/summary.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/summary.valid.json) validates cleanly with `implementation_authorized: false`.
-   - Codified in [`docs/EXECUTION_PACKAGE_SPEC.md §1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md) and [`docs/RESULT_PROTOCOL.md §5`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/RESULT_PROTOCOL.md).
+   - Summary schema [`schemas/summary.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/summary.schema.json) defines `"implementation_authorized": { "type": "boolean" }`.
+   - Example instance [`examples/summary.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/summary.valid.json) validates cleanly with `implementation_authorized: false`.
+   - Codified in [`docs/EXECUTION_PACKAGE_SPEC.md §1`](file:////workspace/solidbit-agent-execution-control-loop/docs/EXECUTION_PACKAGE_SPEC.md) and [`docs/RESULT_PROTOCOL.md §5`](file:////workspace/solidbit-agent-execution-control-loop/docs/RESULT_PROTOCOL.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ---
@@ -401,9 +401,9 @@ Following Wave 0.2, the final Wave 0.3 Direct Human Semantic Review identified s
    4. *Tier 4: Industry standards for undefined gaps only* (Industry conventions for gaps with zero prior guidance; never overrides higher tiers).
    No agent-derived decision is ever represented as an explicit Joaquín decree.
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §1.1, §2.1–§2.3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md).
-   - Codified in [`docs/TRACEABILITY_MATRIX.md §1.1, §2.1–§2.2, §4.3`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/TRACEABILITY_MATRIX.md).
-   - Formally accepted in [`docs/adr/ADR-005-decision-precedence.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-005-decision-precedence.md).
+   - Codified in [`DECISION_BASELINE.md §1.1, §2.1–§2.3`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md).
+   - Codified in [`docs/TRACEABILITY_MATRIX.md §1.1, §2.1–§2.2, §4.3`](file:////workspace/solidbit-agent-execution-control-loop/docs/TRACEABILITY_MATRIX.md).
+   - Formally accepted in [`docs/adr/ADR-005-decision-precedence.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-005-decision-precedence.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-10: Clarification of Package Task Context vs Allowed Runtime Services
@@ -412,9 +412,9 @@ Following Wave 0.2, the final Wave 0.3 Direct Human Semantic Review identified s
    - *Task Context Hermeticity:* An execution package must be self-contained and versioned on disk, carrying all prompts, manifests, schemas, hard policies, and reference material necessary for offline task interpretation. Local workers do not rely on external conversational context or unversioned remote repos during execution.
    - *Allowed Runtime Services:* SACL is an asynchronous control loop that legitimately communicates with configured external runtime services: Gmail API (REST over TLS), Google Cloud Pub/Sub (Pull/StreamingPull subscriber), Antigravity CLI (local process execution), Git (local repository operations), and conditionally GitHub (feature branch push and PR creation via trusted handlers). These services operate through strictly bounded gateways under hard local policy constraints.
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §3.2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json).
-   - Codified in [`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md §4 item 8`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md).
-   - Formally accepted in [`docs/adr/ADR-004-self-contained-wave-packages.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-004-self-contained-wave-packages.md).
+   - Codified in [`DECISION_BASELINE.md §3.2`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json).
+   - Codified in [`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md §4 item 8`](file:////workspace/solidbit-agent-execution-control-loop/docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md).
+   - Formally accepted in [`docs/adr/ADR-004-self-contained-wave-packages.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-004-self-contained-wave-packages.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P1-11: Controlled GitHub Write Semantics and Branching Model
@@ -425,34 +425,34 @@ Following Wave 0.2, the final Wave 0.3 Direct Human Semantic Review identified s
    - Feature/task branch push (`refs/heads/feature/*`, `refs/heads/task/*`) and PR creation are permitted ONLY through locally trusted operations (`git.push_branch`, `github.create_pr`) from the Local Operation Registry when all four lattice tiers permit it: Hard Local Policy allows git operations, Project Policy permits target repository push/PR, the execution package explicitly requests the operation, and a valid bounded human approval grant exists.
    - Wave 0.3 itself performs strictly **zero GitHub writes** (`IMPLEMENTATION_AUTHORIZED=NO`).
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §3.9`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json).
-   - Codified in [`docs/AUTHORITY_MODEL.md §2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md), [`docs/SECURITY_MODEL.md §1.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/SECURITY_MODEL.md), and [`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md §4 item 7`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md).
+   - Codified in [`DECISION_BASELINE.md §3.9`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json).
+   - Codified in [`docs/AUTHORITY_MODEL.md §2`](file:////workspace/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md), [`docs/SECURITY_MODEL.md §1.1`](file:////workspace/solidbit-agent-execution-control-loop/docs/SECURITY_MODEL.md), and [`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md §4 item 7`](file:////workspace/solidbit-agent-execution-control-loop/docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P2-03: Gmail API OAuth2 Transport Authentication & Mailbox State Decoupling
 1. **Context & Inconsistency:** Earlier documents retained legacy references to Gmail App Passwords, and mail deduplication / filtering referenced `is:unread` or marking messages read/archived as gating inputs, erroneously making mailbox UI state the source of truth.
 2. **Canonical Resolution:** Designated Gmail API OAuth2 (refresh token + client credentials over TLS) as the sole canonical V1 transport credential. App Passwords are permanently removed. Authoritative ingress is decoupled from mailbox UI read/unread states: Gmail `historyId` persisted in SQLite `mail_cursors` / `mail_messages` and Cloud Pub/Sub message IDs provide the authoritative message stream. Unread mailbox state is never a source of truth and must not be a gating input.
 3. **Verification Evidence:**
-   - Codified in [`DECISION_BASELINE.md §3.1`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json).
-   - Codified in [`docs/MAIL_PROTOCOL.md §2.1, §2.4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md).
-   - Formally accepted in [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md) and [`docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md).
+   - Codified in [`DECISION_BASELINE.md §3.1`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md) and [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json).
+   - Codified in [`docs/MAIL_PROTOCOL.md §2.1, §2.4`](file:////workspace/solidbit-agent-execution-control-loop/docs/MAIL_PROTOCOL.md).
+   - Formally accepted in [`docs/adr/ADR-001-gmail-self-mailbox-transport.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-001-gmail-self-mailbox-transport.md) and [`docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md`](file:////workspace/solidbit-agent-execution-control-loop/docs/adr/ADR-014-v1-transport-authentication-signing-deferred.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P2-04: Materialization of `contracts/architecture-invariants.json`
 1. **Context & Inconsistency:** Canonical governance files referenced `contracts/architecture-invariants.json`, but in some snapshots the file was missing or placed in an uncommitted external location.
-2. **Canonical Resolution:** Materialized the physical contract file [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) conforming to schema `solidbit.architecture-invariants.v1`. Validated clean JSON grammar, containing the complete set of final architecture invariants synchronized with `ARCHITECTURE_INVARIANTS_W0_3.json`.
+2. **Canonical Resolution:** Materialized the physical contract file [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json) conforming to schema `solidbit.architecture-invariants.v1`. Validated clean JSON grammar, containing the complete set of final architecture invariants synchronized with `ARCHITECTURE_INVARIANTS_W0_3.json`.
 3. **Verification Evidence:**
-   - Physical file exists at [`contracts/architecture-invariants.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json). Validated via JSON syntax parser.
-   - Referenced in root [`README.md §4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/README.md) file tree and [`DECISION_BASELINE.md §1.2`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/DECISION_BASELINE.md).
+   - Physical file exists at [`contracts/architecture-invariants.json`](file:////workspace/solidbit-agent-execution-control-loop/contracts/architecture-invariants.json). Validated via JSON syntax parser.
+   - Referenced in root [`README.md §4`](file:////workspace/solidbit-agent-execution-control-loop/README.md) file tree and [`DECISION_BASELINE.md §1.2`](file:////workspace/solidbit-agent-execution-control-loop/DECISION_BASELINE.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ### SB-FREEZE-P2-05: Exclusion of WEBHOOK from V1 Approval Channel Enum
 1. **Context & Inconsistency:** `schemas/approval.schema.json` included `WEBHOOK` in the `channel` enum, contradicting the zero-inbound-listener and no-public-webhook network architecture for V1.
-2. **Canonical Resolution:** Removed `WEBHOOK` from the `channel` enum in [`schemas/approval.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/approval.schema.json). V1 approval channels are strictly constrained to: `["CLI", "GMAIL", "MANUAL"]`. Updated example instances and documentation.
+2. **Canonical Resolution:** Removed `WEBHOOK` from the `channel` enum in [`schemas/approval.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/approval.schema.json). V1 approval channels are strictly constrained to: `["CLI", "GMAIL", "MANUAL"]`. Updated example instances and documentation.
 3. **Verification Evidence:**
-   - Schema [`schemas/approval.schema.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/approval.schema.json) lines 36–40: `"enum": ["CLI", "GMAIL", "MANUAL"]`.
-   - Example instance [`examples/approval.valid.json`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/examples/approval.valid.json) validates cleanly against schema.
-   - Codified in [`docs/AUTHORITY_MODEL.md §4`](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md).
+   - Schema [`schemas/approval.schema.json`](file:////workspace/solidbit-agent-execution-control-loop/schemas/approval.schema.json) lines 36–40: `"enum": ["CLI", "GMAIL", "MANUAL"]`.
+   - Example instance [`examples/approval.valid.json`](file:////workspace/solidbit-agent-execution-control-loop/examples/approval.valid.json) validates cleanly against schema.
+   - Codified in [`docs/AUTHORITY_MODEL.md §4`](file:////workspace/solidbit-agent-execution-control-loop/docs/AUTHORITY_MODEL.md).
 4. **Status:** **RESOLVED (CANONICAL)**.
 
 ---

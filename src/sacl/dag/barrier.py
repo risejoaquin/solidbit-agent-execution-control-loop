@@ -10,10 +10,9 @@ Implements topological barrier rules from CONCURRENCY_AND_LOCKING.md §5.1:
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Tuple
 
-from sacl.contracts.invariants import FailurePolicy, GraphNodeStatus, Verdict
-from sacl.contracts.models import ApprovalToken
+from sacl.contracts.invariants import GraphNodeStatus
 from sacl.dag.models import DagNodeState, DagPhaseState
 
 
@@ -49,7 +48,11 @@ class DependencyBarrier:
                 return False, "WAITING_DEPENDENCIES"
 
             # Check if upstream failed or blocked
-            if up_node.status in {GraphNodeStatus.FAILED.value, GraphNodeStatus.BLOCKED.value, GraphNodeStatus.CANCELLED.value}:
+            if up_node.status in {
+                GraphNodeStatus.FAILED.value,
+                GraphNodeStatus.BLOCKED.value,
+                GraphNodeStatus.CANCELLED.value,
+            }:
                 return False, "BLOCKED_BY_DEPENDENCY"
 
             if not up_node.is_passed():

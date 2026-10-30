@@ -10,20 +10,16 @@ Enforces RESULT_PROTOCOL.md, STATE_MACHINE.md, and ADR-011:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-import hashlib
-import io
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Tuple
 import zipfile
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 from sacl.observability.audit import AuditEventEmitter
 from sacl.observability.events import (
-    ARTIFACT_REGISTERED,
     Severity,
-    create_audit_event,
 )
 from sacl.observability.evidence import EvidenceRegistry, compute_file_sha256
 from sacl.results.models import PackagedResult
@@ -31,11 +27,32 @@ from sacl.results.models import PackagedResult
 logger = logging.getLogger("sacl.results.packager")
 
 # Windows reserved device names
-RESERVED_DEVICE_NAMES = frozenset({
-    "con", "prn", "aux", "nul",
-    "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
-    "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
-})
+RESERVED_DEVICE_NAMES = frozenset(
+    {
+        "con",
+        "prn",
+        "aux",
+        "nul",
+        "com1",
+        "com2",
+        "com3",
+        "com4",
+        "com5",
+        "com6",
+        "com7",
+        "com8",
+        "com9",
+        "lpt1",
+        "lpt2",
+        "lpt3",
+        "lpt4",
+        "lpt5",
+        "lpt6",
+        "lpt7",
+        "lpt8",
+        "lpt9",
+    }
+)
 
 
 def sanitize_archive_entry_path(rel_path: str) -> str:
@@ -44,7 +61,9 @@ def sanitize_archive_entry_path(rel_path: str) -> str:
     # Reject path traversal
     parts = clean.split("/")
     if any(p == ".." for p in parts):
-        raise ValueError(f"Anti-Zip Slip Violation: path '{rel_path}' contains directory traversal '..'")
+        raise ValueError(
+            f"Anti-Zip Slip Violation: path '{rel_path}' contains directory traversal '..'"
+        )
     # Reject drive letters or absolute paths
     if clean.startswith("/") or (len(clean) >= 2 and clean[1] == ":"):
         raise ValueError(f"Anti-Zip Slip Violation: path '{rel_path}' is absolute")

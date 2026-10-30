@@ -7,6 +7,7 @@ Provides unified command dispatch for SACL operations:
 - monitor: Real-time read-only console dashboard
 - package: Packages, verifies, or extracts wave archives
 - preflight: Verifies environment and dirty-root rule
+- ui / dashboard: Launches Apple-grade Decision Shell local web dashboard
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from sacl.cli.package import configure_package_parser, execute_package
 from sacl.cli.preflight import configure_preflight_parser, execute_preflight
 from sacl.cli.status import configure_status_parser, execute_status
 from sacl.cli.stop import configure_stop_parser, execute_stop
+from sacl.cli.ui import configure_ui_parser, execute_ui
 
 VERSION = "1.0.0"
 
@@ -58,14 +60,26 @@ def build_parser() -> argparse.ArgumentParser:
     configure_monitor_parser(monitor_parser)
 
     # 5. package
-    package_parser = subparsers.add_parser("package", help="Create, verify, or extract wave packages")
+    package_parser = subparsers.add_parser(
+        "package", help="Create, verify, or extract wave packages"
+    )
     configure_package_parser(package_parser)
 
     # 6. preflight / doctor
-    preflight_parser = subparsers.add_parser("preflight", help="Validate host environment and clean-root rule")
+    preflight_parser = subparsers.add_parser(
+        "preflight", help="Validate host environment and clean-root rule"
+    )
     configure_preflight_parser(preflight_parser)
     doctor_parser = subparsers.add_parser("doctor", help="Alias for preflight")
     configure_preflight_parser(doctor_parser)
+
+    # 7. ui / dashboard
+    ui_parser = subparsers.add_parser(
+        "ui", help="Launch Apple-grade Decision Shell local web dashboard"
+    )
+    configure_ui_parser(ui_parser)
+    dashboard_parser = subparsers.add_parser("dashboard", help="Alias for ui")
+    configure_ui_parser(dashboard_parser)
 
     return parser
 
@@ -88,6 +102,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return execute_package(args)
     elif cmd in ("preflight", "doctor"):
         return execute_preflight(args)
+    elif cmd in ("ui", "dashboard"):
+        return execute_ui(args)
     else:
         parser.print_help()
         return 1

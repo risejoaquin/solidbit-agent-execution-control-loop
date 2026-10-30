@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import io
-from pathlib import Path
 import sqlite3
 import zipfile
-import pytest
+from pathlib import Path
 
 from sacl.contracts.interfaces import ITransportGateway
 from sacl.contracts.models import MailEnvelope
@@ -30,13 +29,24 @@ class MockAuditLogger:
         self.events: list[tuple[str, dict]] = []
 
     def emit_pubsub_wake_received(self, email_address: str, history_id: str) -> None:
-        self.events.append(("PUBSUB_WAKE_RECEIVED", {"email": email_address, "history_id": history_id}))
+        self.events.append(
+            ("PUBSUB_WAKE_RECEIVED", {"email": email_address, "history_id": history_id})
+        )
 
-    def emit_history_fetched(self, start_history_id: str, end_history_id: str, messages_count: int) -> None:
-        self.events.append(("HISTORY_FETCHED", {"start": start_history_id, "end": end_history_id, "count": messages_count}))
+    def emit_history_fetched(
+        self, start_history_id: str, end_history_id: str, messages_count: int
+    ) -> None:
+        self.events.append(
+            (
+                "HISTORY_FETCHED",
+                {"start": start_history_id, "end": end_history_id, "count": messages_count},
+            )
+        )
 
     def emit_job_ingested(self, job_id: str, run_id: str, package_sha: str) -> None:
-        self.events.append(("JOB_INGESTED", {"job_id": job_id, "run_id": run_id, "sha": package_sha}))
+        self.events.append(
+            ("JOB_INGESTED", {"job_id": job_id, "run_id": run_id, "sha": package_sha})
+        )
 
     def emit_conflict_detected(self, job_id: str, reason: str) -> None:
         self.events.append(("CONFLICT_DETECTED", {"job_id": job_id, "reason": reason}))
@@ -46,9 +56,7 @@ def test_mail_gateway_implements_interface() -> None:
     assert issubclass(MailGateway, ITransportGateway)
 
 
-def test_gateway_startup_catchup(
-    sqlite_memory_db: sqlite3.Connection, tmp_path: Path
-) -> None:
+def test_gateway_startup_catchup(sqlite_memory_db: sqlite3.Connection, tmp_path: Path) -> None:
     adapter = MockGmailApiAdapter()
     subscriber = MockPubSubSubscriber()
     audit_logger = MockAuditLogger()
@@ -159,11 +167,15 @@ def test_gateway_duplicate_and_conflict_handling(
     # 1. Redelivery of identical message -> Duplicate ignored
     new_hid = str(int(adapter.current_history_id) + 1)
     adapter.current_history_id = new_hid
-    adapter.history_records.append({
-        "id": new_hid,
-        "messagesAdded": [{"message": {"id": "msg-orig", "threadId": "t-1"}}],
-    })
-    res_dup = gateway.sync_history(start_history_id=gateway.reconciliation_manager.get_persisted_cursor())
+    adapter.history_records.append(
+        {
+            "id": new_hid,
+            "messagesAdded": [{"message": {"id": "msg-orig", "threadId": "t-1"}}],
+        }
+    )
+    res_dup = gateway.sync_history(
+        start_history_id=gateway.reconciliation_manager.get_persisted_cursor()
+    )
     assert "msg-orig" in res_dup[0]["duplicates_ignored"]
 
     # 2. Conflicting submission -> Divergent hash
@@ -175,7 +187,9 @@ def test_gateway_duplicate_and_conflict_handling(
         subject="[SACL][JOB][v1][W2-JOB] Conflicting",
         attachment_bytes=tampered_zip,
     )
-    res_conflict = gateway.sync_history(start_history_id=gateway.reconciliation_manager.get_persisted_cursor())
+    res_conflict = gateway.sync_history(
+        start_history_id=gateway.reconciliation_manager.get_persisted_cursor()
+    )
     assert "msg-conflict" in res_conflict[0]["conflicts_rejected"]
 
     event_names = [e[0] for e in audit_logger.events]

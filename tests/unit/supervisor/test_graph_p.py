@@ -1,14 +1,12 @@
 """Unit tests for SACL V1 Graph-P persistent supervisor daemon."""
 
-from datetime import datetime, timezone
-import json
-from pathlib import Path
 import sqlite3
+from pathlib import Path
+
 import pytest
 
 from sacl.contracts.exceptions import LeaseAcquisitionError
-from sacl.contracts.invariants import JobSideStatus, JobStatus, Verdict
-from sacl.observability.audit import AuditEventEmitter
+from sacl.contracts.invariants import JobStatus
 from sacl.observability.heartbeat import HeartbeatService
 from sacl.supervisor.dispatcher import JobDispatcher, RunContext
 from sacl.supervisor.graph_p import (
@@ -20,7 +18,9 @@ from sacl.supervisor.lease import LeaseCoordinator
 from sacl.supervisor.lifecycle import JobLifecycleManager
 
 
-def _seed_project(conn: sqlite3.Connection, project_id: str = "proj-gp", root_path: str = "C:/repo") -> None:
+def _seed_project(
+    conn: sqlite3.Connection, project_id: str = "proj-gp", root_path: str = "C:/repo"
+) -> None:
     cursor = conn.cursor()
     cursor.execute(
         """
@@ -123,7 +123,9 @@ def test_supervisor_job_wake_and_dispatch(sqlite_temp_db: sqlite3.Connection):
     supervisor.shutdown()
 
 
-def test_supervisor_4_point_reconciliation_on_process_exit(tmp_path: Path, sqlite_temp_db: sqlite3.Connection):
+def test_supervisor_4_point_reconciliation_on_process_exit(
+    tmp_path: Path, sqlite_temp_db: sqlite3.Connection
+):
     """Verifies that when a worker process exits, Graph-P reconciles deliverables via 4-point protocol."""
     _seed_project(sqlite_temp_db, "proj-recon")
     coordinator = LeaseCoordinator(sqlite_temp_db)
@@ -218,7 +220,9 @@ def test_supervisor_4_point_reconciliation_on_process_exit(tmp_path: Path, sqlit
     supervisor.shutdown()
 
 
-def test_exit_code_zero_alone_is_insufficient_fails_when_deliverable_missing(tmp_path: Path, sqlite_temp_db: sqlite3.Connection):
+def test_exit_code_zero_alone_is_insufficient_fails_when_deliverable_missing(
+    tmp_path: Path, sqlite_temp_db: sqlite3.Connection
+):
     """Verifies that exit code 0 alone does NOT produce success if deliverable report is missing."""
     _seed_project(sqlite_temp_db, "proj-no-evid")
     coordinator = LeaseCoordinator(sqlite_temp_db)
@@ -322,7 +326,9 @@ def test_supervisor_singleton_lease_mutual_exclusion(sqlite_temp_db: sqlite3.Con
     sup1.shutdown()
 
 
-def test_crash_recovery_never_blindly_restart_old_running(tmp_path: Path, sqlite_temp_db: sqlite3.Connection):
+def test_crash_recovery_never_blindly_restart_old_running(
+    tmp_path: Path, sqlite_temp_db: sqlite3.Connection
+):
     """Verifies that cold-start crash recovery never blindly restarts old RUNNING jobs when deliverables missing."""
     _seed_project(sqlite_temp_db, "proj-crash", root_path=str(tmp_path))
     coordinator = LeaseCoordinator(
@@ -358,7 +364,9 @@ def test_crash_recovery_never_blindly_restart_old_running(tmp_path: Path, sqlite
         """,
     )
     # Project lock was left occupied by dead run
-    coordinator.acquire_project_lease("proj-crash", run_id="run-crashed-01", holder_pid=7711, is_mutating=True)
+    coordinator.acquire_project_lease(
+        "proj-crash", run_id="run-crashed-01", holder_pid=7711, is_mutating=True
+    )
     sqlite_temp_db.commit()
 
     # Supervisor starts up with crash recovery enabled
@@ -392,7 +400,9 @@ def test_crash_recovery_never_blindly_restart_old_running(tmp_path: Path, sqlite
     supervisor.shutdown()
 
 
-def test_crash_recovery_finalizes_when_deliverables_exist(tmp_path: Path, sqlite_temp_db: sqlite3.Connection):
+def test_crash_recovery_finalizes_when_deliverables_exist(
+    tmp_path: Path, sqlite_temp_db: sqlite3.Connection
+):
     """Verifies that cold-start crash recovery finalizes completed runs when deliverables exist on disk."""
     _seed_project(sqlite_temp_db, "proj-deliv", root_path=str(tmp_path))
     coordinator = LeaseCoordinator(
@@ -433,7 +443,9 @@ def test_crash_recovery_finalizes_when_deliverables_exist(tmp_path: Path, sqlite
         """,
         (str(report_file),),
     )
-    coordinator.acquire_project_lease("proj-deliv", run_id="run-deliv-01", holder_pid=7722, is_mutating=True)
+    coordinator.acquire_project_lease(
+        "proj-deliv", run_id="run-deliv-01", holder_pid=7722, is_mutating=True
+    )
     sqlite_temp_db.commit()
 
     supervisor = GraphPSupervisor(
@@ -490,7 +502,9 @@ def test_crash_recovery_halts_on_dirty_root(sqlite_temp_db: sqlite3.Connection):
                 'orch', 'C:/dirty/repo', 'runs/r', 'RUNNING', 'NO', '2026-10-07T00:00:00Z')
         """,
     )
-    coordinator.acquire_project_lease("proj-dirty-rec", run_id="run-dirty-rec", holder_pid=7733, is_mutating=True)
+    coordinator.acquire_project_lease(
+        "proj-dirty-rec", run_id="run-dirty-rec", holder_pid=7733, is_mutating=True
+    )
     sqlite_temp_db.commit()
 
     supervisor = GraphPSupervisor(

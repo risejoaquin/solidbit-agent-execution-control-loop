@@ -75,7 +75,7 @@ Every SACL V1 wave execution package must conform to the standard archive layout
 The package root must contain `manifest.json`, which governs execution parameters, identity, target repository, requested operations, and prohibited actions.
 
 ### 3.1 Manifest Schema Conformance
-The manifest must strictly validate against [manifest.schema.json](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/manifest.schema.json).
+The manifest must strictly validate against [manifest.schema.json](file:////workspace/solidbit-agent-execution-control-loop/schemas/manifest.schema.json).
 
 ### 3.2 Canonical Manifest Fields
 
@@ -154,7 +154,7 @@ Archive member paths are inspected before any bytes are written to disk:
 
 SACL V1 packages eliminate hardcoded checkout paths through multi-project abstraction:
 1. The package specifies `project: "solidbit-agent-execution-control-loop"` and `repository: "risejoaquin/solidbit-agent-execution-control-loop"`.
-2. The orchestrator references the local [project-registry.schema.json](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/project-registry.schema.json) to dynamically resolve local filesystem roots, default branches, and worktree directories.
+2. The orchestrator references the local [project-registry.schema.json](file:////workspace/solidbit-agent-execution-control-loop/schemas/project-registry.schema.json) to dynamically resolve local filesystem roots, default branches, and worktree directories.
 3. The inviolable **Local Dirty-Root Rule** is applied dynamically: if the primary checkout of the target repository contains uncommitted human changes, execution is halted immediately (`BLOCKED_DIRTY_ROOT`) without destroying, stashing, or altering human work.
 
 ---
@@ -196,4 +196,4 @@ SACL V1 packages eliminate hardcoded checkout paths through multi-project abstra
 
 Every wave run must conclude with the generation and validation of both canonical summary formats under `runs/<runId>/`:
 1. `SUMMARY.md`: Comprehensive Markdown report containing run status, agent results, file modifications, compatibility findings, and immediate next safe action. Formatted to be rendered in emails and human reviews.
-2. `SUMMARY.json`: Machine-readable JSON summary conforming to [summary.schema.json](file:///C:/Users/Lucilfer/Documents/solidbit-agent-execution-control-loop/schemas/summary.schema.json). Represents `implementation_authorized: false` for freeze waves. The boolean flag serves as recorded evidence of human sign-off, bounded by policy and approvals.
+2. `SUMMARY.json`: Machine-readable JSON summary conforming to [summary.schema.json](file:////workspace/solidbit-agent-execution-control-loop/schemas/summary.schema.json). Represents `implementation_authorized: false` for freeze waves. The boolean flag serves as recorded evidence of human sign-off, bounded by policy and approvals.

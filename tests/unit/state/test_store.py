@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import sqlite3
 import sys
 from pathlib import Path
-from typing import Generator
 
 # Ensure repo root is on sys.path
 _repo_root = Path(__file__).resolve().parents[3]
@@ -16,7 +14,7 @@ import pytest
 
 from sacl.contracts.invariants import JobStatus, Verdict
 from sacl.contracts.models import AuditEvent, HeartbeatRecord
-from sacl.state.store import SqliteStateStore, StateStore
+from sacl.state.store import SqliteStateStore
 from tests.helpers.db_helpers import check_wal_mode, verify_canonical_domains_exist
 
 
@@ -190,7 +188,9 @@ def test_store_lease_facade(migration_sql_path: Path) -> None:
     with SqliteStateStore(":memory:") as store:
         store.initialize_schema(migration_sql_path.parent)
 
-        acq = store.acquire_lease("SUPERVISOR_SINGLETON", holder_id="sup-1", holder_pid=1111, ttl_seconds=20)
+        acq = store.acquire_lease(
+            "SUPERVISOR_SINGLETON", holder_id="sup-1", holder_pid=1111, ttl_seconds=20
+        )
         assert acq is True
 
         renewed = store.renew_lease("SUPERVISOR_SINGLETON", holder_id="sup-1", ttl_seconds=30)
@@ -219,12 +219,22 @@ def test_store_conflict_detection_facade(migration_sql_path: Path) -> None:
             status="RUNNING",
         )
         store.record_agent(
-            agent_id="AG-1", run_id="run-cf", status="RUNNING",
-            prompt_path="p", report_path="r", stdout_path="o", stderr_path="e"
+            agent_id="AG-1",
+            run_id="run-cf",
+            status="RUNNING",
+            prompt_path="p",
+            report_path="r",
+            stdout_path="o",
+            stderr_path="e",
         )
         store.record_agent(
-            agent_id="AG-2", run_id="run-cf", status="RUNNING",
-            prompt_path="p", report_path="r", stdout_path="o", stderr_path="e"
+            agent_id="AG-2",
+            run_id="run-cf",
+            status="RUNNING",
+            prompt_path="p",
+            report_path="r",
+            stdout_path="o",
+            stderr_path="e",
         )
 
         store.record_file_modifications("run-cf", "AG-1", ["shared/file.py", "ag1/unique.py"])

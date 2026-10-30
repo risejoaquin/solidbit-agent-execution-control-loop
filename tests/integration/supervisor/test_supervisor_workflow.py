@@ -11,9 +11,8 @@ Tests:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
+
 import pytest
 
 from sacl.contracts.exceptions import LeaseAcquisitionError

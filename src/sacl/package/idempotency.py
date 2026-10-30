@@ -10,11 +10,11 @@ Enforces at-least-once delivery idempotency per docs/SECURITY_MODEL.md §6:
 from __future__ import annotations
 
 import abc
+import sqlite3
+import threading
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-import sqlite3
-import threading
 from typing import Any, Dict, Optional, Union
 
 
@@ -104,7 +104,10 @@ class InMemoryDuplicateDetector(IDuplicateDetector):
             # Check by nonce
             if nonce and nonce in self._nonces:
                 existing_nonce = self._nonces[nonce]
-                if existing_nonce["archive_sha256"] != archive_sha256 or existing_nonce["job_id"] != job_id:
+                if (
+                    existing_nonce["archive_sha256"] != archive_sha256
+                    or existing_nonce["job_id"] != job_id
+                ):
                     return DuplicateCheckResult(
                         status=DuplicateStatus.NONCE_REPLAY,
                         job_id=job_id,
@@ -230,7 +233,9 @@ class SQLiteDuplicateDetector(IDuplicateDetector):
                     )
                     row = cursor.fetchone()
                     if row:
-                        if row["attachment_sha"] != archive_sha256 or (row["job_id"] and row["job_id"] != job_id):
+                        if row["attachment_sha"] != archive_sha256 or (
+                            row["job_id"] and row["job_id"] != job_id
+                        ):
                             return DuplicateCheckResult(
                                 status=DuplicateStatus.NONCE_REPLAY,
                                 job_id=job_id,

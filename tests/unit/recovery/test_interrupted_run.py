@@ -94,7 +94,9 @@ def test_interrupted_run_halted_by_dirty_primary_root(
 
     # Verify SQLite update
     cursor = populated_db.cursor()
-    cursor.execute("SELECT status, reconciled_verdict, error_summary FROM runs WHERE run_id = 'run-test-01';")
+    cursor.execute(
+        "SELECT status, reconciled_verdict, error_summary FROM runs WHERE run_id = 'run-test-01';"
+    )
     db_run = cursor.fetchone()
     assert db_run["status"] == "BLOCKED"
     assert db_run["reconciled_verdict"] == "BLOCKED"

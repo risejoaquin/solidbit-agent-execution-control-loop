@@ -14,7 +14,7 @@ from typing import Any, Dict, Generator, List, Optional, Union
 
 from sacl.contracts.interfaces import IStateStore
 from sacl.contracts.models import AuditEvent, HeartbeatRecord
-from sacl.state.connection import ConnectionManager, create_connection
+from sacl.state.connection import ConnectionManager
 from sacl.state.heartbeats import HeartbeatManager
 from sacl.state.idempotency import IdempotencyHelper
 from sacl.state.leases import LeaseManager
@@ -277,9 +277,7 @@ class SqliteStateStore(IStateStore):
         """Records process liveness heartbeat."""
         return self.heartbeats.record_heartbeat_model(heartbeat)
 
-    def record_file_modifications(
-        self, run_id: str, agent_id: str, file_paths: List[str]
-    ) -> None:
+    def record_file_modifications(self, run_id: str, agent_id: str, file_paths: List[str]) -> None:
         """Records git files modified by an agent."""
         self.agents.record_file_modifications(run_id, agent_id, file_paths)
 
@@ -322,7 +320,9 @@ class SqliteStateStore(IStateStore):
         limit: int = 100,
     ) -> List[Dict[str, Any]]:
         """Lists structured audit events."""
-        return self.events.list_events(job_id=job_id, run_id=run_id, event_type=event_type, severity=severity, limit=limit)
+        return self.events.list_events(
+            job_id=job_id, run_id=run_id, event_type=event_type, severity=severity, limit=limit
+        )
 
     def register_project(
         self,

@@ -185,7 +185,9 @@ class ProjectRegistryManager:
     def get_concurrency_policy(self, project_id: str) -> ConcurrencyPolicy:
         """Returns concurrency policy for project."""
         project = self.require_project(project_id)
-        return project.concurrency_policy or ConcurrencyPolicy(max_mutating_jobs=1, allow_concurrent_read_only=True)
+        return project.concurrency_policy or ConcurrencyPolicy(
+            max_mutating_jobs=1, allow_concurrent_read_only=True
+        )
 
     def get_worktree_base(self, project_id: str) -> Path:
         """Resolves the allowed worktree provisioning base directory."""

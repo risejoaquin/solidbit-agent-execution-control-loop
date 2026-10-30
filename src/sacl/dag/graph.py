@@ -10,12 +10,12 @@ Validates the ephemeral execution graph specification (solidbit.execution-graph.
 
 from __future__ import annotations
 
-from collections import defaultdict, deque
-from typing import Dict, List, Optional, Set, Tuple
+from collections import deque
+from typing import Dict, List, Set, Tuple
 
 from sacl.contracts.exceptions import ArchitectureInvariantError, ContractValidationError
 from sacl.contracts.invariants import GraphNodeStatus
-from sacl.contracts.models import ExecutionGraph, GraphNode, GraphPhase
+from sacl.contracts.models import ExecutionGraph, GraphNode
 from sacl.dag.models import DagNodeState, DagPhaseState
 
 
@@ -167,7 +167,9 @@ class GraphValidator:
             compiled_edges.append((upstream, downstream))
 
         # 5. Cycle detection using Kahn's algorithm
-        in_degrees: Dict[str, int] = {nid: len(n.upstream_node_ids) for nid, n in compiled_nodes.items()}
+        in_degrees: Dict[str, int] = {
+            nid: len(n.upstream_node_ids) for nid, n in compiled_nodes.items()
+        }
         queue = deque([nid for nid, deg in in_degrees.items() if deg == 0])
         visited_count = 0
 
