@@ -1,0 +1,35 @@
+name: 💡 Feature Request / RFC
+description: Suggest an idea, architectural enhancement, or new capability for SACL
+title: "[RFC]: "
+labels: ["enhancement", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome proposals for enhancing SACL's deterministic control loop, agent sandboxing, and telemetry.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a specific technical challenge or operational friction?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Detailed technical description of how you envision this capability working.
+    validations:
+      required: true
+  - type: dropdown
+    id: contract-impact
+    attributes:
+      label: Contract Impact Assessment
+      description: Does this proposal interact with frozen contracts?
+      options:
+        - "No impact on canonical frozen contracts (DR-*)"
+        - "Requires review of DR-IDEM-001 (Idempotency)"
+        - "Requires review of DR-INV-001 (Inventory)"
+        - "Requires review of DR-PAY-001 (Ledger)"
+    validations:
+      required: true

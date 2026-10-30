@@ -6,14 +6,12 @@ Binding: JOB_ID + ACTION + SCOPE + REQUEST_ID + expires_at
 
 from __future__ import annotations
 
-import json
-import sqlite3
 import uuid
 from typing import Any, Dict, List, Optional, Union
 
-from sacl.contracts.invariants import ApprovalChannel, ApprovalDecision, ApprovalStatus
-from sacl.contracts.models import ApprovalToken, Approver
 from sacl.contracts.exceptions import ApprovalExpiredError
+from sacl.contracts.invariants import ApprovalChannel, ApprovalDecision
+from sacl.contracts.models import ApprovalToken, Approver
 from sacl.state.exceptions import EntityNotFoundError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import json_dumps_safe, json_loads_safe, utc_now
@@ -63,13 +61,17 @@ class ApprovalRepository(BaseRepository):
         if decision not in (ApprovalDecision.APPROVED.value, ApprovalDecision.REJECTED.value):
             raise ValueError(f"Decision must be APPROVED or REJECTED, got '{decision}'")
 
-        existing = self.fetchone_dict("SELECT * FROM approvals WHERE request_id = ?;", (request_id,))
+        existing = self.fetchone_dict(
+            "SELECT * FROM approvals WHERE request_id = ?;", (request_id,)
+        )
         if not existing:
             raise EntityNotFoundError(f"Approval request '{request_id}' not found")
 
         now = decided_at or utc_now()
         if existing["expires_at"] < now:
-            self.execute("UPDATE approvals SET status = 'EXPIRED' WHERE request_id = ?;", (request_id,))
+            self.execute(
+                "UPDATE approvals SET status = 'EXPIRED' WHERE request_id = ?;", (request_id,)
+            )
             self.commit()
             raise ApprovalExpiredError(request_id, existing["expires_at"])
 

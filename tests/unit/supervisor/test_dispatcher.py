@@ -1,10 +1,8 @@
 """Unit tests for SACL V1 job dispatcher, priority queue, and concurrency."""
 
 import sqlite3
-import pytest
 
-from sacl.contracts.invariants import JobSideStatus, JobStatus
-from sacl.observability.audit import AuditEventEmitter
+from sacl.contracts.invariants import JobStatus
 from sacl.observability.errors import ErrorRecorder
 from sacl.supervisor.dispatcher import JobDispatcher, RunContext
 from sacl.supervisor.lease import LeaseCoordinator
@@ -58,8 +56,12 @@ def test_project_concurrency_lock_blocks_second_mutating_job(sqlite_temp_db: sql
     dispatcher = JobDispatcher(sqlite_temp_db, coordinator, lifecycle, executor_launcher=lambda ctx: 7701)
 
     # Queue 2 jobs for proj-alpha and 1 job for proj-beta
-    lifecycle.create_job("job-alpha-1", project_id="proj-alpha", status=JobStatus.QUEUED, priority=10)
-    lifecycle.create_job("job-alpha-2", project_id="proj-alpha", status=JobStatus.QUEUED, priority=5)
+    lifecycle.create_job(
+        "job-alpha-1", project_id="proj-alpha", status=JobStatus.QUEUED, priority=10
+    )
+    lifecycle.create_job(
+        "job-alpha-2", project_id="proj-alpha", status=JobStatus.QUEUED, priority=5
+    )
     lifecycle.create_job("job-beta-1", project_id="proj-beta", status=JobStatus.QUEUED, priority=10)
 
     # Poll and dispatch all eligible

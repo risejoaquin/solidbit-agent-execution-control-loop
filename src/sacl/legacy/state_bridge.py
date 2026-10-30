@@ -13,12 +13,12 @@ the legacy orchestrator to be altered.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 from sacl.contracts.invariants import AgentStatus, Verdict
 from sacl.legacy.compatibility import extract_legacy_result, verify_legacy_process
@@ -137,7 +137,6 @@ class LegacyStateBridge:
         state_file = s_dir / f"{agent_id}.json"
         report_file = r_dir / f"{agent_id}.REPORT.md"
         stdout_file = l_dir / f"{agent_id}.stdout.log"
-        stderr_file = l_dir / f"{agent_id}.stderr.log"
 
         state = self.read_agent_state(state_file) or {}
         pid = state.get("pid")
@@ -181,7 +180,11 @@ class LegacyStateBridge:
             reconciled_status = AgentStatus.STOPPED.value
         elif recorded_status == AgentStatus.TIMEOUT_RUNNING.value:
             reconciled_status = AgentStatus.TIMEOUT_RUNNING.value
-        elif report_exists and verdict in {Verdict.PASS.value, Verdict.PASS_REPORT_PRESENT.value, "DONE_REVIEW_REQUIRED"}:
+        elif report_exists and verdict in {
+            Verdict.PASS.value,
+            Verdict.PASS_REPORT_PRESENT.value,
+            "DONE_REVIEW_REQUIRED",
+        }:
             reconciled_status = AgentStatus.COMPLETE.value
         elif exit_code == 0 and report_exists:
             reconciled_status = AgentStatus.COMPLETE.value

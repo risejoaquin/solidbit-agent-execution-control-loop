@@ -44,8 +44,8 @@ from sacl.transport.gmail_adapter import (
 )
 from sacl.transport.oauth import (
     CREDENTIAL_TARGET_NAME,
-    IOAuth2CredentialProvider,
     InMemoryOAuth2CredentialProvider,
+    IOAuth2CredentialProvider,
     WindowsCredentialManagerProvider,
 )
 from sacl.transport.outbox import OutboxDispatcher

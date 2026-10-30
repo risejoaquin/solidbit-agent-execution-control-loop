@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
-
 from sacl.contracts.invariants import Verdict
 from sacl.worker.reconciliation_hook import WorkerReconciler
 
@@ -49,7 +47,9 @@ def test_reconciliation_hook_legacy_report_present_fallback(tmp_path: Path):
     reconciler = WorkerReconciler()
 
     rep_p = tmp_path / "AG-ARCH.md"
-    rep_p.write_text("# Architecture Documentation\n\nCompleted without formal marker.\n", encoding="utf-8")
+    rep_p.write_text(
+        "# Architecture Documentation\n\nCompleted without formal marker.\n", encoding="utf-8"
+    )
 
     out_p = tmp_path / "AG-ARCH.stdout.log"
     out_p.write_text("Output log content.\n", encoding="utf-8")

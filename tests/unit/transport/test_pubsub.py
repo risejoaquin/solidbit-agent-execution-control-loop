@@ -3,19 +3,20 @@
 from __future__ import annotations
 
 import json
+
 import pytest
 
 from sacl.transport.exceptions import TransportError
 from sacl.transport.pubsub import (
     MockPubSubSubscriber,
-    PubSubMessage,
-    WakeSignal,
     parse_wake_signal,
 )
 
 
 def test_parse_wake_signal_camel_case() -> None:
-    data = json.dumps({"emailAddress": "uniquedraken@gmail.com", "historyId": "105504"}).encode("utf-8")
+    data = json.dumps({"emailAddress": "uniquedraken@gmail.com", "historyId": "105504"}).encode(
+        "utf-8"
+    )
     sig = parse_wake_signal(data, ack_id="ack-1", message_id="msg-1")
     assert sig.email_address == "uniquedraken@gmail.com"
     assert sig.history_id == "105504"
@@ -24,7 +25,9 @@ def test_parse_wake_signal_camel_case() -> None:
 
 
 def test_parse_wake_signal_snake_case() -> None:
-    data = json.dumps({"email_address": "uniquedraken@gmail.com", "history_id": "200000"}).encode("utf-8")
+    data = json.dumps({"email_address": "uniquedraken@gmail.com", "history_id": "200000"}).encode(
+        "utf-8"
+    )
     sig = parse_wake_signal(data)
     assert sig.email_address == "uniquedraken@gmail.com"
     assert sig.history_id == "200000"
@@ -40,12 +43,8 @@ def test_parse_wake_signal_invalid_payload() -> None:
 
 def test_mock_pubsub_subscriber_pull_and_acknowledge() -> None:
     subscriber = MockPubSubSubscriber()
-    subscriber.publish_mock_wake_signal(
-        email_address="uniquedraken@gmail.com", history_id="105504"
-    )
-    subscriber.publish_mock_wake_signal(
-        email_address="uniquedraken@gmail.com", history_id="105505"
-    )
+    subscriber.publish_mock_wake_signal(email_address="uniquedraken@gmail.com", history_id="105504")
+    subscriber.publish_mock_wake_signal(email_address="uniquedraken@gmail.com", history_id="105505")
 
     signals = subscriber.pull_wake_signals(max_messages=10)
     assert len(signals) == 2

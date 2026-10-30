@@ -7,10 +7,9 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
 import sqlite3
 import sys
-from typing import List, Optional
+from pathlib import Path
 
 from sacl.legacy.operator import LegacyOperatorExperience
 
@@ -76,7 +75,10 @@ def execute_launch(args: argparse.Namespace) -> int:
     """Executes the launch command."""
     pkg_path = args.package or args.package_opt
     if not pkg_path:
-        print("[ERROR] Missing required wave package path. Provide <package> or --package <path>.", file=sys.stderr)
+        print(
+            "[ERROR] Missing required wave package path. Provide <package> or --package <path>.",
+            file=sys.stderr,
+        )
         return 1
 
     # Connect to db if specified
@@ -119,7 +121,10 @@ def execute_launch(args: argparse.Namespace) -> int:
 
     except PermissionError as pe:
         print(f"\n[SECURITY REFUSAL] {pe}", file=sys.stderr)
-        print("Pass --bypass-acknowledged if you are authorized to run autonomous agent workers.\n", file=sys.stderr)
+        print(
+            "Pass --bypass-acknowledged if you are authorized to run autonomous agent workers.\n",
+            file=sys.stderr,
+        )
         return 2
     except Exception as exc:
         print(f"\n[EXECUTION ERROR] {exc}\n", file=sys.stderr)

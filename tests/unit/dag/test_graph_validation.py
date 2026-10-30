@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from sacl.contracts.exceptions import ArchitectureInvariantError, ContractValidationError
-from sacl.contracts.models import ExecutionGraph, GraphNode, GraphPhase
+from sacl.contracts.models import ExecutionGraph, GraphPhase
 from sacl.dag.graph import GraphValidator
 
 

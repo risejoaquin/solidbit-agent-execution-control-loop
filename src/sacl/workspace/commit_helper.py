@@ -12,7 +12,11 @@ from typing import Any, Dict, List, Optional
 from sacl.workspace.dirty_root import check_clean_root
 from sacl.workspace.exceptions import WorkspaceError
 from sacl.workspace.git_runner import GitRunner
-from sacl.workspace.guards import assert_branch_allowed, assert_valid_repository, normalize_branch_name
+from sacl.workspace.guards import (
+    assert_branch_allowed,
+    assert_valid_repository,
+    normalize_branch_name,
+)
 
 DEFAULT_AUTHOR_NAME = "SACL Agent"
 DEFAULT_AUTHOR_EMAIL = "sacl-agent@solidbit.local"
@@ -95,7 +99,7 @@ def stage_and_commit(
         "GIT_COMMITTER_EMAIL": author_email,
     }
 
-    commit_res = runner.run(
+    runner.run(
         ["commit", "-m", message.strip()],
         cwd=worktree_path,
         extra_env=env,

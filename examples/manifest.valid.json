@@ -5,8 +5,8 @@
   "project": "solidbit-agent-execution-control-loop",
   "repository": "risejoaquin/solidbit-agent-execution-control-loop",
   "mode": "architecture_freeze_and_repo_bootstrap",
-  "source_orchestrator": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce-Orchestrator",
-  "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+  "source_orchestrator": "/workspace/Stable-Ecommerce-Orchestrator",
+  "target_local_repo": "/workspace/solidbit-agent-execution-control-loop",
   "agents": [
     "AG-PROTOCOL-MAT",
     "AG-ARCH-MAT",

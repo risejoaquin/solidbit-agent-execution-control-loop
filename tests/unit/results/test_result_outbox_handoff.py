@@ -8,10 +8,10 @@ Adheres to:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
 import sqlite3
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
+
 import pytest
 
 from sacl.results.outbox import (
@@ -121,7 +121,9 @@ def test_dispatch_outbox_item_success(seeded_db: sqlite3.Connection) -> None:
 
     # Verify mail_outbox row transitioned to SENT
     cursor = seeded_db.cursor()
-    cursor.execute("SELECT status, sent_at, attempts FROM mail_outbox WHERE outbox_id = ?", (outbox_id,))
+    cursor.execute(
+        "SELECT status, sent_at, attempts FROM mail_outbox WHERE outbox_id = ?", (outbox_id,)
+    )
     row = cursor.fetchone()
     assert row[0] == "SENT"
     assert row[1] is not None
@@ -170,7 +172,9 @@ def test_dispatch_outbox_item_failure_recorded(seeded_db: sqlite3.Connection) ->
     )
 
     failing_dispatcher = MagicMock()
-    failing_dispatcher.dispatch_outbox_reply.side_effect = RuntimeError("Gmail API 503 Backend Unavailable")
+    failing_dispatcher.dispatch_outbox_reply.side_effect = RuntimeError(
+        "Gmail API 503 Backend Unavailable"
+    )
 
     res = handoff.dispatch_outbox_item(
         outbox_id=outbox_id,

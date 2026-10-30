@@ -2,11 +2,11 @@
 
 import os
 import sqlite3
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from sacl.contracts.exceptions import LeaseAcquisitionError
-from sacl.contracts.models import LeaseRecord
 from sacl.observability.audit import AuditEventEmitter
 from sacl.supervisor.lease import LeaseCoordinator
 
@@ -32,7 +32,9 @@ def test_acquire_and_get_singleton_lease(sqlite_temp_db: sqlite3.Connection):
 
     # Check compatibility table supervisor_locks is also populated
     cursor = sqlite_temp_db.cursor()
-    cursor.execute("SELECT lock_name, run_id, holder_pid FROM supervisor_locks WHERE lock_name = 'SUPERVISOR_SINGLETON'")
+    cursor.execute(
+        "SELECT lock_name, run_id, holder_pid FROM supervisor_locks WHERE lock_name = 'SUPERVISOR_SINGLETON'"
+    )
     lock_row = cursor.fetchone()
     assert lock_row is not None
     assert lock_row["run_id"] == "sup-test-1"
@@ -105,7 +107,9 @@ def test_renew_and_release_singleton_lease(sqlite_temp_db: sqlite3.Connection):
     """Verifies renewing and releasing the supervisor singleton lease."""
     coordinator = LeaseCoordinator(sqlite_temp_db)
 
-    assert coordinator.acquire_singleton_lease("sup-renew", holder_pid=33333, ttl_seconds=30) is True
+    assert (
+        coordinator.acquire_singleton_lease("sup-renew", holder_pid=33333, ttl_seconds=30) is True
+    )
 
     # Renew lease
     assert coordinator.renew_singleton_lease("sup-renew", holder_pid=33333, ttl_seconds=60) is True
@@ -131,39 +135,51 @@ def test_project_lease_concurrency_baseline(sqlite_temp_db: sqlite3.Connection):
     )
 
     # Job 1 on project-alpha acquires mutating lock
-    assert coordinator.acquire_project_lease(
-        project_id="project-alpha",
-        run_id="run-001",
-        holder_pid=5001,
-        is_mutating=True,
-    ) is True
+    assert (
+        coordinator.acquire_project_lease(
+            project_id="project-alpha",
+            run_id="run-001",
+            holder_pid=5001,
+            is_mutating=True,
+        )
+        is True
+    )
 
     # Job 2 on project-alpha cannot acquire mutating lock
-    assert coordinator.acquire_project_lease(
-        project_id="project-alpha",
-        run_id="run-002",
-        holder_pid=5002,
-        is_mutating=True,
-    ) is False
+    assert (
+        coordinator.acquire_project_lease(
+            project_id="project-alpha",
+            run_id="run-002",
+            holder_pid=5002,
+            is_mutating=True,
+        )
+        is False
+    )
 
     # Job 3 on DIFFERENT project-beta CAN acquire mutating lock
-    assert coordinator.acquire_project_lease(
-        project_id="project-beta",
-        run_id="run-003",
-        holder_pid=5003,
-        is_mutating=True,
-    ) is True
+    assert (
+        coordinator.acquire_project_lease(
+            project_id="project-beta",
+            run_id="run-003",
+            holder_pid=5003,
+            is_mutating=True,
+        )
+        is True
+    )
 
     # Release project-alpha
     assert coordinator.release_project_lease("project-alpha", run_id="run-001") is True
 
     # Now Job 2 can acquire project-alpha
-    assert coordinator.acquire_project_lease(
-        project_id="project-alpha",
-        run_id="run-002",
-        holder_pid=5002,
-        is_mutating=True,
-    ) is True
+    assert (
+        coordinator.acquire_project_lease(
+            project_id="project-alpha",
+            run_id="run-002",
+            holder_pid=5002,
+            is_mutating=True,
+        )
+        is True
+    )
 
 
 def test_stale_project_lease_reclaimed(sqlite_temp_db: sqlite3.Connection):
@@ -185,12 +201,15 @@ def test_stale_project_lease_reclaimed(sqlite_temp_db: sqlite3.Connection):
     sqlite_temp_db.commit()
 
     # New run claims project lock; successfully reclaims
-    assert coordinator.acquire_project_lease(
-        project_id="stale-proj",
-        run_id="new-run",
-        holder_pid=6002,
-        is_mutating=True,
-    ) is True
+    assert (
+        coordinator.acquire_project_lease(
+            project_id="stale-proj",
+            run_id="new-run",
+            holder_pid=6002,
+            is_mutating=True,
+        )
+        is True
+    )
 
     record = coordinator.get_project_lease("stale-proj")
     assert record.holder_id == "new-run"
@@ -199,7 +218,6 @@ def test_stale_project_lease_reclaimed(sqlite_temp_db: sqlite3.Connection):
 
 def test_default_process_alive_check_current_process_is_non_destructive():
     """The liveness probe must never signal/terminate the process it inspects."""
-    import os
 
     from sacl.supervisor.lease import default_process_alive_check
 

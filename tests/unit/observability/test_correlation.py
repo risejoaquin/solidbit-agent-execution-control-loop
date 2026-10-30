@@ -1,6 +1,7 @@
 """Unit tests for SACL V1 correlation ID and execution context management."""
 
 import concurrent.futures
+
 from sacl.observability.correlation import (
     CorrelationContext,
     clear_current_correlation,
@@ -180,4 +181,3 @@ def test_headers_case_insensitivity_and_defaults():
     empty_parsed = CorrelationContext.from_headers({})
     assert len(empty_parsed.trace_id) == 32
     assert empty_parsed.job_id is None
-

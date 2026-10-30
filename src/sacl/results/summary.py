@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from sacl.contracts.models import AgentResult, RunSummary
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
@@ -134,15 +134,19 @@ class DualSummaryGenerator:
         for ag in summary.agent_results:
             exit_str = str(ag.exitCode) if ag.exitCode is not None else "N/A"
             rep_str = "YES" if ag.reportExists else "NO"
-            lines.append(f"| `{ag.agent}` | `{ag.status}` | `{exit_str}` | `{rep_str}` | **`{ag.verdict}`** |")
+            lines.append(
+                f"| `{ag.agent}` | `{ag.status}` | `{exit_str}` | `{rep_str}` | **`{ag.verdict}`** |"
+            )
 
-        lines.extend([
-            "",
-            "---",
-            "",
-            "## 3. Cross-Agent File Collisions & Modifications",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "",
+                "## 3. Cross-Agent File Collisions & Modifications",
+                "",
+            ]
+        )
 
         if summary.conflicting_files:
             lines.append("> [!WARNING] File collisions detected across parallel agent branches!")
@@ -152,15 +156,19 @@ class DualSummaryGenerator:
             for cf in summary.conflicting_files:
                 lines.append(f"| `{cf}` |")
         else:
-            lines.append("No cross-agent file conflicts detected across parallel branches. Branch integration safe.")
+            lines.append(
+                "No cross-agent file conflicts detected across parallel branches. Branch integration safe."
+            )
 
-        lines.extend([
-            "",
-            "---",
-            "",
-            "## 4. Deliverables Created",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "",
+                "## 4. Deliverables Created",
+                "",
+            ]
+        )
 
         if summary.documents_created:
             lines.append(f"**Documents ({len(summary.documents_created)}):**")
@@ -186,14 +194,16 @@ class DualSummaryGenerator:
                 lines.append(f"- {finding}")
             lines.append("")
 
-        lines.extend([
-            "---",
-            "",
-            "## 5. Immediate Next Safe Action",
-            "",
-            f"**`{summary.next_safe_action}`**",
-            "",
-        ])
+        lines.extend(
+            [
+                "---",
+                "",
+                "## 5. Immediate Next Safe Action",
+                "",
+                f"**`{summary.next_safe_action}`**",
+                "",
+            ]
+        )
 
         return "\n".join(lines)
 

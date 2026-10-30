@@ -9,11 +9,11 @@ under the identical run_id.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 import sqlite3
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
-from sacl.approval.manager import BoundedApprovalManager
 from sacl.approval.models import ApprovalToken, Approver
 from sacl.approval.resumption import SameRunResumptionManager
 from sacl.approval.validator import format_iso_datetime
@@ -22,7 +22,7 @@ from sacl.contracts.exceptions import (
     HardDenyViolation,
     PolicyDeniedError,
 )
-from sacl.contracts.invariants import ApprovalChannel, JobSideStatus
+from sacl.contracts.invariants import ApprovalChannel
 
 
 @pytest.fixture
@@ -103,7 +103,9 @@ def test_same_run_resumption_approved_success(
     assert cursor.fetchone()[0] == "RUNNING"
 
     # Verify waiting agent unpaused to READY
-    cursor.execute("SELECT status FROM agents WHERE run_id = ? AND agent_id = 'AG-WORKER-1'", (run_id,))
+    cursor.execute(
+        "SELECT status FROM agents WHERE run_id = ? AND agent_id = 'AG-WORKER-1'", (run_id,)
+    )
     assert cursor.fetchone()[0] == "READY"
 
     # Verify exactly 1 run exists in runs table (no orphan runs created)
@@ -143,7 +145,9 @@ def test_same_run_resumption_rejected_blocks_run(
     cursor.execute("SELECT status FROM runs WHERE run_id = ?", (run_id,))
     assert cursor.fetchone()[0] == "BLOCKED"
 
-    cursor.execute("SELECT status FROM agents WHERE run_id = ? AND agent_id = 'AG-WORKER-1'", (run_id,))
+    cursor.execute(
+        "SELECT status FROM agents WHERE run_id = ? AND agent_id = 'AG-WORKER-1'", (run_id,)
+    )
     assert cursor.fetchone()[0] == "BLOCKED"
 
 

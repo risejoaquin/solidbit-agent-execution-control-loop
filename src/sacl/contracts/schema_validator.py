@@ -9,11 +9,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import jsonschema
 from jsonschema.validators import Draft202012Validator
 
 from sacl.contracts.exceptions import ContractValidationError
-
 
 # Map schema identifiers and filenames
 SCHEMA_FILES: Dict[str, str] = {
@@ -47,7 +45,13 @@ def find_schemas_dir(explicit_path: Optional[Path] = None) -> Path:
 
     # Search candidates from current file or cwd
     current = Path(__file__).resolve()
-    for parent in [current.parent, current.parents[1], current.parents[2], current.parents[3], Path.cwd()]:
+    for parent in [
+        current.parent,
+        current.parents[1],
+        current.parents[2],
+        current.parents[3],
+        Path.cwd(),
+    ]:
         candidate = parent / "schemas"
         if candidate.exists() and (candidate / "manifest.schema.json").exists():
             return candidate
@@ -78,7 +82,9 @@ class SchemaValidator:
 
         schema_file = self.schemas_dir / filename
         if not schema_file.exists():
-            raise FileNotFoundError(f"Schema file '{filename}' does not exist in {self.schemas_dir}")
+            raise FileNotFoundError(
+                f"Schema file '{filename}' does not exist in {self.schemas_dir}"
+            )
 
         with open(schema_file, "r", encoding="utf-8") as f:
             schema_data = json.load(f)
@@ -170,7 +176,9 @@ def get_default_validator() -> SchemaValidator:
     return _default_validator
 
 
-def validate_payload(schema_key: str, instance: Dict[str, Any], schemas_dir: Optional[Path] = None) -> None:
+def validate_payload(
+    schema_key: str, instance: Dict[str, Any], schemas_dir: Optional[Path] = None
+) -> None:
     """Convenience function to validate a payload against a schema."""
     if schemas_dir:
         SchemaValidator(schemas_dir).validate(schema_key, instance)

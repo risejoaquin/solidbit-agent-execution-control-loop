@@ -5,8 +5,6 @@ Conforms to docs/OBSERVABILITY.md and db/migrations/001_init.sql (events / audit
 
 from __future__ import annotations
 
-import json
-from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, FrozenSet, Optional

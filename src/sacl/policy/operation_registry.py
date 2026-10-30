@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from sacl.contracts.exceptions import ContractValidationError, PolicyDeniedError
+from sacl.contracts.exceptions import PolicyDeniedError
 from sacl.contracts.invariants import ALLOWED_PROCESS_IMAGES
 from sacl.contracts.models import ExecutionProfile, OperationRegistry, OperationRegistryEntry
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
@@ -89,7 +89,9 @@ class OperationRegistryManager:
             )
         return op
 
-    def resolve_handler_path(self, operation_id: str, custom_base_dir: Optional[Union[str, Path]] = None) -> Path:
+    def resolve_handler_path(
+        self, operation_id: str, custom_base_dir: Optional[Union[str, Path]] = None
+    ) -> Path:
         """Resolves absolute path to handler file on disk."""
         op = self.resolve_operation(operation_id)
         base = Path(custom_base_dir).resolve() if custom_base_dir else self._base_dir

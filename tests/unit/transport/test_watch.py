@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import datetime
 import sqlite3
-import pytest
 
 from sacl.transport.gmail_adapter import MockGmailApiAdapter
 from sacl.transport.watch import (
@@ -46,7 +45,9 @@ def test_check_and_renew_watch_lifecycle(sqlite_memory_db: sqlite3.Connection) -
     assert renewed is True
 
     # 2. Fresh record (expires in ~7 days) -> does NOT renew
-    renewed_again = manager.check_and_renew_watch("projects/p/topics/t", renewal_threshold_seconds=86400)
+    renewed_again = manager.check_and_renew_watch(
+        "projects/p/topics/t", renewal_threshold_seconds=86400
+    )
     assert renewed_again is False
 
     # 3. Simulate expiring lease (e.g. expires in 2 hours, threshold is 24 hours)
@@ -58,7 +59,9 @@ def test_check_and_renew_watch_lifecycle(sqlite_memory_db: sqlite3.Connection) -
     )
     sqlite_memory_db.commit()
 
-    renewed_expiring = manager.check_and_renew_watch("projects/p/topics/t", renewal_threshold_seconds=86400)
+    renewed_expiring = manager.check_and_renew_watch(
+        "projects/p/topics/t", renewal_threshold_seconds=86400
+    )
     assert renewed_expiring is True
 
 

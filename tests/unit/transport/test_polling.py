@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import io
-from pathlib import Path
 import sqlite3
 import zipfile
-import pytest
+from pathlib import Path
 
 from sacl.transport.gmail_adapter import MockGmailApiAdapter
 from sacl.transport.polling import FallbackPoller
@@ -77,9 +76,7 @@ def test_fallback_poller_ingests_unhandled_messages(
     assert res2.unhandled_messages_processed == 0
 
 
-def test_recover_from_stale_cursor(
-    sqlite_memory_db: sqlite3.Connection, tmp_path: Path
-) -> None:
+def test_recover_from_stale_cursor(sqlite_memory_db: sqlite3.Connection, tmp_path: Path) -> None:
     adapter = MockGmailApiAdapter()
     recon = HistoryReconciliationManager(
         gmail_adapter=adapter, db_conn=sqlite_memory_db, staging_root=tmp_path

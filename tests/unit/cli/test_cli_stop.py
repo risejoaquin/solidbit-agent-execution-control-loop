@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
 import shutil
 import sqlite3
 import subprocess
+from datetime import datetime, timezone
+from pathlib import Path
+
 import pytest
 
 from sacl.cli.main import build_parser
@@ -83,7 +84,16 @@ def test_sacl_stop_script_pid_parameter_binding():
     repo_root = Path(__file__).resolve().parents[3]
     script_path = repo_root / "scripts" / "sacl-stop.ps1"
     res = subprocess.run(
-        [powershell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script_path), "-Pid", "99999999"],
+        [
+            powershell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script_path),
+            "-Pid",
+            "99999999",
+        ],
         capture_output=True,
         text=True,
     )
@@ -92,4 +102,3 @@ def test_sacl_stop_script_pid_parameter_binding():
     assert "Cannot overwrite variable Pid" not in res.stderr
     assert "No se puede sobrescribir la variable Pid" not in res.stderr
     assert "SACL SAFE STOP CONTROLLER" in res.stdout
-

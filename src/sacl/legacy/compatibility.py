@@ -10,30 +10,27 @@ Preserves battle-tested mechanics from Stable-Ecommerce-Orchestrator:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-import os
-from pathlib import Path
 import re
 import subprocess
-import sys
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from pathlib import Path
+from typing import Optional, Tuple, Union
 
 from sacl.contracts.invariants import (
     ALLOWED_PROCESS_IMAGES,
     PID_DRIFT_TOLERANCE_SECONDS,
-    AgentStatus,
     Verdict,
 )
 from sacl.worker.process import (
     IProcessInspector,
-    OSProcessInspector,
-    safe_stop_agent_process,
     verify_agent_process_running,
 )
 
 # Canonical regex patterns proven in legacy Stable-Ecommerce-Orchestrator
 LEGACY_RESULT_PATTERNS = [
-    re.compile(r"^\s*(?:AGENT_[A-Z0-9_-]+_RESULT|RESULT|FINAL_RESULT)\s*=\s*(PASS|PARTIAL|BLOCKED)", re.MULTILINE),
+    re.compile(
+        r"^\s*(?:AGENT_[A-Z0-9_-]+_RESULT|RESULT|FINAL_RESULT)\s*=\s*(PASS|PARTIAL|BLOCKED)",
+        re.MULTILINE,
+    ),
     re.compile(r"(?m)^\s*WAVE3_RESULT\s*=\s*(PASS|PARTIAL|BLOCKED)\s*$"),
     re.compile(r"^\s*W0_RESULT\s*=\s*(PASS|PARTIAL|BLOCKED)\s*$", re.MULTILINE),
 ]

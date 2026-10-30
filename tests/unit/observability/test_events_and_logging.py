@@ -3,6 +3,7 @@
 import json
 import logging
 from pathlib import Path
+
 import pytest
 
 from sacl.observability.correlation import correlation_scope
@@ -14,7 +15,6 @@ from sacl.observability.events import (
     PROCESS_SPAWNED,
     RUN_COMPLETED,
     RUN_FAILED,
-    AuditEventType,
     Severity,
     create_audit_event,
 )
@@ -187,4 +187,3 @@ def test_structured_logger_exception_and_fatal():
     logger.fatal("Unrecoverable host system failure", audit=True)
     assert len(captured) == 2
     assert captured[1]["severity"] == "FATAL"
-

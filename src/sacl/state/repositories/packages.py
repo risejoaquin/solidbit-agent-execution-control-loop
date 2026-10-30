@@ -5,17 +5,14 @@ Domain 3: Declarative execution package ingestion records (ADR-004, ADR-006).
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, Optional, Union
 
-from sacl.state.exceptions import EntityNotFoundError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import json_dumps_safe, json_loads_safe, normalize_repo_path, utc_now
 
-VALID_PACKAGE_STATUSES = frozenset({
-    'RECEIVED', 'AUTHENTICATED', 'VALIDATED',
-    'REJECTED', 'QUARANTINED', 'PROCESSED'
-})
+VALID_PACKAGE_STATUSES = frozenset(
+    {"RECEIVED", "AUTHENTICATED", "VALIDATED", "REJECTED", "QUARANTINED", "PROCESSED"}
+)
 
 
 class PackageRepository(BaseRepository):
@@ -53,7 +50,19 @@ class PackageRepository(BaseRepository):
                 storage_path = excluded.storage_path,
                 status = excluded.status;
         """
-        self.execute(sql, (package_id, job_id, project_id, archive_sha256, manifest_str, norm_storage, now, status))
+        self.execute(
+            sql,
+            (
+                package_id,
+                job_id,
+                project_id,
+                archive_sha256,
+                manifest_str,
+                norm_storage,
+                now,
+                status,
+            ),
+        )
         self.commit()
         return self.get_package(package_id)  # type: ignore[return-value]
 

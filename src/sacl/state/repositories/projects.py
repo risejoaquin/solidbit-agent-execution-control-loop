@@ -6,7 +6,6 @@ from hardcoded repository paths (ADR-009).
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, List, Optional, Union
 
 from sacl.state.repositories.base import BaseRepository
@@ -48,7 +47,9 @@ class ProjectRepository(BaseRepository):
                 policy_override_json = excluded.policy_override_json,
                 updated_at = excluded.updated_at;
         """
-        self.execute(sql, (project_id, name, repo_url, norm_root, default_branch, policy_json, now, now))
+        self.execute(
+            sql, (project_id, name, repo_url, norm_root, default_branch, policy_json, now, now)
+        )
         self.commit()
         return self.get_project(project_id)  # type: ignore[return-value]
 
@@ -68,9 +69,15 @@ class ProjectRepository(BaseRepository):
             r["policy_override"] = json_loads_safe(r.get("policy_override_json"))
         return rows
 
-    def update_policy_override(self, project_id: str, policy_override: Union[Dict[str, Any], str]) -> None:
+    def update_policy_override(
+        self, project_id: str, policy_override: Union[Dict[str, Any], str]
+    ) -> None:
         """Updates project-specific policy configuration override."""
-        policy_json = json_dumps_safe(policy_override) if isinstance(policy_override, dict) else policy_override
+        policy_json = (
+            json_dumps_safe(policy_override)
+            if isinstance(policy_override, dict)
+            else policy_override
+        )
         now = utc_now()
         sql = "UPDATE projects SET policy_override_json = ?, updated_at = ? WHERE project_id = ?;"
         self.execute(sql, (policy_json, now, project_id))

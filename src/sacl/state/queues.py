@@ -7,15 +7,14 @@ priority scheduling, and concurrency-aware dispatching against SQLite.
 from __future__ import annotations
 
 import sqlite3
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from sacl.contracts.invariants import JobSideStatus, JobStatus
-from sacl.state.exceptions import ConcurrencyConflictError, QueueEmptyError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.repositories.jobs import JobRepository
 from sacl.state.repositories.mail import MailRepository
 from sacl.state.repositories.runs import RunRepository
-from sacl.state.utils import normalize_repo_path, utc_now
+from sacl.state.utils import utc_now
 
 
 class DurableJobQueue(BaseRepository):
@@ -142,7 +141,6 @@ class DurableMailQueue(BaseRepository):
 
     def dequeue_inbound(self) -> Optional[Dict[str, Any]]:
         """Atomically claims next pending inbound email message."""
-        now = utc_now()
         sql_peek = "SELECT message_id FROM mail_messages WHERE status = 'QUEUED' ORDER BY received_at ASC LIMIT 1;"
         row = self.fetchone_dict(sql_peek)
         if not row:
@@ -156,9 +154,13 @@ class DurableMailQueue(BaseRepository):
             return self.mail_repo.get_message(msg_id)
         return None
 
-    def ack_inbound(self, message_id: str, job_id: Optional[str] = None, run_id: Optional[str] = None) -> None:
+    def ack_inbound(
+        self, message_id: str, job_id: Optional[str] = None, run_id: Optional[str] = None
+    ) -> None:
         """Marks inbound message as successfully PROCESSED."""
-        self.mail_repo.update_message_status(message_id, status="PROCESSED", job_id=job_id, run_id=run_id)
+        self.mail_repo.update_message_status(
+            message_id, status="PROCESSED", job_id=job_id, run_id=run_id
+        )
 
     def nack_inbound(self, message_id: str, reason: str) -> None:
         """Marks inbound message as REJECTED."""

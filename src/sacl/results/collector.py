@@ -9,15 +9,14 @@ Coordinates:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-import json
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from sacl.contracts.invariants import Verdict
-from sacl.contracts.models import AgentResult, ReconciledResult
+from sacl.contracts.models import ReconciledResult
 from sacl.observability.evidence import EvidenceRegistry
 from sacl.results.collision import CollisionDetector
 from sacl.results.models import (
@@ -70,9 +69,15 @@ class ResultCollector:
         # 1. Reconcile each agent
         for spec in agent_specs:
             agent_id = spec["agent_id"]
-            report_path = Path(spec.get("report_path") or (run_dir / "reports" / f"{agent_id}.REPORT.md"))
-            stdout_path = Path(spec.get("stdout_path") or (run_dir / "logs" / f"{agent_id}.stdout.log"))
-            stderr_path = Path(spec.get("stderr_path") or (run_dir / "logs" / f"{agent_id}.stderr.log"))
+            report_path = Path(
+                spec.get("report_path") or (run_dir / "reports" / f"{agent_id}.REPORT.md")
+            )
+            stdout_path = Path(
+                spec.get("stdout_path") or (run_dir / "logs" / f"{agent_id}.stdout.log")
+            )
+            stderr_path = Path(
+                spec.get("stderr_path") or (run_dir / "logs" / f"{agent_id}.stderr.log")
+            )
             worktree_path = Path(spec.get("worktree_path") or run_dir)
 
             res = self.reconciler.reconcile(
@@ -186,9 +191,15 @@ class ResultCollector:
                 for mf in res.worktree.modified_files:
                     norm = mf.strip().replace("\\", "/").lower()
                     file_map.setdefault(norm, []).append(res.agent_id)
-            conflicts = {fp: sorted(list(set(ags))) for fp, ags in file_map.items() if len(set(ags)) > 1}
+            conflicts = {
+                fp: sorted(list(set(ags))) for fp, ags in file_map.items() if len(set(ags)) > 1
+            }
             ready = "NO" if conflicts else "YES"
-            blockers = ["Overlapping file modifications detected across parallel branches."] if conflicts else []
+            blockers = (
+                ["Overlapping file modifications detected across parallel branches."]
+                if conflicts
+                else []
+            )
             collision_report = CollisionReport(
                 run_id=run_id,
                 conflicting_files=sorted(list(conflicts.keys())),
@@ -262,7 +273,10 @@ class ResultCollector:
             return "BLOCKED"
 
         # All passed
-        if all(v in {Verdict.PASS.value, Verdict.PASS_REPORT_PRESENT.value, Verdict.PARTIAL.value} for v in verdicts):
+        if all(
+            v in {Verdict.PASS.value, Verdict.PASS_REPORT_PRESENT.value, Verdict.PARTIAL.value}
+            for v in verdicts
+        ):
             return "PASS"
 
         return "FAIL"

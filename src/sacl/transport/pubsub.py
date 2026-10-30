@@ -7,20 +7,20 @@ Implements outbound-only event-driven wake signal consumption adhering strictly 
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import abc
 import base64
 import dataclasses
 import json
 import logging
-import queue
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from sacl.transport.exceptions import TransportAuthError, TransportError
+from sacl.transport.exceptions import TransportError
 from sacl.transport.oauth import IOAuth2CredentialProvider
 
 logger = logging.getLogger("sacl.transport.pubsub")
@@ -31,6 +31,7 @@ PUBSUB_RECONNECT_BACKOFF = [5.0, 15.0, 45.0, 120.0]  # docs/MAIL_PROTOCOL.md §5
 @dataclasses.dataclass(frozen=True)
 class PubSubMessage:
     """Represents a message received from Google Cloud Pub/Sub."""
+
     message_id: str
     ack_id: str
     data: bytes
@@ -47,13 +48,16 @@ class WakeSignal:
     and ZERO message content. Authoritative fetch is executed exclusively via
     the Gmail History API.
     """
+
     email_address: str
     history_id: str
     ack_id: Optional[str] = None
     message_id: Optional[str] = None
 
 
-def parse_wake_signal(data: bytes, ack_id: Optional[str] = None, message_id: Optional[str] = None) -> WakeSignal:
+def parse_wake_signal(
+    data: bytes, ack_id: Optional[str] = None, message_id: Optional[str] = None
+) -> WakeSignal:
     """Parses and validates the Gmail Pub/Sub wake signal payload.
 
     Expected JSON schema:
@@ -96,7 +100,9 @@ class IPubSubSubscriber(abc.ABC):
     """Abstract interface for Google Cloud Pub/Sub Pull subscribers."""
 
     @abc.abstractmethod
-    def pull_messages(self, max_messages: int = 10, timeout_seconds: float = 30.0) -> List[PubSubMessage]:
+    def pull_messages(
+        self, max_messages: int = 10, timeout_seconds: float = 30.0
+    ) -> List[PubSubMessage]:
         """Pulls messages from the configured Pub/Sub subscription."""
         pass
 
@@ -141,7 +147,9 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         self._sleeper = sleeper or time.sleep
         self._consecutive_failures = 0
 
-    def pull_messages(self, max_messages: int = 10, timeout_seconds: float = 30.0) -> List[PubSubMessage]:
+    def pull_messages(
+        self, max_messages: int = 10, timeout_seconds: float = 30.0
+    ) -> List[PubSubMessage]:
         url = f"{self.base_url}/{self.subscription_path}:pull"
         headers = self.credential_provider.get_auth_headers()
         headers["Content-Type"] = "application/json"
@@ -159,7 +167,7 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
+            with safe_urlopen(req, timeout=timeout_seconds) as resp:
                 resp_data = json.loads(resp.read().decode("utf-8"))
                 self._consecutive_failures = 0
 
@@ -170,13 +178,15 @@ class PubSubPullSubscriber(IPubSubSubscriber):
                     data_b64 = msg_obj.get("data", "")
                     raw_data = base64.b64decode(data_b64) if data_b64 else b""
 
-                    messages.append(PubSubMessage(
-                        message_id=msg_obj.get("messageId", ""),
-                        ack_id=ack_id,
-                        data=raw_data,
-                        publish_time=msg_obj.get("publishTime", ""),
-                        attributes=msg_obj.get("attributes", {}),
-                    ))
+                    messages.append(
+                        PubSubMessage(
+                            message_id=msg_obj.get("messageId", ""),
+                            ack_id=ack_id,
+                            data=raw_data,
+                            publish_time=msg_obj.get("publishTime", ""),
+                            attributes=msg_obj.get("attributes", {}),
+                        )
+                    )
                 return messages
 
         except urllib.error.HTTPError as err:
@@ -203,7 +213,7 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with safe_urlopen(req, timeout=15):
                 pass
         except Exception as err:
             logger.error("Failed to acknowledge Pub/Sub messages %s: %s", ack_ids, err)
@@ -229,7 +239,7 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with safe_urlopen(req, timeout=15):
                 pass
         except Exception as err:
             logger.warning("Failed to modify ack deadline: %s", err)
@@ -280,7 +290,9 @@ class MockPubSubSubscriber(IPubSubSubscriber):
         self.message_queue.append(msg)
         return msg
 
-    def pull_messages(self, max_messages: int = 10, timeout_seconds: float = 30.0) -> List[PubSubMessage]:
+    def pull_messages(
+        self, max_messages: int = 10, timeout_seconds: float = 30.0
+    ) -> List[PubSubMessage]:
         pulled = self.message_queue[:max_messages]
         self.message_queue = self.message_queue[max_messages:]
         return pulled

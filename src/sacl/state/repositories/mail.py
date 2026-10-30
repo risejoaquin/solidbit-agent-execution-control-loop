@@ -7,16 +7,25 @@ Compatibility Tables: mail_inbox, mail_outbox.
 from __future__ import annotations
 
 import sqlite3
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from sacl.state.exceptions import DuplicateEntityError, EntityNotFoundError
+from sacl.state.exceptions import DuplicateEntityError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import normalize_repo_path, utc_now
 
-VALID_MAIL_STATUSES = frozenset({
-    'RECEIVED', 'AUTHENTICATED', 'VALIDATED', 'PERSISTED',
-    'QUEUED', 'PROCESSED', 'REJECTED', 'QUARANTINED', 'DUPLICATE_IGNORED'
-})
+VALID_MAIL_STATUSES = frozenset(
+    {
+        "RECEIVED",
+        "AUTHENTICATED",
+        "VALIDATED",
+        "PERSISTED",
+        "QUEUED",
+        "PROCESSED",
+        "REJECTED",
+        "QUARANTINED",
+        "DUPLICATE_IGNORED",
+    }
+)
 
 
 class MailRepository(BaseRepository):
@@ -59,21 +68,33 @@ class MailRepository(BaseRepository):
             self.execute(
                 sql_msg,
                 (
-                    message_id, history_id, thread_id, sender, recipient,
-                    subject, snippet, now, nonce, attachment_sha, status,
-                    job_id, run_id,
+                    message_id,
+                    history_id,
+                    thread_id,
+                    sender,
+                    recipient,
+                    subject,
+                    snippet,
+                    now,
+                    nonce,
+                    attachment_sha,
+                    status,
+                    job_id,
+                    run_id,
                 ),
             )
         except sqlite3.IntegrityError as e:
             if "UNIQUE constraint failed: mail_messages.nonce" in str(e):
                 raise DuplicateEntityError(f"Duplicate mail nonce detected: '{nonce}'") from e
             if "UNIQUE constraint failed: mail_messages.message_id" in str(e):
-                raise DuplicateEntityError(f"Duplicate mail message_id detected: '{message_id}'") from e
+                raise DuplicateEntityError(
+                    f"Duplicate mail message_id detected: '{message_id}'"
+                ) from e
             raise
 
         # Mirror to compatibility mail_inbox
-        inbox_status = 'PENDING'
-        if status in ('VALIDATED', 'PROCESSED', 'REJECTED', 'DUPLICATE_IGNORED'):
+        inbox_status = "PENDING"
+        if status in ("VALIDATED", "PROCESSED", "REJECTED", "DUPLICATE_IGNORED"):
             inbox_status = status
 
         sql_inbox = """
@@ -82,7 +103,10 @@ class MailRepository(BaseRepository):
                 nonce, attachment_sha, status, rejection_reason, run_id
             ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?);
         """
-        self.execute(sql_inbox, (message_id, sender, subject, now, nonce, attachment_sha, inbox_status, run_id))
+        self.execute(
+            sql_inbox,
+            (message_id, sender, subject, now, nonce, attachment_sha, inbox_status, run_id),
+        )
         self.commit()
         return self.get_message(message_id)  # type: ignore[return-value]
 
@@ -109,7 +133,9 @@ class MailRepository(BaseRepository):
         if status not in VALID_MAIL_STATUSES:
             raise ValueError(f"Invalid mail status: {status}")
 
-        now = processed_at or (utc_now() if status in ('PROCESSED', 'REJECTED', 'DUPLICATE_IGNORED') else None)
+        now = processed_at or (
+            utc_now() if status in ("PROCESSED", "REJECTED", "DUPLICATE_IGNORED") else None
+        )
 
         sql = """
             UPDATE mail_messages
@@ -131,8 +157,14 @@ class MailRepository(BaseRepository):
                 run_id = COALESCE(?, run_id)
             WHERE message_id = ?;
             """,
-            (status if status in ('VALIDATED', 'PROCESSED', 'REJECTED', 'DUPLICATE_IGNORED') else 'PENDING',
-             rejection_reason, run_id, message_id),
+            (
+                status
+                if status in ("VALIDATED", "PROCESSED", "REJECTED", "DUPLICATE_IGNORED")
+                else "PENDING",
+                rejection_reason,
+                run_id,
+                message_id,
+            ),
         )
         self.commit()
 
@@ -190,7 +222,9 @@ class MailRepository(BaseRepository):
                 attachment_path, status, attempts, created_at, sent_at, error_log
             ) VALUES (?, ?, ?, ?, ?, 'QUEUED', 0, ?, NULL, NULL);
         """
-        cursor = self.execute(sql, (run_id, recipient, subject, body_markdown, norm_attachment, now))
+        cursor = self.execute(
+            sql, (run_id, recipient, subject, body_markdown, norm_attachment, now)
+        )
         self.commit()
         return cursor.lastrowid  # type: ignore[return-value]
 

@@ -7,6 +7,8 @@ A test-only non-Git sandbox is available only when mock_mode=True.
 from __future__ import annotations
 
 import os
+import shutil
+import subprocess
 from pathlib import Path
 from typing import List, Tuple
 

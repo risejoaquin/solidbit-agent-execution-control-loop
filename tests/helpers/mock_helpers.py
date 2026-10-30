@@ -6,8 +6,7 @@ Provides generators for mock reports, mock logs, mock envelopes, and mock proces
 from __future__ import annotations
 
 import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 def create_mock_report_content(
@@ -26,7 +25,7 @@ def create_mock_report_content(
         "## Execution Evidence",
     ]
     for i in range(num_body_lines):
-        lines.append(f"- Step {i+1}: Completed operation successfully.")
+        lines.append(f"- Step {i + 1}: Completed operation successfully.")
     lines.append("")
 
     if marker_type == "PRIMARY":

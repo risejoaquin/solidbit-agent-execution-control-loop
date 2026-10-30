@@ -11,10 +11,9 @@ Implements Threat T1 & TH-04 mitigations:
 
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
-from typing import FrozenSet, List, Optional, Set, Tuple, Union
+from typing import FrozenSet, Optional, Union
 
 from sacl.security.exceptions import (
     InvalidFilenameSecurityError,
@@ -27,11 +26,32 @@ S_IFLNK = 0o120000  # Symbolic link flag in Unix mode (top 16 bits of external_a
 FILE_ATTRIBUTE_REPARSE_POINT = 0x0400  # Windows reparse point attribute
 
 # Prohibited Windows DOS device names
-DOS_DEVICE_NAMES: FrozenSet[str] = frozenset({
-    "CON", "PRN", "AUX", "NUL",
-    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-})
+DOS_DEVICE_NAMES: FrozenSet[str] = frozenset(
+    {
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
+    }
+)
 
 # Regex matching DOS device names with or without extension on any path segment
 DOS_DEVICE_REGEX = re.compile(

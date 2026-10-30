@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
 from pathlib import Path
-
-import pytest
 
 from sacl.contracts.invariants import AgentStatus, Verdict
 from sacl.observability.audit import AuditEventEmitter

@@ -15,11 +15,9 @@ from sacl.contracts.models import (
     ApprovalToken,
     Approver,
     AuditEvent,
-    ErrorRecord,
     ExecutionGraph,
     HardLocalPolicy,
     HeartbeatRecord,
-    LeaseRecord,
     MailEnvelope,
     Manifest,
     ProjectPolicy,
@@ -157,9 +155,7 @@ class IStateStore(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def record_file_modifications(
-        self, run_id: str, agent_id: str, file_paths: List[str]
-    ) -> None:
+    def record_file_modifications(self, run_id: str, agent_id: str, file_paths: List[str]) -> None:
         """Records git files modified by an agent."""
         pass
 
@@ -212,7 +208,9 @@ class IPackageValidator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def verify_checksums(self, extracted_dir: Path, checksums_file: str = "checksums.sha256") -> bool:
+    def verify_checksums(
+        self, extracted_dir: Path, checksums_file: str = "checksums.sha256"
+    ) -> bool:
         """Verifies cryptographic integrity of extracted package assets."""
         pass
 
@@ -263,7 +261,11 @@ class ITransportGateway(abc.ABC):
 
     @abc.abstractmethod
     def dispatch_outbox_reply(
-        self, recipient: str, subject: str, body_markdown: str, attachment_path: Optional[Path] = None
+        self,
+        recipient: str,
+        subject: str,
+        body_markdown: str,
+        attachment_path: Optional[Path] = None,
     ) -> str:
         """Dispatches outbound execution result reply."""
         pass
@@ -312,7 +314,12 @@ class IApprovalManager(abc.ABC):
 
     @abc.abstractmethod
     def create_approval_request(
-        self, job_id: str, action: str, scope: List[str], run_id: Optional[str] = None, ttl_seconds: int = 3600
+        self,
+        job_id: str,
+        action: str,
+        scope: List[str],
+        run_id: Optional[str] = None,
+        ttl_seconds: int = 3600,
     ) -> str:
         """Issues bounded approval request token."""
         pass

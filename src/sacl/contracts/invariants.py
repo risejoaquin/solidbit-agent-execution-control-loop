@@ -7,10 +7,10 @@ DECISION_BASELINE.md and contracts/architecture-invariants.json.
 from enum import Enum
 from typing import Final, FrozenSet, Tuple
 
-
 # ============================================================================
 # CANONICAL DECISION PRECEDENCE HIERARCHY
 # ============================================================================
+
 
 class DecisionTier(int, Enum):
     """The four-tier sovereign decision hierarchy governing all SACL operations."""
@@ -32,6 +32,7 @@ DECISION_PRECEDENCE: Final[Tuple[str, ...]] = (
 # ============================================================================
 # JOB LIFECYCLE & STATE DOMAINS (12 Primary + 10 Side States)
 # ============================================================================
+
 
 class JobStatus(str, Enum):
     """The 12 linear primary states of the canonical job lifecycle.
@@ -79,6 +80,7 @@ ALL_JOB_STATES: Final[FrozenSet[str]] = PRIMARY_JOB_STATES | SIDE_JOB_STATES
 # GRAPH-H DAG NODE LIFECYCLE (9 States)
 # ============================================================================
 
+
 class GraphNodeStatus(str, Enum):
     """The 9 lifecycle states for ephemeral Graph-H execution nodes."""
 
@@ -99,6 +101,7 @@ GRAPH_NODE_STATES: Final[FrozenSet[str]] = frozenset(s.value for s in GraphNodeS
 # ============================================================================
 # AGENT WORKER PROCESS STATES
 # ============================================================================
+
 
 class AgentStatus(str, Enum):
     """Lifecycle states for individual agent worker instances and processes."""
@@ -128,6 +131,7 @@ class AgentStatus(str, Enum):
 # CANONICAL VERDICTS
 # ============================================================================
 
+
 class Verdict(str, Enum):
     """Authoritative verdicts evaluated across 4-point reconciliation.
 
@@ -147,20 +151,23 @@ class Verdict(str, Enum):
     DONE_REVIEW_REQUIRED = "DONE_REVIEW_REQUIRED"
 
 
-TERMINAL_VERDICTS: Final[FrozenSet[str]] = frozenset({
-    Verdict.PASS.value,
-    Verdict.PARTIAL.value,
-    Verdict.BLOCKED.value,
-    Verdict.FAILED.value,
-    Verdict.STOPPED_BY_USER.value,
-    Verdict.PASS_REPORT_PRESENT.value,
-    Verdict.DONE_REVIEW_REQUIRED.value,
-})
+TERMINAL_VERDICTS: Final[FrozenSet[str]] = frozenset(
+    {
+        Verdict.PASS.value,
+        Verdict.PARTIAL.value,
+        Verdict.BLOCKED.value,
+        Verdict.FAILED.value,
+        Verdict.STOPPED_BY_USER.value,
+        Verdict.PASS_REPORT_PRESENT.value,
+        Verdict.DONE_REVIEW_REQUIRED.value,
+    }
+)
 
 
 # ============================================================================
 # BOUNDED APPROVAL CHANNELS & DECISIONS
 # ============================================================================
+
 
 class ApprovalChannel(str, Enum):
     """Approved channels for sovereign human action gates in V1 (no webhooks)."""
@@ -202,22 +209,25 @@ APPROVAL_BINDING_FIELDS: Final[Tuple[str, ...]] = (
 # HARD LOCAL POLICY DENIALS (IMMUTABLE BOUNDARY)
 # ============================================================================
 
-HARD_DENIED_ACTIONS: Final[FrozenSet[str]] = frozenset({
-    "remote_production_execution",
-    "github_merge",
-    "production_db_write",
-    "secret_export",
-    "arbitrary_remote_code",
-    "main_branch_execution",
-    "primary_checkout_mutation",
-    "hard_reset",
-    "auto_stash",
-})
+HARD_DENIED_ACTIONS: Final[FrozenSet[str]] = frozenset(
+    {
+        "remote_production_execution",
+        "github_merge",
+        "production_db_write",
+        "secret_export",
+        "arbitrary_remote_code",
+        "main_branch_execution",
+        "primary_checkout_mutation",
+        "hard_reset",
+        "auto_stash",
+    }
+)
 
 
 # ============================================================================
 # OPERATIONAL STATE STORE (16 SQLite DOMAINS)
 # ============================================================================
+
 
 class OperationalStateDomain(str, Enum):
     """The 16 canonical relational operational state domains in sacl_ops.db."""
@@ -254,6 +264,7 @@ SQLITE_PRAGMAS: Final[Tuple[str, ...]] = (
 # ARTIFACT & STORAGE INVARIANTS
 # ============================================================================
 
+
 class ArtifactType(str, Enum):
     """Classification of heavy filesystem artifacts stored under artifacts/runs/<runId>/."""
 
@@ -286,17 +297,19 @@ RECONCILIATION_PILLARS: Final[Tuple[str, ...]] = (
 
 PID_DRIFT_TOLERANCE_SECONDS: Final[int] = 300
 
-ALLOWED_PROCESS_IMAGES: Final[FrozenSet[str]] = frozenset({
-    "agy",
-    "powershell",
-    "pwsh",
-    "cmd",
-    "node",
-    "conhost",
-    "python",
-    "python3",
-    "git",
-})
+ALLOWED_PROCESS_IMAGES: Final[FrozenSet[str]] = frozenset(
+    {
+        "agy",
+        "powershell",
+        "pwsh",
+        "cmd",
+        "node",
+        "conhost",
+        "python",
+        "python3",
+        "git",
+    }
+)
 
 # Proven regex marker: ^(?:AGENT_[A-Z0-9_-]+_RESULT|RESULT|FINAL_RESULT)\s*=\s*(PASS|PARTIAL|BLOCKED)
 VERDICT_REGEX: Final[str] = (
@@ -315,6 +328,7 @@ WAVE_RESULT_REGEX: Final[str] = r"(?m)^WAVE[0-9]*_RESULT=(PASS|FAIL|BLOCKED)\s*$
 # ============================================================================
 # EXECUTION MODES & RISK TIERS
 # ============================================================================
+
 
 class ExecutionMode(str, Enum):
     """Manifest execution modes."""
@@ -346,6 +360,7 @@ class FailurePolicy(str, Enum):
 # ============================================================================
 # MAIL & TRANSPORT INVARIANTS
 # ============================================================================
+
 
 class MailDirection(str, Enum):
     """Direction of mail envelope transmission."""

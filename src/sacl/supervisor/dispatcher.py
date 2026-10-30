@@ -10,31 +10,21 @@ Coordinates:
 
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-import json
-import os
 from pathlib import Path
-import sqlite3
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
-from sacl.contracts.exceptions import (
-    DirtyRootError,
-    LeaseAcquisitionError,
-    PolicyDeniedError,
-    SaclError,
-)
 from sacl.contracts.invariants import (
     JobSideStatus,
     JobStatus,
 )
 from sacl.observability.events import (
-    AuditEventType,
     GATE_HALTED,
     PROCESS_SPAWNED,
     Severity,
-    create_audit_event,
 )
 from sacl.supervisor.lease import LeaseCoordinator
 from sacl.supervisor.lifecycle import JobLifecycleManager
@@ -297,7 +287,7 @@ class JobDispatcher:
                     if project_id:
                         self.lease_coordinator.release_project_lease(project_id, run_id=run_id)
                     return None
-            except Exception as e:
+            except Exception:
                 # If clean root checking encounters a critical error, fail closed
                 if project_id:
                     self.lease_coordinator.release_project_lease(project_id, run_id=run_id)
@@ -432,4 +422,3 @@ class JobDispatcher:
     def get_launcher_result(self, run_id: str) -> Optional[Any]:
         """Returns the launcher result / process handle associated with a dispatched run."""
         return self._active_launcher_results.get(run_id)
-

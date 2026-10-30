@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
-from pathlib import Path
 import sys
 import time
+from pathlib import Path
 
 from sacl.observability.monitor import MonitorReadModel, render_ascii_dashboard
 
@@ -71,7 +70,8 @@ def execute_monitor(args: argparse.Namespace) -> int:
     try:
         while True:
             # Clear console
-            os.system("cls" if os.name == "nt" else "clear")
+            sys.stdout.write("\033[2J\033[H")
+            sys.stdout.flush()
             snapshot = read_model.get_dashboard_snapshot(run_id=args.run_id)
             for a in snapshot.agents:
                 if a.verdict is None:

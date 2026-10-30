@@ -1,6 +1,7 @@
 """Unit tests for SACL V1 canonical job lifecycle transitions."""
 
 import sqlite3
+
 import pytest
 
 from sacl.contracts.exceptions import ArchitectureInvariantError
@@ -8,8 +9,6 @@ from sacl.contracts.invariants import JobSideStatus, JobStatus
 from sacl.observability.audit import AuditEventEmitter
 from sacl.supervisor.lease import LeaseCoordinator
 from sacl.supervisor.lifecycle import (
-    TERMINAL_JOB_STATES,
-    VALID_JOB_TRANSITIONS,
     JobLifecycleManager,
 )
 
@@ -159,10 +158,17 @@ def test_run_synchronization_and_audit_events(sqlite_temp_db: sqlite3.Connection
     sqlite_temp_db.commit()
 
     # Advance job to FAILED
-    lifecycle.transition("job-sync", JobSideStatus.FAILED, current_run_id="run-sync-1", error_summary="Unit test crash")
+    lifecycle.transition(
+        "job-sync",
+        JobSideStatus.FAILED,
+        current_run_id="run-sync-1",
+        error_summary="Unit test crash",
+    )
 
     # Verify run record in SQLite was synchronized
-    cursor.execute("SELECT status, error_summary, completed_at FROM runs WHERE run_id = 'run-sync-1'")
+    cursor.execute(
+        "SELECT status, error_summary, completed_at FROM runs WHERE run_id = 'run-sync-1'"
+    )
     run_row = cursor.fetchone()
     assert run_row["status"] == "FAILED"
     assert run_row["error_summary"] == "Unit test crash"

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import pytest
 
 from sacl.transport.exceptions import (
@@ -58,7 +57,9 @@ def test_mock_adapter_messages_and_history() -> None:
 
 def test_mock_adapter_send_message() -> None:
     adapter = MockGmailApiAdapter()
-    resp = adapter.send_message(raw_mime_bytes=b"From: uniquedraken@gmail.com\n\nHello", thread_id="t-123")
+    resp = adapter.send_message(
+        raw_mime_bytes=b"From: uniquedraken@gmail.com\n\nHello", thread_id="t-123"
+    )
     assert "id" in resp
     assert resp["threadId"] == "t-123"
     assert len(adapter.sent_messages) == 1

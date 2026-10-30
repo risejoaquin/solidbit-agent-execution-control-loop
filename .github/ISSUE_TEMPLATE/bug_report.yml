@@ -1,0 +1,54 @@
+name: 🐛 Bug Report
+description: Create a report to help us fix a defect or unexpected behavior in SACL
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please follow the template below to ensure rapid triage.
+  - type: input
+    id: version
+    attributes:
+      label: SACL Version / Git Commit SHA
+      description: What version of SACL or Git commit are you running?
+      placeholder: "e.g. v1.2.0 or git rev-parse HEAD (d9f5230)"
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component Affected
+      options:
+        - Control Engine (Core / Lattice / Policies)
+        - SQLite WAL Storage / CAS Recovery
+        - Executive Web Console (apps/web)
+        - Agent Fleet Process Telemetry
+        - Invariant & Contract Enforcement (DR-*)
+        - CLI Tools (`sacl`)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the problem.
+      placeholder: |
+        1. Run `python -m sacl.cli ui --port 8765`
+        2. Execute `▶ Correr Pytest (QA)`
+        3. See error in terminal
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs or Terminal Output
+      description: Please copy and paste any relevant logs, traceback, or exit codes.
+      render: shell

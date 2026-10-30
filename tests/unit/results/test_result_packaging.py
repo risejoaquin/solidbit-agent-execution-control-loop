@@ -9,10 +9,12 @@ Adheres to:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
 import sqlite3
 import zipfile
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Tuple
+
 import pytest
 
 from sacl.results.packager import ResultPackager, sanitize_archive_entry_path
@@ -31,7 +33,9 @@ def mock_run_workspace(tmp_path: Path) -> Tuple[Path, Path, Path]:
     summary_md.write_text("# SUMMARY MD\nVerdict: PASS\n", encoding="utf-8")
 
     summary_json = run_dir / "SUMMARY.json"
-    summary_json.write_text('{"schema": "solidbit.run-summary.v1", "status": "PASS"}', encoding="utf-8")
+    summary_json.write_text(
+        '{"schema": "solidbit.run-summary.v1", "status": "PASS"}', encoding="utf-8"
+    )
 
     rep1 = reports_dir / "AG-QA.REPORT.md"
     rep1.write_text("# QA Report\nAGENT_QA_RESULT = PASS\n", encoding="utf-8")
@@ -77,7 +81,7 @@ def test_sanitize_archive_entry_path_rules() -> None:
 
 
 def test_package_run_results_creates_valid_archive(
-    mock_run_workspace: Tuple[Path, Path, Path]
+    mock_run_workspace: Tuple[Path, Path, Path],
 ) -> None:
     run_dir, summary_md, summary_json = mock_run_workspace
     packager = ResultPackager()
