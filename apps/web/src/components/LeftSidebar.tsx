@@ -49,8 +49,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const canonicalDomainEntities: NavItem[] = [
     {
       id: 'dashboard',
-      label: t('Sprint Activo', 'Active Sprint'),
-      subtitle: t('Centro de control del pipeline', 'Pipeline mission control'),
+      label: t('Flujo de Agentes (3 Fases)', '3-Phase Agent Flow'),
+      subtitle: t('Diseñar → Implementar → Subir', 'Design → Implement → Deploy'),
       icon: Zap,
       action: () => onSelectSection('dashboard'),
       badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
@@ -67,26 +67,19 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       action: () => onSelectSection('projects'),
     },
     {
-      id: 'roadmap',
-      label: t('Mapa de Flujo DAG', 'DAG Workflow Map'),
-      subtitle: t('Secuencia de etapas y barreras', 'Stages & topological barriers'),
-      icon: GitBranch,
-      action: () => onSelectSection('roadmap'),
-    },
-    {
       id: 'agents',
       label: t('Escuadrón de Agentes', 'Agent Squad'),
-      subtitle: t('Especialistas e interacción', 'Specialists & live interaction'),
+      subtitle: t('Atlas, Vega y Nova (Fases 1, 2, 3)', 'Atlas, Vega & Nova (Phases 1, 2, 3)'),
       icon: Bot,
       action: () => onSelectSection('agents'),
     },
     {
       id: 'executions',
-      label: t('Aprobaciones & Auditoría', 'Approvals & Audit'),
+      label: t('Aprobaciones', 'Approvals'),
       subtitle:
         pendingGatesCount > 0
           ? `${pendingGatesCount} ${t('pendientes de firma', 'pending signature')}`
-          : t('Decisiones HITL e historial', 'HITL decisions & history'),
+          : t('Compuertas de aprobación humana', 'Human approval gates'),
       icon: ShieldCheck,
       action: () => onSelectSection('executions'),
       badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
