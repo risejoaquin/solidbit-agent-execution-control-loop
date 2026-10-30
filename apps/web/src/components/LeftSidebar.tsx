@@ -4,15 +4,14 @@ import {
   PanelLeft,
   Zap,
   FolderGit2,
-  GitBranch,
-  Bot,
+  Database,
   ShieldCheck,
+  Bot,
   CheckSquare,
   Key,
   Mail,
   MessageSquare,
   Layers,
-  BarChart2,
   Settings,
   ChevronDown,
   ChevronUp,
@@ -42,14 +41,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   projectsCount = 1,
 }) => {
   const { t } = useLanguage()
-  const [showSupportChannels, setShowSupportChannels] = useState<boolean>(false)
+  const [showAdvancedTools, setShowAdvancedTools] = useState<boolean>(false)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
 
-  // OOUX: Entidades canónicas interconectadas (sin prefijos numéricos rígidos)
-  const canonicalDomainEntities: NavItem[] = [
+  // Navegación Principal Estricta SolidBit KISS (3 Entidades Nucleares)
+  const primaryDomainEntities: NavItem[] = [
     {
       id: 'dashboard',
-      label: t('Flujo de Agentes (3 Fases)', '3-Phase Agent Flow'),
+      label: t('Sprint Activo (Flujo 3 Fases)', 'Active Sprint (3 Phases)'),
       subtitle: t('Diseñar → Implementar → Subir', 'Design → Implement → Deploy'),
       icon: Zap,
       action: () => onSelectSection('dashboard'),
@@ -67,30 +66,32 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       action: () => onSelectSection('projects'),
     },
     {
-      id: 'agents',
-      label: t('Escuadrón de Agentes', 'Agent Squad'),
-      subtitle: t('Atlas, Vega y Nova (Fases 1, 2, 3)', 'Atlas, Vega & Nova (Phases 1, 2, 3)'),
-      icon: Bot,
-      action: () => onSelectSection('agents'),
+      id: 'database',
+      label: t('Auditoría Base de Datos', 'Database Audit'),
+      subtitle: t('sacl_ops.db · SQLite WAL', 'sacl_ops.db · SQLite WAL'),
+      icon: Database,
+      action: () => onSelectSection('database'),
     },
+  ]
+
+  // Carpeta de "Herramientas Avanzadas" (Colapsable)
+  const advancedTools: NavItem[] = [
     {
       id: 'executions',
-      label: t('Aprobaciones', 'Approvals'),
-      subtitle:
-        pendingGatesCount > 0
-          ? `${pendingGatesCount} ${t('pendientes de firma', 'pending signature')}`
-          : t('Compuertas de aprobación humana', 'Human approval gates'),
+      label: t('Aprobaciones Humanas', 'Human Approvals'),
       icon: ShieldCheck,
       action: () => onSelectSection('executions'),
       badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
     },
-  ]
-
-  // Canales auxiliares y de soporte (Progressive Disclosure)
-  const supportChannels: NavItem[] = [
+    {
+      id: 'agents',
+      label: t('Escuadrón de Agentes', 'Agent Squad'),
+      icon: Bot,
+      action: () => onSelectSection('agents'),
+    },
     {
       id: 'jira',
-      label: t('Backlog & Requerimientos', 'Backlog & Requirements'),
+      label: t('Requerimientos & Backlog', 'Requirements & Backlog'),
       icon: CheckSquare,
       action: () => onSelectSection('jira'),
     },
@@ -102,7 +103,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     },
     {
       id: 'email',
-      label: t('Notificaciones & Resend', 'Notifications & Resend'),
+      label: t('Notificaciones Resend', 'Resend Notifications'),
       icon: Mail,
       action: () => onSelectSection('email'),
     },
@@ -114,19 +115,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     },
     {
       id: 'workflows',
-      label: t('Contratos SolidBit', 'SolidBit Contracts'),
+      label: t('Catálogo de Flujos / Contratos', 'Flow Catalog / Contracts'),
       icon: Layers,
       action: () => onSelectSection('workflows'),
     },
     {
-      id: 'database',
-      label: t('Auditoría SQLite WAL', 'SQLite WAL Audit'),
-      icon: BarChart2,
-      action: () => onSelectSection('database'),
-    },
-    {
       id: 'github',
-      label: t('Configuración & Sync', 'Settings & Sync'),
+      label: t('Configuración & Git', 'Settings & Git'),
       icon: Settings,
       action: () => onSelectSection('github'),
     },
@@ -144,7 +139,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         <div className="px-2 pt-1 pb-0.5 flex items-center justify-between">
           {!isCollapsed && (
             <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-extrabold">
-              {t('Navegación', 'Navigation')}
+              {t('SolidBit Navegación', 'SolidBit Navigation')}
             </span>
           )}
           <button
@@ -153,14 +148,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-white transition cursor-pointer ml-auto"
             title={isCollapsed ? t('Expandir menú', 'Expand menu') : t('Colapsar menú', 'Collapse menu')}
           >
-            {isCollapsed ? <PanelLeft className="w-3.5 h-3.5" /> : <PanelLeftClose className="w-3.5 h-3.5" />}
+            {isCollapsed ? <PanelLeft className="w-3.5 h-3.5 text-emerald-400" /> : <PanelLeftClose className="w-3.5 h-3.5" />}
           </button>
         </div>
 
-        {/* 5 Entidades Principales */}
+        {/* 3 Entidades Principales */}
         <nav className="space-y-1">
-          {canonicalDomainEntities.map((item) => {
-            const isActive = currentSection === item.id
+          {primaryDomainEntities.map((item) => {
+            const isActive = currentSection === item.id || (item.id === 'database' && currentSection === 'reports')
             const IconComponent = item.icon
             return (
               <button
@@ -212,26 +207,26 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           })}
         </nav>
 
-        {/* Canales Secundarios / Herramientas de Soporte */}
+        {/* Carpeta "Herramientas Avanzadas" (Colapsada por defecto) */}
         <div className="pt-2 border-t border-white/5 space-y-1">
           <button
             type="button"
-            onClick={() => setShowSupportChannels(!showSupportChannels)}
+            onClick={() => setShowAdvancedTools(!showAdvancedTools)}
             className="w-full flex items-center justify-between p-2 rounded-xl text-left text-zinc-400 hover:text-white hover:bg-zinc-900/40 transition cursor-pointer"
           >
             <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
-              {t('Herramientas Auxiliares', 'Auxiliary Tools')}
+              {t('Herramientas Avanzadas', 'Advanced Tools')}
             </span>
-            {showSupportChannels ? (
+            {showAdvancedTools ? (
               <ChevronUp className="w-3.5 h-3.5 text-zinc-500" />
             ) : (
               <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
             )}
           </button>
 
-          {showSupportChannels && (
+          {showAdvancedTools && (
             <div className="space-y-0.5 pt-1 animate-fade-in">
-              {supportChannels.map((item) => {
+              {advancedTools.map((item) => {
                 const isActive = currentSection === item.id
                 const IconComponent = item.icon
                 return (
@@ -239,14 +234,21 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     key={item.id}
                     type="button"
                     onClick={item.action}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs transition cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition cursor-pointer ${
                       isActive
                         ? 'bg-zinc-800 text-white font-bold'
                         : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
                     }`}
                   >
-                    <IconComponent className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <IconComponent className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge !== undefined && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -259,10 +261,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       <div className="p-3 border-t border-white/5 space-y-2">
         <div className="p-2.5 rounded-xl bg-black border border-white/5 space-y-1 font-mono text-[10px]">
           <div className="flex items-center justify-between">
-            <span className="text-zinc-500 uppercase">Motor SACL</span>
+            <span className="text-zinc-500 uppercase">sacl_ops.db</span>
             <span className="text-emerald-400 font-bold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              v1.0 WAL
+              SQLite WAL
             </span>
           </div>
           <div className="flex items-center justify-between text-zinc-400">

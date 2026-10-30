@@ -31,6 +31,8 @@ export interface OrchestratorFlowProps {
   commits?: any[]
   tasks?: any[]
   agents?: any[]
+  isBlocked?: boolean
+  blockReason?: string | null
   onRefreshAll?: () => Promise<void> | void
   onNavigateSection?: (section: string) => void
   onGateResolved?: () => void
@@ -78,6 +80,8 @@ export const OrchestratorFlow: React.FC<OrchestratorFlowProps> = ({
   commits = [],
   tasks = [],
   agents = [],
+  isBlocked = false,
+  blockReason = null,
   onRefreshAll,
   onNavigateSection,
   onGateResolved,
@@ -91,7 +95,7 @@ export const OrchestratorFlow: React.FC<OrchestratorFlowProps> = ({
   // Contract Autonomy State
   const [hasValidatedContracts, setHasValidatedContracts] = useState<boolean>(true)
   const [contractsList, setContractsList] = useState<any[]>([])
-  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState<boolean>(true)
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState<boolean>(false)
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null)
 
   // --- Phase 1: Design Agent State ---
@@ -627,10 +631,17 @@ export const OrchestratorFlow: React.FC<OrchestratorFlowProps> = ({
                       </button>
                     )}
 
+                    {isBlocked && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-mono">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span>FSM Bloqueada: {blockReason || 'Incidencia preventiva activa'}</span>
+                      </div>
+                    )}
                     <button
                       type="button"
+                      disabled={isBlocked}
                       onClick={handleApproveProposal}
-                      className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg ml-auto"
+                      className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg ml-auto"
                     >
                       <Check className="w-4 h-4 text-black" />
                       <span>Aprobar Propuesta y Pasar a Implementación →</span>
@@ -819,10 +830,17 @@ export const OrchestratorFlow: React.FC<OrchestratorFlowProps> = ({
                       </button>
                     )}
 
+                    {isBlocked && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs font-mono">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span>FSM Bloqueada: {blockReason || 'Incidencia preventiva activa'}</span>
+                      </div>
+                    )}
                     <button
                       type="button"
+                      disabled={isBlocked}
                       onClick={handleApproveImplementation}
-                      className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg"
+                      className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg"
                     >
                       <Check className="w-4 h-4 text-black" />
                       <span>Aprobar Implementación y Desplegar (Fase 3) →</span>

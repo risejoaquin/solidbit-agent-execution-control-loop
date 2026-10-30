@@ -160,6 +160,8 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
           commits={commits}
           tasks={tasks}
           agents={agents}
+          isBlocked={domainState.state === 'HALTED_BY_CONFLICT' || domainState.state === 'POST_CONDITION_FAILED'}
+          blockReason={domainState.subtitle}
           onRefreshAll={onRefreshConnections}
           onNavigateSection={onNavigateSection}
           onGateResolved={onGateResolved}
