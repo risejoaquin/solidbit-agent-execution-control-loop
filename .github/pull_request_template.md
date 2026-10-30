@@ -1,7 +1,7 @@
 ## 📌 Description of Changes
 <!-- Provide a clear, technical summary of the changes made and the motivation behind them. -->
 
-**Jira Ticket / Issue Link:** `SOLID-XXX`  
+**Jira Ticket / Issue Link:** `SOLID-XXX`
 **Related Pull Requests / Epics:** <!-- e.g. #123 -->
 
 ---

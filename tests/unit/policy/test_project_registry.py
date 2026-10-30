@@ -186,5 +186,56 @@ def test_risk_tier_and_post_gate_detection(sample_registry_dict):
 def test_worktree_base_resolution(sample_registry_dict):
     manager = ProjectRegistryManager.from_dict(sample_registry_dict)
     base = manager.get_worktree_base("test-project-strict")
-    strict_root = sample_registry_dict["projects"][0]["target_local_repo"]
-    assert normalize_fs_path(base) == normalize_fs_path(Path(strict_root) / "worktrees")
+    assert normalize_fs_path(base) == normalize_fs_path("C:\\Repos\\TestStrict\\worktrees")
+
+
+
+def test_windows_absolute_paths_are_compared_portably_and_safely():
+    """Lexical Windows path rules must be identical on Linux and Windows CI."""
+    assert is_same_or_subpath("c:/repos/app/child", r"C:\Repos\App")
+    assert is_same_or_subpath(r"C:\Repos\App", r"C:\Repos\App")
+    assert not is_same_or_subpath(r"C:\Repos\AppBackup", r"C:\Repos\App")
+    assert not is_same_or_subpath(r"D:\Repos\App", r"C:\Repos\App")
+    assert not is_same_or_subpath(r"C:\Repos\App\..\Sibling", r"C:\Repos\App")
+
+@pytest.mark.parametrize(
+    "unsafe_base",
+    [
+        "../escape",
+        r"..\escape",
+        r"wt\..\escape",
+        r"C:outside",
+        r"\outside",
+        ".",
+        "",
+        "  ",
+        "wt\x00escape",
+    ],
+)
+def test_worktree_base_rejects_unsafe_relative_paths(sample_registry_dict, unsafe_base):
+    """Registry worktree base must never escape or alias the primary checkout."""
+    project = dict(sample_registry_dict["projects"][0])
+    project["allowed_worktree_base"] = unsafe_base
+    registry = {**sample_registry_dict, "projects": [project]}
+    manager = ProjectRegistryManager.from_dict(registry)
+    with pytest.raises(PolicyDeniedError) as excinfo:
+        manager.get_worktree_base("test-project-strict")
+    assert excinfo.value.layer == "PROJECT_REGISTRY"
+
+
+def test_worktree_base_accepts_nested_relative_directory(sample_registry_dict):
+    project = dict(sample_registry_dict["projects"][0])
+    project["allowed_worktree_base"] = "wt/agents"
+    registry = {**sample_registry_dict, "projects": [project]}
+    manager = ProjectRegistryManager.from_dict(registry)
+    base = manager.get_worktree_base("test-project-strict")
+    assert normalize_fs_path(base) == normalize_fs_path(r"C:\Repos\TestStrict\wt\agents")
+
+
+def test_worktree_base_accepts_explicit_absolute_directory(sample_registry_dict):
+    project = dict(sample_registry_dict["projects"][0])
+    project["allowed_worktree_base"] = r"C:\Safe\Worktrees"
+    registry = {**sample_registry_dict, "projects": [project]}
+    manager = ProjectRegistryManager.from_dict(registry)
+    base = manager.get_worktree_base("test-project-strict")
+    assert normalize_fs_path(base) == normalize_fs_path(r"C:\Safe\Worktrees")

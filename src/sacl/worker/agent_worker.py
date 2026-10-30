@@ -39,6 +39,7 @@ from sacl.worker.retry import (
     get_attempt_log_paths,
 )
 from sacl.worker.worktree import WorkspaceManager
+from sacl.workspace.exceptions import WorkspaceError
 
 
 class AgentWorker:
@@ -193,6 +194,22 @@ class AgentWorker:
 
     def launch_attempt(self) -> None:
         """Launches a new execution attempt."""
+        # An explicitly provided mock runner or a mock inspector without a
+        # command is never an OS spawn. Every other launch must already live
+        # in a registered, protected-branch-safe Git worktree.
+        is_mock_process = (
+            self.config.mock_runner is not None
+            or (isinstance(self.process_inspector, MockProcessInspector)
+                and not self.config.executable_command)
+        )
+        worktree_identity = None
+        if not is_mock_process:
+            self.workspace_manager.assert_registered_worktree(
+                self.config.worktree_path, expected_branch=self.config.branch,
+            )
+            # Capture directory identity to detect replacement during log preparation.
+            stat = self.config.worktree_path.stat()
+            worktree_identity = (stat.st_dev, stat.st_ino)
         self.current_attempt += 1
         self.status = AgentStatus.LAUNCHING.value
 
@@ -237,8 +254,10 @@ class AgentWorker:
                 self.handle_process_exit(exit_code=1, error_message=str(e))
             return
 
-        # Ensure worktree path exists
-        self.config.worktree_path.mkdir(parents=True, exist_ok=True)
+        # Only explicit mocked workers may create synthetic plain directories.
+        # Live worker worktrees are provisioned and verified by the manager.
+        if is_mock_process:
+            self.config.worktree_path.mkdir(parents=True, exist_ok=True)
 
         # If using MockProcessInspector without an explicit command, simulate process
         if (
@@ -266,6 +285,18 @@ class AgentWorker:
         try:
             stdout_file = open(self.active_stdout_path, "w", encoding="utf-8")
             stderr_file = open(self.active_stderr_path, "w", encoding="utf-8")
+
+            # Recheck after launch preparation and before process creation.
+            # This narrows but does not eliminate OS-level TOCTOU.
+            if not is_mock_process:
+                self.workspace_manager.assert_registered_worktree(
+                    self.config.worktree_path, expected_branch=self.config.branch,
+                )
+                stat = self.config.worktree_path.stat()
+                if (stat.st_dev, stat.st_ino) != worktree_identity:
+                    raise WorkspaceError(
+                        "Worktree identity changed between preflight and process spawn."
+                    )
 
             proc = subprocess.Popen(
                 cmd,

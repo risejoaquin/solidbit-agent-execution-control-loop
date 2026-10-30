@@ -107,31 +107,64 @@ class JobDispatcher:
             return conn, True
 
     def _resolve_target_repo_path(self, project_id: Optional[str], metadata: Dict[str, Any]) -> str:
-        """Determines target repository path from resolver, project registry, or metadata."""
-        if metadata.get("target_repo_path"):
-            return str(metadata["target_repo_path"])
-        if project_id and self.project_root_resolver:
-            try:
-                return self.project_root_resolver(project_id)
-            except Exception:
-                pass
+        """Resolve project roots from trusted resolver or SQLite; deny metadata redirects."""
+        from pathlib import PureWindowsPath
+        from sacl.policy.project_registry import normalize_fs_path
 
-        # Try querying projects table directly
-        if project_id:
-            conn, should_close = self._get_connection()
-            try:
-                cursor = conn.cursor()
-                cursor.execute("SELECT root_path FROM projects WHERE project_id = ?", (project_id,))
-                row = cursor.fetchone()
-                if row and row["root_path"]:
-                    return str(row["root_path"])
-            except sqlite3.OperationalError:
-                pass
-            finally:
-                if should_close:
-                    conn.close()
+        def canonical_root(value: Any) -> str:
+            if not isinstance(value, (str, Path)) or not str(value).strip() or "\x00" in str(value):
+                raise ValueError("Invalid registered root")
+            raw = str(value)
+            if not (Path(raw).is_absolute() or PureWindowsPath(raw).is_absolute()):
+                raise ValueError("Registered root must be absolute")
+            return normalize_fs_path(raw)
 
-        return str(Path.cwd())
+        if not project_id:
+            raise PolicyDeniedError(
+                action="resolve_target_root", layer="PROJECT_REGISTRY",
+                reason="Project ID required for authorized execution root.",
+            )
+
+        if self.project_root_resolver:
+            try:
+                registered_root = self.project_root_resolver(project_id)
+                registered_normalized = canonical_root(registered_root)
+            except Exception as exc:
+                raise PolicyDeniedError(
+                    action="resolve_target_root", layer="PROJECT_REGISTRY",
+                    reason=f"Trusted project root resolver failed for '{project_id}': {exc}",
+                ) from exc
+        else:
+            try:
+                conn, should_close = self._get_connection()
+                try:
+                    row = conn.execute(
+                        "SELECT root_path FROM projects WHERE project_id = ?", (project_id,)
+                    ).fetchone()
+                    if row is None:
+                        raise ValueError("Project not registered")
+                    registered_root = row["root_path"]
+                    registered_normalized = canonical_root(registered_root)
+                finally:
+                    if should_close:
+                        conn.close()
+            except (sqlite3.Error, ValueError, TypeError) as exc:
+                raise PolicyDeniedError(
+                    action="resolve_target_root", layer="PROJECT_REGISTRY",
+                    reason=f"Local project registry unavailable or invalid for '{project_id}': {exc}",
+                ) from exc
+
+        requested = metadata.get("target_repo_path")
+        if requested is not None:
+            try:
+                if not isinstance(requested, (str, Path)) or canonical_root(requested) != registered_normalized:
+                    raise ValueError("Requested root does not match registered root")
+            except (OSError, ValueError, TypeError) as exc:
+                raise PolicyDeniedError(
+                    action="resolve_target_root", layer="PROJECT_REGISTRY",
+                    reason=f"Untrusted target_repo_path override denied for '{project_id}': {exc}",
+                ) from exc
+        return str(registered_root)
 
     def poll_and_dispatch(self, limit: Optional[int] = None) -> List[str]:
         """Scans for queued jobs and dispatches eligible ones.
@@ -171,6 +204,30 @@ class JobDispatcher:
         suffix = uuid4().hex[:6]
         run_id = f"run-{timestamp_str}-{suffix}"
 
+        # Graph-H must be configured before leasing a project or creating a run.
+        # An absent executor is never evidence of a RUNNING worker.
+        if self.executor_launcher is None:
+            self.lifecycle_manager.transition(
+                job_id=job_id,
+                to_status=JobSideStatus.BLOCKED.value,
+                error_summary="EXECUTOR_UNAVAILABLE: Graph-H launcher is not configured",
+                expected_current_status=JobStatus.QUEUED.value,
+            )
+            return None
+
+        # Resolve trusted target before acquiring any lease or creating a run.
+        # Denials leave no RUNNING job, lease, or physical run record.
+        try:
+            target_repo_path = self._resolve_target_repo_path(project_id, metadata)
+        except PolicyDeniedError as exc:
+            self.lifecycle_manager.transition(
+                job_id=job_id,
+                to_status=JobSideStatus.POLICY_DENIED.value,
+                error_summary=f"TARGET_ROOT_DENIED: {exc}",
+                expected_current_status=JobStatus.QUEUED.value,
+            )
+            return None
+
         # ---------------------------------------------------------------------
         # 1. Project Concurrency Lock Check
         # ---------------------------------------------------------------------
@@ -185,7 +242,6 @@ class JobDispatcher:
                 # Another job holds the project lock; job remains QUEUED
                 return None
 
-        target_repo_path = self._resolve_target_repo_path(project_id, metadata)
         run_dir = str(Path("runs") / run_id)
 
         # ---------------------------------------------------------------------
@@ -302,8 +358,22 @@ class JobDispatcher:
         if self.executor_launcher:
             try:
                 launcher_result = self.executor_launcher(run_context)
-                if isinstance(launcher_result, int):
+                # Reject placeholders, bools, invalid PIDs and already-exited handles.
+                # Never mark a job RUNNING without a usable executor identity.
+                if type(launcher_result) is int:
+                    if launcher_result <= 0:
+                        raise RuntimeError("EXECUTOR_UNAVAILABLE: launcher returned an invalid PID")
                     run_context.pid = launcher_result
+                else:
+                    pid = getattr(launcher_result, "pid", None)
+                    poll = getattr(launcher_result, "poll", None)
+                    if type(pid) is not int or pid <= 0 or not callable(poll):
+                        raise RuntimeError(
+                            "EXECUTOR_UNAVAILABLE: launcher returned no valid process handle or PID"
+                        )
+                    if poll() is not None:
+                        raise RuntimeError("EXECUTOR_UNAVAILABLE: launcher process already exited")
+                    run_context.pid = pid
             except Exception as ex:
                 err_msg = f"Failed to spawn ephemeral Graph-H engine: {ex}"
                 self.lifecycle_manager.transition(

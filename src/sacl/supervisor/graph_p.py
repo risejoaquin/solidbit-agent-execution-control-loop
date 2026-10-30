@@ -38,6 +38,12 @@ from sacl.observability.events import (
 )
 from sacl.supervisor.dispatcher import JobDispatcher
 from sacl.supervisor.lease import LeaseCoordinator, default_process_alive_check
+from sacl.recovery.process_identity import (
+    ProcessInspectionStatus,
+    ProcessInspector,
+    get_default_process_inspector,
+    inspect_process,
+)
 from sacl.supervisor.lifecycle import JobLifecycleManager
 
 
@@ -91,6 +97,7 @@ class GraphPSupervisor(ISupervisor):
         audit_emitter: Optional[Any] = None,
         error_recorder: Optional[Any] = None,
         process_checker: Optional[Callable[[int], bool]] = None,
+        recovery_process_inspector: Optional[ProcessInspector] = None,
     ):
         self._db_source = db_source
         self._db_file: Optional[str] = None
@@ -98,6 +105,13 @@ class GraphPSupervisor(ISupervisor):
         self.instance_id = instance_id or f"graph-p-{self.pid}"
         self.config = config or SupervisorConfig()
         self.process_checker = process_checker or default_process_alive_check
+        # Injected checkers are trusted test/host adapters. When no checker is
+        # supplied, the production cold-start path MUST verify PID, image and
+        # original process start time, not merely OS PID existence.
+        self._use_canonical_recovery_identity = process_checker is None
+        self.recovery_process_inspector = (
+            recovery_process_inspector or get_default_process_inspector()
+        )
 
         self.audit_emitter = audit_emitter
         self.error_recorder = error_recorder
@@ -612,6 +626,30 @@ class GraphPSupervisor(ISupervisor):
     # COLD-START CRASH RECOVERY (Never Blindly Restart Old RUNNING)
     # =========================================================================
 
+    def _is_recovery_worker_alive(
+        self, pid: Optional[int], recorded_start_time: Optional[str],
+    ) -> bool:
+        """Fail closed on PID recycling during cold-start supervisor reconnection."""
+        if not pid or pid <= 0 or not self.process_checker(pid):
+            return False
+        if not self._use_canonical_recovery_identity:
+            # Explicitly supplied process_checker is a trusted mock/host
+            # adapter; normal runtime uses the three-factor verification.
+            return True
+        if not recorded_start_time:
+            return False
+        observed = inspect_process(
+            pid=pid,
+            persisted_start_time=recorded_start_time,
+            inspector=self.recovery_process_inspector,
+        )
+        return (
+            observed.status == ProcessInspectionStatus.ALIVE_VALID
+            and observed.is_alive
+            and observed.is_valid
+            and observed.observation.start_time_drift_seconds is not None
+        )
+
     def reconcile_startup(self) -> List[str]:
         """Executes the cold-start crash recovery sequence defined in RECOVERY_MODEL.md.
 
@@ -708,7 +746,7 @@ class GraphPSupervisor(ISupervisor):
                 any_alive = False
                 for ag in agent_rows:
                     ag_pid = ag["pid"]
-                    if ag_pid and ag_pid > 0 and self.process_checker(ag_pid):
+                    if self._is_recovery_worker_alive(ag_pid, ag["started_at"]):
                         any_alive = True
                         break
 

@@ -15,7 +15,9 @@ import argparse
 import json
 import sqlite3
 from pathlib import Path
-
+import subprocess
+import sys
+import shutil
 import pytest
 
 from sacl.cli.launch import configure_launch_parser, execute_launch
@@ -225,8 +227,13 @@ class TestCliIntegration:
         rc = execute_stop(args_stop)
         assert rc == 0
 
-    def test_preflight_command(self):
-        """Verifies sacl preflight checks environment dependencies and clean-root rule."""
+    def test_preflight_command(self, monkeypatch):
+        """Preflight reports a valid host with mocked mandatory PowerShell."""
+        original_which = shutil.which
+        monkeypatch.setattr(
+            "sacl.cli.preflight.shutil.which",
+            lambda command: "mock-powershell" if command == "powershell.exe" else original_which(command),
+        )
         parser = argparse.ArgumentParser()
         configure_preflight_parser(parser)
 

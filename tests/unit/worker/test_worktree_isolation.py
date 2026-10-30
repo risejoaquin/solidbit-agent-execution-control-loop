@@ -8,19 +8,19 @@ from sacl.worker.worktree import WorkspaceManager
 
 
 def test_clean_root_on_clean_directory(tmp_path: Path):
-    mgr = WorkspaceManager()
+    mgr = WorkspaceManager(mock_mode=True)
     is_clean, dirty = mgr.check_clean_root(tmp_path)
     assert is_clean is True
     assert dirty == []
 
 
 def test_assert_clean_root_passes_when_clean(tmp_path: Path):
-    mgr = WorkspaceManager()
+    mgr = WorkspaceManager(mock_mode=True)
     mgr.assert_clean_root(tmp_path)
 
 
 def test_worktree_provision_and_teardown_mock(tmp_path: Path):
-    mgr = WorkspaceManager()
+    mgr = WorkspaceManager(mock_mode=True)
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     worktree_path = tmp_path / "worktrees" / "wt-AG-TEST"

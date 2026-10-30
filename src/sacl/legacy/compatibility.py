@@ -121,7 +121,7 @@ def check_dirty_root(repo_path: Union[Path, str]) -> Tuple[bool, str]:
     Returns:
         (is_dirty, porcelain_output)
     Raises:
-        RuntimeError: if git command cannot be executed.
+        Git probe errors return (True, GIT_CHECK_ERROR) to deny execution.
     """
     rp = Path(repo_path)
     if not rp.exists():
@@ -144,7 +144,10 @@ def check_dirty_root(repo_path: Union[Path, str]) -> Tuple[bool, str]:
         is_dirty = len(output) > 0
         return is_dirty, output
     except Exception as exc:
-        return False, f"GIT_CHECK_ERROR: {exc}"
+        # An unverifiable Git status is not evidence of a clean checkout.
+        # Preserve the (is_dirty, details) contract so preflight and operator
+        # both fail closed without launching a worker.
+        return True, f"GIT_CHECK_ERROR: {exc}"
 
 
 def verify_legacy_process(
