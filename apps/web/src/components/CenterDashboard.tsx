@@ -27,6 +27,7 @@ import type { DomainStateMeta, OperationalDomainState } from '../types/domainSta
 import { StatusBadge } from './ui/status-badge'
 import { TooltipProvider } from './ui/tooltip'
 import { StructuredPayloadViewer } from './StructuredPayloadViewer'
+import { OrchestratorFlow } from './OrchestratorFlow'
 
 interface CenterDashboardProps {
   domainState: DomainStateMeta
@@ -257,6 +258,22 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
               </strong>
             </span>
           </div>
+
+          {/* Primary 3-Phase KISS Orchestrator Flow */}
+          {domainState.state !== 'UNINITIALIZED' && (
+            <div className="pb-2">
+              <OrchestratorFlow
+                activeProject={activeProject}
+                activeBranch={activeProject?.branch || 'worktrees/scheduler'}
+                commits={commits}
+                tasks={tasks}
+                agents={agents}
+                onRefreshAll={onRefreshConnections}
+                onNavigateSection={onNavigateSection}
+                onGateResolved={onGateResolved}
+              />
+            </div>
+          )}
 
           {/* Resolution Feedback Banner */}
           {resolutionFeedback && (

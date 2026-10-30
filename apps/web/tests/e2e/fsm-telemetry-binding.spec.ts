@@ -109,7 +109,8 @@ test.describe('FSM Telemetry & Event Binding E2E Suite', () => {
       });
     });
 
-    // Paso 1: Navegar a la vista principal de la UI
+    // Paso 1: Garantizar viewport desktop (lg breakpoint >= 1024px) y navegar
+    await page.setViewportSize({ width: 1280, height: 800 });
     const targetUrl = process.env.BASE_URL || 'http://localhost:5173';
     await page.goto(targetUrl);
 
