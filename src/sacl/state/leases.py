@@ -12,15 +12,13 @@ Implements the 5-level hierarchical lock ladder:
 
 from __future__ import annotations
 
-import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any, Dict, Generator, List, Optional
 
 from sacl.contracts.exceptions import LeaseAcquisitionError
 from sacl.contracts.models import LeaseRecord
-from sacl.state.exceptions import StaleLeaseError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import format_utc, json_dumps_safe, json_loads_safe, utc_now
 
@@ -67,7 +65,9 @@ class LeaseManager(BaseRepository):
                 metadata_json = excluded.metadata_json
             WHERE expires_at < ? OR holder_id = ?;
         """
-        cursor = self.execute(sql, (lease_name, holder_id, holder_pid, now, now, expires, meta_json, now, holder_id))
+        cursor = self.execute(
+            sql, (lease_name, holder_id, holder_pid, now, now, expires, meta_json, now, holder_id)
+        )
         acquired = cursor.rowcount > 0
 
         if acquired and lease_name == "SUPERVISOR_SINGLETON":
@@ -118,7 +118,10 @@ class LeaseManager(BaseRepository):
         released = cursor.rowcount > 0
 
         if released and lease_name == "SUPERVISOR_SINGLETON":
-            self.execute("DELETE FROM supervisor_locks WHERE lock_name = ? AND run_id = ?;", (lease_name, holder_id))
+            self.execute(
+                "DELETE FROM supervisor_locks WHERE lock_name = ? AND run_id = ?;",
+                (lease_name, holder_id),
+            )
 
         self.commit()
         return released
@@ -173,27 +176,54 @@ class LeaseManager(BaseRepository):
 
     def acquire_system_lease(self, holder_id: str, holder_pid: int, ttl_seconds: int = 60) -> bool:
         """Acquires Level 1 System Lock (SUPERVISOR_SINGLETON)."""
-        return self.acquire_lease("SUPERVISOR_SINGLETON", holder_id, holder_pid, ttl_seconds, {"lease_type": "SYSTEM"})
+        return self.acquire_lease(
+            "SUPERVISOR_SINGLETON", holder_id, holder_pid, ttl_seconds, {"lease_type": "SYSTEM"}
+        )
 
-    def acquire_project_lease(self, project_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60, is_mutating: bool = True) -> bool:
+    def acquire_project_lease(
+        self,
+        project_id: str,
+        holder_id: str,
+        holder_pid: int,
+        ttl_seconds: int = 60,
+        is_mutating: bool = True,
+    ) -> bool:
         """Acquires Level 2 Project Lock (PROJECT_<projectId>)."""
         lease_name = f"PROJECT_{project_id}"
-        return self.acquire_lease(lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "PROJECT", "is_mutating": is_mutating})
+        return self.acquire_lease(
+            lease_name,
+            holder_id,
+            holder_pid,
+            ttl_seconds,
+            {"lease_type": "PROJECT", "is_mutating": is_mutating},
+        )
 
-    def acquire_repo_lease(self, repo_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 30) -> bool:
+    def acquire_repo_lease(
+        self, repo_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 30
+    ) -> bool:
         """Acquires Level 3 Repo Lock (REPO_<repoId>)."""
         lease_name = f"REPO_{repo_id}"
-        return self.acquire_lease(lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "REPO"})
+        return self.acquire_lease(
+            lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "REPO"}
+        )
 
-    def acquire_worktree_lease(self, agent_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60) -> bool:
+    def acquire_worktree_lease(
+        self, agent_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60
+    ) -> bool:
         """Acquires Level 4 Worktree Lock (WORKTREE_<agentId>)."""
         lease_name = f"WORKTREE_{agent_id}"
-        return self.acquire_lease(lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "WORKTREE"})
+        return self.acquire_lease(
+            lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "WORKTREE"}
+        )
 
-    def acquire_resource_lease(self, resource_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60) -> bool:
+    def acquire_resource_lease(
+        self, resource_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60
+    ) -> bool:
         """Acquires Level 5 Resource Lock (RESOURCE_<resourceId>)."""
         lease_name = f"RESOURCE_{resource_id}"
-        return self.acquire_lease(lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "RESOURCE"})
+        return self.acquire_lease(
+            lease_name, holder_id, holder_pid, ttl_seconds, {"lease_type": "RESOURCE"}
+        )
 
     def release_system_lease(self, holder_id: str) -> bool:
         """Releases Level 1 System Lock (SUPERVISOR_SINGLETON)."""
@@ -251,15 +281,28 @@ class LeaseManager(BaseRepository):
         self, holder_id: str, holder_pid: int, ttl_seconds: int = 60
     ) -> Generator[Dict[str, Any], None, None]:
         """Context manager for Level 1 System Lock (SUPERVISOR_SINGLETON)."""
-        with self.hold_lease("SUPERVISOR_SINGLETON", holder_id, holder_pid, ttl_seconds, {"lease_type": "SYSTEM"}) as lease:
+        with self.hold_lease(
+            "SUPERVISOR_SINGLETON", holder_id, holder_pid, ttl_seconds, {"lease_type": "SYSTEM"}
+        ) as lease:
             yield lease
 
     @contextmanager
     def hold_project_lease(
-        self, project_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60, is_mutating: bool = True
+        self,
+        project_id: str,
+        holder_id: str,
+        holder_pid: int,
+        ttl_seconds: int = 60,
+        is_mutating: bool = True,
     ) -> Generator[Dict[str, Any], None, None]:
         """Context manager for Level 2 Project Lock (PROJECT_<projectId>)."""
-        with self.hold_lease(f"PROJECT_{project_id}", holder_id, holder_pid, ttl_seconds, {"lease_type": "PROJECT", "is_mutating": is_mutating}) as lease:
+        with self.hold_lease(
+            f"PROJECT_{project_id}",
+            holder_id,
+            holder_pid,
+            ttl_seconds,
+            {"lease_type": "PROJECT", "is_mutating": is_mutating},
+        ) as lease:
             yield lease
 
     @contextmanager
@@ -267,7 +310,9 @@ class LeaseManager(BaseRepository):
         self, repo_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 30
     ) -> Generator[Dict[str, Any], None, None]:
         """Context manager for Level 3 Repo Lock (REPO_<repoId>)."""
-        with self.hold_lease(f"REPO_{repo_id}", holder_id, holder_pid, ttl_seconds, {"lease_type": "REPO"}) as lease:
+        with self.hold_lease(
+            f"REPO_{repo_id}", holder_id, holder_pid, ttl_seconds, {"lease_type": "REPO"}
+        ) as lease:
             yield lease
 
     @contextmanager
@@ -275,7 +320,9 @@ class LeaseManager(BaseRepository):
         self, agent_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60
     ) -> Generator[Dict[str, Any], None, None]:
         """Context manager for Level 4 Worktree Lock (WORKTREE_<agentId>)."""
-        with self.hold_lease(f"WORKTREE_{agent_id}", holder_id, holder_pid, ttl_seconds, {"lease_type": "WORKTREE"}) as lease:
+        with self.hold_lease(
+            f"WORKTREE_{agent_id}", holder_id, holder_pid, ttl_seconds, {"lease_type": "WORKTREE"}
+        ) as lease:
             yield lease
 
     @contextmanager
@@ -283,5 +330,11 @@ class LeaseManager(BaseRepository):
         self, resource_id: str, holder_id: str, holder_pid: int, ttl_seconds: int = 60
     ) -> Generator[Dict[str, Any], None, None]:
         """Context manager for Level 5 Resource Lock (RESOURCE_<resourceId>)."""
-        with self.hold_lease(f"RESOURCE_{resource_id}", holder_id, holder_pid, ttl_seconds, {"lease_type": "RESOURCE"}) as lease:
+        with self.hold_lease(
+            f"RESOURCE_{resource_id}",
+            holder_id,
+            holder_pid,
+            ttl_seconds,
+            {"lease_type": "RESOURCE"},
+        ) as lease:
             yield lease

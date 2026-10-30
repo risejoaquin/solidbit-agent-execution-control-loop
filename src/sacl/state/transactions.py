@@ -11,7 +11,6 @@ import uuid
 from contextlib import contextmanager
 from typing import Generator, Optional
 
-
 _MANAGED_CONNECTIONS: set[int] = set()
 
 

@@ -7,7 +7,7 @@ Limits the number of simultaneously active worker processes to $MaxParallel
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set
+from typing import Set
 
 from sacl.contracts.exceptions import ContractValidationError
 

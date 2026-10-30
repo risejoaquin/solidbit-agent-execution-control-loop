@@ -9,10 +9,9 @@ Implements Threat I1 / TH-09 & Security Policy §3.1:
 
 from __future__ import annotations
 
-import io
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Pattern, TextIO, Tuple, Union
+from typing import Any, List, Optional, Pattern, TextIO, Tuple
 
 from sacl.security.exceptions import SecretLeakError
 
@@ -27,23 +26,22 @@ SECRET_PATTERNS: List[Tuple[str, Pattern[str]]] = [
     ("GITHUB_TOKEN_GHU", re.compile(r"ghu_[a-zA-Z0-9]{36}")),
     ("GITHUB_TOKEN_GHS", re.compile(r"ghs_[a-zA-Z0-9]{36}")),
     ("GITHUB_TOKEN_GHR", re.compile(r"ghr_[a-zA-Z0-9]{36}")),
-
     # Google API Keys
     ("GOOGLE_API_KEY", re.compile(r"AIza[0-9A-Za-z\-_]{30,40}")),
-
     # Google OAuth Tokens
     ("GOOGLE_OAUTH_TOKEN", re.compile(r"ya29\.[0-9A-Za-z\-_]+")),
-
     # Railway Tokens
     ("RAILWAY_TOKEN", re.compile(r"(?:railway_[a-zA-Z0-9]{24,}|ral_[a-zA-Z0-9]{32,})")),
-
     # PEM Private Keys
-    ("PEM_PRIVATE_KEY", re.compile(r"-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----[\s\S]*?-----END (?:[A-Z ]+)?PRIVATE KEY-----")),
-
+    (
+        "PEM_PRIVATE_KEY",
+        re.compile(
+            r"-----BEGIN (?:[A-Z ]+)?PRIVATE KEY-----[\s\S]*?-----END (?:[A-Z ]+)?PRIVATE KEY-----"
+        ),
+    ),
     # Authorization / Bearer headers
     ("BEARER_TOKEN", re.compile(r"(?i)\bBearer\s+[a-zA-Z0-9_\-\.]{24,}")),
     ("BASIC_AUTH", re.compile(r"(?i)\bBasic\s+[a-zA-Z0-9+/=]{24,}")),
-
     # Generic secret assignments (e.g. api_key="secret", password='value')
     (
         "GENERIC_SECRET_ASSIGNMENT",

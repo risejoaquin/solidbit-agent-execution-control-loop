@@ -43,9 +43,7 @@ def detect_file_collisions(
 
     # Filter to files modified by more than one agent
     collisions = {
-        file_path: agents
-        for file_path, agents in file_to_agents.items()
-        if len(agents) > 1
+        file_path: agents for file_path, agents in file_to_agents.items() if len(agents) > 1
     }
 
     return collisions
@@ -118,7 +116,9 @@ def evaluate_wave_readiness(
             dirty_worktrees.append(f"{agent_id} (missing path)")
 
     if dirty_worktrees:
-        blockers.append(f"Uncommitted changes in worktrees for agents: {', '.join(dirty_worktrees)}")
+        blockers.append(
+            f"Uncommitted changes in worktrees for agents: {', '.join(dirty_worktrees)}"
+        )
 
     # 4. Deliverable reports
     missing_reports: List[str] = []
@@ -128,9 +128,11 @@ def evaluate_wave_readiness(
                 missing_reports.append(agent_id)
 
     if missing_reports:
-        blockers.append(f"Missing required deliverable reports for agents: {', '.join(missing_reports)}")
+        blockers.append(
+            f"Missing required deliverable reports for agents: {', '.join(missing_reports)}"
+        )
 
-    ready_for_integration = (len(blockers) == 0)
+    ready_for_integration = len(blockers) == 0
 
     return {
         "ready_for_integration": ready_for_integration,

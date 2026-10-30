@@ -1,0 +1,8 @@
+# SolidBit SACL Autonomous Control Plane
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /runs/
+
+Sitemap: https://solidbit.dev/sitemap.xml

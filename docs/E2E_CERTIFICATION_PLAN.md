@@ -34,7 +34,7 @@ flowchart LR
 ```
 
 1. **Untouched / Fully Operational Rule:**
-   `Stable-Ecommerce-Orchestrator` (`C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator`) **must remain completely operational and untouched** throughout SACL V1 construction and testing. No legacy scripts, configs, or state files may be altered or deleted.
+   `Stable-Ecommerce-Orchestrator` (`/workspace\Stable-Ecommerce-Orchestrator`) **must remain completely operational and untouched** throughout SACL V1 construction and testing. No legacy scripts, configs, or state files may be altered or deleted.
 2. **Certification Gate:**
    SACL V1 cannot be designated as operational until it achieves 100% verified parity across all 18 evaluated components (`docs/CURRENT_ORCHESTRATOR_COMPATIBILITY_MATRIX.md`) and passes all 8 steps of this certification plan.
 3. **Archive Transition:**

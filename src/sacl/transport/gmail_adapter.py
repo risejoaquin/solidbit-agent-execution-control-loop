@@ -13,6 +13,7 @@ Features:
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import abc
 import base64
@@ -28,7 +29,6 @@ from typing import Any, Dict, List, Optional
 from sacl.transport.exceptions import (
     RateLimitExceededError,
     StaleHistoryCursorError,
-    TransportAuthError,
     TransportError,
 )
 from sacl.transport.oauth import IOAuth2CredentialProvider
@@ -89,7 +89,9 @@ class IGmailApiAdapter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def send_message(self, raw_mime_bytes: bytes, thread_id: Optional[str] = None) -> Dict[str, Any]:
+    def send_message(
+        self, raw_mime_bytes: bytes, thread_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Dispatches an outbound message via users.messages.send with threadId correlation."""
         pass
 
@@ -141,7 +143,7 @@ class GmailApiAdapter(IGmailApiAdapter):
             req = urllib.request.Request(url, data=data_bytes, headers=headers, method=method)
 
             try:
-                with urllib.request.urlopen(req, timeout=30) as resp:
+                with safe_urlopen(req, timeout=30) as resp:
                     resp_bytes = resp.read()
                     if not resp_bytes:
                         return {}
@@ -182,7 +184,9 @@ class GmailApiAdapter(IGmailApiAdapter):
                     continue
 
                 if err.code == 429:
-                    raise RateLimitExceededError(details={"status_code": err.code, "url": url}) from err
+                    raise RateLimitExceededError(
+                        details={"status_code": err.code, "url": url}
+                    ) from err
 
                 err_text = err.read().decode("utf-8", errors="replace")
                 raise TransportError(
@@ -200,7 +204,9 @@ class GmailApiAdapter(IGmailApiAdapter):
                     continue
                 raise TransportError(f"Network error accessing Gmail API: {err}") from err
 
-        raise TransportError(f"Exceeded max retries ({self.max_retries}) for Gmail API request: {url}")
+        raise TransportError(
+            f"Exceeded max retries ({self.max_retries}) for Gmail API request: {url}"
+        )
 
     def watch(self, topic_name: str, label_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -251,7 +257,9 @@ class GmailApiAdapter(IGmailApiAdapter):
             params["pageToken"] = page_token
         return self._execute_request("messages", method="GET", query_params=params)
 
-    def send_message(self, raw_mime_bytes: bytes, thread_id: Optional[str] = None) -> Dict[str, Any]:
+    def send_message(
+        self, raw_mime_bytes: bytes, thread_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         raw_b64 = base64.urlsafe_b64encode(raw_mime_bytes).decode("ascii")
         payload: Dict[str, Any] = {"raw": raw_b64}
         if thread_id:
@@ -297,15 +305,17 @@ class MockGmailApiAdapter(IGmailApiAdapter):
 
         parts: List[Dict[str, Any]] = []
         if attachment_bytes is not None:
-            parts.append({
-                "partId": "1",
-                "mimeType": "application/zip",
-                "filename": attachment_filename or "package.zip",
-                "body": {
-                    "attachmentId": attachment_id,
-                    "size": len(attachment_bytes),
-                },
-            })
+            parts.append(
+                {
+                    "partId": "1",
+                    "mimeType": "application/zip",
+                    "filename": attachment_filename or "package.zip",
+                    "body": {
+                        "attachmentId": attachment_id,
+                        "size": len(attachment_bytes),
+                    },
+                }
+            )
             self.attachments[f"{message_id}:{attachment_id}"] = attachment_bytes
 
         msg = {
@@ -327,10 +337,12 @@ class MockGmailApiAdapter(IGmailApiAdapter):
         self.messages[message_id] = msg
 
         # Append to history
-        self.history_records.append({
-            "id": hid,
-            "messagesAdded": [{"message": {"id": message_id, "threadId": tid}}],
-        })
+        self.history_records.append(
+            {
+                "id": hid,
+                "messagesAdded": [{"message": {"id": message_id, "threadId": tid}}],
+            }
+        )
 
     def watch(self, topic_name: str, label_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         self._check_fault_injection("watch")
@@ -364,10 +376,7 @@ class MockGmailApiAdapter(IGmailApiAdapter):
         except ValueError:
             start_num = 0
 
-        matching = [
-            h for h in self.history_records
-            if int(h.get("id", 0)) > start_num
-        ]
+        matching = [h for h in self.history_records if int(h.get("id", 0)) > start_num]
 
         return {
             "history": matching[:max_results],
@@ -397,7 +406,9 @@ class MockGmailApiAdapter(IGmailApiAdapter):
             results.append({"id": mid, "threadId": msg.get("threadId", "")})
         return {"messages": results[:max_results]}
 
-    def send_message(self, raw_mime_bytes: bytes, thread_id: Optional[str] = None) -> Dict[str, Any]:
+    def send_message(
+        self, raw_mime_bytes: bytes, thread_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         self._check_fault_injection("send_message")
         msg_id = f"sent-{len(self.sent_messages) + 1}"
         tid = thread_id or f"thread-{msg_id}"

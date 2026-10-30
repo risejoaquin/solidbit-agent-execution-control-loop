@@ -12,17 +12,15 @@ from __future__ import annotations
 
 import datetime
 import email
-from email.message import EmailMessage
 import email.utils
 import hashlib
 import re
 import secrets
-from typing import Any, Dict, Optional, Tuple
+from email.message import EmailMessage
+from typing import Optional
 
 from sacl.contracts.invariants import (
-    DEFAULT_ROUTING_PREFIX,
     DELIVERY_SEMANTICS,
-    MAX_ATTACHMENT_SIZE_BYTES,
 )
 from sacl.contracts.models import (
     AttachmentMetadata,
@@ -30,12 +28,9 @@ from sacl.contracts.models import (
     RoutingSubject,
 )
 from sacl.contracts.schema_validator import get_default_validator
-from sacl.transport.exceptions import InvalidRoutingHintError
 
 # Routing hint regex: matches [SACL][JOB][v1][<JOB_ID>]
-ROUTING_HINT_PATTERN = re.compile(
-    r"^\[SACL\]\[JOB\]\[v1\]\[([A-Za-z0-9_.-]+)\](?:\s*.*)?$"
-)
+ROUTING_HINT_PATTERN = re.compile(r"^\[SACL\]\[JOB\]\[v1\]\[([A-Za-z0-9_.-]+)\](?:\s*.*)?$")
 
 # Outbound format: [SACL][RESULT][v1][<JOB_ID>] - <STATUS> (Run: <RUN_ID>)
 OUTBOUND_SUBJECT_PATTERN = re.compile(

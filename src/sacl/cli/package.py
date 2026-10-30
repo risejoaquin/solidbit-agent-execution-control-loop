@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from sacl.legacy.packager import WaveZipPackager
 
@@ -20,13 +20,19 @@ def configure_package_parser(parser: argparse.ArgumentParser) -> None:
     subparsers = parser.add_subparsers(dest="package_action", required=True)
 
     # 1. create
-    create_parser = subparsers.add_parser("create", help="Package a wave directory into a canonical wave ZIP")
+    create_parser = subparsers.add_parser(
+        "create", help="Package a wave directory into a canonical wave ZIP"
+    )
     create_parser.add_argument("source_dir", help="Directory containing package files")
     create_parser.add_argument("--output", "-o", help="Output .zip destination path")
-    create_parser.add_argument("--prefix-root", action="store_true", help="Prefix zip entries with <package_id>/")
+    create_parser.add_argument(
+        "--prefix-root", action="store_true", help="Prefix zip entries with <package_id>/"
+    )
 
     # 2. verify
-    verify_parser = subparsers.add_parser("verify", help="Verify integrity, layout, and schema of a wave package")
+    verify_parser = subparsers.add_parser(
+        "verify", help="Verify integrity, layout, and schema of a wave package"
+    )
     verify_parser.add_argument("package_path", help="Path to wave directory or .zip archive")
 
     # 3. extract
@@ -46,7 +52,9 @@ def execute_package(args: argparse.Namespace) -> int:
             print(f"[ERROR] Source directory does not exist: {src_dir}", file=sys.stderr)
             return 1
 
-        out_zip = Path(args.output).resolve() if args.output else src_dir.parent / f"{src_dir.name}.zip"
+        out_zip = (
+            Path(args.output).resolve() if args.output else src_dir.parent / f"{src_dir.name}.zip"
+        )
         try:
             created_zip = packager.package_wave_dir(
                 source_dir=src_dir,
@@ -71,7 +79,9 @@ def execute_package(args: argparse.Namespace) -> int:
             print(f"[PASS] Package verified successfully: {target_path}")
             return 0
         else:
-            print(f"[FAIL] Package verification failed with {len(errors)} error(s):", file=sys.stderr)
+            print(
+                f"[FAIL] Package verification failed with {len(errors)} error(s):", file=sys.stderr
+            )
             for err in errors:
                 print(f"  - {err}", file=sys.stderr)
             return 1

@@ -3,8 +3,7 @@
 import sqlite3
 import threading
 import time
-from datetime import datetime, timezone, timedelta
-import pytest
+from datetime import datetime, timedelta, timezone
 
 from sacl.observability.heartbeat import BackgroundHeartbeater, HeartbeatService
 

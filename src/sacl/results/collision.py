@@ -10,20 +10,18 @@ Implements the collision detection and gating invariants from RESULT_PROTOCOL.md
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Set, Tuple
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Set
 
 from sacl.observability.audit import AuditEventEmitter
 from sacl.observability.events import (
     CONFLICT_DETECTED,
     Severity,
-    create_audit_event,
 )
-from sacl.results.models import CollisionRecord, CollisionReport
+from sacl.results.models import CollisionReport
 
 logger = logging.getLogger("sacl.results.collision")
 

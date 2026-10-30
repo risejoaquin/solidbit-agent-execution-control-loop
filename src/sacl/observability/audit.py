@@ -81,7 +81,9 @@ class AuditEventEmitter:
         """
         target = event_or_type if event_or_type is not None else event_type
         if target is None:
-            raise ValueError("Either an AuditEvent instance or an event_type string must be provided.")
+            raise ValueError(
+                "Either an AuditEvent instance or an event_type string must be provided."
+            )
 
         if isinstance(target, AuditEvent):
             event = target
@@ -108,7 +110,9 @@ class AuditEventEmitter:
 
         sev = event.severity.upper()
         if sev not in ALL_SEVERITIES:
-            raise ValueError(f"Invalid severity '{event.severity}'; must be one of {sorted(ALL_SEVERITIES)}")
+            raise ValueError(
+                f"Invalid severity '{event.severity}'; must be one of {sorted(ALL_SEVERITIES)}"
+            )
 
         payload_json = json.dumps(event.payload or {})
         created_at = event.created_at or datetime.now(timezone.utc).isoformat()

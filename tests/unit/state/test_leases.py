@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sqlite3
-import time
 from pathlib import Path
 from typing import Generator
 
@@ -32,7 +31,9 @@ def test_atomic_lease_acquisition_and_contention(lease_db: sqlite3.Connection) -
     assert acq1 is True
 
     # Same holder can re-acquire/refresh
-    acq1_again = mgr.acquire_lease("RESOURCE_DB", holder_id="proc-1", holder_pid=1001, ttl_seconds=10)
+    acq1_again = mgr.acquire_lease(
+        "RESOURCE_DB", holder_id="proc-1", holder_pid=1001, ttl_seconds=10
+    )
     assert acq1_again is True
 
     # Second holder attempts to acquire while active -> contention, returns False
@@ -78,7 +79,9 @@ def test_supervisor_singleton_compatibility_table_sync(lease_db: sqlite3.Connect
 
     # Renewal syncs to supervisor_locks
     mgr.renew_lease("SUPERVISOR_SINGLETON", holder_id="sup-daemon-1", ttl_seconds=45)
-    cursor.execute("SELECT expires_at FROM supervisor_locks WHERE lock_name = 'SUPERVISOR_SINGLETON';")
+    cursor.execute(
+        "SELECT expires_at FROM supervisor_locks WHERE lock_name = 'SUPERVISOR_SINGLETON';"
+    )
     assert cursor.fetchone()["expires_at"] == mgr.get_lease("SUPERVISOR_SINGLETON")["expires_at"]
 
     # Release removes from both
@@ -105,11 +108,16 @@ def test_hierarchical_lock_ladder(lease_db: sqlite3.Connection) -> None:
 def test_hold_lease_context_manager(lease_db: sqlite3.Connection) -> None:
     mgr = LeaseManager(lease_db)
 
-    with mgr.hold_lease("WORKTREE_AG-ARCH", holder_id="worker-arch", holder_pid=3001, ttl_seconds=10):
+    with mgr.hold_lease(
+        "WORKTREE_AG-ARCH", holder_id="worker-arch", holder_pid=3001, ttl_seconds=10
+    ):
         assert mgr.is_lease_active("WORKTREE_AG-ARCH") is True
 
         # Another process cannot acquire it inside the block
-        assert mgr.acquire_lease("WORKTREE_AG-ARCH", holder_id="worker-other", holder_pid=3002) is False
+        assert (
+            mgr.acquire_lease("WORKTREE_AG-ARCH", holder_id="worker-other", holder_pid=3002)
+            is False
+        )
 
     # Automatically released on block exit
     assert mgr.is_lease_active("WORKTREE_AG-ARCH") is False

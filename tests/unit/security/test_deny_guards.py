@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
 import pytest
 
 from sacl.contracts.exceptions import (
@@ -21,7 +22,6 @@ from sacl.security.exceptions import (
     SafetyRefusalError,
 )
 from sacl.security.guards import (
-    MANDATORY_GOVERNANCE_DIRECTIVES,
     assert_action_not_hard_denied,
     assert_caller_acknowledgement,
     assert_clean_root,
@@ -41,17 +41,20 @@ from sacl.security.guards import (
 class TestHardLocalPolicyDenials:
     """Tests the 9 immutable constitutional hard denials (Decision Baseline §3.3)."""
 
-    @pytest.mark.parametrize("action", [
-        "remote_production_execution",
-        "github_merge",
-        "production_db_write",
-        "secret_export",
-        "arbitrary_remote_code",
-        "main_branch_execution",
-        "primary_checkout_mutation",
-        "hard_reset",
-        "auto_stash",
-    ])
+    @pytest.mark.parametrize(
+        "action",
+        [
+            "remote_production_execution",
+            "github_merge",
+            "production_db_write",
+            "secret_export",
+            "arbitrary_remote_code",
+            "main_branch_execution",
+            "primary_checkout_mutation",
+            "hard_reset",
+            "auto_stash",
+        ],
+    )
     def test_canonical_9_hard_denials(self, action: str) -> None:
         assert is_hard_denied(action) is True
         with pytest.raises(HardDenySecurityError) as exc_info:
@@ -59,18 +62,21 @@ class TestHardLocalPolicyDenials:
         assert isinstance(exc_info.value, HardDenyViolation)
         assert exc_info.value.action == action
 
-    @pytest.mark.parametrize("alias,canonical", [
-        ("git_merge", "github_merge"),
-        ("git-merge", "github_merge"),
-        ("pr_merge", "github_merge"),
-        ("deploy", "remote_production_execution"),
-        ("production_deploy", "remote_production_execution"),
-        ("git_reset", "hard_reset"),
-        ("git_reset_hard", "hard_reset"),
-        ("autostash", "auto_stash"),
-        ("git_stash", "auto_stash"),
-        ("prod_db_write", "production_db_write"),
-    ])
+    @pytest.mark.parametrize(
+        "alias,canonical",
+        [
+            ("git_merge", "github_merge"),
+            ("git-merge", "github_merge"),
+            ("pr_merge", "github_merge"),
+            ("deploy", "remote_production_execution"),
+            ("production_deploy", "remote_production_execution"),
+            ("git_reset", "hard_reset"),
+            ("git_reset_hard", "hard_reset"),
+            ("autostash", "auto_stash"),
+            ("git_stash", "auto_stash"),
+            ("prod_db_write", "production_db_write"),
+        ],
+    )
     def test_hard_denial_alias_normalization(self, alias: str, canonical: str) -> None:
         assert is_hard_denied(alias) is True
         with pytest.raises(HardDenySecurityError):
@@ -141,7 +147,9 @@ class TestCallerAcknowledgementGate:
 class TestWorkspaceConfinementGuards:
     """Tests branch protection and worktree isolation guards (Threat E1 / TH-13, Threat T3)."""
 
-    @pytest.mark.parametrize("branch", ["main", "master", "production", "origin/main", "release/v1.0"])
+    @pytest.mark.parametrize(
+        "branch", ["main", "master", "production", "origin/main", "release/v1.0"]
+    )
     def test_protected_branch_raises_main_branch_not_allowed(self, branch: str) -> None:
         with pytest.raises(MainBranchProhibitedError):
             assert_not_main_branch(branch)

@@ -13,16 +13,13 @@ Implements:
 
 from __future__ import annotations
 
-import os
-import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, FrozenSet, List, Optional, Set, Tuple, Union
 
 from sacl.contracts.exceptions import (
     CollisionDetectedError,
     DirtyRootError,
-    HardDenyViolation,
 )
 from sacl.contracts.invariants import (
     ALLOWED_PROCESS_IMAGES,
@@ -54,19 +51,22 @@ MANDATORY_GOVERNANCE_DIRECTIVES: Tuple[str, ...] = (
 )
 
 # Protected branches that cannot be targeted by agent workers
-PROTECTED_BRANCHES: FrozenSet[str] = frozenset({
-    "main",
-    "master",
-    "production",
-    "prod",
-    "origin/main",
-    "origin/master",
-})
+PROTECTED_BRANCHES: FrozenSet[str] = frozenset(
+    {
+        "main",
+        "master",
+        "production",
+        "prod",
+        "origin/main",
+        "origin/master",
+    }
+)
 
 
 # ============================================================================
 # 1. HARD LOCAL POLICY DENIALS
 # ============================================================================
+
 
 def is_hard_denied(action: str) -> bool:
     """Checks whether an action is prohibited by the 9 immutable hard denials."""
@@ -88,6 +88,7 @@ def assert_action_not_hard_denied(action: str) -> None:
 # ============================================================================
 # 2. MACHINE GOVERNANCE PROMPT GUARD HEADER INJECTION
 # ============================================================================
+
 
 def inject_governance_headers(
     base_prompt: str,
@@ -155,6 +156,7 @@ def assert_prompt_governance(prompt_text: str) -> None:
 # 3. CALLER ACKNOWLEDGEMENT GATE (LAYER 1)
 # ============================================================================
 
+
 def assert_caller_acknowledgement(bypass_acknowledged: bool) -> None:
     """Enforces Layer 1 Caller Acknowledgement Gate for headless worker execution."""
     if not bypass_acknowledged:
@@ -164,6 +166,7 @@ def assert_caller_acknowledgement(bypass_acknowledged: bool) -> None:
 # ============================================================================
 # 4. WORKSPACE & BRANCH CONFINEMENT GUARDS
 # ============================================================================
+
 
 def assert_not_main_branch(branch_name: str) -> None:
     """Enforces MAIN_BRANCH_NOT_ALLOWED (Threat E1 / TH-13).
@@ -213,6 +216,7 @@ def assert_clean_root(
 # 5. ANTI-RECYCLING SAFE STOP GUARD (THREAT S3 / TH-03)
 # ============================================================================
 
+
 def assert_safe_process_stop(
     pid: int,
     recorded_start_time: Optional[datetime],
@@ -238,8 +242,16 @@ def assert_safe_process_stop(
 
     # Start-time drift check
     if recorded_start_time is not None and current_start_time is not None:
-        rec_utc = recorded_start_time if recorded_start_time.tzinfo else recorded_start_time.replace(tzinfo=timezone.utc)
-        curr_utc = current_start_time if current_start_time.tzinfo else current_start_time.replace(tzinfo=timezone.utc)
+        rec_utc = (
+            recorded_start_time
+            if recorded_start_time.tzinfo
+            else recorded_start_time.replace(tzinfo=timezone.utc)
+        )
+        curr_utc = (
+            current_start_time
+            if current_start_time.tzinfo
+            else current_start_time.replace(tzinfo=timezone.utc)
+        )
         drift = abs((curr_utc - rec_utc).total_seconds())
 
         if drift > drift_tolerance_seconds:
@@ -253,6 +265,7 @@ def assert_safe_process_stop(
 # 6. REMOTE PRODUCTION PROHIBITION (THREAT E2 / TH-14)
 # ============================================================================
 
+
 def assert_remote_production_disabled(
     action: str,
     target: Optional[str] = None,
@@ -264,6 +277,7 @@ def assert_remote_production_disabled(
 # ============================================================================
 # 7. CROSS-AGENT FILE COLLISION GUARD (THREAT T4 / TH-07)
 # ============================================================================
+
 
 def detect_cross_agent_file_collisions(
     agent_file_diffs: Dict[str, Set[str]],

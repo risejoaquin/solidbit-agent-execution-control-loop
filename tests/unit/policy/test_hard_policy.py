@@ -6,7 +6,7 @@ Hard deny always wins. Bounded human approvals cannot override hard local policy
 
 import pytest
 
-from sacl.contracts.exceptions import ContractValidationError, HardDenyViolation
+from sacl.contracts.exceptions import HardDenyViolation
 from sacl.contracts.invariants import HARD_DENIED_ACTIONS
 from sacl.contracts.models import HardDenies, HardLocalPolicy
 from sacl.policy.hard_policy import (
@@ -122,11 +122,17 @@ def test_attempt_to_disable_any_denial_violates_invariants():
 def test_load_from_runtime_config_file(tmp_path):
     config_file = tmp_path / "hard-policy.json"
     config_file.write_text(
-        create_default_hard_policy().to_dict().__repr__().replace("'", '"').replace("True", "true").replace("False", "false"),
+        create_default_hard_policy()
+        .to_dict()
+        .__repr__()
+        .replace("'", '"')
+        .replace("True", "true")
+        .replace("False", "false"),
         encoding="utf-8",
     )
     # Using json format
     import json
+
     with open(config_file, "w", encoding="utf-8") as f:
         json.dump(create_default_hard_policy().to_dict(), f)
 

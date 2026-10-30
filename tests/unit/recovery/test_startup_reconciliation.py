@@ -40,7 +40,9 @@ def test_cold_start_fresh_lease_claim_enters_idle(clean_db: sqlite3.Connection) 
     assert row["holder_pid"] == 10001
 
 
-def test_cold_start_active_supervisor_conflict_halts_cold_start(clean_db: sqlite3.Connection) -> None:
+def test_cold_start_active_supervisor_conflict_halts_cold_start(
+    clean_db: sqlite3.Connection,
+) -> None:
     """If another supervisor is actively running, halts immediately with SUPERVISOR_ALREADY_ACTIVE."""
     now = datetime.now(timezone.utc)
     now_iso = now.isoformat()

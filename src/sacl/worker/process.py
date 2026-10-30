@@ -17,19 +17,13 @@ import os
 import signal
 import subprocess
 import sys
-import time
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
-from sacl.contracts.exceptions import ProcessObservationError
 from sacl.contracts.invariants import (
     ALLOWED_PROCESS_IMAGES,
     PID_DRIFT_TOLERANCE_SECONDS,
-    AgentStatus,
-    Verdict,
 )
-from sacl.worker.models import ProcessIdentity, WorkerConfig
 
 
 class IProcessInspector:
@@ -62,10 +56,13 @@ class OSProcessInspector(IProcessInspector):
             try:
                 # OpenProcess with PROCESS_QUERY_LIMITED_INFORMATION (0x1000)
                 import ctypes
+
                 kernel32 = ctypes.windll.kernel32
                 SYNCHRONIZE = 0x00100000
                 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-                handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE, False, pid)
+                handle = kernel32.OpenProcess(
+                    PROCESS_QUERY_LIMITED_INFORMATION | SYNCHRONIZE, False, pid
+                )
                 if not handle:
                     return False
                 exit_code = ctypes.c_ulong()
@@ -75,7 +72,12 @@ class OSProcessInspector(IProcessInspector):
                 return exit_code.value == STILL_ACTIVE
             except Exception:
                 # Fallback to powershell or tasklist
-                cmd = ["powershell", "-NoProfile", "-Command", f"(Get-Process -Id {pid} -ErrorAction SilentlyContinue) -ne $null"]
+                cmd = [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    f"(Get-Process -Id {pid} -ErrorAction SilentlyContinue) -ne $null",
+                ]
                 res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
                 return "True" in res.stdout
         else:
@@ -138,7 +140,6 @@ class OSProcessInspector(IProcessInspector):
             return False
         if sys.platform == "win32":
             try:
-                flag = "/F" if force else ""
                 cmd = ["taskkill", "/PID", str(pid), "/T"]
                 if force:
                     cmd.append("/F")
@@ -301,34 +302,50 @@ def safe_stop_agent_process(
 
     if not is_verified:
         if reason == "PROCESS_NAME_MISMATCH_RECYCLED":
-            return False, "SAFETY_REFUSAL_NAME", {
-                "pid": pid,
-                "process_name": proc_name,
-                "reason": "Process image not in whitelist; PID recycling suspected",
-                "safety_refusal": True,
-            }
+            return (
+                False,
+                "SAFETY_REFUSAL_NAME",
+                {
+                    "pid": pid,
+                    "process_name": proc_name,
+                    "reason": "Process image not in whitelist; PID recycling suspected",
+                    "safety_refusal": True,
+                },
+            )
         elif reason == "START_TIME_MISMATCH_RECYCLED":
-            return False, "SAFETY_REFUSAL_DRIFT", {
-                "pid": pid,
-                "process_name": proc_name,
-                "drift_seconds": drift,
-                "reason": f"Start-time drift {drift:.1f}s exceeds {drift_tolerance_seconds}s; PID recycling suspected",
-                "safety_refusal": True,
-            }
+            return (
+                False,
+                "SAFETY_REFUSAL_DRIFT",
+                {
+                    "pid": pid,
+                    "process_name": proc_name,
+                    "drift_seconds": drift,
+                    "reason": f"Start-time drift {drift:.1f}s exceeds {drift_tolerance_seconds}s; PID recycling suspected",
+                    "safety_refusal": True,
+                },
+            )
         elif reason == "PROCESS_NOT_FOUND":
             return True, "ALREADY_DEAD", {"pid": pid, "reason": "Process already dead"}
         else:
-            return False, "SAFETY_REFUSAL_UNVERIFIED", {
-                "pid": pid,
-                "reason": reason,
-                "safety_refusal": True,
-            }
+            return (
+                False,
+                "SAFETY_REFUSAL_UNVERIFIED",
+                {
+                    "pid": pid,
+                    "reason": reason,
+                    "safety_refusal": True,
+                },
+            )
 
     # Step 3: Verified process identity - safe to terminate
     terminated = ins.terminate_process(pid=pid, force=force)
-    return terminated, "STOPPED_BY_USER", {
-        "pid": pid,
-        "process_name": proc_name,
-        "drift_seconds": drift,
-        "terminated": terminated,
-    }
+    return (
+        terminated,
+        "STOPPED_BY_USER",
+        {
+            "pid": pid,
+            "process_name": proc_name,
+            "drift_seconds": drift,
+            "terminated": terminated,
+        },
+    )

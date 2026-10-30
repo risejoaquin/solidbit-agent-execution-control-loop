@@ -72,9 +72,9 @@ We decide to design and implement **`Graph-P` as a persistent, zero-token backgr
 ## 4. Compatibility Notes
 
 - **Legacy Orchestrator Mapping:**
-  - Modernizes legacy supervisor script [`scripts/run-supervisor.ps1`](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/scripts/run-supervisor.ps1#L94-L119).
+  - Modernizes legacy supervisor script [`scripts/run-supervisor.ps1`](file:////workspace/Stable-Ecommerce-Orchestrator/scripts/run-supervisor.ps1#L94-L119).
   - Replaces brittle WMI queries (`Get-CimInstance Win32_Process`) with transactional SQLite leasing in `leases` and `supervisor_locks`.
-  - Preserves compatibility with read-only terminal monitoring via [`MONITOR.ps1`](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/scripts/MONITOR.ps1).
+  - Preserves compatibility with read-only terminal monitoring via [`MONITOR.ps1`](file:////workspace/Stable-Ecommerce-Orchestrator/scripts/MONITOR.ps1).
 - **Precedence Compliance:**
   - Adheres strictly to DECISION_BASELINE items 16, 17, and 18.
   - Integrates with the state machine defined in `docs/STATE_MACHINE.md` and recovery model in `docs/RECOVERY_MODEL.md`.

@@ -19,6 +19,7 @@ from sacl.workspace.exceptions import GitCommandError
 @dataclass(frozen=True)
 class GitResult:
     """Immutable result of a Git command execution."""
+
     success: bool
     exit_code: int
     stdout: str

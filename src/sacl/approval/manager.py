@@ -10,16 +10,14 @@ Implements IApprovalManager interface:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import logging
-from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional, Union
 import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from sacl.approval.models import (
-    ApprovalDecisionOutcome,
     ApprovalRequest,
     ApprovalToken,
     Approver,
@@ -29,30 +27,25 @@ from sacl.approval.validator import (
     BoundedApprovalValidator,
     format_iso_datetime,
     parse_iso_datetime,
-    token_to_schema_dict,
 )
 from sacl.contracts.exceptions import (
     ApprovalExpiredError,
     ContractValidationError,
     HardDenyViolation,
-    PolicyDeniedError,
 )
 from sacl.contracts.interfaces import IApprovalManager
 from sacl.contracts.invariants import (
     APPROVAL_CHANNELS_V1,
-    ApprovalChannel,
+    HARD_DENIED_ACTIONS,
     ApprovalDecision,
     ApprovalStatus,
-    HARD_DENIED_ACTIONS,
     JobSideStatus,
 )
-from sacl.contracts.schema_validator import SchemaValidator
 from sacl.observability.audit import AuditEventEmitter
 from sacl.observability.events import (
     APPROVAL_REQUESTED,
     AuditEventType,
     Severity,
-    create_audit_event,
 )
 from sacl.policy.hard_policy import normalize_action
 
@@ -293,7 +286,8 @@ class BoundedApprovalManager(IApprovalManager):
             created_at=req.created_at,
             prohibited_actions=all_prohibited,
             remaining_blockers=[],
-            next_safe_action=next_safe_action or ("RESUME_RUN_EXECUTION" if norm_decision == "APPROVED" else "REMEDIATE_BLOCKER"),
+            next_safe_action=next_safe_action
+            or ("RESUME_RUN_EXECUTION" if norm_decision == "APPROVED" else "REMEDIATE_BLOCKER"),
             notes=notes,
         )
 
@@ -377,7 +371,9 @@ class BoundedApprovalManager(IApprovalManager):
             if row:
                 col_names = [d[0] for d in cursor.description]
                 row_dict = dict(zip(col_names, row))
-                if row_dict.get("status") in ("APPROVED", "REJECTED", "DEFERRED") and row_dict.get("approver"):
+                if row_dict.get("status") in ("APPROVED", "REJECTED", "DEFERRED") and row_dict.get(
+                    "approver"
+                ):
                     try:
                         approver_raw = row_dict["approver"]
                         if isinstance(approver_raw, str):
@@ -390,7 +386,9 @@ class BoundedApprovalManager(IApprovalManager):
 
                         approver = Approver.from_dict(approver_data)
                         scope_raw = row_dict["scope"]
-                        scope = json.loads(scope_raw) if isinstance(scope_raw, str) else list(scope_raw)
+                        scope = (
+                            json.loads(scope_raw) if isinstance(scope_raw, str) else list(scope_raw)
+                        )
 
                         token = ApprovalToken(
                             request_id=row_dict["request_id"],

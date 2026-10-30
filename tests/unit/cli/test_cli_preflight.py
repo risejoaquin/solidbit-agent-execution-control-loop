@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import shutil
 from unittest.mock import MagicMock, patch
-import pytest
 
 from sacl.cli.main import main
 

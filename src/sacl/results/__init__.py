@@ -33,7 +33,7 @@ from sacl.results.outbox import (
     format_result_subject,
 )
 from sacl.results.packager import ResultPackager, sanitize_archive_entry_path
-from sacl.results.reconciler import ResultReconciler, REVIEW_REQUIRED_REGEX
+from sacl.results.reconciler import REVIEW_REQUIRED_REGEX, ResultReconciler
 from sacl.results.summary import DualSummaryGenerator
 
 __all__ = [

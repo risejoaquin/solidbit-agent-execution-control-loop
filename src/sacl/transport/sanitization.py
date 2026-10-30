@@ -9,11 +9,10 @@ Implements the four-stage zip extraction defense pipeline mandated in:
 from __future__ import annotations
 
 import io
-import os
 import re
 import zipfile
 from pathlib import Path
-from typing import List, Optional, Set, Tuple, Union
+from typing import List, Set, Union
 
 from sacl.contracts.invariants import MAX_ATTACHMENT_SIZE_BYTES
 from sacl.transport.exceptions import (
@@ -25,21 +24,38 @@ from sacl.transport.exceptions import (
 
 # Quota limits per docs/MAIL_PROTOCOL.md §3.7
 MAX_COMPRESSED_SIZE_BYTES = MAX_ATTACHMENT_SIZE_BYTES  # 25 MB = 26,214,400 bytes
-MAX_UNCOMPRESSED_SIZE_BYTES = 104_857_600              # 100 MB = 104,857,600 bytes
-MAX_TOTAL_FILE_COUNT = 1000                            # 1,000 files
-MAX_COMPRESSION_RATIO = 20.0                           # 20:1 ratio
+MAX_UNCOMPRESSED_SIZE_BYTES = 104_857_600  # 100 MB = 104,857,600 bytes
+MAX_TOTAL_FILE_COUNT = 1000  # 1,000 files
+MAX_COMPRESSION_RATIO = 20.0  # 20:1 ratio
 
 # DOS Reserved Device Names (case-insensitive, with or without extension)
 DOS_DEVICE_NAMES: Set[str] = {
-    "CON", "PRN", "AUX", "NUL",
-    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
 }
 
 # Regex to detect Windows reserved names on any path segment
-DOS_DEVICE_PATTERN = re.compile(
-    r"^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$", re.IGNORECASE
-)
+DOS_DEVICE_PATTERN = re.compile(r"^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$", re.IGNORECASE)
 
 # Unix file type masks
 S_IFLNK = 0o120000  # Symbolic link
@@ -147,9 +163,7 @@ class ZipDefenseExtractor:
                     limit=self.max_compression_ratio,
                 )
 
-    def _inspect_entries(
-        self, zf: zipfile.ZipFile, destination_dir: Path, package_id: str
-    ) -> None:
+    def _inspect_entries(self, zf: zipfile.ZipFile, destination_dir: Path, package_id: str) -> None:
         """Steps 2, 3, 4: Path Sanitization, Windows Reserved Names, and Symlink Rejection."""
         canonical_dest = destination_dir.resolve()
 

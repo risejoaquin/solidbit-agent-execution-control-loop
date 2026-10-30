@@ -18,22 +18,13 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 from sacl.contracts.invariants import (
-    ALLOWED_PROCESS_IMAGES,
-    PID_DRIFT_TOLERANCE_SECONDS,
     Verdict,
-)
-from sacl.contracts.models import (
-    PersistedState,
-    ProcessObservation,
-    RequiredOutputs,
-    WorktreeState,
 )
 from sacl.contracts.reconciliation import (
     extract_verdict_from_content,
-    reconcile_agent,
 )
 from sacl.observability.events import (
     GATE_HALTED,
@@ -42,8 +33,6 @@ from sacl.observability.events import (
     create_audit_event,
 )
 from sacl.recovery.process_identity import (
-    MockProcessInspector,
-    ProcessInspectionStatus,
     ProcessInspector,
     get_default_process_inspector,
     inspect_process,
@@ -154,7 +143,6 @@ def recover_interrupted_run(
     """
     run_id = run_row["run_id"]
     target_repo = run_row["target_repo_path"]
-    run_dir = run_row["run_dir"]
     orig_status = run_row["status"]
 
     insp = inspector or get_default_process_inspector()
@@ -263,7 +251,9 @@ def recover_interrupted_run(
                 is_process_alive=False,
                 is_process_valid=False,
                 has_report=(a_report_path.exists() if a_report_path else False),
-                report_size_bytes=(a_report_path.stat().st_size if a_report_path and a_report_path.exists() else 0),
+                report_size_bytes=(
+                    a_report_path.stat().st_size if a_report_path and a_report_path.exists() else 0
+                ),
                 is_worktree_clean=True,
                 extracted_verdict=existing_verdict,
                 current_agent_status=a_status,
@@ -307,7 +297,12 @@ def recover_interrupted_run(
                     INSERT INTO errors (error_code, category, severity, message, occurred_at, run_id, agent_id)
                     VALUES ('PID_RECYCLED', 'RECOVERY', 'WARN', ?, ?, ?, ?);
                     """,
-                    (f"PID recycling detected on agent {agent_id}: {obs_res.failure_reason}", now_iso, run_id, agent_id),
+                    (
+                        f"PID recycling detected on agent {agent_id}: {obs_res.failure_reason}",
+                        now_iso,
+                        run_id,
+                        agent_id,
+                    ),
                 )
 
         # Inspect Worktree
@@ -315,16 +310,30 @@ def recover_interrupted_run(
         is_wt_clean = True
         modified_files: List[str] = []
         if a_worktree_path:
-            wt_result = inspect_agent_worktree(a_worktree_path, expected_branch=a_branch, git_client=git)
+            wt_result = inspect_agent_worktree(
+                a_worktree_path, expected_branch=a_branch, git_client=git
+            )
             is_wt_clean = wt_result.is_clean
             modified_files = wt_result.modified_files
 
         # Inspect Deliverables
         has_report = a_report_path.exists() if a_report_path else False
         report_size = a_report_path.stat().st_size if has_report and a_report_path else 0
-        report_content = a_report_path.read_text(encoding="utf-8", errors="replace") if has_report and a_report_path else None
-        stdout_content = a_stdout_path.read_text(encoding="utf-8", errors="replace") if a_stdout_path and a_stdout_path.exists() else None
-        stderr_content = a_stderr_path.read_text(encoding="utf-8", errors="replace") if a_stderr_path and a_stderr_path.exists() else None
+        report_content = (
+            a_report_path.read_text(encoding="utf-8", errors="replace")
+            if has_report and a_report_path
+            else None
+        )
+        stdout_content = (
+            a_stdout_path.read_text(encoding="utf-8", errors="replace")
+            if a_stdout_path and a_stdout_path.exists()
+            else None
+        )
+        stderr_content = (
+            a_stderr_path.read_text(encoding="utf-8", errors="replace")
+            if a_stderr_path and a_stderr_path.exists()
+            else None
+        )
 
         extracted_ve = extract_verdict_from_content(
             report_content=report_content,
@@ -559,7 +568,9 @@ def recover_interrupted_run(
     elif run_decision.outcome == SafeToResumeOutcome.RECONCILE_OUTPUTS:
         final_run_status = "VERIFYING"
         final_run_verdict = Verdict.PASS.value
-        run_err_summary = "All agents reconciled from physical deliverables. Progressing to verification."
+        run_err_summary = (
+            "All agents reconciled from physical deliverables. Progressing to verification."
+        )
         with conn:
             conn.execute(
                 """

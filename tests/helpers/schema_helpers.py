@@ -15,12 +15,17 @@ from sacl.contracts.exceptions import ContractValidationError
 from sacl.contracts.schema_validator import SchemaValidator
 
 
-def assert_validates_schema(validator: SchemaValidator, schema_key: str, instance: Dict[str, Any]) -> None:
+def assert_validates_schema(
+    validator: SchemaValidator, schema_key: str, instance: Dict[str, Any]
+) -> None:
     """Asserts that an instance dictionary strictly validates against schema_key."""
     try:
         validator.validate(schema_key, instance)
     except ContractValidationError as exc:
-        pytest.fail(f"Validation failed unexpectedly for '{schema_key}':\n" + "\n".join(exc.validation_errors))
+        pytest.fail(
+            f"Validation failed unexpectedly for '{schema_key}':\n"
+            + "\n".join(exc.validation_errors)
+        )
 
 
 def assert_fails_schema(

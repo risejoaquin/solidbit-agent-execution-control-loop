@@ -9,7 +9,7 @@ from __future__ import annotations
 import contextvars
 import uuid
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Any, Dict, Generator, Optional
 
 
@@ -94,7 +94,9 @@ class CorrelationContext:
         norm = {k.lower(): v for k, v in headers.items()}
         pref = prefix.lower()
 
-        trace_id = norm.get(f"{pref}trace-id") or norm.get("x-correlation-id") or generate_trace_id()
+        trace_id = (
+            norm.get(f"{pref}trace-id") or norm.get("x-correlation-id") or generate_trace_id()
+        )
         job_id = norm.get(f"{pref}job-id")
         run_id = norm.get(f"{pref}run-id")
         node_id = norm.get(f"{pref}node-id")

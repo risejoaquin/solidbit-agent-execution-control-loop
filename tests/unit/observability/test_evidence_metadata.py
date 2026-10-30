@@ -4,7 +4,6 @@ import hashlib
 import json
 import sqlite3
 from pathlib import Path
-import pytest
 
 from sacl.contracts.invariants import HEAVY_ARTIFACTS_ON_FILESYSTEM, ArtifactType
 from sacl.observability.evidence import (
@@ -78,7 +77,9 @@ def test_register_and_get_artifacts(sqlite_temp_db: sqlite3.Connection, tmp_path
     registry = EvidenceRegistry(sqlite_temp_db)
 
     report_file = tmp_path / "AG-COMPAT.REPORT.md"
-    report_file.write_text("# Deliverable Report\nAll tests passed.\nRESULT = PASS\n", encoding="utf-8")
+    report_file.write_text(
+        "# Deliverable Report\nAll tests passed.\nRESULT = PASS\n", encoding="utf-8"
+    )
 
     meta = registry.register_artifact(
         file_path=report_file,
@@ -223,4 +224,3 @@ def test_large_file_streaming_hash(tmp_path: Path):
 
     expected = hashlib.sha256(b"A" * (1024 * 256)).hexdigest()
     assert compute_file_sha256(large_file, chunk_size=4096) == expected
-

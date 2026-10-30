@@ -27,7 +27,7 @@ The architecture rests on five non-negotiable security tenets:
 ## 2. Host Execution Realities & Defense-in-Depth Execution Layers
 
 ### 2.1 The Antigravity CLI Host Reality
-The Antigravity CLI executable (`agy.exe`) executes directly under the Windows host operating system user context (`Lucilfer`). Therefore:
+The Antigravity CLI executable (`agy.exe`) executes directly under the Windows host operating system user context (`workspace`). Therefore:
 - **CLI prompt instructions are NOT an OS security boundary.** Textual instructions provided to an LLM cannot prevent low-level file reads, process spawning, or network calls if an agent is prompt-injected or misbehaves.
 - The flag `--dangerously-skip-permissions` enables unattended, headless tool execution. It **does not sandbox** process activity; it merely bypasses interactive confirmation prompts.
 

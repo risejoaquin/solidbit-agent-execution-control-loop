@@ -6,22 +6,42 @@ and 4-part reconciled outcomes.
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, List, Optional
 
 from sacl.state.exceptions import EntityNotFoundError, InvalidStateTransitionError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import normalize_repo_path, utc_now
 
-VALID_RUN_STATUSES = frozenset({
-    'RECEIVED', 'AUTHENTICATED', 'VALIDATED', 'PERSISTED',
-    'QUEUED', 'DISPATCHED', 'RUNNING', 'VERIFYING',
-    'RESULT_PACKAGED', 'RESULT_SENT', 'COMPLETED', 'ARCHIVED',
-    'WAITING_APPROVAL', 'RETRY_WAIT', 'BLOCKED', 'FAILED',
-    'CANCELLED', 'INTERRUPTED', 'TIMED_OUT', 'POLICY_DENIED',
-    'REJECTED', 'QUARANTINED',
-    'INITIALIZED', 'GATE_HALTED', 'COMPLETE', 'STOPPED'
-})
+VALID_RUN_STATUSES = frozenset(
+    {
+        "RECEIVED",
+        "AUTHENTICATED",
+        "VALIDATED",
+        "PERSISTED",
+        "QUEUED",
+        "DISPATCHED",
+        "RUNNING",
+        "VERIFYING",
+        "RESULT_PACKAGED",
+        "RESULT_SENT",
+        "COMPLETED",
+        "ARCHIVED",
+        "WAITING_APPROVAL",
+        "RETRY_WAIT",
+        "BLOCKED",
+        "FAILED",
+        "CANCELLED",
+        "INTERRUPTED",
+        "TIMED_OUT",
+        "POLICY_DENIED",
+        "REJECTED",
+        "QUARANTINED",
+        "INITIALIZED",
+        "GATE_HALTED",
+        "COMPLETE",
+        "STOPPED",
+    }
+)
 
 
 class RunRepository(BaseRepository):
@@ -63,9 +83,19 @@ class RunRepository(BaseRepository):
         self.execute(
             sql,
             (
-                run_id, job_id, package_id, project_id, project, repository,
-                mode, norm_source_orch, norm_target_repo, norm_run_dir, status,
-                ready_for_integration, start_time,
+                run_id,
+                job_id,
+                package_id,
+                project_id,
+                project,
+                repository,
+                mode,
+                norm_source_orch,
+                norm_target_repo,
+                norm_run_dir,
+                status,
+                ready_for_integration,
+                start_time,
             ),
         )
         self.commit()
@@ -88,7 +118,15 @@ class RunRepository(BaseRepository):
         if not existing:
             raise EntityNotFoundError(f"Run '{run_id}' not found")
 
-        terminal_states = {'COMPLETED', 'COMPLETE', 'FAILED', 'CANCELLED', 'STOPPED', 'INTERRUPTED', 'TIMED_OUT'}
+        terminal_states = {
+            "COMPLETED",
+            "COMPLETE",
+            "FAILED",
+            "CANCELLED",
+            "STOPPED",
+            "INTERRUPTED",
+            "TIMED_OUT",
+        }
         now = utc_now()
         resolved_completed_at = completed_at
         if resolved_completed_at is None and status in terminal_states:
@@ -103,7 +141,17 @@ class RunRepository(BaseRepository):
                 completed_at = COALESCE(?, completed_at)
             WHERE run_id = ?;
         """
-        self.execute(sql, (status, ready_for_integration, reconciled_verdict, error_summary, resolved_completed_at, run_id))
+        self.execute(
+            sql,
+            (
+                status,
+                ready_for_integration,
+                reconciled_verdict,
+                error_summary,
+                resolved_completed_at,
+                run_id,
+            ),
+        )
         self.commit()
 
     def get_run(self, run_id: str) -> Optional[Dict[str, Any]]:
@@ -132,7 +180,7 @@ class RunRepository(BaseRepository):
             params.append(status)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM runs {where_clause} ORDER BY started_at DESC LIMIT ?;"
+        sql = f"SELECT * FROM runs {where_clause} ORDER BY started_at DESC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
         return self.fetchall_dict(sql, params)
 

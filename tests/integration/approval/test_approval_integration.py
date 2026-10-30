@@ -9,9 +9,10 @@ Tests:
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-import sqlite3
+
 import pytest
 
 from sacl.approval.manager import BoundedApprovalManager
@@ -20,14 +21,11 @@ from sacl.approval.resumption import SameRunResumptionManager
 from sacl.contracts.exceptions import (
     ApprovalExpiredError,
     HardDenyViolation,
-    PolicyDeniedError,
 )
 from sacl.contracts.invariants import (
     ApprovalChannel,
     ApprovalDecision,
-    HARD_DENIED_ACTIONS,
     JobSideStatus,
-    JobStatus,
 )
 from sacl.state.store import SqliteStateStore
 
@@ -122,9 +120,13 @@ class TestApprovalIntegration:
                     scope=["main"],
                     run_id="run-integ-1",
                 )
-            assert "strictly hard-denied" in str(exc_info.value) or "Hard denial violated" in str(exc_info.value)
+            assert "strictly hard-denied" in str(exc_info.value) or "Hard denial violated" in str(
+                exc_info.value
+            )
 
-    def test_bounded_approval_lifecycle_and_state_transitions(self, populated_db: sqlite3.Connection):
+    def test_bounded_approval_lifecycle_and_state_transitions(
+        self, populated_db: sqlite3.Connection
+    ):
         """Verifies approval request transitions job/run to WAITING_APPROVAL, and grant issues token."""
         manager = BoundedApprovalManager(db_conn=populated_db)
 
@@ -148,7 +150,9 @@ class TestApprovalIntegration:
         assert cur.fetchone()[0] == JobSideStatus.WAITING_APPROVAL.value
 
         # Verify approval row recorded in DB
-        cur.execute("SELECT action, status, decision FROM approvals WHERE request_id = ?", (request_id,))
+        cur.execute(
+            "SELECT action, status, decision FROM approvals WHERE request_id = ?", (request_id,)
+        )
         appr_row = cur.fetchone()
         assert appr_row[0] == "github_branch_push"
         assert appr_row[1] == "PENDING"
@@ -172,7 +176,9 @@ class TestApprovalIntegration:
         assert token.cannot_override_hard_deny is True
 
         # Verify approvals table in DB updated
-        cur.execute("SELECT status, decision, approver FROM approvals WHERE request_id = ?", (request_id,))
+        cur.execute(
+            "SELECT status, decision, approver FROM approvals WHERE request_id = ?", (request_id,)
+        )
         updated_row = cur.fetchone()
         assert updated_row[0] == "APPROVED"
         assert updated_row[1] == "APPROVED"
@@ -215,10 +221,14 @@ class TestApprovalIntegration:
         cur.execute("SELECT status FROM runs WHERE run_id = 'run-integ-1'")
         assert cur.fetchone()[0] == "RUNNING"
 
-        cur.execute("SELECT status FROM agents WHERE run_id = 'run-integ-1' AND agent_id = 'AG-WORKER-1'")
+        cur.execute(
+            "SELECT status FROM agents WHERE run_id = 'run-integ-1' AND agent_id = 'AG-WORKER-1'"
+        )
         assert cur.fetchone()[0] == "READY"
 
-    def test_resumption_blocks_cannot_override_hard_deny_violation(self, populated_db: sqlite3.Connection):
+    def test_resumption_blocks_cannot_override_hard_deny_violation(
+        self, populated_db: sqlite3.Connection
+    ):
         """Verifies that an approval token attempting to falsify cannot_override_hard_deny is rejected."""
         resumption_mgr = SameRunResumptionManager(db_conn=populated_db)
 

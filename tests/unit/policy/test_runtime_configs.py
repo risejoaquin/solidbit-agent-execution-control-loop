@@ -6,6 +6,7 @@ canonical schemas in schemas/*.schema.json and load cleanly with their managers.
 
 import json
 from pathlib import Path
+
 import pytest
 
 from sacl.contracts.schema_validator import SchemaValidator
@@ -17,7 +18,13 @@ from sacl.policy.project_registry import ProjectRegistryManager
 @pytest.fixture
 def runtime_dir():
     current = Path(__file__).resolve()
-    for parent in [current.parent, current.parents[1], current.parents[2], current.parents[3], Path.cwd()]:
+    for parent in [
+        current.parent,
+        current.parents[1],
+        current.parents[2],
+        current.parents[3],
+        Path.cwd(),
+    ]:
         candidate = parent / "config" / "runtime"
         if candidate.exists() and (candidate / "hard-policy.json").exists():
             return candidate

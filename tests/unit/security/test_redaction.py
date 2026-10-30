@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import io
+
 import pytest
 
 from sacl.security.exceptions import SecretLeakError
 from sacl.security.redaction import (
     REDACTION_MARKER,
-    SecretRedactor,
     StreamingSecretRedactor,
     assert_zero_secrets,
     redact_secrets,
@@ -101,9 +101,7 @@ class TestSecretScannerAndZeroSecretsAssertion:
 
     def test_scan_for_secrets_detects_findings(self) -> None:
         content = (
-            "Line 1: clean\n"
-            "Line 2: token ghp_1234567890abcdefghijklmnopqrstuvwxyz\n"
-            "Line 3: clean\n"
+            "Line 1: clean\nLine 2: token ghp_1234567890abcdefghijklmnopqrstuvwxyz\nLine 3: clean\n"
         )
         findings = scan_for_secrets(content)
         assert len(findings) == 1

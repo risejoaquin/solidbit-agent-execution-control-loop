@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Tuple
 
-import pytest
-
-from sacl.contracts.invariants import GraphNodeStatus, Verdict
+from sacl.contracts.invariants import Verdict
 from sacl.contracts.models import ExecutionGraph, GraphNode, GraphPhase
 from sacl.dag.models import SchedulerConfig
 from sacl.dag.scheduler import EphemeralDagScheduler
@@ -27,13 +24,26 @@ def test_scheduler_end_to_end_phased_wave_success(tmp_path: Path, sqlite_memory_
         max_parallel=2,
         default_timeout_minutes=30,
         phases=[
-            GraphPhase(phase_number=1, stage_name="MATERIALIZATION", agents=["AG-PROTOCOL-MAT", "AG-ARCH-MAT"]),
+            GraphPhase(
+                phase_number=1,
+                stage_name="MATERIALIZATION",
+                agents=["AG-PROTOCOL-MAT", "AG-ARCH-MAT"],
+            ),
             GraphPhase(phase_number=2, stage_name="QA_AUDIT", agents=["AG-QA-MAT"]),
         ],
         nodes=[
-            GraphNode(node_id="AG-PROTOCOL-MAT", agent_id="AG-PROTOCOL-MAT", phase_number=1, timeout_minutes=20),
-            GraphNode(node_id="AG-ARCH-MAT", agent_id="AG-ARCH-MAT", phase_number=1, timeout_minutes=25),
-            GraphNode(node_id="AG-QA-MAT", agent_id="AG-QA-MAT", phase_number=2, timeout_minutes=20),
+            GraphNode(
+                node_id="AG-PROTOCOL-MAT",
+                agent_id="AG-PROTOCOL-MAT",
+                phase_number=1,
+                timeout_minutes=20,
+            ),
+            GraphNode(
+                node_id="AG-ARCH-MAT", agent_id="AG-ARCH-MAT", phase_number=1, timeout_minutes=25
+            ),
+            GraphNode(
+                node_id="AG-QA-MAT", agent_id="AG-QA-MAT", phase_number=2, timeout_minutes=20
+            ),
         ],
         edges=[
             ["AG-PROTOCOL-MAT", "AG-QA-MAT"],
@@ -87,7 +97,9 @@ def test_scheduler_end_to_end_phased_wave_success(tmp_path: Path, sqlite_memory_
         check_clean_root=False,
     )
 
-    mock_runner = lambda ag, att: (0, None)
+    def mock_runner(ag, att):
+        return (0, None)
+
     scheduler = EphemeralDagScheduler(
         config=config,
         db_conn=sqlite_memory_db,
@@ -109,14 +121,18 @@ def test_scheduler_end_to_end_phased_wave_success(tmp_path: Path, sqlite_memory_
     cur = sqlite_memory_db.cursor()
 
     # 1. runs table: status must be VERIFYING (or COMPLETED), verdict PASS, ready_for_integration YES
-    cur.execute("SELECT status, reconciled_verdict, ready_for_integration FROM runs WHERE run_id = 'run-e2e-001'")
+    cur.execute(
+        "SELECT status, reconciled_verdict, ready_for_integration FROM runs WHERE run_id = 'run-e2e-001'"
+    )
     run_row = cur.fetchone()
     assert run_row[0] == "VERIFYING"
     assert run_row[1] == "PASS"
     assert run_row[2] == "YES"
 
     # 2. graph_nodes table: all 3 must be SUCCEEDED
-    cur.execute("SELECT node_id, status, result_verdict FROM graph_nodes WHERE run_id = 'run-e2e-001'")
+    cur.execute(
+        "SELECT node_id, status, result_verdict FROM graph_nodes WHERE run_id = 'run-e2e-001'"
+    )
     nodes_rows = {row[0]: (row[1], row[2]) for row in cur.fetchall()}
     assert len(nodes_rows) == 3
     for nid, (st, vd) in nodes_rows.items():
@@ -131,7 +147,9 @@ def test_scheduler_end_to_end_phased_wave_success(tmp_path: Path, sqlite_memory_
         assert st == "COMPLETE"
 
     # 4. node_attempts table: exactly 3 attempts recorded
-    cur.execute("SELECT node_id, attempt_number, status, verdict FROM node_attempts WHERE run_id = 'run-e2e-001'")
+    cur.execute(
+        "SELECT node_id, attempt_number, status, verdict FROM node_attempts WHERE run_id = 'run-e2e-001'"
+    )
     attempts = cur.fetchall()
     assert len(attempts) == 3
     for nid, att_num, st, vd in attempts:

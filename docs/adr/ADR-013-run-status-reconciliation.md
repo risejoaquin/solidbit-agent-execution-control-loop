@@ -93,7 +93,7 @@ We decide to codify the **4-Factor Multi-Dimensional Run Status Reconciliation M
 ## 4. Compatibility Notes
 
 - **Legacy Orchestrator Mapping:**
-  - Directly reuses and formalizes functions from [`scripts/orchestrator-common.ps1`](file:///C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator/scripts/orchestrator-common.ps1): `Get-ReconciledAgentState`, `Test-AgentProcessRunning`, and `Extract-AgentResult`.
+  - Directly reuses and formalizes functions from [`scripts/orchestrator-common.ps1`](file:////workspace/Stable-Ecommerce-Orchestrator/scripts/orchestrator-common.ps1): `Get-ReconciledAgentState`, `Test-AgentProcessRunning`, and `Extract-AgentResult`.
   - Preserves the non-killing timeout behavior established in legacy `RUN-WAVE3.ps1#L65`.
 - **Precedence Compliance:**
   - Implements W0.1 Remediation Baseline items 2, 3, and 11.

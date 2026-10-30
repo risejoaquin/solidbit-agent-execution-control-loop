@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from sacl.contracts.invariants import GraphNodeStatus, Verdict
 from sacl.dag.barrier import DependencyBarrier, PhaseBarrier
 from sacl.dag.models import DagNodeState, DagPhaseState
@@ -84,7 +82,9 @@ def test_phase_barrier_cannot_advance_if_prior_phase_incomplete():
         phase_number=1,
         status=GraphNodeStatus.RUNNING.value,
     )
-    node_b = DagNodeState(node_id="B", agent_id="B", phase_number=2, status=GraphNodeStatus.PENDING.value)
+    node_b = DagNodeState(
+        node_id="B", agent_id="B", phase_number=2, status=GraphNodeStatus.PENDING.value
+    )
     nodes = {"A": node_a, "B": node_b}
 
     can_adv, reason = PhaseBarrier.can_advance_to_phase(2, [phase_1, phase_2], nodes)
@@ -103,7 +103,9 @@ def test_phase_barrier_can_advance_when_prior_phase_passed():
         status=GraphNodeStatus.SUCCEEDED.value,
         result_verdict=Verdict.PASS.value,
     )
-    node_b = DagNodeState(node_id="B", agent_id="B", phase_number=2, status=GraphNodeStatus.PENDING.value)
+    node_b = DagNodeState(
+        node_id="B", agent_id="B", phase_number=2, status=GraphNodeStatus.PENDING.value
+    )
     nodes = {"A": node_a, "B": node_b}
 
     can_adv, reason = PhaseBarrier.can_advance_to_phase(2, [phase_1, phase_2], nodes)

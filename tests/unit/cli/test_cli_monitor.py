@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import sqlite3
+
 import pytest
 
 from sacl.cli.main import main

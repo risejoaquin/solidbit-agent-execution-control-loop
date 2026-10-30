@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 from typing import Any, Dict
+
 import pytest
 
 from sacl.transport.exceptions import TransportAuthError

@@ -8,12 +8,10 @@ unrelated system processes from false-positive terminations.
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
-import json
 import logging
-from pathlib import Path
 import sqlite3
-import sys
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from sacl.legacy.state_bridge import LegacyStateBridge
@@ -72,12 +70,14 @@ def execute_stop(
     effective_agent = "all" if getattr(args, "all", False) else args.agent
 
     if getattr(args, "pid", None):
-        targets.append({
-            "agent_id": f"pid-{args.pid}",
-            "pid": args.pid,
-            "started_at": None,
-            "state_file": None,
-        })
+        targets.append(
+            {
+                "agent_id": f"pid-{args.pid}",
+                "pid": args.pid,
+                "started_at": None,
+                "state_file": None,
+            }
+        )
 
     # Check SQLite
     db_path = None
@@ -158,7 +158,9 @@ def execute_stop(
         elif outcome_code.startswith("SAFETY_REFUSAL"):
             refusal_count += 1
             print(f"[SAFETY REFUSAL] Cannot kill PID {pid} for {a_id}: {outcome_code}")
-            print(f"                 Reason: {details.get('reason')} - process spared to protect host.")
+            print(
+                f"                 Reason: {details.get('reason')} - process spared to protect host."
+            )
 
     print("-" * 70)
     print(f"Summary: Stopped={stopped_count} | Refused={refusal_count}")
@@ -166,7 +168,9 @@ def execute_stop(
     return 0 if refusal_count == 0 else 1
 
 
-def _find_targets_from_db(db_path: Path, run_id: Optional[str], agent_filter: str) -> List[Dict[str, Any]]:
+def _find_targets_from_db(
+    db_path: Path, run_id: Optional[str], agent_filter: str
+) -> List[Dict[str, Any]]:
     targets = []
     try:
         conn = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
@@ -183,13 +187,15 @@ def _find_targets_from_db(db_path: Path, run_id: Optional[str], agent_filter: st
         cursor.execute(query, tuple(params))
         for a_id, pid, sa, r_id in cursor.fetchall():
             if pid and pid > 0:
-                targets.append({
-                    "agent_id": a_id,
-                    "pid": pid,
-                    "started_at": sa,
-                    "run_id": r_id,
-                    "state_file": None,
-                })
+                targets.append(
+                    {
+                        "agent_id": a_id,
+                        "pid": pid,
+                        "started_at": sa,
+                        "run_id": r_id,
+                        "state_file": None,
+                    }
+                )
         conn.close()
     except Exception as exc:
         logger.debug("Failed finding stop targets from DB: %s", exc)
@@ -209,12 +215,14 @@ def _find_targets_from_fs(run_dir: Path, agent_filter: str) -> List[Dict[str, An
             continue
         st = bridge.read_agent_state(sf)
         if st and st.get("pid"):
-            targets.append({
-                "agent_id": st.get("agent", agent_id),
-                "pid": st.get("pid"),
-                "started_at": st.get("startedAt"),
-                "state_file": sf,
-            })
+            targets.append(
+                {
+                    "agent_id": st.get("agent", agent_id),
+                    "pid": st.get("pid"),
+                    "started_at": st.get("startedAt"),
+                    "state_file": sf,
+                }
+            )
     return targets
 
 

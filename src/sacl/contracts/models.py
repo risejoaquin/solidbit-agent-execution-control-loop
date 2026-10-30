@@ -7,17 +7,17 @@ Provides serialization and deserialization helpers.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from typing import Any, Dict, List, Optional
-
 
 # ============================================================================
 # HARD LOCAL POLICY MODELS
 # ============================================================================
 
+
 @dataclass
 class HardDenies:
     """The 9 immutable prohibitions in Hard Local Policy."""
+
     remote_production_execution: bool = True
     github_merge: bool = True
     production_db_write: bool = True
@@ -39,6 +39,7 @@ class HardDenies:
 @dataclass
 class HardLocalPolicy:
     """SolidBit Hard Local Policy Specification v1."""
+
     policy_id: str
     hard_denies: HardDenies
     schema: str = "solidbit.hard-policy.v1"
@@ -68,6 +69,7 @@ class HardLocalPolicy:
 # BOUNDED APPROVAL MODELS
 # ============================================================================
 
+
 @dataclass
 class Approver:
     identity: str
@@ -89,6 +91,7 @@ class Approver:
 @dataclass
 class ApprovalToken:
     """Bounded human approval token bound to (job_id, action, scope, request_id, expires_at)."""
+
     request_id: str
     job_id: str
     action: str
@@ -140,9 +143,11 @@ class ApprovalToken:
 # EXECUTION PACKAGE MANIFEST MODELS
 # ============================================================================
 
+
 @dataclass
 class Manifest:
     """Declarative execution package manifest."""
+
     package_id: str
     job_id: str
     project: str
@@ -192,6 +197,7 @@ class Manifest:
 # ============================================================================
 # OPERATION REGISTRY MODELS
 # ============================================================================
+
 
 @dataclass
 class ExecutionProfile:
@@ -286,6 +292,7 @@ class OperationRegistry:
 # PROJECT REGISTRY MODELS
 # ============================================================================
 
+
 @dataclass
 class ConcurrencyPolicy:
     max_mutating_jobs: int = 1
@@ -333,7 +340,11 @@ class ProjectRegistryEntry:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> ProjectRegistryEntry:
-        cp = ConcurrencyPolicy.from_dict(data["concurrency_policy"]) if "concurrency_policy" in data else None
+        cp = (
+            ConcurrencyPolicy.from_dict(data["concurrency_policy"])
+            if "concurrency_policy" in data
+            else None
+        )
         return cls(
             project_id=data["project_id"],
             repository=data["repository"],
@@ -377,6 +388,7 @@ class ProjectRegistry:
 # PROJECT POLICY MODELS
 # ============================================================================
 
+
 @dataclass
 class WorkspaceSafety:
     enforce_clean_root: bool = True
@@ -398,7 +410,9 @@ class RuntimeSafety:
     remote_execution_enabled: bool = False
     non_killing_timeout: bool = True
     pid_drift_tolerance_seconds: int = 300
-    allowed_process_images: List[str] = field(default_factory=lambda: ["agy", "powershell", "pwsh", "cmd", "node", "conhost"])
+    allowed_process_images: List[str] = field(
+        default_factory=lambda: ["agy", "powershell", "pwsh", "cmd", "node", "conhost"]
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -440,6 +454,7 @@ class ProjectPolicy:
 # ============================================================================
 # MAIL ENVELOPE MODELS
 # ============================================================================
+
 
 @dataclass
 class RoutingSubject:
@@ -534,6 +549,7 @@ class MailEnvelope:
 # GRAPH-H DAG MODELS
 # ============================================================================
 
+
 @dataclass
 class GraphPhase:
     phase_number: int
@@ -597,7 +613,9 @@ class ExecutionGraph:
     job_id: Optional[str] = None
     nodes: List[GraphNode] = field(default_factory=list)
     agent_timeouts: Dict[str, int] = field(default_factory=dict)
-    collision_detection: Dict[str, Any] = field(default_factory=lambda: {"enabled": True, "scope": "stage"})
+    collision_detection: Dict[str, Any] = field(
+        default_factory=lambda: {"enabled": True, "scope": "stage"}
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -627,13 +645,16 @@ class ExecutionGraph:
             job_id=data.get("job_id"),
             nodes=nodes,
             agent_timeouts=dict(data.get("agent_timeouts", {})),
-            collision_detection=dict(data.get("collision_detection", {"enabled": True, "scope": "stage"})),
+            collision_detection=dict(
+                data.get("collision_detection", {"enabled": True, "scope": "stage"})
+            ),
         )
 
 
 # ============================================================================
 # RECONCILIATION & RESULT MODELS
 # ============================================================================
+
 
 @dataclass
 class ProcessObservation:
@@ -781,6 +802,7 @@ class ReconciledResult:
 # UNIVERSAL SUMMARY MODELS
 # ============================================================================
 
+
 @dataclass
 class AgentResult:
     agent: str
@@ -800,6 +822,7 @@ class AgentResult:
 @dataclass
 class RunSummary:
     """Universal summary schema for SACL V1 execution runs."""
+
     run_id: str
     package_id: str
     project: str
@@ -854,6 +877,7 @@ class RunSummary:
 # ============================================================================
 # AUDIT, LEASE, HEARTBEAT, AND ERROR MODELS
 # ============================================================================
+
 
 @dataclass
 class AuditEvent:
