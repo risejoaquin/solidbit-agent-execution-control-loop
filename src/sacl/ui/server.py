@@ -1470,7 +1470,16 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/actions/execute":
             action_type = body.get("action_type") or body.get("action") or "test_suite"
             params = body.get("params", {})
-            res = self.service.actions.execute(action_type, params=params)
+            context = body.get("context", {})
+            git_branch = self.headers.get("x-git-branch") or context.get("git_branch") or params.get("git_branch")
+            worktree_path = self.headers.get("x-worktree-path") or context.get("worktree_path") or params.get("worktree_path")
+            commit_sha = self.headers.get("x-commit-sha") or context.get("commit_sha") or params.get("commit_sha")
+            exec_ctx = {
+                "git_branch": git_branch,
+                "worktree_path": worktree_path,
+                "commit_sha": commit_sha,
+            }
+            res = self.service.actions.execute(action_type, params=params, context=exec_ctx)
             broadcast_sse("action_executed", res)
             is_success = (
                 res.get("success", False)
@@ -1483,6 +1492,36 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 **res,
             }
             self._send_json(200, response_payload)
+            return
+
+        # 17b. Deterministic Event Broadcast & Ingestion (E2E Test Support)
+        if path in ("/api/events/broadcast", "/api/events/emit"):
+            event_type = body.get("event_type") or body.get("type") or "agent_event"
+            data = body.get("data") or body.get("payload") or body
+            broadcast_sse(event_type, data)
+            if isinstance(data, dict) and (data.get("agent") or data.get("agent_id") or data.get("status")):
+                try:
+                    conn = self.service._get_read_write_conn()
+                    with conn:
+                        conn.execute(
+                            """
+                            INSERT INTO events (job_id, run_id, node_id, agent_id, event_type, severity, payload_json, created_at)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                data.get("job_id", f"JOB-{int(time.time())}"),
+                                data.get("run_id"),
+                                data.get("node_id"),
+                                data.get("agent") or data.get("agent_id") or "OPERATOR",
+                                str(event_type).upper(),
+                                "INFO" if str(data.get("status", "")).upper() in ("PASS", "COMPLETED") else "WARN",
+                                json.dumps(data),
+                                datetime.now(timezone.utc).isoformat(),
+                            ),
+                        )
+                except Exception as e:
+                    logger.debug(f"Event broadcast persistence skipped: {e}")
+            self._send_json(200, {"success": True, "broadcasted": event_type, "data": data})
             return
 
         # 18. GitHub Sync & Pull Request Actions

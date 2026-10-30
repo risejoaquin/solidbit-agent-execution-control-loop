@@ -43,7 +43,7 @@ class ActionExecutionModule:
         self.workspace_root = workspace_root or Path.cwd()
         self.history: List[Dict[str, Any]] = []
 
-    def execute(self, action_type: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def execute(self, action_type: str, params: Optional[Dict[str, Any]] = None, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Dispatches an action and returns empirically measured execution results."""
         params = params or {}
         exec_id = (
@@ -650,6 +650,63 @@ class ActionExecutionModule:
             status = "COMPLETED"
             summary_msg = f"Reconciliación completada en {dur_rec}s ({reconciled_count} registros reconciliados)."
 
+        elif action_type in ("revert_fsm", "revert"):
+            title = "Reversión FSM a Estado Seguro (Doctor Fix)"
+            emit_log(f"[{now_str}] [REVERT-INIT] Ejecutando reversión y saneamiento de estado FSM...")
+            t0 = time.perf_counter()
+            doc_cmd = [sys.executable, "-m", "sacl.cli", "doctor", "--fix"]
+            doc_proc = subprocess.run(
+                doc_cmd,
+                cwd=str(self.workspace_root),
+                capture_output=True,
+                text=True,
+                timeout=15,
+                env={**os.environ, "PYTHONPATH": "src"},
+            )
+            doc_dur = round(time.perf_counter() - t0, 3)
+            for line in (doc_proc.stdout or "").splitlines():
+                if line.strip():
+                    emit_log(f"  [DOCTOR-FIX] {line}")
+            exit_code = doc_proc.returncode
+            status = "COMPLETED" if exit_code == 0 else "FAILED"
+            steps.append(
+                {
+                    "name": "Restauración de Invariantes FSM (Doctor --fix)",
+                    "status": "DONE" if exit_code == 0 else "FAILED",
+                    "duration": f"{doc_dur}s",
+                    "command": "python -m sacl.cli doctor --fix",
+                }
+            )
+            summary_msg = f"Reversión FSM completada en {doc_dur}s (código {exit_code})."
+
+        elif action_type in ("release_worktree", "release_worktrees", "release"):
+            title = "Liberación y Poda de Worktrees Efímeros"
+            emit_log(f"[{now_str}] [WORKTREE-RELEASE] Podando worktrees huérfanos y liberando bloqueos...")
+            t0 = time.perf_counter()
+            prune_cmd = ["git", "worktree", "prune", "-v"]
+            prune_proc = subprocess.run(
+                prune_cmd,
+                cwd=str(target_root),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            dur_prune = round(time.perf_counter() - t0, 3)
+            for line in (prune_proc.stdout or "").splitlines():
+                if line.strip():
+                    emit_log(f"  [WORKTREE] {line}")
+            exit_code = prune_proc.returncode
+            status = "COMPLETED" if exit_code == 0 else "FAILED"
+            steps.append(
+                {
+                    "name": "Poda de Worktrees (git worktree prune -v)",
+                    "status": "DONE" if exit_code == 0 else "FAILED",
+                    "duration": f"{dur_prune}s",
+                    "command": "git worktree prune -v",
+                }
+            )
+            summary_msg = f"Worktrees liberados y podados en {dur_prune}s (código {exit_code})."
+
         else:
             title = f"Diagnóstico Rápido de Repositorio ({action_type})"
             t_gen = time.perf_counter()
@@ -778,6 +835,39 @@ class ActionExecutionModule:
             "execution_event": execution_event,
             "post_condition": post_condition,
         }
+
+        # 3. Post-condition SQLite WAL Durability
+        if self.service and hasattr(self.service, "_get_read_write_conn"):
+            try:
+                rw_conn = self.service._get_read_write_conn()
+                with rw_conn:
+                    rw_conn.execute(
+                        """
+                        INSERT INTO events (job_id, run_id, node_id, agent_id, event_type, severity, payload_json, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            exec_id,
+                            locals().get("run_id", None),
+                            None,
+                            "OPERATOR",
+                            f"ACTION_{action_type.upper()}",
+                            "INFO" if (status == "COMPLETED" or exit_code == 0) else "ERROR",
+                            json.dumps({
+                                "action": action_type,
+                                "git_branch": current_branch,
+                                "worktree_path": str(target_root),
+                                "commit_sha": current_commit,
+                                "status": status,
+                                "exit_code": exit_code,
+                                "summary": summary_msg,
+                                "post_condition_hash": post_condition_hash,
+                            }),
+                            utc_iso_now(),
+                        ),
+                    )
+            except Exception as wal_err:
+                logger.warning(f"Failed to record action to SQLite WAL: {wal_err}")
 
         self.history.insert(0, record)
         if len(self.history) > 50:

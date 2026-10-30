@@ -27,10 +27,14 @@ export interface AgentItem {
   id: string
   name: string
   role: string
-  status: 'Activo' | 'En espera' | 'Inactivo'
-  color: 'emerald' | 'blue' | 'amber' | 'zinc'
-  icon: string
+  status: 'Activo' | 'En espera' | 'Inactivo' | 'PASS' | 'BLOCKED' | 'ERROR' | 'Completado' | string
+  color?: 'emerald' | 'blue' | 'amber' | 'zinc' | string
+  icon?: string
   pid?: number
+  commit_sha?: string
+  current_task?: string
+  last_active?: string
+  status_type?: string
 }
 
 export interface AgentProcess {

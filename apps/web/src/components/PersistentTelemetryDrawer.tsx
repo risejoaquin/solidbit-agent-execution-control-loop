@@ -58,16 +58,38 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
     setLifecycleLoading(action)
     setFeedback(null)
     try {
-      let body: any = { action: 'security_audit', params: {} }
+      const currentCommitSha = commits[0]?.sha || 'HEAD'
+      const context = {
+        git_branch: activeBranch,
+        worktree_path: activeProject?.path || '.',
+        commit_sha: currentCommitSha,
+      }
+
+      let actionName = 'security_audit'
+      let actionParams: any = { ...context }
       if (action === 'revert') {
-        body = { action: 'doctor', params: { fix: true, note: 'Reversión FSM a estado seguro' } }
+        actionName = 'revert_fsm'
+        actionParams = { fix: true, note: 'Reversión FSM a estado seguro', ...context }
       } else if (action === 'release') {
-        body = { action: 'doctor', params: { clean_worktrees: true } }
+        actionName = 'release_worktree'
+        actionParams = { clean_worktrees: true, ...context }
+      }
+
+      const body = {
+        action: actionName,
+        action_type: actionName,
+        params: actionParams,
+        context,
       }
 
       const res = await fetch('/api/actions/execute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-git-branch': activeBranch,
+          'x-worktree-path': activeProject?.path || '.',
+          'x-commit-sha': currentCommitSha,
+        },
         body: JSON.stringify(body),
       })
       const data = await res.json()
@@ -95,6 +117,7 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
   return (
     <aside
       id="persistent-telemetry-drawer"
+      data-testid="persistent-telemetry-drawer"
       className="w-full xl:w-96 border-l border-white/5 bg-[#0C0C0E] flex flex-col justify-between shrink-0 h-full select-none"
     >
       {/* Header del Panel Lateral */}
@@ -184,6 +207,96 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
               </div>
             </div>
 
+            {/* 1b. Nodos de Agente y Telemetría FSM */}
+            <div className="p-4 rounded-2xl bg-[#121215] border border-white/5 space-y-3 shadow-md">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider">
+                  {t('Nodos de Agente (FSM)', 'Agent Nodes (FSM)')}
+                </span>
+                <span className="text-[10px] font-mono text-zinc-500">
+                  {agents.length} {t('nodos', 'nodes')}
+                </span>
+              </div>
+
+              {agents.length === 0 ? (
+                <div className="p-3 rounded-xl bg-black border border-white/5 text-[11px] text-zinc-500 text-center font-sans">
+                  {t('No hay agentes activos en ejecución.', 'No active agents executing.')}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {agents.slice(0, 4).map((a) => {
+                    const isPass =
+                      a.status === 'PASS' ||
+                      a.status === 'Completado' ||
+                      a.status_type === 'PASS' ||
+                      a.status === 'Activo'
+                    const isBlocked = a.status === 'BLOCKED' || a.status === 'Bloqueado'
+                    const isError = a.status === 'ERROR' || a.status === 'Fallo'
+
+                    const borderCol = isPass
+                      ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300'
+                      : isBlocked
+                      ? 'border-amber-500/40 bg-amber-950/20 text-amber-300'
+                      : isError
+                      ? 'border-rose-500/40 bg-rose-950/20 text-rose-300'
+                      : 'border-white/5 bg-black text-zinc-300'
+
+                    return (
+                      <div
+                        key={a.id || a.name}
+                        data-testid={`telemetry-agent-${a.name.toLowerCase()}`}
+                        className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 transition-all ${borderCol}`}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                isPass
+                                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                                  : isBlocked
+                                  ? 'bg-amber-400'
+                                  : isError
+                                  ? 'bg-rose-400'
+                                  : 'bg-zinc-500'
+                              }`}
+                            />
+                            <span className="font-bold text-white text-xs truncate">{a.name}</span>
+                          </div>
+                          <span className="text-[10px] text-zinc-400 block truncate font-sans">
+                            {a.role || 'Autonomous Specialist'}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span
+                            data-testid={`agent-status-${a.name.toLowerCase()}`}
+                            className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                              isPass
+                                ? 'bg-emerald-900/40 border-emerald-500/40 text-emerald-300'
+                                : isBlocked
+                                ? 'bg-amber-900/40 border-amber-500/40 text-amber-300'
+                                : isError
+                                ? 'bg-rose-900/40 border-rose-500/40 text-rose-300'
+                                : 'bg-zinc-800 border-zinc-700 text-zinc-400'
+                            }`}
+                          >
+                            {a.status}
+                          </span>
+                          {a.commit_sha && (
+                            <code
+                              data-testid={`agent-commit-${a.name.toLowerCase()}`}
+                              className="text-[9px] text-sky-400 font-mono"
+                            >
+                              {a.commit_sha.substring(0, 8)}
+                            </code>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* 2. Control de Ciclo de Vida Rápido */}
             <div className="p-4 rounded-2xl bg-[#121215] border border-white/5 space-y-2.5 shadow-md">
               <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider block">
@@ -192,6 +305,7 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
               <div className="grid grid-cols-1 gap-2">
                 <button
                   type="button"
+                  data-testid="btn-action-retry"
                   onClick={() => handleAction('retry')}
                   disabled={lifecycleLoading !== null}
                   className="w-full py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-zinc-200 text-[11px] font-semibold transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
@@ -206,6 +320,7 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
 
                 <button
                   type="button"
+                  data-testid="btn-action-revert"
                   onClick={() => handleAction('revert')}
                   disabled={lifecycleLoading !== null}
                   className="w-full py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-zinc-200 text-[11px] font-semibold transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
@@ -220,6 +335,7 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
 
                 <button
                   type="button"
+                  data-testid="btn-action-release"
                   onClick={() => handleAction('release')}
                   disabled={lifecycleLoading !== null}
                   className="w-full py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-zinc-200 text-[11px] font-semibold transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
@@ -254,11 +370,15 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
                 {commits.slice(0, 3).map((c, i) => (
                   <div
                     key={c.sha || i}
+                    data-testid="latest-commit-item"
                     className="p-2.5 rounded-xl bg-black border border-white/5 flex items-center justify-between gap-2 text-[10px]"
                   >
                     <span className="text-zinc-300 truncate max-w-[190px]">{c.message}</span>
-                    <code className="text-sky-400 bg-sky-950/30 px-1.5 py-0.5 rounded border border-sky-500/20 shrink-0">
-                      {c.sha?.substring(0, 7) || 'HEAD'}
+                    <code
+                      data-testid="telemetry-commit-sha"
+                      className="text-sky-400 bg-sky-950/30 px-1.5 py-0.5 rounded border border-sky-500/20 shrink-0 font-mono font-bold"
+                    >
+                      {c.sha?.substring(0, 8) || 'HEAD'}
                     </code>
                   </div>
                 ))}

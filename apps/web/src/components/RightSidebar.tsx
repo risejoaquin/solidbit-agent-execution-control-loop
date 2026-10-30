@@ -91,7 +91,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-7 h-7 rounded-lg bg-black/40 border border-white/5 flex items-center justify-center text-zinc-300 shrink-0">
-                    {getIcon(a.icon)}
+                    {getIcon(a.icon || 'bot')}
                   </div>
                   <div className="leading-tight truncate">
                     <div className="text-xs font-semibold text-white truncate">{a.name}</div>

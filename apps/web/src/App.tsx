@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Header } from './components/Header'
 import { LeftSidebar } from './components/LeftSidebar'
 import { CenterDashboard } from './components/CenterDashboard'
@@ -191,21 +191,138 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [])
 
+  // Event Sourcing: Ingest incoming FSM and Telemetry events immutably (UI = f(State))
+  const handleFSMEvent = useCallback((rawPayload: any) => {
+    if (!rawPayload) return
+    const payload =
+      typeof rawPayload === 'string'
+        ? (() => {
+            try {
+              return JSON.parse(rawPayload)
+            } catch {
+              return { message: rawPayload }
+            }
+          })()
+        : rawPayload
+
+    // 1. Immutable Agent state transition (e.g. Agent: Vega, Status: PASS, Commit: b9a448f9)
+    if (payload.agent || payload.agent_id || payload.agent_name) {
+      const agentName = payload.agent || payload.agent_id || payload.agent_name
+      const agentStatus = payload.status || 'PASS'
+
+      setAgents((prev) => {
+        const idx = prev.findIndex(
+          (a) =>
+            a.name.toLowerCase() === String(agentName).toLowerCase() ||
+            a.id.toLowerCase() === String(agentName).toLowerCase()
+        )
+        const updated: AgentItem = {
+          id: idx >= 0 ? prev[idx].id : String(agentName).toLowerCase(),
+          name: agentName,
+          role: idx >= 0 ? prev[idx].role : 'Autonomous Verification Specialist',
+          status: agentStatus,
+          status_type: agentStatus,
+          color:
+            agentStatus === 'PASS' || agentStatus === 'Completado'
+              ? 'emerald'
+              : agentStatus === 'ERROR'
+              ? 'red'
+              : 'amber',
+          commit_sha:
+            payload.commit || payload.commit_sha || (idx >= 0 ? prev[idx].commit_sha : undefined),
+          current_task: payload.task || payload.message || 'Verificación FSM completada',
+          last_active: 'Justo ahora',
+        }
+        if (idx >= 0) {
+          const next = [...prev]
+          next[idx] = { ...next[idx], ...updated }
+          return next
+        }
+        return [updated, ...prev]
+      })
+    }
+
+    // 2. Immutable Commit state transition
+    if (payload.commit || payload.commit_sha) {
+      const sha = payload.commit || payload.commit_sha
+      setCommits((prev) => {
+        if (prev.some((c) => c.sha === sha)) return prev
+        const newCommit: CommitItem = {
+          sha,
+          message: payload.message || `Automated verify from ${payload.agent || 'Agent'}`,
+          author: payload.agent || 'SACL Operator',
+          time: new Date().toLocaleTimeString('es-ES'),
+        }
+        return [newCommit, ...prev]
+      })
+    }
+
+    // 3. Immutable Activity Event ingestion for FSM Console
+    const newActivityEvent: ActivityEvent = {
+      event_id: Date.now(),
+      event_type: payload.status || payload.event_type || 'FSM_EVENT',
+      severity:
+        payload.status === 'ERROR'
+          ? 'ERROR'
+          : payload.status === 'BLOCKED'
+          ? 'WARN'
+          : 'INFO',
+      payload_json: typeof payload === 'string' ? payload : JSON.stringify(payload),
+      created_at: new Date().toISOString(),
+    }
+    setEvents((prev) => [newActivityEvent, ...prev.slice(0, 49)])
+  }, [])
+
   useEffect(() => {
     loadData()
 
+    // Expose test hooks for E2E automation (Playwright / integration tests)
+    ;(window as any).__INJECT_FSM_EVENT__ = (data: any) => handleFSMEvent(data)
+    const onCustomEvent = (e: any) => handleFSMEvent(e.detail)
+    window.addEventListener('fsm-event', onCustomEvent)
+
+    let sse: EventSource | null = null
     try {
-      const sse = new EventSource('/api/events/stream')
+      sse = new EventSource('/api/events/stream')
       sse.addEventListener('snapshot', () => loadData())
       sse.addEventListener('gate', () => loadData())
+      sse.addEventListener('gate_decided', () => loadData())
+      sse.addEventListener('gate_requested', () => loadData())
       sse.addEventListener('job', () => loadData())
       sse.addEventListener('sprint_executed', () => loadData())
       sse.addEventListener('changes_applied', () => loadData())
-      return () => sse.close()
+      sse.addEventListener('agent_event', (e) => {
+        try {
+          handleFSMEvent(JSON.parse(e.data))
+        } catch {}
+      })
+      sse.addEventListener('action_executed', (e) => {
+        try {
+          const d = JSON.parse(e.data)
+          handleFSMEvent(d)
+        } catch {}
+        loadData()
+      })
+      sse.addEventListener('terminal_log', (e) => {
+        try {
+          const d = JSON.parse(e.data)
+          handleFSMEvent(d)
+        } catch {}
+      })
+      sse.onmessage = (e) => {
+        try {
+          handleFSMEvent(JSON.parse(e.data))
+        } catch {}
+      }
     } catch {
       console.warn('SSE not supported or connection closed')
     }
-  }, [])
+
+    return () => {
+      window.removeEventListener('fsm-event', onCustomEvent)
+      if (sse) sse.close()
+    }
+  }, [handleFSMEvent])
 
   const handleSelectProject = async (projId: string) => {
     try {
