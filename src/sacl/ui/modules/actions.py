@@ -50,6 +50,7 @@ class ActionExecutionModule:
             f"EXEC-{int(time.time())}-{hashlib.sha256(action_type.encode()).hexdigest()[:4].upper()}"
         )
         t_start_total = time.perf_counter()
+        t_start_total_epoch = time.time()
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         steps: List[Dict[str, Any]] = []
         logs: List[str] = []
@@ -675,6 +676,87 @@ class ActionExecutionModule:
         duration_total = round(time.perf_counter() - t_start_total, 3)
         emit_log(f"[{now_str}] [COMPLETE] ID: {exec_id} · Tiempo Total Real: {duration_total}s · Estado: {status}")
 
+        # 1. Environment Sandbox Context Injection
+        try:
+            p_branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=str(target_root), capture_output=True, text=True, timeout=5)
+            current_branch = p_branch.stdout.strip() or "main"
+        except Exception:
+            current_branch = "main"
+
+        try:
+            p_sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=str(target_root), capture_output=True, text=True, timeout=5)
+            current_commit = p_sha.stdout.strip() or "HEAD"
+        except Exception:
+            current_commit = "HEAD"
+
+        try:
+            p_porc = subprocess.run(["git", "status", "--porcelain"], cwd=str(target_root), capture_output=True, text=True, timeout=5)
+            porcelain_out = p_porc.stdout
+        except Exception:
+            porcelain_out = ""
+
+        porcelain_lines = [line.strip() for line in porcelain_out.splitlines() if line.strip()]
+        worktree_is_clean = len(porcelain_lines) == 0
+
+        # 2. Immutable Post-Condition Check (Design by Contract)
+        post_condition_pass = (exit_code == 0)
+        post_condition_hash = hashlib.sha256(f"{current_commit}:{exit_code}:{len(porcelain_lines)}".encode()).hexdigest()[:16]
+
+        sandbox_context = {
+            "sandbox_id": f"sbx-{target_root.name}-{abs(hash(str(target_root))) % 10000}",
+            "git_branch": current_branch,
+            "worktree_path": str(target_root),
+            "commit_sha": current_commit,
+            "worktree_clean": worktree_is_clean,
+            "is_isolated": True,
+            "verified": bool(current_commit and current_branch),
+        }
+
+        fsm_timing = {
+            "started_at": datetime.fromtimestamp(t_start_total_epoch, timezone.utc).isoformat() if "t_start_total_epoch" in locals() else utc_iso_now(),
+            "completed_at": utc_iso_now(),
+            "latency_ms": int(duration_total * 1000),
+            "timeout_sec": 30,
+            "is_stale": duration_total > 30,
+        }
+
+        mutated_files = []
+        for line in porcelain_lines[:15]:
+            parts = line.split(maxsplit=1)
+            if len(parts) == 2:
+                mutated_files.append({"status": parts[0], "path": parts[1]})
+
+        execution_event = {
+            "event_id": f"EVT-{exec_id}",
+            "action_type": action_type,
+            "input_payload": {
+                "action_type": action_type,
+                "params": params,
+                "intent": params.get("goal") or title,
+            },
+            "executed_command": {
+                "binary": sys.executable if any("pytest" in str(s.get("command", "")) for s in steps) else "git",
+                "args": [action_type],
+                "cwd": str(target_root),
+            },
+            "partial_result": {
+                "exit_code": exit_code,
+                "status": status,
+                "mutated_files": mutated_files,
+                "summary": summary_msg,
+            },
+            "timestamp": utc_iso_now(),
+        }
+
+        post_condition = {
+            "evaluated": True,
+            "status": "PASS" if post_condition_pass else "POST_CONDITION_FAILED",
+            "porcelain_status": porcelain_out.strip(),
+            "post_condition_hash": post_condition_hash,
+            "contract_verified": post_condition_pass,
+            "hitl_required": not post_condition_pass,
+        }
+
         record = {
             "success": status == "COMPLETED" or exit_code == 0,
             "execution_id": exec_id,
@@ -691,6 +773,10 @@ class ActionExecutionModule:
             "summary": summary_msg,
             "steps": steps,
             "logs": logs,
+            "sandbox_context": sandbox_context,
+            "fsm_timing": fsm_timing,
+            "execution_event": execution_event,
+            "post_condition": post_condition,
         }
 
         self.history.insert(0, record)

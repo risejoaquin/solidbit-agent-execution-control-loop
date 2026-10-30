@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { DomainStateMeta, OperationalDomainState } from '../../types/domainState'
 import { useLanguage } from '../../context/LanguageContext'
+import { StructuredPayloadViewer } from '../StructuredPayloadViewer'
 
 interface AgentsSectionProps {
   onAgentLaunched?: (res: any) => void
@@ -1054,48 +1055,14 @@ export const AgentsSection: React.FC<AgentsSectionProps> = ({
             )}
 
             {actionResult && (
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-xs font-bold text-white">
-                      {actionResult.title ||
-                        t(
-                          `Misión completada por ${selectedChar.characterName}`,
-                          `Mission completed by ${selectedChar.characterName}`
-                        )}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowTechLogs(!showTechLogs)}
-                    className="text-[11px] text-zinc-300 hover:text-white flex items-center gap-1 cursor-pointer font-mono"
-                  >
-                    <Terminal className="w-3.5 h-3.5" />
-                    <span>
-                      {showTechLogs
-                        ? t('Ocultar salida técnica', 'Hide technical output')
-                        : t('Ver salida técnica', 'View technical output')}
-                    </span>
-                    {showTechLogs ? (
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-xs text-zinc-300">
-                  {actionResult.summary ||
-                    t(
-                      'Verificación ejecutada directamente sobre tu repositorio.',
-                      'Verification executed directly on your repository.'
-                    )}
-                </p>
-                {showTechLogs && actionResult.raw_output && (
-                  <pre className="p-3 rounded-xl bg-black border border-white/5 text-[11px] font-mono text-zinc-300 overflow-x-auto max-h-56">
-                    {actionResult.raw_output}
-                  </pre>
-                )}
+              <div className="pt-2">
+                <StructuredPayloadViewer
+                  execution={actionResult}
+                  onRequireHITL={() => {
+                    if (onNavigateToResolution) onNavigateToResolution()
+                  }}
+                  onRetryTask={() => handleRunCharacterMission(selectedChar)}
+                />
               </div>
             )}
           </div>

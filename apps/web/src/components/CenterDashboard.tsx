@@ -31,6 +31,7 @@ import type { TechnologyItem } from './ConnectedTechnologiesMatrix'
 import type { DomainStateMeta, OperationalDomainState } from '../types/domainState'
 import { StatusBadge } from './ui/status-badge'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip'
+import { StructuredPayloadViewer } from './StructuredPayloadViewer'
 
 interface CenterDashboardProps {
   domainState: DomainStateMeta
@@ -645,28 +646,13 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
                     </div>
                   </div>
 
-                  {/* Empirical Verification Result */}
+                  {/* Empirical Verification Result (Structured CQRS & Postcondition Inspector) */}
                   {healthResult && (
-                    <div className="p-4 rounded-2xl bg-black border border-emerald-500/35 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <div>
-                          <span className="font-bold text-white block">{healthResult.title}</span>
-                          <span className="text-zinc-400">{healthResult.summary}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 self-end sm:self-center">
-                        <span className="px-2.5 py-1 rounded-lg bg-zinc-900 text-emerald-400 font-mono font-bold">
-                          {healthResult.duration_sec}s
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setHealthResult(null)}
-                          className="text-zinc-400 hover:text-white underline cursor-pointer"
-                        >
-                          Cerrar
-                        </button>
-                      </div>
+                    <div className="pt-1">
+                      <StructuredPayloadViewer
+                        execution={healthResult}
+                        onRetryTask={handleRunHealthVerification}
+                      />
                     </div>
                   )}
 
