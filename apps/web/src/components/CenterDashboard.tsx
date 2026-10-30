@@ -14,6 +14,7 @@ import {
   Play,
   ArrowRight,
   RotateCcw,
+  SlidersHorizontal,
 } from 'lucide-react'
 import type {
   TaskItem,
@@ -329,6 +330,18 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
             </div>
           )}
 
+          {/* Panel de Métricas Técnicas y Diagnóstico Avanzado (Colapsado por defecto) */}
+          <details className="group border-t border-white/5 pt-4">
+            <summary className="flex items-center justify-between text-xs font-mono text-zinc-500 hover:text-zinc-300 cursor-pointer select-none list-none py-1">
+              <span className="flex items-center gap-2 font-bold uppercase tracking-wider">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Métricas Técnicas & Diagnóstico Avanzado (Opcional)</span>
+              </span>
+              <span className="text-[10px] uppercase font-bold text-zinc-600 group-open:rotate-180 transition-transform">
+                ▼
+              </span>
+            </summary>
+            <div className="pt-4 space-y-6">
           {/* =================================================================
               BRANCH B: STATE = HALTED_BY_CONFLICT (Inline Error Recovery)
              ================================================================= */}
@@ -700,6 +713,8 @@ export const CenterDashboard: React.FC<CenterDashboardProps> = ({
               </div>
             </div>
           )}
+            </div>
+          </details>
         </section>
 
         {/* Layer 2: Historial de Transacciones WAL e Invariantes */}

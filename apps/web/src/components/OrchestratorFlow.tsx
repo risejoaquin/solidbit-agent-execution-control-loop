@@ -1,3 +1,4 @@
+import { RobotFlowDiagram } from './RobotFlowDiagram'
 import React, { useState, useEffect } from 'react'
 import {
   Sparkles,
@@ -412,114 +413,40 @@ export const OrchestratorFlow: React.FC<OrchestratorFlowProps> = ({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4">
       {/* =========================================================================
-          TOP BAR: FLOW STEPPER + DEVELOPER MODE TOGGLE (KISS Principle)
+          ROBOT FLOW DIAGRAM: 3 FASES LINEALES (Matching Hand-Drawn Diagram)
          ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-zinc-950/80 border border-zinc-850 shadow-sm backdrop-blur-md">
-        {/* Visual 3-Phase Stepper */}
-        <div className="flex items-center gap-1.5 sm:gap-3 text-xs">
-          {/* Phase 1 Pill */}
+      <RobotFlowDiagram
+        currentPhase={currentPhase}
+        onSelectPhase={(phase) => setCurrentPhase(phase)}
+        hasValidatedContracts={hasValidatedContracts}
+        isDeploySuccess={deploySuccess}
+      />
+
+      {/* Subtle Developer Mode Bar */}
+      <div className="flex items-center justify-between px-2 text-xs text-zinc-500">
+        <span className="text-[11px] font-mono">
+          Proyecto: <strong className="text-zinc-300">{activeProject?.name || 'Tienda Online'}</strong> · Rama: <strong className="text-zinc-300">{activeBranch}</strong>
+        </span>
+        <label className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer select-none transition">
+          <span className="text-[11px]">Detalles Técnicos</span>
+          <input
+            type="checkbox"
+            checked={devMode}
+            onChange={(e) => setDevMode(e.target.checked)}
+            className="sr-only"
+          />
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold transition ${
-              currentPhase === 1
-                ? 'bg-white text-black shadow'
-                : currentPhase > 1
-                ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/30'
-                : 'bg-zinc-900 text-zinc-500'
+            className={`w-7 h-3.5 rounded-full transition-colors relative ${
+              devMode ? 'bg-emerald-500' : 'bg-zinc-800'
             }`}
           >
-            {currentPhase > 1 ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <span className="w-4 h-4 rounded-full bg-black text-white text-[10px] flex items-center justify-center">
-                1
-              </span>
-            )}
-            <span>Diseño</span>
-          </div>
-
-          <ArrowRight className="w-3.5 h-3.5 text-zinc-600" />
-
-          {/* Phase 2 Pill */}
-          <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold transition ${
-              currentPhase === 2
-                ? 'bg-white text-black shadow'
-                : currentPhase > 2
-                ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/30'
-                : 'bg-zinc-900 text-zinc-500'
-            }`}
-          >
-            {currentPhase > 2 ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <span
-                className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center ${
-                  currentPhase === 2 ? 'bg-black text-white' : 'bg-zinc-800 text-zinc-400'
-                }`}
-              >
-                2
-              </span>
-            )}
-            <span>Implementación</span>
-          </div>
-
-          <ArrowRight className="w-3.5 h-3.5 text-zinc-600" />
-
-          {/* Phase 3 Pill */}
-          <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold transition ${
-              currentPhase === 3
-                ? 'bg-white text-black shadow'
-                : deploySuccess
-                ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/30'
-                : 'bg-zinc-900 text-zinc-500'
-            }`}
-          >
-            {deploySuccess ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <span
-                className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center ${
-                  currentPhase === 3 ? 'bg-black text-white' : 'bg-zinc-800 text-zinc-400'
-                }`}
-              >
-                3
-              </span>
-            )}
-            <span>Despliegue</span>
-          </div>
-        </div>
-
-        {/* Subtle Developer Mode Toggle + Contract Status */}
-        <div className="flex items-center gap-3 self-end sm:self-auto">
-          {hasValidatedContracts && (
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/30 border border-emerald-500/20 text-[11px] text-emerald-400 font-mono">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Contratos Congelados</span>
-            </div>
-          )}
-
-          <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
-            <span className="text-[11px]">Modo Desarrollador</span>
-            <input
-              type="checkbox"
-              checked={devMode}
-              onChange={(e) => setDevMode(e.target.checked)}
-              className="sr-only"
-            />
             <div
-              className={`w-8 h-4 rounded-full transition-colors relative ${
-                devMode ? 'bg-emerald-500' : 'bg-zinc-800'
+              className={`w-2.5 h-2.5 rounded-full bg-white absolute top-0.5 transition-transform ${
+                devMode ? 'left-3.5' : 'left-0.5'
               }`}
-            >
-              <div
-                className={`w-3 h-3 rounded-full bg-white absolute top-0.5 transition-transform ${
-                  devMode ? 'left-4' : 'left-0.5'
-                }`}
-              />
-            </div>
-          </label>
-        </div>
+            />
+          </div>
+        </label>
       </div>
 
       {/* =========================================================================

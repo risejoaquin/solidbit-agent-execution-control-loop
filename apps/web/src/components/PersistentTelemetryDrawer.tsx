@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import {
+  PanelRightClose,
+  PanelRight,
   Activity,
   Cpu,
   GitBranch,
@@ -53,6 +55,7 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
   const [activeTab, setActiveTab] = useState<'telemetry' | 'console'>('telemetry')
   const [lifecycleLoading, setLifecycleLoading] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
 
   const handleAction = async (action: 'retry' | 'revert' | 'release') => {
     setLifecycleLoading(action)
@@ -118,16 +121,28 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
     <aside
       id="persistent-telemetry-drawer"
       data-testid="persistent-telemetry-drawer"
-      className="w-full xl:w-96 border-l border-white/5 bg-[#0C0C0E] flex flex-col justify-between shrink-0 h-full select-none"
+      className={`border-l border-white/5 bg-[#0C0C0E] flex flex-col justify-between shrink-0 h-full select-none transition-all duration-300 ${
+        isCollapsed ? 'w-14' : 'w-full xl:w-96'
+      }`}
     >
       {/* Header del Panel Lateral */}
-      <div className="p-4 border-b border-white/5 bg-[#0C0C0E] flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-emerald-400" />
-          <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-white">
-            {t('Telemetría & Daemon', 'Telemetry & Daemon')}
-          </span>
-        </div>
+      <div className="p-3.5 border-b border-white/5 bg-[#0C0C0E] flex items-center justify-between gap-1">
+        <button
+          type="button"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition cursor-pointer"
+          title={isCollapsed ? t('Expandir telemetría', 'Expand telemetry') : t('Colapsar telemetría', 'Collapse telemetry')}
+        >
+          {isCollapsed ? <PanelRight className="w-3.5 h-3.5 text-emerald-400" /> : <PanelRightClose className="w-3.5 h-3.5" />}
+        </button>
+        {!isCollapsed && (
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-mono font-extrabold uppercase tracking-wider text-white">
+              {t('Telemetría', 'Telemetry')}
+            </span>
+          </div>
+        )}
 
         {/* Tab Switcher: Métricas vs Consola FSM en Vivo */}
         <div className="flex items-center p-1 rounded-xl bg-black border border-white/5">

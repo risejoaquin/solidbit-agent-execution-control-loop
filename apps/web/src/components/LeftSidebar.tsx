@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import {
+  PanelLeftClose,
+  PanelLeft,
   Zap,
   FolderGit2,
   GitBranch,
@@ -41,6 +43,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 }) => {
   const { t } = useLanguage()
   const [showSupportChannels, setShowSupportChannels] = useState<boolean>(false)
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
 
   // OOUX: Entidades canónicas interconectadas (sin prefijos numéricos rígidos)
   const canonicalDomainEntities: NavItem[] = [
@@ -139,17 +142,26 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   return (
     <aside
       id="left-sidebar-navigation"
-      className="w-64 border-r border-white/5 bg-[#0C0C0E] flex flex-col justify-between shrink-0 select-none hidden md:flex h-full"
+      className={`border-r border-white/5 bg-[#0C0C0E] flex flex-col justify-between shrink-0 select-none hidden md:flex h-full transition-all duration-300 ${
+        isCollapsed ? 'w-16' : 'w-64'
+      }`}
     >
       {/* Zona Superior: Entidades Principales */}
       <div className="p-3.5 space-y-4 overflow-y-auto custom-scroll">
         <div className="px-2 pt-1 pb-0.5 flex items-center justify-between">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-extrabold">
-            {t('Entidades Operativas', 'Operational Entities')}
-          </span>
-          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-white/5">
-            OOUX
-          </span>
+          {!isCollapsed && (
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-extrabold">
+              {t('Navegación', 'Navigation')}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-white transition cursor-pointer ml-auto"
+            title={isCollapsed ? t('Expandir menú', 'Expand menu') : t('Colapsar menú', 'Collapse menu')}
+          >
+            {isCollapsed ? <PanelLeft className="w-3.5 h-3.5" /> : <PanelLeftClose className="w-3.5 h-3.5" />}
+          </button>
         </div>
 
         {/* 5 Entidades Principales */}
@@ -179,20 +191,22 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   >
                     <IconComponent className="w-4 h-4" />
                   </div>
-                  <div className="min-w-0 leading-tight">
-                    <span
-                      className={`text-xs block truncate ${
-                        isActive ? 'font-bold text-white' : 'font-medium'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                    {item.subtitle && (
-                      <span className="text-[10px] text-zinc-500 block truncate mt-0.5 font-mono">
-                        {item.subtitle}
+                  {!isCollapsed && (
+                    <div className="min-w-0 leading-tight">
+                      <span
+                        className={`text-xs block truncate ${
+                          isActive ? 'font-bold text-white' : 'font-medium'
+                        }`}
+                      >
+                        {item.label}
                       </span>
-                    )}
-                  </div>
+                      {item.subtitle && (
+                        <span className="text-[10px] text-zinc-500 block truncate mt-0.5 font-mono">
+                          {item.subtitle}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {item.badge !== undefined && (

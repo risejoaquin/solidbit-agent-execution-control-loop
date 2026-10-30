@@ -494,18 +494,20 @@ export default function App() {
 
         {/* Capa 2: Workbench Central Dinámico (~65% del área operativa) */}
         <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
-          {/* Breadcrumbs y Stepper Interactivo Vinculante */}
-          <div className="space-y-3 border-b border-white/5 pb-3">
-            <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
-            <InteractivePipelineStepper
-              currentSection={currentSection}
-              currentState={domainState.state}
-              onSelectStep={(sec) => setCurrentSection(sec)}
-              hasConflict={hasConflict}
-              isExecuting={isExecuting || agents.length > 0}
-              pendingGatesCount={pendingGatesCount}
-            />
-          </div>
+          {/* Breadcrumbs y Stepper Interactivo (Solo en vistas secundarias; en dashboard el RobotFlowDiagram es el stepper primario) */}
+          {currentSection !== 'dashboard' && (
+            <div className="space-y-3 border-b border-white/5 pb-3">
+              <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
+              <InteractivePipelineStepper
+                currentSection={currentSection}
+                currentState={domainState.state}
+                onSelectStep={(sec) => setCurrentSection(sec)}
+                hasConflict={hasConflict}
+                isExecuting={isExecuting || agents.length > 0}
+                pendingGatesCount={pendingGatesCount}
+              />
+            </div>
+          )}
 
           {/* Renderizado Reactivo del Workbench Activo */}
           {currentSection === 'dashboard' && (
