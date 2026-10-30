@@ -273,6 +273,72 @@ export default function App() {
     setEvents((prev) => [newActivityEvent, ...prev.slice(0, 49)])
   }, [])
 
+  const handleAtomicProjectTeardown = useCallback(
+    async (removedProjId: string) => {
+      // 1. Audit active project vs removed project
+      const currentActive =
+        projects.find((p) => (p.id === removedProjId || p.path === removedProjId) && p.is_active) ||
+        (projects.length > 0 && (projects[0].id === removedProjId || projects[0].path === removedProjId))
+
+      const remainingProjects = projects.filter(
+        (p) => p.id !== removedProjId && p.path !== removedProjId
+      )
+
+      if (currentActive) {
+        // 2. ATOMIC CASCADING TEARDOWN:
+        // Reset all derived and state variables in a single synchronous commit
+        // No dangling tasks, no stale activeBranch, no ghost commits or agent states
+        const nextActive = remainingProjects[0] || null
+
+        setProjects(remainingProjects)
+        setProjectName(nextActive?.name || 'Orquestador SACL')
+        setActiveBranch(nextActive?.branch || 'worktrees/scheduler')
+        setTasks([])
+        setAgents([])
+        setCommits([])
+        setEvents([])
+        setHasConflict(false)
+        setConflictReason(null)
+        setIsExecuting(false)
+        setPendingGatesCount(0)
+
+        // 3. Side-Effect Cleanup Phase: Call Daemon to prune isolated git worktrees
+        try {
+          await fetch('/api/actions/execute', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-git-branch': nextActive?.branch || 'main',
+              'x-worktree-path': nextActive?.path || '.',
+              'x-commit-sha': 'HEAD',
+            },
+            body: JSON.stringify({
+              action: 'release_worktree',
+              action_type: 'release_worktree',
+              params: {
+                clean_worktrees: true,
+                worktree_path: nextActive?.path || '.',
+                git_branch: nextActive?.branch || 'main',
+              },
+              context: {
+                git_branch: nextActive?.branch || 'main',
+                worktree_path: nextActive?.path || '.',
+              },
+            }),
+          })
+        } catch (err) {
+          console.warn('Worktree cleanup notice:', err)
+        }
+      } else {
+        setProjects(remainingProjects)
+      }
+
+      await loadData()
+    },
+    [projects]
+  )
+
+
   useEffect(() => {
     loadData()
 
@@ -291,6 +357,18 @@ export default function App() {
       sse.addEventListener('job', () => loadData())
       sse.addEventListener('sprint_executed', () => loadData())
       sse.addEventListener('changes_applied', () => loadData())
+      sse.addEventListener('project_removed', (e) => {
+        try {
+          const d = JSON.parse(e.data)
+          if (d?.removed_id) {
+            handleAtomicProjectTeardown(d.removed_id)
+          } else {
+            loadData()
+          }
+        } catch {
+          loadData()
+        }
+      })
       sse.addEventListener('agent_event', (e) => {
         try {
           handleFSMEvent(JSON.parse(e.data))
@@ -322,7 +400,7 @@ export default function App() {
       window.removeEventListener('fsm-event', onCustomEvent)
       if (sse) sse.close()
     }
-  }, [handleFSMEvent])
+  }, [handleFSMEvent, handleAtomicProjectTeardown])
 
   const handleSelectProject = async (projId: string) => {
     try {
@@ -493,10 +571,23 @@ export default function App() {
 
           {currentSection === 'projects' && (
             <ProjectsSection
+              activeProject={activeProject}
+              projects={projects}
+              onProjectRemoved={handleAtomicProjectTeardown}
+              onRefreshAll={loadData}
               onNavigateSection={(sec) => setCurrentSection(sec)}
               onLaunchAutoSprint={(data) => {
                 if (data?.ticket) setSelectedJiraTicketForSprint(data.ticket)
                 loadData()
+                if (data?.executed) {
+                  if (data?.execution?.pending_gates > 0) {
+                    setCurrentSection('executions')
+                  } else {
+                    setCurrentSection('dashboard')
+                  }
+                } else if (data?.plan) {
+                  setIsSprintModalOpen(true)
+                }
               }}
             />
           )}

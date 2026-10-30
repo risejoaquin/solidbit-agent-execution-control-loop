@@ -25,11 +25,19 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/
 interface ProjectsSectionProps {
   onLaunchAutoSprint?: (planData: any) => void
   onNavigateSection?: (section: string) => void
+  activeProject?: any
+  projects?: any[]
+  onProjectRemoved?: (projId: string) => Promise<void> | void
+  onRefreshAll?: () => Promise<void> | void
 }
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   onLaunchAutoSprint,
   onNavigateSection,
+  activeProject,
+  projects,
+  onProjectRemoved,
+  onRefreshAll,
 }) => {
   const [projectsList, setProjectsList] = useState<any[]>([])
   const [activeProjId, setActiveProjId] = useState<string>('')
@@ -113,6 +121,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         setAutoSprintResult(null)
         setFeedback({ type: 'success', message: data.message || 'Proyecto activado y auditado.' })
         await loadData()
+        if (onRefreshAll) {
+          await onRefreshAll()
+        }
       } else {
         setFeedback({ type: 'error', message: data.error || 'No se pudo activar el proyecto.' })
       }
@@ -123,7 +134,12 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const handleAuditAndAutoSprint = async (executeImmediately: boolean) => {
     setPlanningAutoSprint(true)
-    setFeedback(null)
+    setFeedback({
+      type: 'success',
+      message: executeImmediately
+        ? '⚡ Sintetizando y ejecutando sprint automático desde la auditoría 360°...'
+        : '📋 Sintetizando plan de sprint con el escuadrón SolidBit...',
+    })
     try {
       const res = await fetch('/api/projects/audit-and-plan', {
         method: 'POST',
@@ -141,10 +157,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         }
         setFeedback({
           type: 'success',
-          message: data.message,
+          message: data.message || 'Sprint diseñado y procesado con éxito por el escuadrón.',
         })
-        if (onLaunchAutoSprint && data.plan && !executeImmediately) {
+        // CRITICAL: Always notify parent to propagate tasks, gates, and navigation
+        if (onLaunchAutoSprint) {
           onLaunchAutoSprint(data)
+        }
+        if (onRefreshAll) {
+          await onRefreshAll()
         }
       } else {
         setFeedback({
@@ -194,6 +214,16 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       return
     }
     try {
+      // 1. Cascading teardown of local state if this is the active project
+      if (projId === activeProjId) {
+        setInspection360(null)
+        setAutoSprintResult(null)
+        setFsTree([])
+        setDocContent(null)
+        setSelectedDocName('')
+      }
+
+      // 2. Call backend to remove from persistence
       const res = await fetch('/api/projects/remove', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -202,7 +232,15 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       const data = await res.json()
       if (data.success) {
         setFeedback({ type: 'success', message: data.message })
+        // 3. Atomically teardown parent global state & prune worktrees
+        if (onProjectRemoved) {
+          await onProjectRemoved(projId)
+        } else if (onRefreshAll) {
+          await onRefreshAll()
+        }
         await loadData()
+      } else {
+        setFeedback({ type: 'error', message: data.error || 'Error quitando proyecto.' })
       }
     } catch (e: any) {
       setFeedback({ type: 'error', message: 'Error quitando proyecto: ' + e.message })
@@ -432,8 +470,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
               <button
                 type="button"
                 onClick={() => handleAuditAndAutoSprint(true)}
-                disabled={planningAutoSprint}
-                className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg disabled:opacity-50"
+                disabled={planningAutoSprint || loading360}
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {planningAutoSprint ? (
                   <Loader2 className="w-4 h-4 animate-spin text-black" />
@@ -441,7 +479,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                   <Sparkles className="w-4 h-4 text-black" />
                 )}
                 <span>
-                  ⚡ Diseñar y Ejecutar Sprint Automático desde Auditoría
+                  {planningAutoSprint
+                    ? 'Sintetizando y Ejecutando Sprint...'
+                    : '⚡ Diseñar y Ejecutar Sprint Automático desde Auditoría'}
                 </span>
               </button>
             </div>

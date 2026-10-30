@@ -250,6 +250,8 @@ class ProjectsModule:
         self._save_imported_paths()
         return {
             "success": True,
+            "removed_id": project_id_or_path,
+            "active_project_id": self.active_project_id,
             "projects": self.list_projects(),
             "message": "Proyecto quitado de la lista (tus archivos en disco siguen intactos).",
         }
