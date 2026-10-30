@@ -3,11 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
-import pytest
-
-from sacl.contracts.invariants import AgentStatus, Verdict
 from sacl.worker.process import (
     MockProcessInspector,
     safe_stop_agent_process,
@@ -64,7 +60,9 @@ def test_verify_process_start_time_drift_rejection():
     record_time = datetime.now(timezone.utc)
     # OS process started 400 seconds later (recycled PID)
     actual_time = record_time + timedelta(seconds=400)
-    inspector.register_process(pid=4820, process_name="agy", start_time=actual_time, is_running=True)
+    inspector.register_process(
+        pid=4820, process_name="agy", start_time=actual_time, is_running=True
+    )
 
     is_running, reason, drift, _ = verify_agent_process_running(
         pid=4820,
@@ -126,7 +124,9 @@ def test_safe_stop_safety_refusal_on_drift_mismatch():
     inspector = MockProcessInspector()
     record_time = datetime.now(timezone.utc)
     actual_time = record_time + timedelta(seconds=350)
-    inspector.register_process(pid=4820, process_name="powershell", start_time=actual_time, is_running=True)
+    inspector.register_process(
+        pid=4820, process_name="powershell", start_time=actual_time, is_running=True
+    )
 
     success, code, details = safe_stop_agent_process(
         pid=4820,

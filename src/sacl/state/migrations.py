@@ -15,7 +15,6 @@ from typing import Dict, List, Optional, Tuple, Union
 from sacl.state.exceptions import (
     MigrationChecksumMismatchError,
     MigrationError,
-    MigrationVersionConflictError,
 )
 from sacl.state.utils import calculate_sha256, utc_now
 
@@ -23,6 +22,7 @@ from sacl.state.utils import calculate_sha256, utc_now
 @dataclass(frozen=True)
 class MigrationRecord:
     """Represents a recorded entry in the schema_migrations ledger."""
+
     version: int
     name: str
     applied_at: str
@@ -35,7 +35,9 @@ class MigrationRunner:
     MIGRATION_PATTERN = re.compile(r"^(\d+)[-_](.*)\.sql$", re.IGNORECASE)
 
     def __init__(self, migrations_dir: Optional[Union[str, Path]] = None) -> None:
-        self.migrations_dir = Path(migrations_dir) if migrations_dir else self._find_default_migrations_dir()
+        self.migrations_dir = (
+            Path(migrations_dir) if migrations_dir else self._find_default_migrations_dir()
+        )
 
     @staticmethod
     def _find_default_migrations_dir() -> Path:
@@ -79,7 +81,9 @@ class MigrationRunner:
         """Returns map of version -> MigrationRecord for all applied migrations."""
         MigrationRunner.ensure_schema_migrations_table(conn)
         cursor = conn.cursor()
-        cursor.execute("SELECT version, name, applied_at, checksum FROM schema_migrations ORDER BY version ASC;")
+        cursor.execute(
+            "SELECT version, name, applied_at, checksum FROM schema_migrations ORDER BY version ASC;"
+        )
         records = {}
         for row in cursor.fetchall():
             records[row["version"]] = MigrationRecord(
@@ -90,7 +94,9 @@ class MigrationRunner:
             )
         return records
 
-    def discover_migrations(self, custom_dir: Optional[Union[str, Path]] = None) -> List[Tuple[int, Path]]:
+    def discover_migrations(
+        self, custom_dir: Optional[Union[str, Path]] = None
+    ) -> List[Tuple[int, Path]]:
         """Discovers and sorts all SQL migration files in the migrations directory."""
         target_dir = Path(custom_dir) if custom_dir else self.migrations_dir
         if not target_dir.exists():

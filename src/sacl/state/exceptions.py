@@ -6,25 +6,27 @@ leasing, queuing, and idempotency errors.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-
 from sacl.contracts.exceptions import SaclError
 
 
 class StateStoreError(SaclError):
     """Base exception for all operational state store errors."""
+
     pass
 
 
 class MigrationError(StateStoreError):
     """Base exception for database schema migration errors."""
+
     pass
 
 
 class MigrationChecksumMismatchError(MigrationError):
     """Raised when an applied migration file hash differs from recorded checksum."""
 
-    def __init__(self, version: int, recorded_checksum: str, actual_checksum: str, name: str = "") -> None:
+    def __init__(
+        self, version: int, recorded_checksum: str, actual_checksum: str, name: str = ""
+    ) -> None:
         super().__init__(
             f"MIGRATION_CHECKSUM_MISMATCH: Version {version} ('{name}') has recorded checksum "
             f"'{recorded_checksum}' but disk file has '{actual_checksum}'. Schema tampering detected.",
@@ -43,13 +45,16 @@ class MigrationChecksumMismatchError(MigrationError):
 
 class MigrationVersionConflictError(MigrationError):
     """Raised when a migration version is invalid or out of sequence."""
+
     pass
 
 
 class InvalidStateTransitionError(StateStoreError):
     """Raised when attempting an invalid or unauthorized state transition."""
 
-    def __init__(self, entity_type: str, entity_id: str, current_state: str, attempted_state: str) -> None:
+    def __init__(
+        self, entity_type: str, entity_id: str, current_state: str, attempted_state: str
+    ) -> None:
         super().__init__(
             f"INVALID_STATE_TRANSITION: Cannot transition {entity_type} '{entity_id}' "
             f"from '{current_state}' to '{attempted_state}'.",
@@ -86,16 +91,19 @@ class PayloadConflictError(StateStoreError):
 
 class DuplicateEntityError(StateStoreError):
     """Raised when attempting to insert an entity that already exists."""
+
     pass
 
 
 class EntityNotFoundError(StateStoreError):
     """Raised when an entity is not found in the operational state store."""
+
     pass
 
 
 class QueueEmptyError(StateStoreError):
     """Raised when attempting to dequeue from an empty durable queue."""
+
     pass
 
 
@@ -119,4 +127,5 @@ class ConcurrencyConflictError(StateStoreError):
 
 class StaleLeaseError(StateStoreError):
     """Raised when attempting an operation on an expired or lost lease."""
+
     pass

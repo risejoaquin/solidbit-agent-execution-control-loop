@@ -10,12 +10,10 @@ Approvals RESUME the same logical run and CANNOT override hard local policy deni
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import fnmatch
-import json
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
 import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from sacl.contracts.exceptions import (
     ApprovalExpiredError,
@@ -23,14 +21,12 @@ from sacl.contracts.exceptions import (
     HardDenyViolation,
     PolicyDeniedError,
 )
-from sacl.contracts.invariants import (
-    APPROVAL_BINDING_FIELDS,
-    APPROVAL_CHANNELS_V1,
-    ApprovalChannel,
-    ApprovalDecision,
-    HARD_DENIED_ACTIONS,
-)
 from sacl.contracts.interfaces import IApprovalManager
+from sacl.contracts.invariants import (
+    APPROVAL_CHANNELS_V1,
+    HARD_DENIED_ACTIONS,
+    ApprovalDecision,
+)
 from sacl.contracts.models import ApprovalToken, Approver
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.policy.hard_policy import normalize_action
@@ -88,7 +84,9 @@ def token_to_schema_dict(token: ApprovalToken) -> Dict[str, Any]:
             clean[k] = v
     if token.approver:
         app_dict = token.approver.to_dict()
-        clean["approver"] = {k: v for k, v in app_dict.items() if v is not None or k == "approved_at"}
+        clean["approver"] = {
+            k: v for k, v in app_dict.items() if v is not None or k == "approved_at"
+        }
     return clean
 
 

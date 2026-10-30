@@ -1,5 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Gobierno de SACL
-    url: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/blob/AC-CONT/DECISION_BASELINE.md
-    about: Consultar decisiones vigentes antes de proponer cambios.
+  - name: 🛡️ Security Vulnerability Reporting
+    url: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/security/policy
+    about: Please report security vulnerabilities privately according to our security policy.
+  - name: 💬 SolidBit Engineering Discussions
+    url: https://github.com/risejoaquin/solidbit-agent-execution-control-loop/discussions
+    about: Discuss architecture, ideas, and questions with the core team.

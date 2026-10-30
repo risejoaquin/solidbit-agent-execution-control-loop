@@ -25,15 +25,13 @@ import sqlite3
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
 import pytest
 
 from sacl.contracts.exceptions import (
     CollisionDetectedError,
     DirtyRootError,
-    HardDenyViolation,
 )
-from sacl.contracts.invariants import AgentStatus, Verdict
-from sacl.results.reconciler import ResultReconciler
 from sacl.security import (
     DEFAULT_AUTHORIZED_EMAIL,
     REDACTION_MARKER,
@@ -44,12 +42,9 @@ from sacl.security import (
     MainBranchProhibitedError,
     PathTraversalSecurityError,
     PrimaryCheckoutProhibitedError,
-    PromptGovernanceError,
     RemoteProductionProhibitedError,
-    ResourceLimitExceededError,
     ResourceQuotas,
     SafetyRefusalError,
-    SecretLeakError,
     SecurityError,
     UnauthorizedSenderError,
     assert_action_not_hard_denied,
@@ -170,8 +165,11 @@ class TestThreatModelVerification:
 
     def test_th06_tampering_primary_git_repo_dirty_root(self, tmp_path: Path) -> None:
         """TH-06: Local Dirty-Root Rule + PRIMARY_CHECKOUT_NOT_ALLOWED; assert immediate BLOCKED_DIRTY_ROOT."""
+
         # Dirty root check
-        dirty_checker = lambda p: (False, ["modified_file.py"])
+        def dirty_checker(p):
+            return (False, ["modified_file.py"])
+
         with pytest.raises(DirtyRootError):
             assert_clean_root(tmp_path, dirty_checker=dirty_checker)
 
@@ -220,11 +218,15 @@ class TestThreatModelVerification:
 
         # Invocation manifest record
         invoc_path = tmp_path / "INVOCATION.json"
-        invoc_path.write_text(json.dumps({
-            "run_id": "run-001",
-            "git_commit": "123456",
-            "bypass_acknowledged": True,
-        }))
+        invoc_path.write_text(
+            json.dumps(
+                {
+                    "run_id": "run-001",
+                    "git_commit": "123456",
+                    "bypass_acknowledged": True,
+                }
+            )
+        )
         assert invoc_path.exists()
         invoc_data = json.loads(invoc_path.read_text())
         assert invoc_data["bypass_acknowledged"] is True

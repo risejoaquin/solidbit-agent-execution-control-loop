@@ -7,7 +7,6 @@ Compatibility Tables: dag_stages, agent_dependencies.
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any, Dict, List, Optional
 
 from sacl.contracts.invariants import GRAPH_NODE_STATES, GraphNodeStatus
@@ -46,7 +45,20 @@ class GraphRepository(BaseRepository):
                 timeout_seconds, max_attempts, current_attempt, result_verdict
             ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, NULL);
         """
-        self.execute(sql, (run_id, node_id, job_id, phase_number, stage_name, agent_id, status, timeout_seconds, max_attempts))
+        self.execute(
+            sql,
+            (
+                run_id,
+                node_id,
+                job_id,
+                phase_number,
+                stage_name,
+                agent_id,
+                status,
+                timeout_seconds,
+                max_attempts,
+            ),
+        )
         self.commit()
         return self.get_node(run_id, node_id)  # type: ignore[return-value]
 
@@ -62,7 +74,9 @@ class GraphRepository(BaseRepository):
     ) -> None:
         """Updates graph node execution state and verdict."""
         if status not in GRAPH_NODE_STATES:
-            raise InvalidStateTransitionError("graph_node", f"{run_id}:{node_id}", "UNKNOWN", status)
+            raise InvalidStateTransitionError(
+                "graph_node", f"{run_id}:{node_id}", "UNKNOWN", status
+            )
 
         existing = self.get_node(run_id, node_id)
         if not existing:
@@ -70,7 +84,11 @@ class GraphRepository(BaseRepository):
 
         now = utc_now()
         resolved_started_at = started_at
-        if resolved_started_at is None and status == GraphNodeStatus.RUNNING.value and not existing.get("started_at"):
+        if (
+            resolved_started_at is None
+            and status == GraphNodeStatus.RUNNING.value
+            and not existing.get("started_at")
+        ):
             resolved_started_at = now
 
         resolved_completed_at = completed_at
@@ -91,7 +109,18 @@ class GraphRepository(BaseRepository):
                 completed_at = COALESCE(?, completed_at)
             WHERE run_id = ? AND node_id = ?;
         """
-        self.execute(sql, (status, result_verdict, current_attempt, resolved_started_at, resolved_completed_at, run_id, node_id))
+        self.execute(
+            sql,
+            (
+                status,
+                result_verdict,
+                current_attempt,
+                resolved_started_at,
+                resolved_completed_at,
+                run_id,
+                node_id,
+            ),
+        )
         self.commit()
 
     def get_node(self, run_id: str, node_id: str) -> Optional[Dict[str, Any]]:
@@ -102,7 +131,9 @@ class GraphRepository(BaseRepository):
     def list_nodes(self, run_id: str, phase_number: Optional[int] = None) -> List[Dict[str, Any]]:
         """Lists nodes for a given run, optionally filtered by phase."""
         if phase_number is not None:
-            sql = "SELECT * FROM graph_nodes WHERE run_id = ? AND phase_number = ? ORDER BY node_id;"
+            sql = (
+                "SELECT * FROM graph_nodes WHERE run_id = ? AND phase_number = ? ORDER BY node_id;"
+            )
             return self.fetchall_dict(sql, (run_id, phase_number))
         sql = "SELECT * FROM graph_nodes WHERE run_id = ? ORDER BY phase_number, node_id;"
         return self.fetchall_dict(sql, (run_id,))
@@ -138,7 +169,17 @@ class GraphRepository(BaseRepository):
 
         cursor = self.execute(
             sql,
-            (run_id, node_id, attempt_number, pid, status, start_time, norm_stdout, norm_stderr, norm_report),
+            (
+                run_id,
+                node_id,
+                attempt_number,
+                pid,
+                status,
+                start_time,
+                norm_stdout,
+                norm_stderr,
+                norm_report,
+            ),
         )
         self.commit()
         return cursor.lastrowid  # type: ignore[return-value]

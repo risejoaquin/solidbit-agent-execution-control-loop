@@ -11,11 +11,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict, FrozenSet, Optional, Union
 
-from sacl.contracts.exceptions import ContractValidationError, HardDenyViolation
+from sacl.contracts.exceptions import HardDenyViolation
 from sacl.contracts.invariants import HARD_DENIED_ACTIONS
 from sacl.contracts.models import HardDenies, HardLocalPolicy
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
-
 
 # Canonical action alias mapping to normalize different naming variants
 ACTION_ALIASES: Dict[str, str] = {
@@ -26,7 +25,6 @@ ACTION_ALIASES: Dict[str, str] = {
     "merge": "github_merge",
     "pr_merge": "github_merge",
     "pr-merge": "github_merge",
-    
     # Remote production / deployment variants
     "remote-production-execution": "remote_production_execution",
     "remote_deploy": "remote_production_execution",
@@ -36,42 +34,35 @@ ACTION_ALIASES: Dict[str, str] = {
     "production_mutation": "remote_production_execution",
     "production-mutation": "remote_production_execution",
     "deploy": "remote_production_execution",
-    
     # Production DB write variants
     "production-db-write": "production_db_write",
     "production_db_mutation": "production_db_write",
     "production-db-mutation": "production_db_write",
     "prod_db_write": "production_db_write",
-    
     # Secret export variants
     "secret-export": "secret_export",
     "export_secret": "secret_export",
     "export_secrets": "secret_export",
-    
     # Arbitrary remote code variants
     "arbitrary-remote-code": "arbitrary_remote_code",
     "arbitrary_script_execution": "arbitrary_remote_code",
     "arbitrary-script-execution": "arbitrary_remote_code",
     "arbitrary_code_execution": "arbitrary_remote_code",
-    
     # Main branch execution variants
     "main-branch-execution": "main_branch_execution",
     "main_push": "main_branch_execution",
     "main-push": "main_branch_execution",
     "direct_main_push": "main_branch_execution",
     "master_branch_execution": "main_branch_execution",
-    
     # Primary checkout mutation variants
     "primary-checkout-mutation": "primary_checkout_mutation",
     "mutate_primary_checkout": "primary_checkout_mutation",
-    
     # Destructive git reset/clean variants
     "hard-reset": "hard_reset",
     "git_reset_hard": "hard_reset",
     "git_reset": "hard_reset",
     "git_clean": "hard_reset",
     "git_clean_fd": "hard_reset",
-    
     # Auto stash variants
     "auto-stash": "auto_stash",
     "git_stash": "auto_stash",
@@ -180,7 +171,9 @@ class HardPolicyEngine:
         return self._policy
 
     @classmethod
-    def from_file(cls, path: Union[Path, str], validator: Optional[SchemaValidator] = None) -> HardPolicyEngine:
+    def from_file(
+        cls, path: Union[Path, str], validator: Optional[SchemaValidator] = None
+    ) -> HardPolicyEngine:
         """Loads and validates HardPolicyEngine from a JSON file."""
         file_path = Path(path)
         if not file_path.exists():
@@ -193,7 +186,9 @@ class HardPolicyEngine:
         return cls(policy=policy, validator=validator)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any], validator: Optional[SchemaValidator] = None) -> HardPolicyEngine:
+    def from_dict(
+        cls, data: Dict[str, Any], validator: Optional[SchemaValidator] = None
+    ) -> HardPolicyEngine:
         """Loads and validates HardPolicyEngine from a dictionary."""
         policy = HardLocalPolicy.from_dict(data)
         return cls(policy=policy, validator=validator)

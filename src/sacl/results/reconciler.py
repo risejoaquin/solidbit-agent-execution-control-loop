@@ -11,13 +11,12 @@ Implements IReconciler from sacl.contracts.interfaces adhering to:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
-from pathlib import Path
 import re
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, List, Optional, Union
 
-from sacl.contracts.exceptions import ContractValidationError
 from sacl.contracts.interfaces import IReconciler
 from sacl.contracts.invariants import (
     ALLOWED_PROCESS_IMAGES,
@@ -28,7 +27,6 @@ from sacl.contracts.invariants import (
 )
 from sacl.contracts.models import (
     PersistedState,
-    ProcessObservation,
     ReconciledResult,
     ReconciliationData,
     RequiredOutputs,
@@ -36,7 +34,6 @@ from sacl.contracts.models import (
     WorktreeState,
 )
 from sacl.contracts.reconciliation import (
-    extract_verdict_from_content,
     verify_process_observation,
 )
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
@@ -290,7 +287,9 @@ class ResultReconciler(IReconciler):
                     )
 
             # Check Wave Summary Marker
-            wave_match = re.search(r"(?m)^WAVE\d+_RESULT\s*=\s*(PASS|PARTIAL|BLOCKED)\s*$", report_content)
+            wave_match = re.search(
+                r"(?m)^WAVE\d+_RESULT\s*=\s*(PASS|PARTIAL|BLOCKED)\s*$", report_content
+            )
             if wave_match:
                 return VerdictExtraction(
                     verdict=wave_match.group(1).upper(),
@@ -303,7 +302,11 @@ class ResultReconciler(IReconciler):
                 match = re.search(HEADER_STATUS_REGEX, line)
                 if match:
                     raw_verdict = match.group(1).upper()
-                    if "PASS" in raw_verdict or "COMPLETE" in raw_verdict or "VERIFIED" in raw_verdict:
+                    if (
+                        "PASS" in raw_verdict
+                        or "COMPLETE" in raw_verdict
+                        or "VERIFIED" in raw_verdict
+                    ):
                         norm = Verdict.PASS.value
                     elif "PARTIAL" in raw_verdict:
                         norm = Verdict.PARTIAL.value

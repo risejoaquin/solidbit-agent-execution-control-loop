@@ -7,12 +7,12 @@ into dedicated quarantine directories with forensic metadata.
 from __future__ import annotations
 
 import abc
+import json
+import shutil
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-import json
 from pathlib import Path
-import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from sacl.contracts.invariants import JobSideStatus, MailStatus
 

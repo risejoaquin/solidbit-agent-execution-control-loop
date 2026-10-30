@@ -10,10 +10,9 @@ Enforces constitutional invariants for approval tokens:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import fnmatch
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from sacl.contracts.exceptions import (
     ApprovalExpiredError,
@@ -22,11 +21,9 @@ from sacl.contracts.exceptions import (
     PolicyDeniedError,
 )
 from sacl.contracts.invariants import (
-    APPROVAL_BINDING_FIELDS,
     APPROVAL_CHANNELS_V1,
-    ApprovalChannel,
-    ApprovalDecision,
     HARD_DENIED_ACTIONS,
+    ApprovalDecision,
 )
 from sacl.contracts.models import ApprovalToken
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator

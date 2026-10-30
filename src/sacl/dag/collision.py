@@ -15,8 +15,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from sacl.contracts.exceptions import CollisionDetectedError
 from sacl.observability.audit import AuditEventEmitter
@@ -48,7 +47,9 @@ class CollisionDetector:
         now_iso = datetime.now(timezone.utc).isoformat()
         try:
             cur = self.db_conn.cursor()
-            cur.execute("SELECT 1 FROM agents WHERE run_id = ? AND agent_id = ?", (run_id, agent_id))
+            cur.execute(
+                "SELECT 1 FROM agents WHERE run_id = ? AND agent_id = ?", (run_id, agent_id)
+            )
             if cur.fetchone() is None:
                 cur.execute("SELECT 1 FROM runs WHERE run_id = ?", (run_id,))
                 if cur.fetchone() is not None:
@@ -133,7 +134,9 @@ class CollisionDetector:
                     VALUES (?, ?, ?, ?, 'UNRESOLVED');
                 """
                 try:
-                    self.db_conn.execute(ins_sql, (run_id, file_path, json.dumps(agents_list), now_iso))
+                    self.db_conn.execute(
+                        ins_sql, (run_id, file_path, json.dumps(agents_list), now_iso)
+                    )
                 except Exception:
                     pass
 

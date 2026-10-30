@@ -1,6 +1,7 @@
 """Unit tests for SACL V1 structured diagnostic error recording subsystem."""
 
 import sqlite3
+
 import pytest
 
 from sacl.observability.audit import AuditEventEmitter
@@ -134,4 +135,3 @@ def test_record_all_error_categories(sqlite_temp_db: sqlite3.Connection):
 
     recorded = recorder.get_errors_for_run("run-all-cat")
     assert len(recorded) == len(ALL_ERROR_CATEGORIES)
-

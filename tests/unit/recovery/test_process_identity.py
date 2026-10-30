@@ -9,7 +9,6 @@ import pytest
 from sacl.contracts.invariants import ALLOWED_PROCESS_IMAGES, PID_DRIFT_TOLERANCE_SECONDS
 from sacl.recovery.process_identity import (
     MockProcessInspector,
-    ProcessIdentity,
     ProcessInspectionStatus,
     inspect_process,
     test_agent_process_running,
@@ -41,7 +40,10 @@ def test_process_alive_and_valid_whitelisted(base_time: datetime) -> None:
     assert res.is_valid is True
     assert res.is_alive is True
     assert res.is_recycled is False
-    assert test_agent_process_running(1234, persisted_start_time=base_time, inspector=inspector) is True
+    assert (
+        test_agent_process_running(1234, persisted_start_time=base_time, inspector=inspector)
+        is True
+    )
 
 
 def test_process_all_whitelisted_images_succeed(base_time: datetime) -> None:
@@ -74,7 +76,10 @@ def test_process_disallowed_image_rejected(base_time: datetime) -> None:
     assert res.is_valid is False
     assert res.is_alive is True
     assert "not in allowed whitelist" in str(res.failure_reason)
-    assert test_agent_process_running(5555, persisted_start_time=base_time, inspector=inspector) is False
+    assert (
+        test_agent_process_running(5555, persisted_start_time=base_time, inspector=inspector)
+        is False
+    )
 
 
 def test_pid_recycling_detected_excessive_start_drift(base_time: datetime) -> None:
@@ -94,7 +99,10 @@ def test_pid_recycling_detected_excessive_start_drift(base_time: datetime) -> No
     assert res.is_valid is False
     assert res.is_recycled is True
     assert "PID recycling detected" in str(res.failure_reason)
-    assert test_agent_process_running(6666, persisted_start_time=base_time, inspector=inspector) is False
+    assert (
+        test_agent_process_running(6666, persisted_start_time=base_time, inspector=inspector)
+        is False
+    )
 
 
 def test_pid_drift_within_tolerance_accepted(base_time: datetime) -> None:

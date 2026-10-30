@@ -6,9 +6,10 @@ and overall run verdict aggregation.
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-import sqlite3
+
 import pytest
 
 from sacl.contracts.schema_validator import SchemaValidator
@@ -62,9 +63,7 @@ def multi_agent_run_workspace(tmp_path: Path, sqlite_memory_db: sqlite3.Connecti
     return run_dir, sqlite_memory_db
 
 
-def test_collect_all_passing_agents(
-    collector: ResultCollector, multi_agent_run_workspace
-) -> None:
+def test_collect_all_passing_agents(collector: ResultCollector, multi_agent_run_workspace) -> None:
     run_dir, db_conn = multi_agent_run_workspace
     reports_dir = run_dir / "reports"
     logs_dir = run_dir / "logs"
@@ -119,9 +118,7 @@ def test_collect_all_passing_agents(
     assert res.agent_results[1].result_verdict == "PASS"
 
 
-def test_collect_with_failure(
-    collector: ResultCollector, multi_agent_run_workspace
-) -> None:
+def test_collect_with_failure(collector: ResultCollector, multi_agent_run_workspace) -> None:
     run_dir, db_conn = multi_agent_run_workspace
     reports_dir = run_dir / "reports"
     logs_dir = run_dir / "logs"

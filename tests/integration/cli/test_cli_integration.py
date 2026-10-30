@@ -13,21 +13,17 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-from pathlib import Path
 import sqlite3
-import subprocess
-import sys
-import shutil
+from pathlib import Path
+
 import pytest
 
 from sacl.cli.launch import configure_launch_parser, execute_launch
 from sacl.cli.monitor import configure_monitor_parser, execute_monitor
-from sacl.cli.package import configure_package_parser, execute_package
+from sacl.cli.package import execute_package
 from sacl.cli.preflight import configure_preflight_parser, execute_preflight
 from sacl.cli.status import configure_status_parser, execute_status
 from sacl.cli.stop import configure_stop_parser, execute_stop
-from sacl.contracts.exceptions import DirtyRootError
 
 
 @pytest.fixture
@@ -50,7 +46,17 @@ def sample_wave_pkg(tmp_path: Path) -> Path:
         "execution_plan": "EXECUTION_PLAN.md",
         "readme": "README.md",
         "requested_operations": ["EXECUTE_WAVE"],
-        "prohibited_actions": ["remote_production_execution", "github_merge", "production_db_write", "secret_export", "arbitrary_remote_code", "main_branch_execution", "primary_checkout_mutation", "hard_reset", "auto_stash"],
+        "prohibited_actions": [
+            "remote_production_execution",
+            "github_merge",
+            "production_db_write",
+            "secret_export",
+            "arbitrary_remote_code",
+            "main_branch_execution",
+            "primary_checkout_mutation",
+            "hard_reset",
+            "auto_stash",
+        ],
         "expected_outputs": ["reports/AG-INTEG-1.REPORT.md", "SUMMARY.md"],
         "runtime_files": ["prompts/ag_integ_1.prompt.md"],
     }
@@ -101,12 +107,15 @@ class TestCliIntegration:
 
         parser = argparse.ArgumentParser()
         configure_launch_parser(parser)
-        args = parser.parse_args([
-            str(sample_wave_pkg),
-            "--bypass-acknowledged",
-            "--test-mode",
-            "--run-dir", str(run_output_dir),
-        ])
+        args = parser.parse_args(
+            [
+                str(sample_wave_pkg),
+                "--bypass-acknowledged",
+                "--test-mode",
+                "--run-dir",
+                str(run_output_dir),
+            ]
+        )
 
         exit_code = execute_launch(args)
         assert exit_code == 0
@@ -144,7 +153,9 @@ class TestCliIntegration:
         c_p.add_argument("--output", "-o")
         c_p.add_argument("--prefix-root", action="store_true")
 
-        args_create = p_create.parse_args(["create", str(sample_wave_pkg), "--output", str(out_zip)])
+        args_create = p_create.parse_args(
+            ["create", str(sample_wave_pkg), "--output", str(out_zip)]
+        )
         rc = execute_package(args_create)
         assert rc == 0
         assert out_zip.exists()
@@ -186,7 +197,7 @@ class TestCliIntegration:
             "started_at": "2026-10-07T00:00:00Z",
             "completed_at": "2026-10-07T00:01:00Z",
             "report_path": "reports/AG-1.REPORT.md",
-            "result": "PASS"
+            "result": "PASS",
         }
         with open(state_dir / "AG-1.json", "w", encoding="utf-8") as f:
             json.dump(agent_state, f)
@@ -214,13 +225,8 @@ class TestCliIntegration:
         rc = execute_stop(args_stop)
         assert rc == 0
 
-    def test_preflight_command(self, monkeypatch):
-        """Preflight reports a valid host with mocked mandatory PowerShell."""
-        original_which = shutil.which
-        monkeypatch.setattr(
-            "sacl.cli.preflight.shutil.which",
-            lambda command: "mock-powershell" if command == "powershell.exe" else original_which(command),
-        )
+    def test_preflight_command(self):
+        """Verifies sacl preflight checks environment dependencies and clean-root rule."""
         parser = argparse.ArgumentParser()
         configure_preflight_parser(parser)
 

@@ -7,29 +7,46 @@ Compatibility Tables: file_modifications, file_conflicts.
 
 from __future__ import annotations
 
-import json
-import sqlite3
 from typing import Any, Dict, List, Optional
 
-from sacl.contracts.invariants import AgentStatus, Verdict
 from sacl.state.exceptions import EntityNotFoundError, InvalidStateTransitionError
 from sacl.state.repositories.base import BaseRepository
 from sacl.state.utils import json_dumps_safe, json_loads_safe, normalize_repo_path, utc_now
 
-VALID_AGENT_STATUSES = frozenset({
-    'SCHEDULED', 'LAUNCHING', 'RUNNING',
-    'TIMEOUT_RUNNING', 'STOPPING', 'STOPPED',
-    'COMPLETE', 'FAILED', 'UNKNOWN',
-    'PENDING', 'READY', 'SUCCEEDED',
-    'RETRYABLE_FAILURE', 'BLOCKED',
-    'WAITING_APPROVAL', 'CANCELLED'
-})
+VALID_AGENT_STATUSES = frozenset(
+    {
+        "SCHEDULED",
+        "LAUNCHING",
+        "RUNNING",
+        "TIMEOUT_RUNNING",
+        "STOPPING",
+        "STOPPED",
+        "COMPLETE",
+        "FAILED",
+        "UNKNOWN",
+        "PENDING",
+        "READY",
+        "SUCCEEDED",
+        "RETRYABLE_FAILURE",
+        "BLOCKED",
+        "WAITING_APPROVAL",
+        "CANCELLED",
+    }
+)
 
-VALID_AGENT_VERDICTS = frozenset({
-    'PASS', 'PARTIAL', 'BLOCKED', 'FAILED',
-    'IN_PROGRESS', 'UNKNOWN', 'STOPPED_BY_USER',
-    'PASS (Report Present)', 'DONE_REVIEW_REQUIRED'
-})
+VALID_AGENT_VERDICTS = frozenset(
+    {
+        "PASS",
+        "PARTIAL",
+        "BLOCKED",
+        "FAILED",
+        "IN_PROGRESS",
+        "UNKNOWN",
+        "STOPPED_BY_USER",
+        "PASS (Report Present)",
+        "DONE_REVIEW_REQUIRED",
+    }
+)
 
 
 class AgentRepository(BaseRepository):
@@ -82,10 +99,21 @@ class AgentRepository(BaseRepository):
         self.execute(
             sql,
             (
-                agent_id, run_id, stage_id, node_id, status,
-                result_verdict, pid, branch, norm_worktree,
-                norm_prompt, norm_report, norm_stdout, norm_stderr,
-                start_time, now,
+                agent_id,
+                run_id,
+                stage_id,
+                node_id,
+                status,
+                result_verdict,
+                pid,
+                branch,
+                norm_worktree,
+                norm_prompt,
+                norm_report,
+                norm_stdout,
+                norm_stderr,
+                start_time,
+                now,
             ),
         )
         self.commit()
@@ -114,7 +142,7 @@ class AgentRepository(BaseRepository):
             raise EntityNotFoundError(f"Agent '{agent_id}' in run '{run_id}' not found")
 
         now = utc_now()
-        terminal_states = {'COMPLETE', 'FAILED', 'STOPPED', 'SUCCEEDED', 'CANCELLED'}
+        terminal_states = {"COMPLETE", "FAILED", "STOPPED", "SUCCEEDED", "CANCELLED"}
         resolved_finished_at = finished_at
         if resolved_finished_at is None and status in terminal_states:
             resolved_finished_at = now
@@ -134,9 +162,16 @@ class AgentRepository(BaseRepository):
         self.execute(
             sql,
             (
-                status, result_verdict, exit_code, commit_sha,
-                error_message, resolved_finished_at, pid, now,
-                agent_id, run_id,
+                status,
+                result_verdict,
+                exit_code,
+                commit_sha,
+                error_message,
+                resolved_finished_at,
+                pid,
+                now,
+                agent_id,
+                run_id,
             ),
         )
         self.commit()
@@ -163,7 +198,7 @@ class AgentRepository(BaseRepository):
         change_type: str = "MODIFIED",
     ) -> None:
         """Records modified files for cross-agent conflict detection."""
-        if change_type not in ('MODIFIED', 'ADDED', 'DELETED'):
+        if change_type not in ("MODIFIED", "ADDED", "DELETED"):
             raise ValueError(f"Invalid change_type: {change_type}")
 
         now = utc_now()
@@ -172,8 +207,7 @@ class AgentRepository(BaseRepository):
             VALUES (?, ?, ?, ?, ?);
         """
         params = [
-            (run_id, agent_id, normalize_repo_path(fp), change_type, now)
-            for fp in file_paths
+            (run_id, agent_id, normalize_repo_path(fp), change_type, now) for fp in file_paths
         ]
         self.executemany(sql, params)
         self.commit()
@@ -215,9 +249,13 @@ class AgentRepository(BaseRepository):
 
         # Update runs ready_for_integration
         if overlapping_rows:
-            self.execute("UPDATE runs SET ready_for_integration = 'NO' WHERE run_id = ?;", (run_id,))
+            self.execute(
+                "UPDATE runs SET ready_for_integration = 'NO' WHERE run_id = ?;", (run_id,)
+            )
         else:
-            self.execute("UPDATE runs SET ready_for_integration = 'YES' WHERE run_id = ?;", (run_id,))
+            self.execute(
+                "UPDATE runs SET ready_for_integration = 'YES' WHERE run_id = ?;", (run_id,)
+            )
         self.commit()
 
         # Return active conflicts
@@ -233,7 +271,7 @@ class AgentRepository(BaseRepository):
 
     def resolve_file_conflict(self, conflict_id: int, resolution: str = "RESOLVED") -> None:
         """Marks a file conflict as RESOLVED or WAIVED."""
-        if resolution not in ('RESOLVED', 'WAIVED', 'UNRESOLVED'):
+        if resolution not in ("RESOLVED", "WAIVED", "UNRESOLVED"):
             raise ValueError(f"Invalid conflict resolution: {resolution}")
         sql = "UPDATE file_conflicts SET resolution = ? WHERE conflict_id = ?;"
         self.execute(sql, (resolution, conflict_id))

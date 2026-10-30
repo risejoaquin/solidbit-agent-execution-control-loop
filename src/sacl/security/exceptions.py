@@ -17,19 +17,14 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from sacl.contracts.exceptions import (
-    CollisionDetectedError,
-    DirtyRootError,
     HardDenyViolation,
     ProcessObservationError,
-    QuarantineError,
     SaclError,
 )
 from sacl.transport.exceptions import (
     InvalidFilenameError,
-    InvalidRoutingHintError,
     SenderNotWhitelistedError,
     SymlinkNotPermittedError,
-    ZipDefenseViolation,
     ZipPathTraversalError,
     ZipResourceLimitExceededError,
 )
@@ -53,7 +48,9 @@ class ArchiveAdmissionError(SecurityError):
         details: Optional[Dict[str, Any]] = None,
     ) -> None:
         det = {"package_id": package_id, "violation_code": violation_code, **(details or {})}
-        super().__init__(f"Archive '{package_id}' admission failed [{violation_code}]: {reason}", details=det)
+        super().__init__(
+            f"Archive '{package_id}' admission failed [{violation_code}]: {reason}", details=det
+        )
         self.package_id = package_id
         self.reason = reason
         self.violation_code = violation_code
@@ -64,15 +61,21 @@ class PathTraversalSecurityError(SecurityError, ZipPathTraversalError):
 
     def __init__(self, entry_name: str, package_id: str = "unknown") -> None:
         ZipPathTraversalError.__init__(self, package_id=package_id, entry_name=entry_name)
-        self.message = f"SECURITY_ERROR: ZIP_PATH_TRAVERSAL_DETECTED: Entry '{entry_name}' escapes destination"
+        self.message = (
+            f"SECURITY_ERROR: ZIP_PATH_TRAVERSAL_DETECTED: Entry '{entry_name}' escapes destination"
+        )
 
 
 class InvalidFilenameSecurityError(SecurityError, InvalidFilenameError):
     """Raised when a prohibited DOS device name or Alternate Data Stream is detected (Threat T1)."""
 
     def __init__(self, entry_name: str, pattern: str, package_id: str = "unknown") -> None:
-        InvalidFilenameError.__init__(self, package_id=package_id, entry_name=entry_name, pattern=pattern)
-        self.message = f"SECURITY_ERROR: INVALID_FILENAME_CHARACTER: Entry '{entry_name}' matches '{pattern}'"
+        InvalidFilenameError.__init__(
+            self, package_id=package_id, entry_name=entry_name, pattern=pattern
+        )
+        self.message = (
+            f"SECURITY_ERROR: INVALID_FILENAME_CHARACTER: Entry '{entry_name}' matches '{pattern}'"
+        )
 
 
 class SymlinkSecurityError(SecurityError, SymlinkNotPermittedError):
@@ -138,7 +141,11 @@ class SecretLeakError(SecurityError):
     def __init__(self, secret_type: str, context: str, sample_masked: str) -> None:
         super().__init__(
             f"SECRET_LEAK_DETECTED: Found {secret_type} in {context}: '{sample_masked}'",
-            details={"secret_type": secret_type, "context": context, "sample_masked": sample_masked},
+            details={
+                "secret_type": secret_type,
+                "context": context,
+                "sample_masked": sample_masked,
+            },
         )
         self.secret_type = secret_type
         self.context = context
@@ -148,7 +155,9 @@ class SecretLeakError(SecurityError):
 class HardDenySecurityError(SecurityError, HardDenyViolation):
     """Raised when an operation attempts an action permanently prohibited by hard local policy."""
 
-    def __init__(self, action: str, reason: str = "Action is unconditionally hard-denied in V1") -> None:
+    def __init__(
+        self, action: str, reason: str = "Action is unconditionally hard-denied in V1"
+    ) -> None:
         HardDenyViolation.__init__(self, action=action, reason=reason)
         self.message = f"SECURITY_ERROR: HARD_DENY_VIOLATION: Action '{action}' is strictly prohibited. {reason}"
 
@@ -191,7 +200,9 @@ class SafetyRefusalError(SecurityError, ProcessObservationError):
 
     def __init__(self, pid: int, reason: str) -> None:
         ProcessObservationError.__init__(self, pid=pid, reason=reason)
-        self.message = f"SECURITY_ERROR: SAFETY_REFUSAL: Process stop for PID {pid} refused: {reason}"
+        self.message = (
+            f"SECURITY_ERROR: SAFETY_REFUSAL: Process stop for PID {pid} refused: {reason}"
+        )
         self.pid = pid
         self.reason = reason
 

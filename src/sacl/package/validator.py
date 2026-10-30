@@ -16,15 +16,14 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 import zipfile
+from pathlib import Path
+from typing import List, Optional
 
+from sacl.contracts.exceptions import ContractValidationError
 from sacl.contracts.interfaces import IPackageValidator
 from sacl.contracts.models import Manifest
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
-from sacl.contracts.exceptions import ContractValidationError
-
 from sacl.package.exceptions import (
     DeclarativeAuthorityViolationError,
     InvalidFilenameError,
@@ -110,7 +109,9 @@ class PackageValidator(IPackageValidator):
                     resolved_target = (dest_canonical / name).resolve()
                     resolved_str = str(resolved_target)
                     if not (resolved_str == dest_str or resolved_str.startswith(dest_str + os.sep)):
-                        violations.append(f"Canonical path escapes staging destination: '{name}' -> '{resolved_str}'")
+                        violations.append(
+                            f"Canonical path escapes staging destination: '{name}' -> '{resolved_str}'"
+                        )
 
         except zipfile.BadZipFile as err:
             violations.append(f"Corrupted or invalid ZIP file: {err}")
@@ -179,7 +180,10 @@ class PackageValidator(IPackageValidator):
                         f"Uncompressed extraction size {total_uncompressed} bytes exceeds limit of "
                         f"{self.limits.max_uncompressed_size_bytes} bytes (100 MB)"
                     ),
-                    details={"uncompressed_bytes": total_uncompressed, "limit": self.limits.max_uncompressed_size_bytes},
+                    details={
+                        "uncompressed_bytes": total_uncompressed,
+                        "limit": self.limits.max_uncompressed_size_bytes,
+                    },
                 )
 
             if archive_size > 0:
@@ -191,7 +195,10 @@ class PackageValidator(IPackageValidator):
                             f"Compression ratio {ratio:.1f}:1 exceeds quota of "
                             f"{self.limits.max_compression_ratio}:1"
                         ),
-                        details={"compression_ratio": ratio, "limit": self.limits.max_compression_ratio},
+                        details={
+                            "compression_ratio": ratio,
+                            "limit": self.limits.max_compression_ratio,
+                        },
                     )
 
             # Step 5: Member name, DOS device names, symlinks, and binary inspections
@@ -286,7 +293,9 @@ class PackageValidator(IPackageValidator):
 
         return None
 
-    def verify_checksums(self, extracted_dir: Path, checksums_file: str = "checksums.sha256") -> bool:
+    def verify_checksums(
+        self, extracted_dir: Path, checksums_file: str = "checksums.sha256"
+    ) -> bool:
         """Verifies cryptographic integrity of extracted package assets against checksums file.
 
         Lines format: <sha256_hex>  <relative_filepath> or <sha256_hex> *<relative_filepath>.

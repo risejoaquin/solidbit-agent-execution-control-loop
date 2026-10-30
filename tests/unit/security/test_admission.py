@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import io
 import json
-from pathlib import Path
 import zipfile
+from pathlib import Path
+
 import pytest
 
 from sacl.security.admission import (
-    AdmissionDecision,
     AdmissionStatus,
     ArchiveAdmissionController,
 )
@@ -165,7 +165,9 @@ class TestArchiveAdmissionController:
         with pytest.raises(ArchiveAdmissionError):
             controller.admit_and_stage(corrupt_bytes, tmp_path / "staging", fail_closed=True)
 
-        decision = controller.admit_and_stage(corrupt_bytes, tmp_path / "staging", fail_closed=False)
+        decision = controller.admit_and_stage(
+            corrupt_bytes, tmp_path / "staging", fail_closed=False
+        )
         assert decision.admitted is False
         assert decision.status == AdmissionStatus.REJECTED_CORRUPT_ARCHIVE
 
@@ -177,7 +179,9 @@ class TestArchiveAdmissionController:
         controller_temp = ArchiveAdmissionController()
         incoming_sha = controller_temp.compute_sha256(zip_bytes)
 
-        existing_lookup = lambda jid: incoming_sha if jid == "JOB-W0-001" else None
+        def existing_lookup(jid):
+            return incoming_sha if jid == "JOB-W0-001" else None
+
         controller = ArchiveAdmissionController(existing_package_lookup=existing_lookup)
 
         decision = controller.admit_and_stage(zip_bytes, tmp_path / "staging", fail_closed=False)
@@ -191,7 +195,10 @@ class TestArchiveAdmissionController:
 
         # Lookup function returning different stored hash
         different_sha = "0" * 64
-        existing_lookup = lambda jid: different_sha if jid == "JOB-W0-001" else None
+
+        def existing_lookup(jid):
+            return different_sha if jid == "JOB-W0-001" else None
+
         controller = ArchiveAdmissionController(existing_package_lookup=existing_lookup)
 
         with pytest.raises(ArchiveAdmissionError) as exc_info:

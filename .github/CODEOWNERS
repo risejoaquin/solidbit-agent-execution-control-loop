@@ -1,6 +1,28 @@
-# Ownership does not automatically imply the review was approved.
-* @risejoaquin
-/DECISION_BASELINE.md @risejoaquin
-/contracts/ @risejoaquin
-/config/runtime/ @risejoaquin
-/.github/ @risejoaquin
+# ==============================================================================
+# SolidBit SDLC CODEOWNERS Matrix (Gate 2 Governance)
+# In accordance with SolidBit SDLC Standard: Author cannot be their own sole approver.
+# Preserves sovereign review authority over core engine, frozen contracts, and security.
+# ==============================================================================
+
+# Default global code ownership
+*                   @risejoaquin
+
+# Core Architecture & SACL Control Engine
+/src/sacl/          @risejoaquin
+/pyproject.toml     @risejoaquin
+
+# Frozen Business Contracts (Strict Invariant Protection)
+/contracts/         @risejoaquin
+/schemas/           @risejoaquin
+
+# Security, Policies & Authority Models
+/src/sacl/security/ @risejoaquin
+/docs/SECURITY_MODEL.md @risejoaquin
+/docs/AUTHORITY_MODEL.md @risejoaquin
+
+# Executive UI & Frontend Console
+/apps/web/          @risejoaquin
+/src/sacl/ui/       @risejoaquin
+
+# CI/CD Workflows & GitHub Governance
+/.github/           @risejoaquin

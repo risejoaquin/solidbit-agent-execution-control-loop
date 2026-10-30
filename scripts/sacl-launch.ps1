@@ -13,7 +13,7 @@ param(
     [Alias("TargetRepo")]
     [string]$Repo = "",
 
-    [string]$SourceOrchestrator = "C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator",
+    [string]$SourceOrchestrator = "/workspace\Stable-Ecommerce-Orchestrator",
 
     [switch]$BypassAcknowledged,
 

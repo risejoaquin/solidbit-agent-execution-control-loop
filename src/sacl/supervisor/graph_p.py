@@ -11,37 +11,32 @@ Implements:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-import json
 import os
-from pathlib import Path
 import sqlite3
 import threading
 import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from sacl.contracts.exceptions import (
-    ArchitectureInvariantError,
     LeaseAcquisitionError,
     SaclError,
 )
+from sacl.contracts.interfaces import ISupervisor
 from sacl.contracts.invariants import (
-    ALLOWED_PROCESS_IMAGES,
     JobSideStatus,
     JobStatus,
-    PID_DRIFT_TOLERANCE_SECONDS,
     Verdict,
 )
-from sacl.contracts.interfaces import ISupervisor
 from sacl.contracts.reconciliation import extract_verdict_from_content
 from sacl.observability.events import (
     GATE_HALTED,
     Severity,
-    create_audit_event,
 )
-from sacl.supervisor.dispatcher import JobDispatcher, RunContext
+from sacl.supervisor.dispatcher import JobDispatcher
 from sacl.supervisor.lease import LeaseCoordinator, default_process_alive_check
 from sacl.recovery.process_identity import (
     ProcessInspectionStatus,
@@ -209,7 +204,9 @@ class GraphPSupervisor(ISupervisor):
         """Assigns a validated queued job to ephemeral Graph-H engine."""
         run_id = self.dispatcher.dispatch_job(job_id)
         if not run_id:
-            raise SaclError(f"Job '{job_id}' could not be dispatched (project lock contention or dirty root)")
+            raise SaclError(
+                f"Job '{job_id}' could not be dispatched (project lock contention or dirty root)"
+            )
 
         job = self.lifecycle_manager.get_job(job_id)
         project_id = job.get("project_id") if job else None
@@ -294,7 +291,7 @@ class GraphPSupervisor(ISupervisor):
                     )
 
         # 5. Update IDLE Posture
-        self._is_idle = (len(self._active_runs) == 0)
+        self._is_idle = len(self._active_runs) == 0
         if not self._stop_event.is_set() and self._state != SupervisorState.STOPPING:
             self._state = SupervisorState.IDLE if self._is_idle else SupervisorState.RUNNING
 
@@ -446,7 +443,9 @@ class GraphPSupervisor(ISupervisor):
                 )
             except Exception:
                 pass
-            self._update_run_reconciled_verdict(run_id, Verdict.BLOCKED.value, error_summary="BLOCKED marker in deliverable")
+            self._update_run_reconciled_verdict(
+                run_id, Verdict.BLOCKED.value, error_summary="BLOCKED marker in deliverable"
+            )
         else:
             error_msg = f"Reconciliation failed: deliverable verdict is {reconciled_verdict}"
             try:
@@ -489,10 +488,22 @@ class GraphPSupervisor(ISupervisor):
 
                     rep_exists = bool(report_file and report_file.exists())
                     rep_size = report_file.stat().st_size if rep_exists else 0
-                    rep_content = report_file.read_text(encoding="utf-8", errors="replace") if rep_exists else None
+                    rep_content = (
+                        report_file.read_text(encoding="utf-8", errors="replace")
+                        if rep_exists
+                        else None
+                    )
 
-                    std_content = stdout_file.read_text(encoding="utf-8", errors="replace") if stdout_file and stdout_file.exists() else None
-                    err_content = stderr_file.read_text(encoding="utf-8", errors="replace") if stderr_file and stderr_file.exists() else None
+                    std_content = (
+                        stdout_file.read_text(encoding="utf-8", errors="replace")
+                        if stdout_file and stdout_file.exists()
+                        else None
+                    )
+                    err_content = (
+                        stderr_file.read_text(encoding="utf-8", errors="replace")
+                        if stderr_file and stderr_file.exists()
+                        else None
+                    )
 
                     extraction = extract_verdict_from_content(
                         report_content=rep_content,
@@ -501,7 +512,9 @@ class GraphPSupervisor(ISupervisor):
                         report_exists=rep_exists,
                         report_size_bytes=rep_size,
                         exit_code=ag["exit_code"],
-                        persisted_verdict=ag["result_verdict"] if ag["result_verdict"] != "UNKNOWN" else None,
+                        persisted_verdict=ag["result_verdict"]
+                        if ag["result_verdict"] != "UNKNOWN"
+                        else None,
                     )
                     agent_verdicts.append(extraction.verdict)
 
@@ -509,7 +522,15 @@ class GraphPSupervisor(ISupervisor):
                         cursor.execute(
                             "UPDATE agents SET status = ?, result_verdict = ? WHERE agent_id = ? AND run_id = ?",
                             (
-                                "COMPLETE" if extraction.verdict in {Verdict.PASS.value, Verdict.PASS_REPORT_PRESENT.value, Verdict.PARTIAL.value, Verdict.DONE_REVIEW_REQUIRED.value} else "FAILED",
+                                "COMPLETE"
+                                if extraction.verdict
+                                in {
+                                    Verdict.PASS.value,
+                                    Verdict.PASS_REPORT_PRESENT.value,
+                                    Verdict.PARTIAL.value,
+                                    Verdict.DONE_REVIEW_REQUIRED.value,
+                                }
+                                else "FAILED",
                                 extraction.verdict,
                                 ag_id,
                                 run_id,
@@ -528,7 +549,10 @@ class GraphPSupervisor(ISupervisor):
                     return Verdict.DONE_REVIEW_REQUIRED.value
                 if any(v == Verdict.PARTIAL.value for v in agent_verdicts):
                     return Verdict.PARTIAL.value
-                if all(v in {Verdict.PASS.value, Verdict.PASS_REPORT_PRESENT.value} for v in agent_verdicts):
+                if all(
+                    v in {Verdict.PASS.value, Verdict.PASS_REPORT_PRESENT.value}
+                    for v in agent_verdicts
+                ):
                     return Verdict.PASS.value
 
                 return Verdict.FAILED.value
@@ -679,7 +703,10 @@ class GraphPSupervisor(ISupervisor):
                                     message=err_msg,
                                     job_id=j_id,
                                     run_id=r_id,
-                                    context={"dirty_files": dirty_files, "target_repo": target_repo_path},
+                                    context={
+                                        "dirty_files": dirty_files,
+                                        "target_repo": target_repo_path,
+                                    },
                                 )
                             if self.audit_emitter:
                                 self.audit_emitter.emit(
@@ -728,7 +755,9 @@ class GraphPSupervisor(ISupervisor):
                     started_dt = datetime.now(timezone.utc)
                     if row["started_at"]:
                         try:
-                            started_dt = datetime.fromisoformat(row["started_at"].replace("Z", "+00:00"))
+                            started_dt = datetime.fromisoformat(
+                                row["started_at"].replace("Z", "+00:00")
+                            )
                         except Exception:
                             pass
                     self._active_runs[r_id] = ActiveRunTracking(
@@ -759,23 +788,38 @@ class GraphPSupervisor(ISupervisor):
 
                         if current_st == JobStatus.DISPATCHED.value:
                             try:
-                                self.lifecycle_manager.transition(j_id, JobStatus.RUNNING.value, current_run_id=r_id)
+                                self.lifecycle_manager.transition(
+                                    j_id, JobStatus.RUNNING.value, current_run_id=r_id
+                                )
                                 current_st = JobStatus.RUNNING.value
                             except Exception:
                                 pass
                         if current_st == JobStatus.RUNNING.value:
                             try:
-                                self.lifecycle_manager.transition(j_id, JobStatus.VERIFYING.value, current_run_id=r_id)
+                                self.lifecycle_manager.transition(
+                                    j_id, JobStatus.VERIFYING.value, current_run_id=r_id
+                                )
                                 current_st = JobStatus.VERIFYING.value
                             except Exception:
                                 pass
-                        if current_st in {JobStatus.VERIFYING.value, JobSideStatus.INTERRUPTED.value}:
+                        if current_st in {
+                            JobStatus.VERIFYING.value,
+                            JobSideStatus.INTERRUPTED.value,
+                        }:
                             try:
                                 if current_st == JobSideStatus.INTERRUPTED.value:
-                                    self.lifecycle_manager.transition(j_id, JobStatus.VERIFYING.value, current_run_id=r_id)
-                                self.lifecycle_manager.transition(j_id, JobStatus.RESULT_PACKAGED.value, current_run_id=r_id)
-                                self.lifecycle_manager.transition(j_id, JobStatus.RESULT_SENT.value, current_run_id=r_id)
-                                self.lifecycle_manager.transition(j_id, JobStatus.COMPLETED.value, current_run_id=r_id)
+                                    self.lifecycle_manager.transition(
+                                        j_id, JobStatus.VERIFYING.value, current_run_id=r_id
+                                    )
+                                self.lifecycle_manager.transition(
+                                    j_id, JobStatus.RESULT_PACKAGED.value, current_run_id=r_id
+                                )
+                                self.lifecycle_manager.transition(
+                                    j_id, JobStatus.RESULT_SENT.value, current_run_id=r_id
+                                )
+                                self.lifecycle_manager.transition(
+                                    j_id, JobStatus.COMPLETED.value, current_run_id=r_id
+                                )
                             except Exception:
                                 pass
 
@@ -808,7 +852,9 @@ class GraphPSupervisor(ISupervisor):
                             except Exception:
                                 pass
 
-                        self._update_run_reconciled_verdict(r_id, Verdict.FAILED.value, error_summary=error_msg)
+                        self._update_run_reconciled_verdict(
+                            r_id, Verdict.FAILED.value, error_summary=error_msg
+                        )
 
                     # Release any orphaned project lock
                     if p_id:
@@ -816,7 +862,7 @@ class GraphPSupervisor(ISupervisor):
 
                 reconciled_runs.append(r_id)
 
-            self._is_idle = (len(self._active_runs) == 0)
+            self._is_idle = len(self._active_runs) == 0
             if self._state not in {SupervisorState.STOPPED, SupervisorState.STOPPING}:
                 self._state = SupervisorState.IDLE if self._is_idle else SupervisorState.RUNNING
 
@@ -833,7 +879,7 @@ class GraphPSupervisor(ISupervisor):
         """Boots the supervisor daemon, claiming singleton lease and reconciling state."""
         self._state = SupervisorState.STARTING
         self._stop_event.clear()
-        acquired = self.lease_coordinator.acquire_singleton_lease(
+        self.lease_coordinator.acquire_singleton_lease(
             holder_id=self.instance_id,
             holder_pid=self.pid,
             ttl_seconds=self.config.singleton_ttl_seconds,

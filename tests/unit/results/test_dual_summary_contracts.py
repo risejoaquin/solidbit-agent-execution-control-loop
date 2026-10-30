@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 import pytest
 
-from sacl.contracts.exceptions import ContractValidationError
-from sacl.contracts.models import AgentResult, RunSummary
+from sacl.contracts.models import AgentResult
 from sacl.contracts.schema_validator import SchemaValidator
 from sacl.results.summary import DualSummaryGenerator
 

@@ -1,6 +1,7 @@
 """Unit tests for SACL V1 append-only audit event emission subsystem."""
 
 import sqlite3
+
 import pytest
 
 from sacl.contracts.models import AuditEvent
@@ -90,10 +91,16 @@ def test_query_events_with_filters(sqlite_temp_db: sqlite3.Connection):
     """Verifies querying and filtering audit events."""
     emitter = AuditEventEmitter(sqlite_temp_db)
 
-    emitter.emit(event_type=PROCESS_SPAWNED, severity="INFO", run_id="run-filter-1", agent_id="AG-A")
-    emitter.emit(event_type=APPROVAL_REQUESTED, severity="INFO", run_id="run-filter-1", agent_id="AG-A")
+    emitter.emit(
+        event_type=PROCESS_SPAWNED, severity="INFO", run_id="run-filter-1", agent_id="AG-A"
+    )
+    emitter.emit(
+        event_type=APPROVAL_REQUESTED, severity="INFO", run_id="run-filter-1", agent_id="AG-A"
+    )
     emitter.emit(event_type=RUN_FAILED, severity="ERROR", run_id="run-filter-1", agent_id="AG-B")
-    emitter.emit(event_type=PROCESS_SPAWNED, severity="INFO", run_id="run-filter-2", agent_id="AG-C")
+    emitter.emit(
+        event_type=PROCESS_SPAWNED, severity="INFO", run_id="run-filter-2", agent_id="AG-C"
+    )
 
     # Filter by run_id
     run1_events = emitter.query_events(run_id="run-filter-1")
@@ -156,4 +163,3 @@ def test_audit_emitter_with_path_source(sqlite_temp_db: sqlite3.Connection):
     record = emitter.get_event_by_id(ev_id)
     assert record is not None
     assert record.event_type == "PATH_TEST"
-

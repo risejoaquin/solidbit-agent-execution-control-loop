@@ -16,8 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from sacl.contracts.invariants import HEAVY_ARTIFACTS_ON_FILESYSTEM, ArtifactType
-from sacl.observability.events import ARTIFACT_REGISTERED
+from sacl.contracts.invariants import ArtifactType
 
 
 def compute_file_sha256(file_path: Path, chunk_size: int = 65536) -> str:
@@ -154,7 +153,9 @@ class EvidenceRegistry:
         # Normalize relative path if root is provided
         if normalize_relative_to:
             try:
-                storage_path = str(p.relative_to(normalize_relative_to.resolve())).replace("\\", "/")
+                storage_path = str(p.relative_to(normalize_relative_to.resolve())).replace(
+                    "\\", "/"
+                )
             except ValueError:
                 storage_path = str(p).replace("\\", "/")
         else:
@@ -163,7 +164,9 @@ class EvidenceRegistry:
         created_at = datetime.now(timezone.utc).isoformat()
 
         conn = self._get_connection()
-        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(self._db_source)
+        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(
+            self._db_source
+        )
 
         try:
             cursor = conn.cursor()
@@ -206,7 +209,9 @@ class EvidenceRegistry:
     def get_artifacts_for_run(self, run_id: str) -> List[ArtifactMetadata]:
         """Retrieves all indexed artifact records for a given run."""
         conn = self._get_connection()
-        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(self._db_source)
+        should_close = not isinstance(self._db_source, sqlite3.Connection) and not callable(
+            self._db_source
+        )
 
         try:
             cursor = conn.cursor()
@@ -311,5 +316,9 @@ class EvidenceRegistry:
             except Exception as e:
                 results["errors"].append(f"SUMMARY.json is invalid JSON: {e}")
 
-        is_valid = results["summary_md_present"] and results["summary_json_present"] and len(results["errors"]) == 0
+        is_valid = (
+            results["summary_md_present"]
+            and results["summary_json_present"]
+            and len(results["errors"]) == 0
+        )
         return is_valid, results

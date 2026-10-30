@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+
 import pytest
 
 from sacl.legacy.adapter import LegacyPackageAdapter
@@ -21,8 +21,8 @@ def test_normalize_manifest_legacy_fields(adapter, tmp_path):
         "project": "solidbit-agent-execution-control-loop",
         "repository": "risejoaquin/solidbit-agent-execution-control-loop",
         "mode": "architecture_freeze_and_repo_bootstrap",
-        "source_orchestrator": "C:\\Users\\Lucilfer\\Documents\\Stable-Ecommerce-Orchestrator",
-        "target_local_repo": "C:\\Users\\Lucilfer\\Documents\\solidbit-agent-execution-control-loop",
+        "source_orchestrator": "/workspace/Stable-Ecommerce-Orchestrator",
+        "target_local_repo": "/workspace/solidbit-agent-execution-control-loop",
         "agents": ["AG-COMPAT", "AG-ARCH"],
         "entrypoint": "RUN-WAVE.ps1",
         "prohibited_actions": ["merge", "production_deploy"],
@@ -112,18 +112,14 @@ def test_build_execution_graph_from_dependencies_json(adapter, tmp_path):
             {
                 "phase_id": "P1",
                 "name": "Phase 1",
-                "nodes": [
-                    {"node_id": "AG-A", "dependencies": [], "timeout_minutes": 20}
-                ]
+                "nodes": [{"node_id": "AG-A", "dependencies": [], "timeout_minutes": 20}],
             },
             {
                 "phase_id": "P2",
                 "name": "Phase 2",
-                "nodes": [
-                    {"node_id": "AG-B", "dependencies": ["AG-A"]}
-                ]
-            }
-        ]
+                "nodes": [{"node_id": "AG-B", "dependencies": ["AG-A"]}],
+            },
+        ],
     }
     with open(config_dir / "dependencies.json", "w", encoding="utf-8") as f:
         json.dump(dep_data, f)
@@ -158,7 +154,9 @@ def test_build_execution_graph_from_dependencies_json(adapter, tmp_path):
 
 def test_render_prompt(adapter, tmp_path):
     prompt_file = tmp_path / "test.md"
-    prompt_file.write_text("Hello {{PACKAGE_ROOT}} in {{RUN_DIR}} with {{REPORT}}", encoding="utf-8")
+    prompt_file.write_text(
+        "Hello {{PACKAGE_ROOT}} in {{RUN_DIR}} with {{REPORT}}", encoding="utf-8"
+    )
 
     rendered = adapter.render_prompt(
         prompt_template_path=prompt_file,

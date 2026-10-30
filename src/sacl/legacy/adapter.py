@@ -9,12 +9,11 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
 import uuid
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
-from sacl.contracts.exceptions import ContractValidationError, SaclError
 from sacl.contracts.models import ExecutionGraph, GraphNode, GraphPhase, Manifest
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.legacy.compatibility import generate_governance_header
@@ -130,9 +129,13 @@ class LegacyPackageAdapter:
 
         # 6. Source orchestrator and target local repo
         if "source_orchestrator" not in data or not data["source_orchestrator"]:
-            data["source_orchestrator"] = r"C:\Users\Lucilfer\Documents\Stable-Ecommerce-Orchestrator"
+            data["source_orchestrator"] = (
+                r"/workspace\Stable-Ecommerce-Orchestrator"
+            )
         if "target_local_repo" not in data or not data["target_local_repo"]:
-            data["target_local_repo"] = r"C:\Users\Lucilfer\Documents\solidbit-agent-execution-control-loop"
+            data["target_local_repo"] = (
+                r"/workspace\solidbit-agent-execution-control-loop"
+            )
 
         # 7. Agents list
         agents = data.get("agents", [])
@@ -206,7 +209,9 @@ class LegacyPackageAdapter:
                     dep_data = json.load(f)
                 return self._parse_dependencies_json(dep_data, manifest, max_parallel)
             except Exception as exc:
-                logger.warning("Failed to parse config/dependencies.json: %s. Falling back to phases.", exc)
+                logger.warning(
+                    "Failed to parse config/dependencies.json: %s. Falling back to phases.", exc
+                )
 
         # Fallback: create phases from agents list
         phases: List[GraphPhase] = []
@@ -345,7 +350,11 @@ class LegacyPackageAdapter:
         run_dir_str = str(Path(run_dir).resolve())
         report_path_str = str(Path(report_path).resolve())
         src_orch_str = str(Path(source_orchestrator).resolve())
-        decision_str = str(Path(decision_baseline).resolve()) if decision_baseline else str(Path(package_root) / "inputs" / "DECISION_BASELINE.md")
+        decision_str = (
+            str(Path(decision_baseline).resolve())
+            if decision_baseline
+            else str(Path(package_root) / "inputs" / "DECISION_BASELINE.md")
+        )
 
         # Proven legacy placeholder replacements
         content = content.replace("{{PACKAGE_ROOT}}", pkg_root_str)

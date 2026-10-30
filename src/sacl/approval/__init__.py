@@ -10,8 +10,8 @@ Constitutional Invariants (ADR-007, SB-FREEZE-P1-06):
 
 from sacl.approval.channels import (
     AUTHORIZED_EMAIL_SENDERS,
-    CLIChannelHandler,
     DEFAULT_SOVEREIGN_IDENTITY,
+    CLIChannelHandler,
     GmailChannelHandler,
     ManualChannelHandler,
 )

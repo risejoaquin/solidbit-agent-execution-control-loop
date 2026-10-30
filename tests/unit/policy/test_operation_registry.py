@@ -7,14 +7,12 @@ Handler integrity is verified via cryptographic SHA-256 digests.
 """
 
 import hashlib
-from pathlib import Path
+
 import pytest
 
 from sacl.contracts.exceptions import PolicyDeniedError
-from sacl.contracts.models import OperationRegistry
 from sacl.policy.operation_registry import (
     OperationRegistryManager,
-    normalize_image_name,
 )
 
 
@@ -176,7 +174,9 @@ def test_process_image_validation(temp_operation_env):
     assert manager.validate_process_image("op:test-worker", "agy") is True
     assert manager.validate_process_image("op:test-worker", "agy.exe") is True
     assert manager.validate_process_image("op:test-worker", "powershell") is True
-    assert manager.validate_process_image("op:test-worker", "pwsh") is False  # not in op profile whitelist
+    assert (
+        manager.validate_process_image("op:test-worker", "pwsh") is False
+    )  # not in op profile whitelist
     assert manager.validate_process_image("op:test-worker", "node.exe") is True
 
     # Image not in global whitelist

@@ -168,8 +168,12 @@ def test_run_eval_surviving_workers_resumes_supervision() -> None:
 
 def test_run_eval_all_reconciled_advances_verification() -> None:
     """Run where all agents completed/reconciled -> RECONCILE_OUTPUTS."""
-    d1 = SafeToResumeDecision(outcome=SafeToResumeOutcome.IMMUTABLE_COMPLETED, can_resume=False, reason="ok")
-    d2 = SafeToResumeDecision(outcome=SafeToResumeOutcome.RECONCILE_OUTPUTS, can_resume=False, reason="ok")
+    d1 = SafeToResumeDecision(
+        outcome=SafeToResumeOutcome.IMMUTABLE_COMPLETED, can_resume=False, reason="ok"
+    )
+    d2 = SafeToResumeDecision(
+        outcome=SafeToResumeOutcome.RECONCILE_OUTPUTS, can_resume=False, reason="ok"
+    )
 
     run_dec = evaluate_run_safe_to_resume(
         run_id="run-003",

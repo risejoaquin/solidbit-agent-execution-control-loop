@@ -16,29 +16,20 @@ import datetime
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
 from sacl.contracts.exceptions import (
-    ContractValidationError,
     HardDenyViolation,
 )
 from sacl.contracts.invariants import (
-    ALL_JOB_STATES,
-    ALLOWED_PROCESS_IMAGES,
     APPROVAL_BINDING_FIELDS,
     APPROVAL_CHANNELS_V1,
     DECISION_PRECEDENCE,
-    GRAPH_NODE_STATES,
     HARD_DENIED_ACTIONS,
     OPERATIONAL_STATE_DOMAINS,
-    PRIMARY_JOB_STATES,
     RECONCILIATION_PILLARS,
-    SIDE_JOB_STATES,
-    ApprovalChannel,
-    ApprovalDecision,
-    ApprovalStatus,
     GraphNodeStatus,
     JobSideStatus,
     JobStatus,
@@ -81,10 +72,10 @@ from tests.helpers.schema_helpers import (
     assert_validates_schema,
 )
 
-
 # ============================================================================
 # 1. ARCHITECTURAL INVARIANTS & CONSTITUTIONAL TESTS
 # ============================================================================
+
 
 def test_decision_precedence_invariants() -> None:
     """Verifies that decision precedence contains exactly the four inviolable tiers in order."""
@@ -103,16 +94,32 @@ def test_job_lifecycle_12_primary_and_10_side_states() -> None:
     assert len(JobSideStatus) == 10
 
     expected_primary = [
-        "RECEIVED", "AUTHENTICATED", "VALIDATED", "PERSISTED",
-        "QUEUED", "DISPATCHED", "RUNNING", "VERIFYING",
-        "RESULT_PACKAGED", "RESULT_SENT", "COMPLETED", "ARCHIVED"
+        "RECEIVED",
+        "AUTHENTICATED",
+        "VALIDATED",
+        "PERSISTED",
+        "QUEUED",
+        "DISPATCHED",
+        "RUNNING",
+        "VERIFYING",
+        "RESULT_PACKAGED",
+        "RESULT_SENT",
+        "COMPLETED",
+        "ARCHIVED",
     ]
     assert [s.value for s in JobStatus] == expected_primary
 
     expected_side = [
-        "WAITING_APPROVAL", "RETRY_WAIT", "BLOCKED", "FAILED",
-        "CANCELLED", "INTERRUPTED", "TIMED_OUT", "POLICY_DENIED",
-        "REJECTED", "QUARANTINED"
+        "WAITING_APPROVAL",
+        "RETRY_WAIT",
+        "BLOCKED",
+        "FAILED",
+        "CANCELLED",
+        "INTERRUPTED",
+        "TIMED_OUT",
+        "POLICY_DENIED",
+        "REJECTED",
+        "QUARANTINED",
     ]
     assert [s.value for s in JobSideStatus] == expected_side
 
@@ -120,9 +127,15 @@ def test_job_lifecycle_12_primary_and_10_side_states() -> None:
 def test_graph_node_9_states() -> None:
     """Verifies the 9 Graph-H DAG node states."""
     expected = [
-        "PENDING", "READY", "RUNNING", "SUCCEEDED",
-        "RETRYABLE_FAILURE", "FAILED", "BLOCKED",
-        "WAITING_APPROVAL", "CANCELLED"
+        "PENDING",
+        "READY",
+        "RUNNING",
+        "SUCCEEDED",
+        "RETRYABLE_FAILURE",
+        "FAILED",
+        "BLOCKED",
+        "WAITING_APPROVAL",
+        "CANCELLED",
     ]
     assert [s.value for s in GraphNodeStatus] == expected
 
@@ -172,6 +185,7 @@ def test_hard_denied_actions_envelope() -> None:
 # 2. FROZEN EXAMPLES SCHEMA VALIDATION TESTS
 # ============================================================================
 
+
 def test_all_10_frozen_examples_validate_against_schemas(
     schema_validator: SchemaValidator,
     examples_dir: Path,
@@ -206,6 +220,7 @@ def test_all_10_frozen_examples_validate_against_schemas(
 # ============================================================================
 # 3. STRONGLY-TYPED MODEL ROUND-TRIP TESTS
 # ============================================================================
+
 
 def test_models_roundtrip_from_and_to_dict(
     load_frozen_example: Any,
@@ -282,6 +297,7 @@ def test_models_roundtrip_from_and_to_dict(
 # 4. PID RECYCLING & PROCESS OBSERVATION DEFENSE TESTS
 # ============================================================================
 
+
 def test_process_observation_image_whitelist() -> None:
     """Verifies that non-whitelisted image binaries are rejected."""
     # Whitelisted images succeed
@@ -291,7 +307,9 @@ def test_process_observation_image_whitelist() -> None:
         assert reason is None
 
     # Unapproved image is rejected
-    obs, valid, reason = verify_process_observation(pid=5678, process_name="calc.exe", is_active=True)
+    obs, valid, reason = verify_process_observation(
+        pid=5678, process_name="calc.exe", is_active=True
+    )
     assert valid is False
     assert "not in allowed whitelist" in str(reason)
 
@@ -331,10 +349,15 @@ def test_process_observation_start_time_drift_guard() -> None:
 # 5. RECONCILIATION PRIORITY LADDER TESTS
 # ============================================================================
 
+
 def test_verdict_extraction_priority_2_report_bottom_up() -> None:
     """Priority 2: Report bottom-up primary structured marker."""
-    content = create_mock_report_content(agent_id="AG-BOOTSTRAP", verdict="PASS", marker_type="PRIMARY")
-    ve = extract_verdict_from_content(report_content=content, report_exists=True, report_size_bytes=len(content))
+    content = create_mock_report_content(
+        agent_id="AG-BOOTSTRAP", verdict="PASS", marker_type="PRIMARY"
+    )
+    ve = extract_verdict_from_content(
+        report_content=content, report_exists=True, report_size_bytes=len(content)
+    )
     assert ve.verdict == "PASS"
     assert ve.extraction_method == "REGEX_PRIMARY_BOTTOM_UP"
     assert "AGENT_AG_BOOTSTRAP_RESULT = PASS" in ve.matched_marker
@@ -342,8 +365,12 @@ def test_verdict_extraction_priority_2_report_bottom_up() -> None:
 
 def test_verdict_extraction_priority_3_header_fallback() -> None:
     """Priority 3: Top 25 lines header fallback."""
-    content = create_mock_report_content(agent_id="AG-TEST", verdict="PARTIAL", marker_type="HEADER")
-    ve = extract_verdict_from_content(report_content=content, report_exists=True, report_size_bytes=len(content))
+    content = create_mock_report_content(
+        agent_id="AG-TEST", verdict="PARTIAL", marker_type="HEADER"
+    )
+    ve = extract_verdict_from_content(
+        report_content=content, report_exists=True, report_size_bytes=len(content)
+    )
     assert ve.verdict == "PARTIAL"
     assert ve.extraction_method == "HEADER_FALLBACK_TOP25"
 
@@ -399,6 +426,7 @@ def test_done_review_required_never_equals_pass() -> None:
 # 6. SQLITE RELATIONAL SCHEMA (001_INIT.SQL) TESTS
 # ============================================================================
 
+
 def test_sqlite_all_16_domains_created(sqlite_memory_db: sqlite3.Connection) -> None:
     """Verifies that 001_init.sql creates all 16 canonical operational state domains."""
     domain_checks = verify_canonical_domains_exist(sqlite_memory_db)
@@ -448,6 +476,7 @@ def test_sqlite_wal_mode_and_pragmas(sqlite_temp_db: sqlite3.Connection) -> None
 # 7. NEGATIVE SCHEMA VALIDATION TESTS
 # ============================================================================
 
+
 def test_negative_schema_manifest_missing_job_id(
     load_frozen_example: Any,
     schema_validator: SchemaValidator,
@@ -482,6 +511,7 @@ def test_negative_schema_mail_envelope_size_exceeded(
 # 8. FULL RECONCILIATION PIPELINE INTEGRATION TESTS
 # ============================================================================
 
+
 def test_reconcile_agent_full_pipeline_success() -> None:
     """Tests complete reconcile_agent returning a valid SUCCEEDED ReconciledResult."""
     obs = ProcessObservation(
@@ -492,7 +522,9 @@ def test_reconcile_agent_full_pipeline_success() -> None:
         exit_code=0,
     )
     pstate = PersistedState(status="RUNNING")
-    report_text = create_mock_report_content(agent_id="AG-BOOTSTRAP", verdict="PASS", marker_type="PRIMARY")
+    report_text = create_mock_report_content(
+        agent_id="AG-BOOTSTRAP", verdict="PASS", marker_type="PRIMARY"
+    )
     outputs = RequiredOutputs(
         report_path="reports/AG-BOOTSTRAP.REPORT.md",
         report_exists=True,
@@ -534,7 +566,9 @@ def test_reconcile_agent_full_pipeline_blocked() -> None:
         exit_code=0,
     )
     pstate = PersistedState(status="RUNNING")
-    report_text = create_mock_report_content(agent_id="AG-TEST", verdict="BLOCKED", marker_type="PRIMARY")
+    report_text = create_mock_report_content(
+        agent_id="AG-TEST", verdict="BLOCKED", marker_type="PRIMARY"
+    )
     outputs = RequiredOutputs(
         report_path="reports/AG-TEST.REPORT.md",
         report_exists=True,

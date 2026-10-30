@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import email.utils
 import re
-from typing import Any, Dict, FrozenSet, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Optional
 
 from sacl.contracts.invariants import (
     APPROVAL_CHANNELS_V1,

@@ -13,16 +13,14 @@ Implements docs/RECOVERY_MODEL.md §7:
 
 from __future__ import annotations
 
-import os
 import subprocess
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Sequence, Set, Union
+from typing import Dict, List, Optional, Protocol, Sequence, Set, Tuple, Union
 
 from sacl.contracts.exceptions import HardDenyViolation
 from sacl.contracts.models import WorktreeState
-
 
 # Forbidden git commands during automated recovery
 FORBIDDEN_GIT_COMMANDS = (
@@ -46,21 +44,22 @@ def assert_safe_git_command(args: Sequence[str]) -> None:
     clean_args = [a.strip().lower() for a in args]
     # Check for hard reset
     if "reset" in clean_args and any("--hard" in a for a in clean_args):
-        raise HardDenyViolation("hard_reset", "git reset --hard is strictly prohibited during recovery")
+        raise HardDenyViolation(
+            "hard_reset", "git reset --hard is strictly prohibited during recovery"
+        )
     # Check for auto stash
     if "stash" in clean_args:
         raise HardDenyViolation("auto_stash", "git stash is strictly prohibited during recovery")
     # Check for destructive clean
     if "clean" in clean_args and any("-f" in a for a in clean_args):
         raise HardDenyViolation(
-            "primary_checkout_mutation",
-            "git clean -f/-fd is strictly prohibited during recovery"
+            "primary_checkout_mutation", "git clean -f/-fd is strictly prohibited during recovery"
         )
     # Check for forced checkout
     if "checkout" in clean_args and any("-f" in a or "--force" in a for a in clean_args):
         raise HardDenyViolation(
             "primary_checkout_mutation",
-            "git checkout -f/--force is strictly prohibited during recovery"
+            "git checkout -f/--force is strictly prohibited during recovery",
         )
 
 
@@ -268,7 +267,7 @@ def inspect_agent_worktree(
     try:
         porcelain_lines = client.status_porcelain(path)
         modified_files = [line.split(maxsplit=1)[-1] for line in porcelain_lines]
-    except Exception as exc:
+    except Exception:
         modified_files = []
         porcelain_lines = ["?? error_querying_git"]
 
@@ -340,9 +339,7 @@ def scan_orphaned_worktrees(
     if not base.exists() or not base.is_dir():
         return []
 
-    normalized_registered = {
-        str(Path(p).resolve()).lower() for p in registered_worktree_paths if p
-    }
+    normalized_registered = {str(Path(p).resolve()).lower() for p in registered_worktree_paths if p}
 
     orphans: List[OrphanedWorktreeInfo] = []
     for entry in base.iterdir():

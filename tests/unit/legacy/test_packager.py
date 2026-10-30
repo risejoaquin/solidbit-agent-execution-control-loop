@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import zipfile
+
 import pytest
 
 from sacl.legacy.packager import WaveZipPackager

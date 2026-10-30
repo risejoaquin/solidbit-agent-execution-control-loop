@@ -17,13 +17,15 @@ from sacl.workspace.exceptions import (
 )
 from sacl.workspace.git_runner import GitRunner
 
-DEFAULT_PROTECTED_BRANCHES: FrozenSet[str] = frozenset({
-    "main",
-    "master",
-    "release",
-    "production",
-    "prod",
-})
+DEFAULT_PROTECTED_BRANCHES: FrozenSet[str] = frozenset(
+    {
+        "main",
+        "master",
+        "release",
+        "production",
+        "prod",
+    }
+)
 
 
 def normalize_branch_name(branch_name: str) -> str:
@@ -40,7 +42,9 @@ def normalize_branch_name(branch_name: str) -> str:
     return b
 
 
-def is_protected_branch(branch_name: str, protected_branches: Optional[Iterable[str]] = None) -> bool:
+def is_protected_branch(
+    branch_name: str, protected_branches: Optional[Iterable[str]] = None
+) -> bool:
     """Evaluates whether a branch name is protected under MAIN_BRANCH_NOT_ALLOWED."""
     normalized = normalize_branch_name(branch_name).lower()
     protected = {b.lower() for b in (protected_branches or DEFAULT_PROTECTED_BRANCHES)}
@@ -59,7 +63,9 @@ def is_protected_branch(branch_name: str, protected_branches: Optional[Iterable[
     return False
 
 
-def assert_branch_allowed(branch_name: str, protected_branches: Optional[Iterable[str]] = None) -> None:
+def assert_branch_allowed(
+    branch_name: str, protected_branches: Optional[Iterable[str]] = None
+) -> None:
     """Enforces branch inviolability (MAIN_BRANCH_NOT_ALLOWED).
 
     Raises:
@@ -90,7 +96,9 @@ def assert_valid_repository(repo_path: Path, git_runner: Optional[GitRunner] = N
         runner = git_runner or GitRunner()
         res = runner.run(["rev-parse", "--is-inside-work-tree"], cwd=repo_path)
         if not res.success or res.stdout.strip() != "true":
-            raise RepositoryValidationError(str(repo_path), "Directory is not a valid Git working tree.")
+            raise RepositoryValidationError(
+                str(repo_path), "Directory is not a valid Git working tree."
+            )
 
 
 def assert_not_primary_checkout(target_path: Path, primary_repo_path: Path) -> None:

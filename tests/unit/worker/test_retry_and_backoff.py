@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from sacl.contracts.exceptions import (
     CollisionDetectedError,
     DirtyRootError,
@@ -22,14 +20,18 @@ from sacl.worker.retry import (
 
 
 def test_classify_transient_sqlite_contention():
-    is_ret, code, max_ret = classify_failure(error="sqlite3.OperationalError: database is locked (SQLITE_BUSY)")
+    is_ret, code, max_ret = classify_failure(
+        error="sqlite3.OperationalError: database is locked (SQLITE_BUSY)"
+    )
     assert is_ret is True
     assert code == FailureClassification.TRANSIENT_SQLITE_BUSY
     assert max_ret == 2
 
 
 def test_classify_transient_worktree_lock():
-    is_ret, code, max_ret = classify_failure(error="fatal: Unable to create '.git/index.lock': File exists.")
+    is_ret, code, max_ret = classify_failure(
+        error="fatal: Unable to create '.git/index.lock': File exists."
+    )
     assert is_ret is True
     assert code == FailureClassification.TRANSIENT_WORKTREE_LOCK
     assert max_ret == 2
@@ -115,19 +117,25 @@ def test_distinct_attempt_log_paths(tmp_path: Path):
     base_report = tmp_path / "AG-TEST.md"
 
     # Attempt 1 returns original paths
-    out1, err1, rep1 = get_attempt_log_paths(base_stdout, base_stderr, base_report, attempt_number=1)
+    out1, err1, rep1 = get_attempt_log_paths(
+        base_stdout, base_stderr, base_report, attempt_number=1
+    )
     assert out1 == base_stdout
     assert err1 == base_stderr
     assert rep1 == base_report
 
     # Attempt 2 returns distinct paths with .attempt-2
-    out2, err2, rep2 = get_attempt_log_paths(base_stdout, base_stderr, base_report, attempt_number=2)
+    out2, err2, rep2 = get_attempt_log_paths(
+        base_stdout, base_stderr, base_report, attempt_number=2
+    )
     assert out2.name == "AG-TEST.attempt-2.stdout.log"
     assert err2.name == "AG-TEST.attempt-2.stderr.log"
     assert rep2.name == "AG-TEST.attempt-2.md"
 
     # Attempt 3 returns distinct paths with .attempt-3
-    out3, err3, rep3 = get_attempt_log_paths(base_stdout, base_stderr, base_report, attempt_number=3)
+    out3, err3, rep3 = get_attempt_log_paths(
+        base_stdout, base_stderr, base_report, attempt_number=3
+    )
     assert out3.name == "AG-TEST.attempt-3.stdout.log"
     assert err3.name == "AG-TEST.attempt-3.stderr.log"
     assert rep3.name == "AG-TEST.attempt-3.md"

@@ -8,20 +8,16 @@ from typing import Generator
 
 import pytest
 
+from sacl.contracts.exceptions import ApprovalExpiredError
 from sacl.contracts.invariants import (
-    ALL_JOB_STATES,
-    GRAPH_NODE_STATES,
     ApprovalChannel,
     ApprovalDecision,
-    ApprovalStatus,
     ArtifactType,
     GraphNodeStatus,
-    JobSideStatus,
     JobStatus,
     Verdict,
 )
-from sacl.contracts.models import Approver, AuditEvent, ErrorRecord
-from sacl.contracts.exceptions import ApprovalExpiredError
+from sacl.contracts.models import Approver, AuditEvent
 from sacl.state.connection import create_connection
 from sacl.state.exceptions import DuplicateEntityError, InvalidStateTransitionError
 from sacl.state.migrations import MigrationRunner
@@ -52,6 +48,7 @@ def repo_db(migration_sql_path: Path) -> Generator[sqlite3.Connection, None, Non
 # ============================================================================
 # DOMAIN 2 & 3: PROJECTS & PACKAGES
 # ============================================================================
+
 
 def test_project_repository(repo_db: sqlite3.Connection) -> None:
     repo = ProjectRepository(repo_db)
@@ -97,6 +94,7 @@ def test_package_repository(repo_db: sqlite3.Connection) -> None:
 # ============================================================================
 # DOMAIN 4: JOBS (12 PRIMARY + 10 SIDE STATES)
 # ============================================================================
+
 
 def test_job_repository_lifecycle(repo_db: sqlite3.Connection) -> None:
     ProjectRepository(repo_db).register_project("proj-1", "P1", "C:/root")
@@ -161,6 +159,7 @@ def test_job_repository_priority_peek(repo_db: sqlite3.Connection) -> None:
 # DOMAIN 5: RUNS
 # ============================================================================
 
+
 def test_run_repository(repo_db: sqlite3.Connection) -> None:
     JobRepository(repo_db).create_job("job-200", None, None, status=JobStatus.RECEIVED.value)
 
@@ -192,6 +191,7 @@ def test_run_repository(repo_db: sqlite3.Connection) -> None:
 # ============================================================================
 # DOMAIN 6 & 7: GRAPH NODES, ATTEMPTS & COMPATIBILITY TABLES
 # ============================================================================
+
 
 def test_graph_repository(repo_db: sqlite3.Connection) -> None:
     JobRepository(repo_db).create_job("job-300", None, None)
@@ -245,6 +245,7 @@ def test_graph_repository(repo_db: sqlite3.Connection) -> None:
 # DOMAIN 8: AGENTS & COLLISION TRACKING
 # ============================================================================
 
+
 def test_agent_repository_and_conflicts(repo_db: sqlite3.Connection) -> None:
     JobRepository(repo_db).create_job("job-400", None, None)
     RunRepository(repo_db).create_run(
@@ -274,6 +275,7 @@ def test_agent_repository_and_conflicts(repo_db: sqlite3.Connection) -> None:
         stderr_path="logs/sec.stderr.log",
         pid=4568,
     )
+    assert agent_b["agent_id"] == "AG-SEC"
 
     # File modifications
     repo.record_file_modifications("run-400", "AG-ARCH", ["src/config.py", "docs/ARCH.md"])
@@ -298,6 +300,7 @@ def test_agent_repository_and_conflicts(repo_db: sqlite3.Connection) -> None:
 # ============================================================================
 # DOMAIN 9: EVENTS
 # ============================================================================
+
 
 def test_event_repository(repo_db: sqlite3.Connection) -> None:
     repo = EventRepository(repo_db)
@@ -326,6 +329,7 @@ def test_event_repository(repo_db: sqlite3.Connection) -> None:
 # ============================================================================
 # DOMAIN 10: APPROVALS
 # ============================================================================
+
 
 def test_approval_repository(repo_db: sqlite3.Connection) -> None:
     JobRepository(repo_db).create_job("job-600", None, None)
@@ -379,6 +383,7 @@ def test_approval_expiration(repo_db: sqlite3.Connection) -> None:
 # DOMAIN 11 & 12: ARTIFACTS & RESULTS
 # ============================================================================
 
+
 def test_artifacts_and_results(repo_db: sqlite3.Connection) -> None:
     JobRepository(repo_db).create_job("job-700", None, None)
     RunRepository(repo_db).create_run(
@@ -418,6 +423,7 @@ def test_artifacts_and_results(repo_db: sqlite3.Connection) -> None:
 # ============================================================================
 # DOMAIN 15 & 16: ERRORS & MAIL
 # ============================================================================
+
 
 def test_error_repository(repo_db: sqlite3.Connection) -> None:
     repo = ErrorRepository(repo_db)
@@ -467,7 +473,16 @@ def test_mail_repository_and_deduplication(repo_db: sqlite3.Connection) -> None:
     # Outbox queue
     JobRepository(repo_db).create_job("job-mail-out", None, None)
     RunRepository(repo_db).create_run(
-        "run-mail-out", "job-mail-out", "pkg", "p", "r", "mode", "src", "target", "runs/r", "RUNNING"
+        "run-mail-out",
+        "job-mail-out",
+        "pkg",
+        "p",
+        "r",
+        "mode",
+        "src",
+        "target",
+        "runs/r",
+        "RUNNING",
     )
     outbox_id = repo.enqueue_outbox(
         run_id="run-mail-out",

@@ -31,7 +31,9 @@ class TestSenderValidation:
 
     def test_extract_email_address_variants(self) -> None:
         assert extract_email_address("uniquedraken@gmail.com") == "uniquedraken@gmail.com"
-        assert extract_email_address('"Joaquín" <uniquedraken@gmail.com>') == "uniquedraken@gmail.com"
+        assert (
+            extract_email_address('"Joaquín" <uniquedraken@gmail.com>') == "uniquedraken@gmail.com"
+        )
         assert extract_email_address("Joaquín <UNIQUEDRAKEN@GMAIL.COM>") == "uniquedraken@gmail.com"
         assert extract_email_address("   uniquedraken@gmail.com   ") == "uniquedraken@gmail.com"
 
@@ -82,7 +84,10 @@ class TestAntiExfiltrationOutboundRestriction:
     def test_authorized_outbound_recipient_succeeds(self) -> None:
         assert validate_outbound_recipient("uniquedraken@gmail.com") is True
         assert assert_authorized_recipient("uniquedraken@gmail.com") == "uniquedraken@gmail.com"
-        assert assert_authorized_recipient('"Self" <uniquedraken@gmail.com>') == "uniquedraken@gmail.com"
+        assert (
+            assert_authorized_recipient('"Self" <uniquedraken@gmail.com>')
+            == "uniquedraken@gmail.com"
+        )
 
     def test_unauthorized_outbound_recipient_raises_exfiltration_error(self) -> None:
         with pytest.raises(DataExfiltrationAttemptError) as exc_info:

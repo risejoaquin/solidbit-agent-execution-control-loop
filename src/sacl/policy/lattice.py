@@ -12,29 +12,26 @@ in lower layers. Approvals cannot override hard denials.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import List, Optional, Set, Union
 
 from sacl.contracts.exceptions import (
-    ApprovalExpiredError,
     ApprovalRequiredError,
     DirtyRootError,
     HardDenyViolation,
     PolicyDeniedError,
 )
 from sacl.contracts.interfaces import IPolicyEngine
-from sacl.contracts.invariants import HARD_DENIED_ACTIONS, RiskTier
+from sacl.contracts.invariants import RiskTier
 from sacl.contracts.models import (
     ApprovalToken,
     HardLocalPolicy,
     ProjectPolicy,
-    ProjectRegistryEntry,
 )
 from sacl.contracts.schema_validator import SchemaValidator, get_default_validator
 from sacl.policy.approval import ApprovalManager, ApprovalValidator
 from sacl.policy.hard_policy import HardPolicyEngine, normalize_action
 from sacl.policy.operation_registry import OperationRegistryManager
 from sacl.policy.project_registry import ProjectRegistryManager
-
 
 # Actions that are inherently gated requiring human approval if attempted
 GATED_ACTIONS: Set[str] = {
@@ -243,12 +240,10 @@ class PolicyEngine(IPolicyEngine):
         """
         # 1. Operation registry resolution
         if self.operation_registry:
-            op_entry = self.operation_registry.resolve_operation(operation_id)
+            self.operation_registry.resolve_operation(operation_id)
             if verify_handler:
                 self.operation_registry.verify_handler_integrity(operation_id)
-            required_perms = op_entry.required_permissions
-        else:
-            required_perms = []
+            pass
 
         # 2. Project registry validation
         if self.project_registry:
@@ -257,7 +252,10 @@ class PolicyEngine(IPolicyEngine):
                 self.project_registry.validate_target_root(project_id, target_repo_path)
 
             # Risk tier gate check
-            if project_entry.risk_tier in (RiskTier.POST_GATE.value, RiskTier.REQUIRES_DECISION.value):
+            if project_entry.risk_tier in (
+                RiskTier.POST_GATE.value,
+                RiskTier.REQUIRES_DECISION.value,
+            ):
                 if not approval_grant:
                     raise ApprovalRequiredError(
                         request_id="PENDING",

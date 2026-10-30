@@ -23,6 +23,7 @@ class SaclError(Exception):
 
 class ArchitectureInvariantError(SaclError):
     """Raised when an inviolable architectural invariant is violated."""
+
     pass
 
 
@@ -32,7 +33,9 @@ class HardDenyViolation(ArchitectureInvariantError):
     Hard deny ALWAYS wins. Approvals cannot override hard denials.
     """
 
-    def __init__(self, action: str, reason: str = "Action is unconditionally hard-denied in V1") -> None:
+    def __init__(
+        self, action: str, reason: str = "Action is unconditionally hard-denied in V1"
+    ) -> None:
         super().__init__(
             f"HARD_DENY_VIOLATION: Action '{action}' is strictly prohibited. {reason}",
             details={"action": action, "prohibited": True},
@@ -69,6 +72,7 @@ class ContractValidationError(SaclError):
 
 class ReconciliationError(SaclError):
     """Raised when 4-point run status reconciliation fails to produce a coherent verdict."""
+
     pass
 
 
