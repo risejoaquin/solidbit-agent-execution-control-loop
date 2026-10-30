@@ -15,13 +15,18 @@ import {
   Loader2,
   FolderGit2,
   Globe,
+  Lock,
+  ChevronDown,
 } from 'lucide-react'
-import type { NotificationItem } from '../types/orchestrator'
+import type { NotificationItem, Project } from '../types/orchestrator'
 import type { DomainStateMeta } from '../types/domainState'
 import { useLanguage } from '../context/LanguageContext'
 
 interface HeaderProps {
   projectName: string
+  activeBranch?: string
+  projects?: Project[]
+  onSelectProject?: (projId: string) => void
   domainState: DomainStateMeta
   onNavigateSection: (section: string) => void
   onToggleMobileMenu?: () => void
@@ -31,6 +36,9 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   projectName,
+  activeBranch = 'worktrees/scheduler',
+  projects = [],
+  onSelectProject,
   domainState,
   onNavigateSection,
   onToggleMobileMenu,
@@ -40,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { lang, toggleLanguage, t } = useLanguage()
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false)
+  const [showProjectDropdown, setShowProjectDropdown] = useState<boolean>(false)
 
   const [operatorName, setOperatorName] = useState<string>(
     localStorage.getItem('sacl_operator_name') || 'Operador Principal'
@@ -62,6 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const popoverRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
+  const projectDropdownRef = useRef<HTMLDivElement>(null)
 
   const loadNotifications = async () => {
     try {
@@ -98,13 +108,11 @@ export const Header: React.FC<HeaderProps> = ({
               if (!dismissedNotifIds.has(notifId)) {
                 items.push({
                   id: notifId,
-                  title: t('Actividad Registrada', 'Recorded Activity'),
-                  message: ev.run_id
-                    ? `${t('Ejecución', 'Run')} ${ev.run_id}`
-                    : t('Evento guardado en el historial', 'Event saved in history'),
-                  type: ev.severity === 'FATAL' || ev.severity === 'ERROR' ? 'gate' : 'info',
+                  title: t('Evento Registrado', 'Audited Event'),
+                  message: `${ev.event_type}: ${ev.payload_json ? ev.payload_json.slice(0, 50) + '...' : t('Transacción registrada', 'Audited transaction')}`,
+                  type: 'info',
                   time: formatRelativeTime(ev.created_at),
-                  actionUrl: 'executions',
+                  actionUrl: 'database',
                 })
               }
             }
@@ -113,60 +121,44 @@ export const Header: React.FC<HeaderProps> = ({
       } catch {}
 
       setNotifications(items)
-    } catch (e) {
-      console.warn('Error loading notifications:', e)
-    }
+    } catch {}
   }
 
   useEffect(() => {
-    fetch('/api/settings/profile')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.profile?.name) {
-          setOperatorName(d.profile.name)
-          setOperatorRole(
-            d.profile.role?.includes('Owner') ? 'Responsable de Producto' : d.profile.role
-          )
-          if (d.profile.email) setOperatorEmail(d.profile.email)
-        }
-      })
-      .catch(() => {})
-
     loadNotifications()
-  }, [domainState.state, lang])
+    const interval = setInterval(loadNotifications, 12000)
+    return () => clearInterval(interval)
+  }, [dismissedNotifIds])
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleOutside = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setShowNotifications(false)
       }
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setShowProfileModal(false)
       }
+      if (projectDropdownRef.current && !projectDropdownRef.current.contains(e.target as Node)) {
+        setShowProjectDropdown(false)
+      }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
   }, [])
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setSavingProfile(true)
     try {
-      const res = await fetch('/api/settings/profile', {
+      localStorage.setItem('sacl_operator_name', operatorName)
+      localStorage.setItem('sacl_operator_role', operatorRole)
+      await fetch('/api/settings/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: operatorName,
-          role: operatorRole,
-          email: operatorEmail,
-        }),
+        body: JSON.stringify({ name: operatorName, role: operatorRole, email: operatorEmail }),
       })
-      if (res.ok) {
-        localStorage.setItem('sacl_operator_name', operatorName)
-        localStorage.setItem('sacl_operator_role', operatorRole)
-        setShowProfileModal(false)
-      }
-    } catch (err: any) {
+      setShowProfileModal(false)
+    } catch (err) {
       console.error('Error guardando perfil:', err)
     } finally {
       setSavingProfile(false)
@@ -187,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
       ? projectName
       : t('Tienda Online (Stable-Ecommerce)', 'Online Store (Stable-Ecommerce)')
 
-  // Semantic State Signifier (FASE 4 & INVARIANTE 1: Coherencia Total de Estado)
+  // Semantic State Signifier
   const renderCoherentStatusSignifier = () => {
     switch (domainState.badgeVariant) {
       case 'red':
@@ -195,13 +187,9 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => onNavigateSection('dashboard')}
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-500/15 text-red-300 border border-red-500/35 cursor-pointer hover:bg-red-500/25 transition"
-            title={t(
-              'Haz clic para resolver el bloqueo en el Centro de Sprint',
-              'Click to resolve blocker in Sprint Center'
-            )}
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/35 cursor-pointer hover:bg-rose-500/25 transition"
           >
-            <AlertTriangle className="w-3 h-3 text-red-400" />
+            <AlertTriangle className="w-3 h-3 text-rose-400" />
             <span>{domainState.badgeLabel}</span>
           </button>
         )
@@ -211,10 +199,6 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={() => onNavigateSection('dashboard')}
             className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/35 cursor-pointer hover:bg-amber-500/25 transition"
-            title={t(
-              'Haz clic para revisar y autorizar la entrega pendiente',
-              'Click to review and authorize pending delivery'
-            )}
           >
             <ShieldAlert className="w-3 h-3 text-amber-400" />
             <span>{domainState.badgeLabel}</span>
@@ -249,8 +233,8 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   return (
-    <header className="h-16 border-b border-zinc-850 bg-black/95 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
-      {/* Left: Brand, Active Project & Coherent FSM Signifier */}
+    <header className="h-16 border-b border-white/5 bg-[#0C0C0E] px-4 lg:px-6 flex items-center justify-between z-30 shrink-0">
+      {/* Left: Brand, Selector Global de Proyecto y Rama Git */}
       <div className="flex items-center gap-3">
         {onToggleMobileMenu && (
           <button
@@ -271,59 +255,106 @@ export const Header: React.FC<HeaderProps> = ({
           SB
         </div>
 
-        <div>
-          <div className="text-sm font-bold text-white flex flex-wrap items-center gap-2">
-            <span>{t('Centro de Control SolidBit', 'SolidBit Control Center')}</span>
-            {renderCoherentStatusSignifier()}
+        {/* Global Project & Branch Selector */}
+        <div className="relative" ref={projectDropdownRef}>
+          <div
+            onClick={() => setShowProjectDropdown(!showProjectDropdown)}
+            className="flex flex-col cursor-pointer hover:opacity-90 transition select-none"
+          >
+            <div className="text-sm font-extrabold text-white flex items-center gap-1.5">
+              <span>{cleanProjectName}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-mono mt-0.5">
+              <span className="flex items-center gap-1 text-sky-400">
+                <GitBranch className="w-3 h-3" />
+                <strong>{activeBranch}</strong>
+              </span>
+              <span>&bull;</span>
+              <span className="text-emerald-400 flex items-center gap-0.5">
+                <Lock className="w-2.5 h-2.5" />
+                {t('Aislado', 'Isolated')}
+              </span>
+            </div>
           </div>
-          <div className="text-xs text-zinc-400 truncate max-w-[220px] sm:max-w-md mt-0.5">
-            {t('Proyecto activo:', 'Active project:')}{' '}
-            <strong className="text-zinc-200">{cleanProjectName}</strong>
-          </div>
+
+          {/* Project Switcher Dropdown */}
+          {showProjectDropdown && projects.length > 0 && (
+            <div className="absolute left-0 top-12 mt-2 w-64 p-2 rounded-2xl bg-[#0C0C0E] border border-white/10 shadow-2xl z-50 space-y-1 animate-fade-in text-xs font-mono">
+              <span className="text-[10px] text-zinc-500 uppercase px-2 py-1 block">
+                {t('Seleccionar Proyecto Activo:', 'Select Active Project:')}
+              </span>
+              {projects.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    onSelectProject?.(p.id)
+                    setShowProjectDropdown(false)
+                  }}
+                  className={`w-full text-left p-2 rounded-xl transition cursor-pointer flex items-center justify-between ${
+                    p.name === projectName || p.is_active
+                      ? 'bg-zinc-800 text-white font-bold'
+                      : 'text-zinc-300 hover:bg-zinc-900'
+                  }`}
+                >
+                  <div className="truncate">
+                    <span className="block truncate">{p.name}</span>
+                    <span className="text-[10px] text-zinc-500 block truncate">
+                      {p.branch || 'main'}
+                    </span>
+                  </div>
+                  {(p.name === projectName || p.is_active) && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Global FSM Status Signifier */}
+        <div className="hidden sm:block ml-2">{renderCoherentStatusSignifier()}</div>
       </div>
 
-      {/* Right: Secondary & Tertiary Utilities + Language Toggle Button */}
+      {/* Right: Herramientas y Perfil */}
       <div className="flex items-center gap-2 sm:gap-2.5">
-        {/* Language Switcher Button (ES-MX / EN) */}
+        {/* Language Switcher */}
         <button
           type="button"
           id="btn-language-toggle"
           onClick={toggleLanguage}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-750 hover:border-zinc-500 text-xs font-bold text-white transition cursor-pointer"
-          title={t('Cambiar idioma a Inglés (EN)', 'Switch language to Español México (ES-MX)')}
         >
           <Globe className="w-3.5 h-3.5 text-emerald-400" />
           <span>{lang === 'es-MX' ? '🇲🇽 ES-MX' : '🇺🇸 EN'}</span>
         </button>
 
-        {/* Quick Search (Secondary Utility) */}
+        {/* Quick Search Ctrl+K */}
         {onOpenCommandPalette && (
           <button
             type="button"
             onClick={onOpenCommandPalette}
             id="btn-header-command-palette"
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs text-zinc-300 hover:text-white transition cursor-pointer"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs text-zinc-300 hover:text-white transition cursor-pointer"
           >
             <Search className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{t('Ir a cualquier vista...', 'Jump to any view...')}</span>
+            <span>{t('Comandos...', 'Commands...')}</span>
             <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 text-[10px] font-mono text-zinc-400">
               Ctrl+K
             </kbd>
           </button>
         )}
 
-        {/* Code Changes Drawer Trigger (Layer 2 On-Demand Inspection) */}
+        {/* Diff Inspector Modal Trigger */}
         {onOpenDiffModal && (
           <button
             type="button"
-            id="btn-header-diff-inspector"
             onClick={onOpenDiffModal}
             className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs text-zinc-300 hover:text-white transition cursor-pointer"
-            title={t('Inspeccionar archivos modificados', 'Inspect modified files')}
           >
             <GitBranch className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{t('Inspeccionar Cambios', 'Inspect Changes')}</span>
+            <span>{t('Diffs', 'Diffs')}</span>
           </button>
         )}
 
@@ -331,36 +362,28 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="relative" ref={popoverRef}>
           <button
             type="button"
-            id="btn-notifications-bell"
             onClick={() => setShowNotifications(!showNotifications)}
             className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition relative cursor-pointer"
-            title={t('Avisos del sistema', 'System notifications')}
           >
             <Bell className="w-4 h-4" />
             {notifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-black text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-black text-[10px] font-mono font-extrabold flex items-center justify-center">
                 {notifications.length}
               </span>
             )}
           </button>
 
           {showNotifications && (
-            <div
-              id="notifications-popover-content"
-              className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-4 space-y-3 z-50 text-left"
-            >
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <span className="text-xs font-bold text-white">
-                  {t('Avisos Recientes', 'Recent Notifications')}
+            <div className="absolute right-0 top-12 mt-2 w-80 p-3 rounded-2xl bg-[#0C0C0E] border border-white/10 shadow-2xl z-50 space-y-2 animate-fade-in text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                <span className="font-bold text-white">{t('Avisos del Sistema', 'System Alerts')}</span>
+                <span className="text-[10px] font-mono text-zinc-500">
+                  {notifications.length} {t('nuevos', 'new')}
                 </span>
-                <span className="text-[10px] text-zinc-400">{notifications.length}</span>
               </div>
-
-              <div className="space-y-2 max-h-72 overflow-y-auto custom-scroll pr-1">
+              <div className="space-y-1.5 max-h-64 overflow-y-auto custom-scroll">
                 {notifications.length === 0 ? (
-                  <p className="text-xs text-zinc-500 text-center py-4">
-                    {t('Sin avisos pendientes', 'No pending notifications')}
-                  </p>
+                  <p className="text-zinc-500 py-3 text-center">{t('Sin avisos pendientes', 'No alerts')}</p>
                 ) : (
                   notifications.map((n) => (
                     <div
@@ -369,22 +392,11 @@ export const Header: React.FC<HeaderProps> = ({
                         if (n.actionUrl) onNavigateSection(n.actionUrl)
                         setShowNotifications(false)
                       }}
-                      className="p-2.5 rounded-xl bg-zinc-900/70 border border-zinc-800 hover:border-zinc-600 transition cursor-pointer space-y-1"
+                      className="p-2.5 rounded-xl bg-black border border-white/5 space-y-1 hover:bg-zinc-900 cursor-pointer transition"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                          {n.type === 'gate' ? (
-                            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-                          ) : n.type === 'success' ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          ) : (
-                            <Info className="w-3.5 h-3.5 text-zinc-400" />
-                          )}
-                          {n.title}
-                        </span>
-                        <span className="text-[10px] text-zinc-500">{n.time}</span>
-                      </div>
-                      <p className="text-[11px] text-zinc-300">{n.message}</p>
+                      <div className="font-bold text-zinc-200">{n.title}</div>
+                      <p className="text-[11px] text-zinc-400 line-clamp-2">{n.message}</p>
+                      <span className="text-[9px] text-zinc-500 font-mono block">{n.time}</span>
                     </div>
                   ))
                 )}
@@ -393,88 +405,54 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Operator Identity Pill */}
+        {/* Profile Avatar */}
         <div className="relative" ref={profileRef}>
           <button
             type="button"
-            id="btn-operator-profile"
             onClick={() => setShowProfileModal(!showProfileModal)}
-            className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition cursor-pointer"
-            title={t('Configurar identidad de operador', 'Configure operator identity')}
+            className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-white flex items-center justify-center font-extrabold text-xs cursor-pointer shadow-sm"
           >
-            <div className="w-7 h-7 rounded-lg bg-zinc-800 text-white font-bold text-xs flex items-center justify-center border border-zinc-700">
-              {initials}
-            </div>
-            <div className="hidden md:block text-left">
-              <div className="text-xs font-bold text-white leading-none">{operatorName}</div>
-              <div className="text-[10px] text-zinc-400 mt-0.5">{operatorRole}</div>
-            </div>
+            {initials}
           </button>
 
           {showProfileModal && (
-            <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-80 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl p-4 space-y-3 z-50 text-left">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-white" />
-                  <span className="text-xs font-bold text-white">
-                    {t('Identidad del Responsable', 'Operator Identity')}
-                  </span>
-                </div>
+            <div className="absolute right-0 top-12 mt-2 w-72 p-4 rounded-2xl bg-[#0C0C0E] border border-white/10 shadow-2xl z-50 space-y-3 animate-fade-in text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                <span className="font-bold text-white">{t('Perfil del Operador', 'Operator Profile')}</span>
                 <button
                   type="button"
                   onClick={() => setShowProfileModal(false)}
-                  className="text-zinc-400 hover:text-white cursor-pointer"
+                  className="text-zinc-500 hover:text-white"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveProfile} className="space-y-3 text-xs">
-                <div>
-                  <label className="text-[11px] text-zinc-400 block mb-1">
-                    {t('Nombre completo:', 'Full name:')}
-                  </label>
+              <form onSubmit={handleSaveProfile} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-zinc-400 uppercase font-mono">{t('Nombre', 'Name')}:</label>
                   <input
                     type="text"
                     value={operatorName}
                     onChange={(e) => setOperatorName(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-1.5 text-white"
+                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="text-[11px] text-zinc-400 block mb-1">
-                    {t('Rol:', 'Role:')}
-                  </label>
+                <div className="space-y-1">
+                  <label className="text-[10px] text-zinc-400 uppercase font-mono">{t('Rol', 'Role')}:</label>
                   <input
                     type="text"
                     value={operatorRole}
                     onChange={(e) => setOperatorRole(e.target.value)}
-                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-1.5 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-zinc-400 block mb-1">
-                    {t('Correo para notificaciones:', 'Notification email:')}
-                  </label>
-                  <input
-                    type="email"
-                    value={operatorEmail}
-                    onChange={(e) => setOperatorEmail(e.target.value)}
-                    placeholder="operador@solidbit.mx"
-                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-1.5 text-white"
+                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={savingProfile}
-                  className="w-full py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-extrabold text-xs transition cursor-pointer shadow-sm"
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>
-                    {savingProfile
-                      ? t('Guardando...', 'Saving...')
-                      : t('Guardar Identidad', 'Save Identity')}
-                  </span>
+                  {savingProfile ? t('Guardando...', 'Saving...') : t('Guardar Datos', 'Save Profile')}
                 </button>
               </form>
             </div>

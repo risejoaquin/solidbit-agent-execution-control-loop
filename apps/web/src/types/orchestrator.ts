@@ -2,6 +2,7 @@ export interface Project {
   id: string
   name: string
   path: string
+  branch?: string
   description?: string
   tech_stack?: string[]
   status?: string

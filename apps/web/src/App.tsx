@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Header } from './components/Header'
 import { LeftSidebar } from './components/LeftSidebar'
 import { CenterDashboard } from './components/CenterDashboard'
+import { PersistentTelemetryDrawer } from './components/PersistentTelemetryDrawer'
+import { InteractivePipelineStepper } from './components/InteractivePipelineStepper'
 import { MobileDrawer } from './components/MobileDrawer'
 import { MobileBottomNav } from './components/MobileBottomNav'
 import { SprintDesignerModal } from './components/SprintDesignerModal'
@@ -53,7 +55,8 @@ export default function App() {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false)
   const [isDiffModalOpen, setIsDiffModalOpen] = useState<boolean>(false)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false)
-  const [projectName, setProjectName] = useState<string>('Stable-Ecommerce')
+  const [projectName, setProjectName] = useState<string>('Tienda Online (Stable-Ecommerce)')
+  const [activeBranch, setActiveBranch] = useState<string>('worktrees/scheduler')
   const [selectedJiraTicketForSprint, setSelectedJiraTicketForSprint] = useState<any | null>(null)
 
   // Dynamic state loaded strictly from backend APIs
@@ -62,7 +65,12 @@ export default function App() {
   const [connections, setConnections] = useState<TechnologyItem[]>([])
   const [commits, setCommits] = useState<CommitItem[]>([])
   const [projects, setProjects] = useState<Project[]>([
-    { id: 'stable-ecommerce', name: 'Tienda Online (Stable-Ecommerce)', is_active: true } as any,
+    {
+      id: 'stable-ecommerce',
+      name: 'Tienda Online (Stable-Ecommerce)',
+      is_active: true,
+      branch: 'worktrees/scheduler',
+    } as any,
   ])
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [pendingGatesCount, setPendingGatesCount] = useState<number>(0)
@@ -80,6 +88,12 @@ export default function App() {
       if (ctxData.active_project?.name) {
         setProjectName(ctxData.active_project.name)
       }
+      if (ctxData.active_project?.branch) {
+        setActiveBranch(ctxData.active_project.branch)
+      } else {
+        setActiveBranch('worktrees/scheduler')
+      }
+
       if (ctxData.jira_backlog && ctxData.jira_backlog.length > 0) {
         const now = new Date()
         const sprintStart = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
@@ -123,15 +137,19 @@ export default function App() {
         setAgents([])
       }
 
-      const comRes = await fetch('/api/github/commits?limit=4')
+      const comRes = await fetch('/api/github/commits?limit=5')
       const comData = await comRes.json()
       if (comData.commits) setCommits(comData.commits)
 
       const projRes = await fetch('/api/projects')
       const projData = await projRes.json()
-      if (projData.projects) setProjects(projData.projects)
+      if (projData.projects) {
+        setProjects(projData.projects)
+        const act = projData.projects.find((p: any) => p.is_active)
+        if (act?.branch) setActiveBranch(act.branch)
+      }
 
-      const evRes = await fetch('/api/db/rows?table=events&limit=8')
+      const evRes = await fetch('/api/db/rows?table=events&limit=25')
       const evData = await evRes.json()
       if (evData.rows) setEvents(evData.rows)
 
@@ -189,6 +207,22 @@ export default function App() {
     }
   }, [])
 
+  const handleSelectProject = async (projId: string) => {
+    try {
+      const res = await fetch('/api/projects/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        await loadData()
+      }
+    } catch (e) {
+      console.warn('Error switching project from header:', e)
+    }
+  }
+
   // Derive deterministic DomainState (UI = f(DomainState))
   const domainState = deriveDomainState({
     projectsCount: projects.length,
@@ -203,41 +237,46 @@ export default function App() {
   const getBreadcrumbs = () => {
     switch (currentSection) {
       case 'jira':
-        return [{ label: 'Requerimientos y Lista de Tareas', sectionId: 'jira' }]
+        return [{ label: 'Backlog & Requerimientos', sectionId: 'jira' }]
       case 'email':
         return [{ label: 'Notificaciones por Correo', sectionId: 'email' }]
       case 'chat':
-        return [{ label: 'Asistente de Consulta', sectionId: 'chat' }]
+        return [{ label: 'Terminal de Consulta', sectionId: 'chat' }]
       case 'connections':
-        return [{ label: 'Conexiones del Sistema', sectionId: 'connections' }]
+        return [{ label: 'Conexiones de Infraestructura', sectionId: 'connections' }]
       case 'workflows':
-        return [{ label: 'Catálogo de Flujos', sectionId: 'workflows' }]
+        return [{ label: 'Contratos SolidBit', sectionId: 'workflows' }]
       case 'designer':
       case 'roadmap':
-        return [{ label: '3. Mapa de Flujo', sectionId: 'roadmap' }]
+        return [{ label: 'Mapa de Flujo DAG', sectionId: 'roadmap' }]
       case 'agents':
-        return [{ label: '4. Equipo de Asistentes', sectionId: 'agents' }]
+        return [{ label: 'Escuadrón de Agentes', sectionId: 'agents' }]
       case 'gates':
       case 'executions':
-        return [{ label: '5. Aprobaciones e Historial', sectionId: 'executions' }]
+        return [{ label: 'Aprobaciones & Auditoría', sectionId: 'executions' }]
       case 'projects':
-        return [{ label: '2. Proyectos Vinculados', sectionId: 'projects' }]
+        return [{ label: 'Proyectos & Repositorios', sectionId: 'projects' }]
       case 'database':
       case 'reports':
-        return [{ label: 'Registro de Actividad y Reglas de Negocio', sectionId: 'database' }]
+        return [{ label: 'Auditoría SQLite WAL', sectionId: 'database' }]
       case 'github':
       case 'settings':
-        return [{ label: 'Perfil y Sincronización', sectionId: 'github' }]
+        return [{ label: 'Configuración & Sync', sectionId: 'github' }]
       default:
-        return [{ label: '1. Sprint Actual' }]
+        return [{ label: 'Sprint Activo', sectionId: 'dashboard' }]
     }
   }
 
+  const activeProject = projects.find((p) => p.is_active) || projects[0]
+
   return (
-    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-black text-zinc-100 font-sans overflow-hidden">
-      {/* Top Header (Driven by the single DomainState FSM — Invariant 1 & 2) */}
+    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#09090B] text-zinc-100 font-sans overflow-hidden">
+      {/* Header Global de Proyecto con Rama Anclada y Dropdown */}
       <Header
         projectName={projectName}
+        activeBranch={activeBranch}
+        projects={projects}
+        onSelectProject={handleSelectProject}
         domainState={domainState}
         onNavigateSection={(sec) => setCurrentSection(sec)}
         onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
@@ -248,9 +287,9 @@ export default function App() {
       {/* Network Offline / Reconnection Banner */}
       <NetworkStatusBanner onRetry={loadData} />
 
-      {/* Main Layout */}
-      <div className="flex flex-1 overflow-hidden bg-black relative">
-        {/* Left Sidebar (5 MECE OOUX Domain Entities — Invariant 2) */}
+      {/* Layout Maestro de 3 Capas Continuas (Sidebar ~18%, Workbench ~52%, Telemetría ~30%) */}
+      <div className="flex flex-1 overflow-hidden bg-[#09090B] relative">
+        {/* Capa 1: Sidebar de Navegación OOUX (Izquierda) */}
         <LeftSidebar
           currentSection={currentSection}
           onSelectSection={(sec) => setCurrentSection(sec)}
@@ -258,12 +297,22 @@ export default function App() {
           projectsCount={projects.length}
         />
 
-        {/* Center Main Viewport */}
+        {/* Capa 2: Workbench Central Dinámico (~65% del área operativa) */}
         <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
-          <div className="border-b border-zinc-850 pb-2">
+          {/* Breadcrumbs y Stepper Interactivo Vinculante */}
+          <div className="space-y-3 border-b border-white/5 pb-3">
             <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
+            <InteractivePipelineStepper
+              currentSection={currentSection}
+              currentState={domainState.state}
+              onSelectStep={(sec) => setCurrentSection(sec)}
+              hasConflict={hasConflict}
+              isExecuting={isExecuting || agents.length > 0}
+              pendingGatesCount={pendingGatesCount}
+            />
           </div>
 
+          {/* Renderizado Reactivo del Workbench Activo */}
           {currentSection === 'dashboard' && (
             <CenterDashboard
               domainState={domainState}
@@ -313,7 +362,13 @@ export default function App() {
             />
           )}
 
-          {currentSection === 'agents' && <AgentsSection />}
+          {currentSection === 'agents' && (
+            <AgentsSection
+              onAgentLaunched={() => loadData()}
+              domainState={domainState}
+              onNavigateToResolution={() => setCurrentSection('executions')}
+            />
+          )}
 
           {(currentSection === 'gates' || currentSection === 'executions') && (
             <ExecutionsSection />
@@ -333,6 +388,26 @@ export default function App() {
 
           {(currentSection === 'github' || currentSection === 'settings') && <SettingsSection />}
         </main>
+
+        {/* Capa 3: Drawer Persistente de Telemetría, Logs FSM y Daemon (Derecha) */}
+        <div className="hidden lg:block h-full">
+          <PersistentTelemetryDrawer
+            daemonPort={8765}
+            activeProject={activeProject}
+            activeBranch={activeBranch}
+            agents={agents}
+            commits={commits}
+            events={events}
+            onNavigateSection={(sec) => setCurrentSection(sec)}
+            onRefreshTelemetry={loadData}
+            onSimulateConflict={() => {
+              const next = !hasConflict
+              setHasConflict(next)
+              setConflictReason(next ? 'Incidencia simulada para verificar contención.' : null)
+            }}
+            hasConflict={hasConflict}
+          />
+        </div>
       </div>
 
       {/* Mobile Slide-Over Navigation Drawer */}
