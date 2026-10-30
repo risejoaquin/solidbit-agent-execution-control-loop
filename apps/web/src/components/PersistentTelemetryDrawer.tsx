@@ -365,6 +365,56 @@ export const PersistentTelemetryDrawer: React.FC<PersistentTelemetryDrawerProps>
               </div>
             </div>
 
+            {/* 2.5 Últimos 5 Eventos SSE Estructurados (SolidBit Telemetría Limpia) */}
+            <div className="p-4 rounded-2xl bg-[#121215] border border-white/5 space-y-2.5 shadow-md">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{t('Últimos 5 Eventos SSE', 'Recent 5 SSE Events')}</span>
+                </span>
+                <span className="text-[10px] font-mono text-zinc-500">
+                  {events.length} {t('totales', 'total')}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scroll pr-1">
+                {events.length === 0 ? (
+                  <div className="p-3 rounded-xl bg-black border border-white/5 text-[11px] text-zinc-500 text-center font-sans">
+                    {t('0 transacciones en sacl_ops.db', '0 transactions in sacl_ops.db')}
+                  </div>
+                ) : (
+                  events.slice(0, 5).map((ev: any, idx: number) => {
+                    const isError = ev.type === 'error' || ev.severity === 'ERROR' || ev.status === 'ERROR'
+                    const isSuccess = ev.type === 'success' || ev.status === 'PASS' || ev.status === 'COMPLETED'
+                    return (
+                      <div
+                        key={ev.id || idx}
+                        className={`p-2 rounded-xl bg-black border text-[11px] font-mono flex flex-col gap-1 transition ${
+                          isError
+                            ? 'border-rose-500/30 text-rose-300'
+                            : isSuccess
+                            ? 'border-emerald-500/30 text-emerald-300'
+                            : 'border-white/5 text-zinc-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white text-[10px] truncate max-w-[170px]">
+                            {ev.agent || ev.agent_id || 'KERNEL'} · {ev.type || ev.event_type || 'EVENT'}
+                          </span>
+                          <span className="text-[9px] text-zinc-500 font-sans">
+                            {ev.time || (ev.created_at ? new Date(ev.created_at).toLocaleTimeString() : 'Ahora')}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 leading-snug line-clamp-2 font-sans">
+                          {ev.message || ev.summary || (typeof ev.payload === 'object' ? JSON.stringify(ev.payload) : String(ev.payload || 'Evento emitido.'))}
+                        </p>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+
             {/* 3. Últimos Commits Registrados */}
             <div className="p-4 rounded-2xl bg-[#121215] border border-white/5 space-y-2.5 shadow-md">
               <div className="flex items-center justify-between">

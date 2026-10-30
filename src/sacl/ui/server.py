@@ -310,6 +310,37 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        # 2.1 REST API fallback for /api/events and /api/runs (SolidBit Database Inspection)
+        if path == "/api/events" and "text/event-stream" not in self.headers.get("Accept", ""):
+            conn = self.service._get_read_only_conn()
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT * FROM events ORDER BY rowid DESC LIMIT 50;")
+                cols = [d[0] for d in cur.description] if cur.description else []
+                rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+                self._send_json(200, {"success": True, "table": "events", "columns": cols, "rows": rows, "count": len(rows)})
+                return
+            except Exception as e:
+                self._send_json(500, {"success": False, "error": str(e)})
+                return
+            finally:
+                conn.close()
+
+        if path == "/api/runs":
+            conn = self.service._get_read_only_conn()
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT * FROM runs ORDER BY rowid DESC LIMIT 50;")
+                cols = [d[0] for d in cur.description] if cur.description else []
+                rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+                self._send_json(200, {"success": True, "table": "runs", "columns": cols, "rows": rows, "count": len(rows)})
+                return
+            except Exception as e:
+                self._send_json(500, {"success": False, "error": str(e)})
+                return
+            finally:
+                conn.close()
+
         # 2. Server-Sent Events (SSE) Live Stream: /api/events or /api/events/stream
         if path in ("/api/events", "/api/events/stream"):
             self.send_response(200)
