@@ -20,12 +20,26 @@ import {
   ChevronDown,
   ChevronUp,
   Terminal,
+  Clock,
+  User,
+  ArrowRight,
+  ShieldAlert,
 } from 'lucide-react'
 import type { TaskItem } from '../../types/orchestrator'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from '../ui/drawer'
+import { StatusBadge } from '../ui/status-badge'
 
 interface RoadmapSectionProps {
   tasks: TaskItem[]
-  onOpenSprintModal: () => void
+  onOpenSprintModal?: () => void
 }
 
 interface DagNode {
@@ -36,12 +50,27 @@ interface DagNode {
   gate_required: boolean
   timeout_sec: number
   dependencies: string
+  status?: 'IDLE' | 'RUNNING' | 'COMPLETED' | 'ERROR'
 }
 
 const AgentStepNode = ({ data }: { data: any }) => {
   const isGate = data.gate_required
+  const status = data.status || 'IDLE'
+
+  let borderStyle = 'border-white/10 hover:border-zinc-500'
+  if (status === 'RUNNING') {
+    borderStyle = 'border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)] ring-1 ring-cyan-400/50'
+  } else if (status === 'ERROR') {
+    borderStyle = 'border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+  } else if (isGate) {
+    borderStyle = 'border-amber-500/40 hover:border-amber-400'
+  }
+
   return (
-    <div className="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 hover:border-zinc-500 shadow-2xl min-w-[220px] max-w-[260px] text-left transition select-none">
+    <div
+      onClick={data.onSelect}
+      className={`p-3.5 rounded-2xl bg-[#0C0C0E] border ${borderStyle} shadow-2xl min-w-[220px] max-w-[260px] text-left transition select-none cursor-pointer group`}
+    >
       <Handle
         type="target"
         position={Position.Top}
@@ -58,17 +87,20 @@ const AgentStepNode = ({ data }: { data: any }) => {
               : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
           }`}
         >
-          {isGate ? 'Requiere Aprobación' : 'Automático'}
+          {isGate ? 'Requiere Firma' : 'Automático'}
         </span>
       </div>
-      <div className="font-bold text-white text-xs truncate" title={data.label}>
+      <div className="font-bold text-white text-xs truncate group-hover:text-cyan-300 transition" title={data.label}>
         {data.label}
       </div>
       <div className="text-[10px] font-mono text-zinc-400 mt-0.5 truncate">
         {data.agent_role}
       </div>
-      <div className="mt-2 pt-2 border-t border-zinc-900 flex items-center justify-between text-[9px] font-mono text-zinc-500">
-        <span>Tiempo máx: {data.timeout_sec}s</span>
+      <div className="mt-2 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[9px] font-mono text-zinc-500">
+        <span className="flex items-center gap-1">
+          <Clock className="w-2.5 h-2.5 text-zinc-400" />
+          {data.timeout_sec}s máx
+        </span>
         <span className="text-zinc-300">{data.action}</span>
       </div>
       <Handle
@@ -94,6 +126,10 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
   const [validating, setValidating] = useState(false)
   const [validationResult, setValidationResult] = useState<any>(null)
   const [showTechExport, setShowTechExport] = useState(false)
+
+  // Drawer detail state for interactive DAG exploration
+  const [selectedNode, setSelectedNode] = useState<DagNode | null>(null)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const loadDag = async () => {
     try {
@@ -138,15 +174,15 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
     }
   }
 
+  const handleOpenNodeDetail = (node: DagNode) => {
+    setSelectedNode(node)
+    setIsDrawerOpen(true)
+  }
+
   const handleExportJSON = () => {
-    const payload = {
-      campaign: dagData || { name: 'Secuencia de Flujo de Trabajo' },
-      nodes: dagNodes,
-      backlog: backlogTasks,
-      exported_at: new Date().toISOString(),
-    }
     const dataStr =
-      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2))
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(dagData || { nodes: dagNodes }, null, 2))
     const a = document.createElement('a')
     a.href = dataStr
     a.download = 'mapa_flujo_trabajo.json'
@@ -197,6 +233,8 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
         action: n.action,
         gate_required: n.gate_required,
         timeout_sec: n.timeout_sec,
+        status: idx === 0 ? 'COMPLETED' : idx === 1 ? 'RUNNING' : 'IDLE',
+        onSelect: () => handleOpenNodeDetail(n),
       },
     }
   })
@@ -217,31 +255,41 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
       source: d,
       target: n.id,
       animated: true,
-      style: { stroke: '#71717a', strokeWidth: 1.5 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#71717a' },
+      style: { stroke: '#38bdf8', strokeWidth: 1.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#38bdf8' },
     }))
   })
 
+  // Filter tasks belonging to the currently selected node
+  const filteredSubtasks = selectedNode
+    ? (backlogTasks.length > 0 ? backlogTasks : initialTasks).filter((t: any) => {
+        const titleMatch = t.title?.toLowerCase().includes(selectedNode.label.toLowerCase())
+        const phaseMatch = t.phase?.toLowerCase().includes(selectedNode.agent_role.toLowerCase())
+        const keyMatch = t.key?.toLowerCase().includes(selectedNode.id.toLowerCase())
+        return titleMatch || phaseMatch || keyMatch
+      })
+    : []
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto text-left pb-12">
-      {/* 1. Header Bar (Zero algorithm jargon in Layer 1 & Single Primary CTA) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-zinc-950 border border-zinc-850">
+      {/* 1. Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[#0C0C0E] border border-white/5 shadow-xl">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-lg font-bold text-white tracking-tight">
-              Mapa de Flujo y Secuencia de Etapas
+            <h1 className="text-lg font-extrabold text-white tracking-tight">
+              Mapa de Flujo y Secuencia de DAGs
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-200 border border-zinc-750">
-              {dagNodes.length} Etapas Conectadas
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-200 border border-zinc-750 font-bold">
+              {dagNodes.length} Nodos Conectados
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Visualiza el orden exacto en que se ejecutan las revisiones y qué etapas solicitan tu autorización.
+            Haz clic sobre cualquier etapa o nodo del grafo para abrir instantáneamente el panel de subtareas asociadas.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Secondary View Mode Switcher */}
+          {/* View Mode Switcher */}
           <div className="flex items-center p-1 rounded-2xl bg-black border border-zinc-800">
             <button
               type="button"
@@ -253,7 +301,7 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
               }`}
             >
               <GitBranch className="w-3.5 h-3.5" />
-              <span>Mapa Visual</span>
+              <span>Grafo Interactivo</span>
             </button>
             <button
               type="button"
@@ -281,7 +329,6 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
             </button>
           </div>
 
-          {/* SINGLE Primary Action Token in RoadmapSection (Hick's Law) */}
           <button
             type="button"
             onClick={handleValidateSequence}
@@ -312,19 +359,23 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
 
       {/* Interactive Sequence Canvas */}
       {viewMode === 'flow' && (
-        <div className="h-[440px] w-full rounded-3xl bg-zinc-950 border border-zinc-850 overflow-hidden relative shadow-2xl">
+        <div className="h-[440px] w-full rounded-3xl bg-[#09090B] border border-white/5 overflow-hidden relative shadow-2xl">
           <div className="absolute top-3 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-zinc-800 text-[11px] text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Mapa Interactivo de Etapas ({dagNodes.length} pasos conectados)</span>
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Grafo Interactivo: Haz clic en cualquier nodo para ver sus subtareas</span>
           </div>
           <ReactFlow
             nodes={flowNodes}
             edges={flowEdges}
             nodeTypes={nodeTypes}
+            onNodeClick={(_, node) => {
+              const original = dagNodes.find((n) => n.id === node.id)
+              if (original) handleOpenNodeDetail(original)
+            }}
             fitView
             className="bg-[#09090b]"
           >
-            <Background color="#27272a" gap={20} size={1} />
+            <Background color="#1f1f23" gap={20} size={1} />
             <Controls className="!bg-zinc-900 !border-zinc-800 !text-white [&>button]:!border-zinc-800 [&>button]:!fill-white" />
             <MiniMap
               nodeColor="#3f3f46"
@@ -335,12 +386,13 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
         </div>
       )}
 
-      {/* Stage Cards Grid */}
+      {/* Stage Cards Grid with Click-to-Open Drawer */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {dagNodes.map((node, index) => (
           <div
             key={node.id}
-            className="p-4 rounded-2xl bg-zinc-950 border border-zinc-850 space-y-3 hover:border-zinc-700 transition"
+            onClick={() => handleOpenNodeDetail(node)}
+            className="p-4 rounded-2xl bg-[#0C0C0E] border border-white/5 space-y-3 hover:border-cyan-500/50 hover:bg-[#121215] transition cursor-pointer shadow-lg group"
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-zinc-300">
@@ -358,13 +410,15 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
             </div>
 
             <div>
-              <h3 className="text-xs font-bold text-white">{node.label}</h3>
+              <h3 className="text-xs font-bold text-white group-hover:text-cyan-300 transition">
+                {node.label}
+              </h3>
               <p className="text-[11px] text-zinc-400 mt-0.5">
                 Responsable: <strong className="text-zinc-200">{node.agent_role}</strong>
               </p>
             </div>
 
-            <div className="space-y-1 pt-2 border-t border-zinc-900 text-[11px] text-zinc-400">
+            <div className="space-y-1 pt-2 border-t border-zinc-850 text-[11px] text-zinc-400">
               <div className="flex justify-between">
                 <span>Tarea:</span>
                 <span className="text-zinc-200 font-mono">{node.action}</span>
@@ -382,8 +436,8 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
 
       {/* Gantt / Table View */}
       {(viewMode === 'gantt' || viewMode === 'list') && (
-        <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-850 space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-850 pb-4">
+        <div className="p-6 rounded-3xl bg-[#0C0C0E] border border-white/5 space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-2.5">
               <Layers className="w-4 h-4 text-zinc-200" />
               <h2 className="text-sm font-bold text-white">
@@ -404,7 +458,7 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
                   return (
                     <div
                       key={t.key || idx}
-                      className="p-3.5 rounded-2xl bg-black border border-zinc-850 space-y-2"
+                      className="p-3.5 rounded-2xl bg-black border border-zinc-800 space-y-2"
                     >
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-white">{t.title}</span>
@@ -425,7 +479,7 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-zinc-850 text-[11px] text-zinc-400">
+                  <tr className="border-b border-zinc-800 text-[11px] text-zinc-400">
                     <th className="pb-2.5">Referencia</th>
                     <th className="pb-2.5">Objetivo</th>
                     <th className="pb-2.5">Responsable</th>
@@ -454,8 +508,8 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
         </div>
       )}
 
-      {/* Layer 2 Progressive Disclosure: Technical Export & Raw Data */}
-      <div className="rounded-2xl bg-zinc-950 border border-zinc-850 overflow-hidden">
+      {/* Layer 2 Progressive Disclosure */}
+      <div className="rounded-2xl bg-[#0C0C0E] border border-white/5 overflow-hidden">
         <button
           type="button"
           onClick={() => setShowTechExport(!showTechExport)}
@@ -473,7 +527,7 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
         </button>
 
         {showTechExport && (
-          <div className="p-4 pt-0 border-t border-zinc-900 flex items-center gap-3 mt-3">
+          <div className="p-4 pt-0 border-t border-zinc-800/80 flex items-center gap-3 mt-3">
             <button
               type="button"
               onClick={handleExportJSON}
@@ -493,6 +547,92 @@ export const RoadmapSection: React.FC<RoadmapSectionProps> = ({
           </div>
         )}
       </div>
+
+      {/* Interactive Drawer for Selected Node Details */}
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent side="right">
+          {selectedNode && (
+            <div className="space-y-5 flex flex-col h-full text-left">
+              <DrawerHeader>
+                <div className="flex items-center gap-2 mb-1">
+                  <StatusBadge
+                    status={selectedNode.gate_required ? 'WAITING' : 'IDLE'}
+                    label={selectedNode.gate_required ? 'Requiere Aprobación' : 'Paso Automático'}
+                  />
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    ID: {selectedNode.id}
+                  </span>
+                </div>
+                <DrawerTitle>{selectedNode.label}</DrawerTitle>
+                <DrawerDescription>
+                  Especialista asignado: {selectedNode.agent_role}
+                </DrawerDescription>
+              </DrawerHeader>
+
+              <div className="space-y-4 flex-1 overflow-y-auto custom-scroll pr-1">
+                {/* Node Parameters */}
+                <div className="p-4 rounded-2xl bg-black border border-white/5 space-y-2.5 font-mono text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Acción a Ejecutar:</span>
+                    <span className="text-zinc-200 font-bold">{selectedNode.action}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Tiempo Máximo (Timeout):</span>
+                    <span className="text-sky-400">{selectedNode.timeout_sec}s</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Depende de (Predecesores):</span>
+                    <span className="text-emerald-400">{selectedNode.dependencies || 'Ninguna (Inicio)'}</span>
+                  </div>
+                </div>
+
+                {/* Associated Backlog Subtasks */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                    Subtareas Asignadas a este Nodo ({filteredSubtasks.length}):
+                  </h4>
+
+                  {filteredSubtasks.length > 0 ? (
+                    <div className="space-y-2">
+                      {filteredSubtasks.map((task: any, idx: number) => (
+                        <div
+                          key={task.key || idx}
+                          className="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1 text-xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[11px] font-bold text-sky-400">
+                              {task.key || `#${idx + 1}`}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-800 text-zinc-300">
+                              {task.status || 'En progreso'}
+                            </span>
+                          </div>
+                          <p className="text-white font-medium">{task.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-zinc-900/30 border border-white/5 text-center text-xs text-zinc-500">
+                      No hay tareas individuales filtradas para esta etapa específica en el backlog actual.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <button
+                    type="button"
+                    className="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black font-extrabold text-xs cursor-pointer shadow-md transition"
+                  >
+                    Entendido / Cerrar Panel
+                  </button>
+                </DrawerClose>
+              </DrawerFooter>
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }

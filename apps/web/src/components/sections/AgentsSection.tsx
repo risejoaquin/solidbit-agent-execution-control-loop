@@ -198,6 +198,113 @@ const SOLIDBIT_CHARACTERS: AgentCharacter[] = [
   },
 ]
 
+const AGENT_SPECIFIC_PRESETS: Record<
+  string,
+  {
+    placeholderEs: string
+    placeholderEn: string
+    presetsEs: string[]
+    presetsEn: string[]
+  }
+> = {
+  atlas: {
+    placeholderEs: 'Ej: Particionar oleadas con algoritmo de Kahn y aislar ramas...',
+    placeholderEn: 'E.g.: Partition waves with Kahn algorithm and isolate branches...',
+    presetsEs: [
+      'Particionar oleadas con algoritmo Kahn',
+      'Aislar rama en Git Worktree',
+      'Chequear colisiones de dependencias',
+      'Verificar lock de rutas críticas',
+    ],
+    presetsEn: [
+      'Partition waves with Kahn algorithm',
+      'Isolate branch in Git Worktree',
+      'Check dependency collisions',
+      'Verify critical path locks',
+    ],
+  },
+  vega: {
+    placeholderEs: 'Ej: Auditar que DR-INV-001 no permita sobreventa en checkout...',
+    placeholderEn: 'E.g.: Audit that DR-INV-001 prevents overselling at checkout...',
+    presetsEs: [
+      'Verificar reglas de inventario DR-INV-001',
+      'Auditar partida doble de pagos DR-PAY-001',
+      'Verificar persistencia SQLite WAL',
+      'Comprobar bloqueos de concurrencia',
+    ],
+    presetsEn: [
+      'Verify DR-INV-001 inventory rules',
+      'Audit DR-PAY-001 double-entry payments',
+      'Verify SQLite WAL persistence',
+      'Check concurrency locks',
+    ],
+  },
+  orion: {
+    placeholderEs: 'Ej: Validar diseño Bento Grid y responsividad de componentes React 19...',
+    placeholderEn: 'E.g.: Validate Bento Grid layout & React 19 component responsiveness...',
+    presetsEs: [
+      'Inspeccionar componentes React 19',
+      'Validar layout Bento Grid y accesibilidad',
+      'Ajustar micro-interacciones de usuario',
+      'Optimizar latencia y renderizado',
+    ],
+    presetsEn: [
+      'Inspect React 19 components',
+      'Validate Bento Grid layout & a11y',
+      'Tune user micro-interactions',
+      'Optimize latency & rendering',
+    ],
+  },
+  centinela: {
+    placeholderEs: 'Ej: Escanear repositorio para asegurar cero claves expuestas...',
+    placeholderEn: 'E.g.: Scan repository to ensure zero exposed keys...',
+    presetsEs: [
+      'Verificar compuertas Gates 0 a 5',
+      'Escanear reglas Hard-Deny y secretos',
+      'Auditar firmas HMAC y aprobaciones',
+      'Bloquear despliegue sin autorización',
+    ],
+    presetsEn: [
+      'Verify Gates 0 to 5 checkpoints',
+      'Scan Hard-Deny rules and secrets',
+      'Audit HMAC signatures & approvals',
+      'Block unauthorized deployments',
+    ],
+  },
+  fenix: {
+    placeholderEs: 'Ej: Probar reversión atómica de transacciones y recuperación WAL...',
+    placeholderEn: 'E.g.: Test atomic transaction rollback and WAL recovery...',
+    presetsEs: [
+      'Verificar puntos de recuperación WAL',
+      'Probar reversión atómica de transacciones',
+      'Auditar idempotencia de scripts',
+      'Restaurar estado seguro de base de datos',
+    ],
+    presetsEn: [
+      'Verify WAL recovery checkpoints',
+      'Test atomic transaction rollback',
+      'Audit script idempotency',
+      'Restore database safe state',
+    ],
+  },
+  nova: {
+    placeholderEs: 'Ej: Ejecutar suite de pruebas Pytest y medir cobertura...',
+    placeholderEn: 'E.g.: Run Pytest test suite and measure coverage...',
+    presetsEs: [
+      'Correr pruebas de calidad Pytest',
+      'Medir cobertura de código (>90%)',
+      'Ejecutar pruebas de mutación',
+      'Verificar contratos OpenAPI/JSON',
+    ],
+    presetsEn: [
+      'Run Pytest quality suite',
+      'Measure code coverage (>90%)',
+      'Execute mutation testing',
+      'Verify OpenAPI/JSON contracts',
+    ],
+  },
+}
+
 export const CharacterAvatarSVG: React.FC<{
   type: AgentCharacter['avatarType']
   state: 'idle' | 'preparing' | 'working' | 'done'
@@ -675,300 +782,324 @@ export const AgentsSection: React.FC<AgentsSectionProps> = ({
         </div>
       </div>
 
-      {/* Interactive Character Roster (6 Animated Personas) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {SOLIDBIT_CHARACTERS.map((char) => {
-          const st = charStates[char.id] || 'idle'
-          const isSelected = selectedCharId === char.id
-          return (
-            <div
-              key={char.id}
-              onClick={() => handleSelectCharacter(char)}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
-                isSelected
-                  ? 'bg-zinc-900/95 border-white shadow-xl scale-[1.01]'
-                  : 'bg-zinc-950/90 border-zinc-850 hover:border-zinc-700 hover:bg-zinc-900/50'
-              }`}
-            >
-              {/* Top Workorder & Code Pill */}
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${char.badgeBg}`}
-                >
-                  {char.workorderId}
-                </span>
-                <span className="text-[10px] font-mono text-zinc-500">
-                  {char.codeName}
-                </span>
-              </div>
-
-              {/* Character Avatar + Name & Role */}
-              <div className="flex items-center gap-4">
-                <CharacterAvatarSVG
-                  type={char.avatarType}
-                  state={st}
-                  accent={char.accentColor}
-                />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-extrabold text-white truncate">
-                      {char.characterName}
-                    </h3>
-                  </div>
-                  <p className="text-xs font-semibold text-zinc-300 leading-snug">
-                    {t(char.titleEs, char.titleEn)}
-                  </p>
-                  <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
-                    {t(char.personalityEs, char.personalityEn)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Animated Progress Bar when Preparing or Working */}
-              {(st === 'preparing' || st === 'working') && (
-                <div className="mt-3 pt-2.5 border-t border-zinc-800/80 space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-semibold">
-                    <span
-                      style={{ color: char.accentColor }}
-                      className="flex items-center gap-1"
-                    >
-                      <Zap className="w-3 h-3" />
-                      {st === 'working'
-                        ? t('Ejecutando orden en vivo...', 'Executing order live...')
-                        : t('Preparando herramientas...', 'Preparing tools...')}
-                    </span>
-                    <span className="text-zinc-400 font-mono">
-                      {char.worktree}
-                    </span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        st === 'working' ? 'w-full animate-pulse' : 'w-2/5'
-                      }`}
-                      style={{ backgroundColor: char.accentColor }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Selected Character Interactive Stage & Command Center */}
-      <div className="p-6 rounded-2xl bg-zinc-950 border border-zinc-850 space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-5 border-b border-zinc-900">
-          <div className="flex items-start sm:items-center gap-4">
-            <CharacterAvatarSVG
-              type={selectedChar.avatarType}
-              state={charStates[selectedChar.id] || 'idle'}
-              accent={selectedChar.accentColor}
-            />
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-lg font-extrabold text-white">
-                  {selectedChar.characterName}
-                </span>
-                <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${selectedChar.badgeBg}`}
-                >
-                  {selectedChar.workorderId}
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">
-                  ({selectedChar.worktree})
-                </span>
-              </div>
-              <p className="text-xs text-zinc-300 font-medium">
-                {t(selectedChar.specialtyEs, selectedChar.specialtyEn)}
-              </p>
-
-              {/* Speech / Action Bubble */}
-              <div className="mt-2 p-3 rounded-xl bg-zinc-900 border border-zinc-750 text-xs text-emerald-300 font-medium italic">
-                {activeBubbleText ||
-                  t(selectedChar.prepareQuoteEs, selectedChar.prepareQuoteEn)}
-              </div>
-            </div>
+      {/* Master-Detail Layout: Compact Roster on Left (4 cols) & Active Terminal on Right (8 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Compact Specialist Roster with 1-Line Technical Specs */}
+        <div className="lg:col-span-4 space-y-3">
+          <div className="flex items-center justify-between pb-1">
+            <span className="text-xs font-mono uppercase text-zinc-400 font-bold tracking-wider">
+              {t('Escuadrón Especialista (6)', 'Specialist Squad (6)')}
+            </span>
+            <span className="text-[10px] font-mono text-emerald-400 font-semibold">
+              Zero-Token Idle
+            </span>
           </div>
 
-          {/* Secondary Action: Coordinate All 6 Characters in Sequence */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              disabled={runningWave || isBlocked}
-              onClick={handleRunFullSquadWave}
-              className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-750 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
-            >
-              {runningWave ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                  <span>
-                    {t('Coordinando Escuadrón...', 'Coordinating Squad...')}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Bot className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="space-y-2.5">
+            {SOLIDBIT_CHARACTERS.map((char) => {
+              const st = charStates[char.id] || 'idle'
+              const isSelected = selectedCharId === char.id
+
+              return (
+                <div
+                  key={char.id}
+                  onClick={() => handleSelectCharacter(char)}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
+                    isSelected
+                      ? 'bg-[#18181B] border-white shadow-xl ring-1 ring-white/20'
+                      : 'bg-[#0C0C0E] border-white/5 hover:border-zinc-700 hover:bg-zinc-900/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${char.badgeBg}`}
+                    >
+                      {char.workorderId}
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {char.codeName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="shrink-0 scale-90 -ml-1">
+                      <CharacterAvatarSVG
+                        type={char.avatarType}
+                        state={st}
+                        accent={char.accentColor}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-extrabold text-white truncate">
+                          {char.characterName}
+                        </h3>
+                        {isSelected && (
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        )}
+                      </div>
+                      <p className="text-[11px] font-medium text-zinc-300 truncate">
+                        {t(char.titleEs, char.titleEn)}
+                      </p>
+
+                      {/* 1-Line Technical Specs instead of verbose lore */}
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 pt-0.5">
+                        <span className="truncate text-sky-400">
+                          {char.worktree}
+                        </span>
+                        <span>&bull;</span>
+                        <span className="truncate text-emerald-400">
+                          {char.ownedPaths[0]}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {(st === 'preparing' || st === 'working') && (
+                    <div className="mt-2.5 pt-2 border-t border-zinc-800/80 space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-semibold">
+                        <span
+                          style={{ color: char.accentColor }}
+                          className="flex items-center gap-1"
+                        >
+                          <Zap className="w-3 h-3" />
+                          {st === 'working'
+                            ? t('Ejecutando orden en vivo...', 'Executing order live...')
+                            : t('Preparando herramientas...', 'Preparing tools...')}
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: st === 'working' ? '100%' : '40%',
+                            backgroundColor: char.accentColor,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Right Column: Active Agent Interaction Terminal & Live Telemetry (8 cols) */}
+        <div className="lg:col-span-8 space-y-5">
+          <div className="p-6 rounded-3xl bg-[#0C0C0E] border border-white/5 space-y-5 shadow-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-800">
+              <div className="flex items-start sm:items-center gap-4">
+                <CharacterAvatarSVG
+                  type={selectedChar.avatarType}
+                  state={charStates[selectedChar.id] || 'idle'}
+                  accent={selectedChar.accentColor}
+                />
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-lg font-extrabold text-white">
+                      {selectedChar.characterName}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${selectedChar.badgeBg}`}
+                    >
+                      {selectedChar.workorderId}
+                    </span>
+                    <span className="text-xs text-zinc-400 font-mono">
+                      ({selectedChar.worktree})
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-300 font-medium">
+                    {t(selectedChar.specialtyEs, selectedChar.specialtyEn)}
+                  </p>
+
+                  <div className="mt-2 p-3 rounded-xl bg-black border border-white/5 text-xs text-emerald-300 font-medium italic">
+                    {activeBubbleText ||
+                      t(selectedChar.prepareQuoteEs, selectedChar.prepareQuoteEn)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  disabled={runningWave || isBlocked}
+                  onClick={handleRunFullSquadWave}
+                  className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-750 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50"
+                >
+                  {runningWave ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                      <span>{t('Coordinando...', 'Coordinating...')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{t('Coordinar Oleada Completa', 'Coordinate Full Wave')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Direct Assignment Input with Dynamic Contextual Presets (Fixing Context Leak) */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5 text-emerald-400" />
                   <span>
                     {t(
-                      'Simular y Verificar Oleada de los 6 Agentes',
-                      'Coordinate & Verify All 6 Agents Wave'
+                      `¿Qué orden técnica deseas asignarle a ${selectedChar.characterName}?`,
+                      `What technical order would you like to assign to ${selectedChar.characterName}?`
                     )}
                   </span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* How to Ask the Orchestrator / Direct Assignment Input */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-2">
-            <label className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Send className="w-3.5 h-3.5 text-emerald-400" />
-              <span>
-                {t(
-                  `¿Qué quieres pedirle a ${selectedChar.characterName}?`,
-                  `What would you like to ask ${selectedChar.characterName} to do?`
-                )}
-              </span>
-            </label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                value={customInstruction}
-                onChange={(e) => setCustomInstruction(e.target.value)}
-                placeholder={t(
-                  `Ej: Auditar que DR-INV-001 no permita sobreventa en checkout...`,
-                  `E.g.: Audit that DR-INV-001 prevents overselling at checkout...`
-                )}
-                className="flex-1 bg-black border border-zinc-800 focus:border-white rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none"
-              />
-              <button
-                type="button"
-                disabled={charStates[selectedChar.id] === 'working' || isBlocked}
-                onClick={() => handleRunCharacterMission(selectedChar)}
-                className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-bold text-white transition cursor-pointer shrink-0"
-              >
-                {t('Enviar Orden al Agente', 'Send Order to Agent')}
-              </button>
-            </div>
-            {/* Quick Prompt Presets from SolidBit Declared Flows */}
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {[
-                t(
-                  'Verificar reglas de inventario DR-INV-001',
-                  'Verify DR-INV-001 inventory rules'
-                ),
-                t(
-                  'Auditar partida doble de pagos DR-PAY-001',
-                  'Audit DR-PAY-001 double-entry payments'
-                ),
-                t(
-                  'Correr pruebas de calidad Pytest',
-                  'Run Pytest quality suite'
-                ),
-                t(
-                  'Revisar aislamiento de ramas Git Worktree',
-                  'Check Git Worktree branch isolation'
-                ),
-              ].map((preset, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setCustomInstruction(preset)}
-                  className="px-2.5 py-1 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-[11px] text-zinc-300 transition cursor-pointer"
-                >
-                  {preset}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Owned Paths & Governance Guarantees */}
-          <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-850 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-zinc-200 flex items-center gap-1.5">
-                <FolderGit2 className="w-3.5 h-3.5 text-sky-400" />
-                {t('Áreas que cuida este agente', 'Paths owned by this agent')}
-              </span>
-              <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                <Lock className="w-3 h-3" />
-                {t('Rama Aislada', 'Isolated Branch')}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {selectedChar.ownedPaths.map((p) => (
-                <span
-                  key={p}
-                  className="px-2 py-0.5 rounded bg-black border border-zinc-800 text-[10px] font-mono text-zinc-300"
-                >
-                  {p}
-                </span>
-              ))}
-            </div>
-            <p className="text-[11px] text-zinc-400 leading-relaxed pt-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 inline mr-1" />
-              {t(
-                'Regla SolidBit: Ningún agente puede fusionar a main ni publicar en producción sin tu autorización.',
-                'SolidBit Rule: No agent can merge to main or deploy to production without your authorization.'
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* Action Result Banner */}
-        {actionError && (
-          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-200">
-            {actionError}
-          </div>
-        )}
-
-        {actionResult && (
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="text-xs font-bold text-white">
-                  {actionResult.title ||
-                    t(
-                      `Misión completada por ${selectedChar.characterName}`,
-                      `Mission completed by ${selectedChar.characterName}`
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={customInstruction}
+                    onChange={(e) => setCustomInstruction(e.target.value)}
+                    placeholder={
+                      (AGENT_SPECIFIC_PRESETS[selectedChar.id]
+                        ? t(
+                            AGENT_SPECIFIC_PRESETS[selectedChar.id].placeholderEs,
+                            AGENT_SPECIFIC_PRESETS[selectedChar.id].placeholderEn
+                          )
+                        : t(
+                            `Ej: Ejecutar misión especializada para ${selectedChar.characterName}...`,
+                            `E.g.: Execute specialized mission for ${selectedChar.characterName}...`
+                          ))
+                    }
+                    className="flex-1 bg-black border border-zinc-800 focus:border-white rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none font-mono"
+                  />
+                  <button
+                    type="button"
+                    disabled={charStates[selectedChar.id] === 'working' || isBlocked}
+                    onClick={() => handleRunCharacterMission(selectedChar)}
+                    className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 disabled:opacity-40 text-black text-xs font-extrabold transition cursor-pointer shrink-0 shadow-md flex items-center justify-center gap-2"
+                  >
+                    {charStates[selectedChar.id] === 'working' ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
+                        <span>Ejecutando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-black" />
+                        <span>{t('Ejecutar Orden', 'Run Order')}</span>
+                      </>
                     )}
-                </span>
+                  </button>
+                </div>
+
+                {/* Strictly Dynamic Contextual Prompt Presets */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[10px] font-mono text-zinc-500 uppercase">
+                    {t(
+                      `Sugerencias técnicas para ${selectedChar.characterName}:`,
+                      `Technical suggestions for ${selectedChar.characterName}:`
+                    )}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(
+                      AGENT_SPECIFIC_PRESETS[selectedChar.id]
+                        ? AGENT_SPECIFIC_PRESETS[selectedChar.id].presetsEs.map((p, idx) =>
+                            t(p, AGENT_SPECIFIC_PRESETS[selectedChar.id].presetsEn[idx])
+                          )
+                        : []
+                    ).map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setCustomInstruction(preset)}
+                        className="px-2.5 py-1 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-[11px] text-zinc-300 hover:text-white transition cursor-pointer font-mono"
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowTechLogs(!showTechLogs)}
-                className="text-[11px] text-zinc-300 hover:text-white flex items-center gap-1 cursor-pointer"
-              >
-                <Terminal className="w-3.5 h-3.5" />
-                <span>
-                  {showTechLogs
-                    ? t('Ocultar salida técnica', 'Hide technical output')
-                    : t('Ver salida técnica', 'View technical output')}
-                </span>
-                {showTechLogs ? (
-                  <ChevronUp className="w-3.5 h-3.5" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
-                )}
-              </button>
+
+              {/* Owned Paths & Governance */}
+              <div className="p-4 rounded-xl bg-black border border-white/5 space-y-2 font-mono text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-zinc-200 flex items-center gap-1.5">
+                    <FolderGit2 className="w-3.5 h-3.5 text-sky-400" />
+                    {t('Áreas exclusivas bajo su custodia:', 'Exclusive paths under custody:')}
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                    <Lock className="w-3 h-3" />
+                    {t('Aislamiento Worktree', 'Worktree Isolation')}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedChar.ownedPaths.map((p) => (
+                    <span
+                      key={p}
+                      className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300"
+                    >
+                      {p}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-zinc-300">
-              {actionResult.summary ||
-                t(
-                  'Verificación ejecutada directamente sobre tu repositorio.',
-                  'Verification executed directly on your repository.'
+
+            {/* Action Result / Live Terminal Output */}
+            {actionError && (
+              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200">
+                {actionError}
+              </div>
+            )}
+
+            {actionResult && (
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="text-xs font-bold text-white">
+                      {actionResult.title ||
+                        t(
+                          `Misión completada por ${selectedChar.characterName}`,
+                          `Mission completed by ${selectedChar.characterName}`
+                        )}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTechLogs(!showTechLogs)}
+                    className="text-[11px] text-zinc-300 hover:text-white flex items-center gap-1 cursor-pointer font-mono"
+                  >
+                    <Terminal className="w-3.5 h-3.5" />
+                    <span>
+                      {showTechLogs
+                        ? t('Ocultar salida técnica', 'Hide technical output')
+                        : t('Ver salida técnica', 'View technical output')}
+                    </span>
+                    {showTechLogs ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-zinc-300">
+                  {actionResult.summary ||
+                    t(
+                      'Verificación ejecutada directamente sobre tu repositorio.',
+                      'Verification executed directly on your repository.'
+                    )}
+                </p>
+                {showTechLogs && actionResult.raw_output && (
+                  <pre className="p-3 rounded-xl bg-black border border-white/5 text-[11px] font-mono text-zinc-300 overflow-x-auto max-h-56">
+                    {actionResult.raw_output}
+                  </pre>
                 )}
-            </p>
-            {showTechLogs && actionResult.raw_output && (
-              <pre className="p-3 rounded-xl bg-black border border-zinc-850 text-[11px] font-mono text-zinc-300 overflow-x-auto max-h-56">
-                {actionResult.raw_output}
-              </pre>
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Declared SolidBit Workorders Table (IMPL-DB-001 through IMPL-FINAL-001) */}
