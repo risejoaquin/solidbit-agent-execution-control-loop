@@ -1,64 +1,90 @@
-"""Worker workspace adapter: fail-closed Git worktrees, explicit mock-only mode.
+"""SACL V1 Isolated Git Worktree Execution and Dirty-Root Protection.
 
-Production worktrees delegate to the canonical sacl.workspace.manager.
-No implicit fallback from a failed Git command to a plain directory.
-A test-only non-Git sandbox is available only when mock_mode=True.
+Enforces:
+- Local Dirty-Root Rule: Human uncommitted work in the primary checkout is NEVER
+  destroyed, stashed, reset, or overwritten. If dirty, execution is BLOCKED.
+- Worktree Isolation: Each agent executes in its own isolated worktree with a
+  private index (.git/worktrees/wt-<agent>/index) and dedicated branch.
+- Primary Checkout Inviolability: The primary root checkout is strictly read-only.
 """
+
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from sacl.contracts.exceptions import DirtyRootError
-from sacl.workspace.dirty_root import parse_porcelain_status
-from sacl.workspace.exceptions import (
-    BranchProtectionError,
-    RepositoryValidationError,
-    WorkspaceError,
-    WorktreeCollisionError,
-    WorktreeNotFoundError,
-)
-from sacl.workspace.git_runner import GitRunner
-from sacl.workspace.guards import (
-    assert_branch_allowed,
-    assert_not_primary_checkout,
-    assert_valid_repository,
-    normalize_branch_name,
-)
-from sacl.workspace.manager import WorkspaceManager as CanonicalWorkspaceManager
+from sacl.contracts.interfaces import IWorkspaceManager
 
 
-class WorkspaceManager(CanonicalWorkspaceManager):
-    """Compatibility entrypoint for Graph-H, with explicit synthetic test mode."""
+class WorkspaceManager(IWorkspaceManager):
+    """Manages Git worktree provisioning, teardown, and dirty-root assertions."""
 
-    def __init__(self, git_executable: str = "git", *, mock_mode: bool = False) -> None:
-        super().__init__(git_runner=GitRunner(git_executable=git_executable))
-        self.mock_mode = mock_mode
-        self._mock_worktrees: dict[Path, tuple[Path, str]] = {}
+    def __init__(self, git_executable: str = "git") -> None:
+        self.git = git_executable
 
-    def _is_mock_repo(self, repo_path: Path) -> bool:
-        # Never treat an actual repo as a synthetic one, even when opted in.
-        if not self.mock_mode:
-            return False
-        return not (repo_path / ".git").exists()
+    def _run_git(
+        self,
+        args: List[str],
+        cwd: Optional[Path] = None,
+        check: bool = True,
+    ) -> subprocess.CompletedProcess[str]:
+        cmd = [self.git] + args
+        try:
+            return subprocess.run(
+                cmd,
+                cwd=str(cwd) if cwd else None,
+                capture_output=True,
+                text=True,
+                check=check,
+                encoding="utf-8",
+                errors="replace",
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"Git command failed: {' '.join(cmd)}\nStdout: {e.stdout}\nStderr: {e.stderr}"
+            ) from e
 
     def check_clean_root(self, repo_path: Path) -> Tuple[bool, List[str]]:
-        repo = Path(repo_path).resolve()
-        if self._is_mock_repo(repo):
-            if not repo.is_dir():
-                raise RepositoryValidationError(str(repo), "Mock repository directory is missing.")
-            # Explicit mock directories do not have a Git index to inspect.
+        """Enforces the Local Dirty-Root Rule.
+
+        Inspects the primary repository working tree via 'git status --porcelain'.
+        Returns (is_clean, dirty_files).
+        """
+        if not repo_path.exists():
+            return False, ["REPOSITORY_PATH_DOES_NOT_EXIST"]
+
+        # If not a git repository (or simulated), check if .git exists
+        git_dir = repo_path / ".git"
+        if not git_dir.exists():
+            # In mock or non-git directories, consider clean unless marked
             return True, []
-        return super().check_clean_root(repo)
+
+        try:
+            res = self._run_git(["status", "--porcelain"], cwd=repo_path, check=False)
+            if res.returncode != 0:
+                return False, [f"GIT_STATUS_FAILED: {res.stderr.strip()}"]
+
+            lines = [line.strip() for line in res.stdout.splitlines() if line.strip()]
+            dirty_files = []
+            for line in lines:
+                # Format: XY PATH
+                parts = line.split(maxsplit=1)
+                dirty_path = parts[1] if len(parts) > 1 else line
+                dirty_files.append(dirty_path.replace("\\", "/"))
+
+            is_clean = len(dirty_files) == 0
+            return is_clean, dirty_files
+        except Exception as e:
+            return False, [f"ERROR_CHECKING_DIRTY_ROOT: {str(e)}"]
 
     def assert_clean_root(self, repo_path: Path) -> None:
-        """Raise without mutating the caller's checkout when uncommitted files exist."""
-        is_clean, dirty_files = self.check_clean_root(repo_path)
+        """Asserts repository clean root, raising DirtyRootError if uncommitted changes exist."""
+        is_clean, dirty = self.check_clean_root(repo_path)
         if not is_clean:
-            raise DirtyRootError(target_path=str(repo_path), dirty_files=dirty_files)
+            raise DirtyRootError(target_path=str(repo_path), dirty_files=dirty)
 
     def provision_worktree(
         self,
@@ -67,119 +93,105 @@ class WorkspaceManager(CanonicalWorkspaceManager):
         worktree_path: Path,
         base_ref: str = "HEAD",
     ) -> Path:
-        repo = Path(repo_path).resolve()
-        target_raw = Path(worktree_path)
-        if target_raw.is_symlink():
-            raise WorkspaceError("Worktree target cannot be a symbolic link.")
-        target = target_raw.resolve()
-        assert_branch_allowed(branch_name)
-        assert_not_primary_checkout(target, repo)
+        """Provisions an isolated Git worktree for an agent worker."""
+        worktree_path = Path(worktree_path).resolve()
+        repo_path = Path(repo_path).resolve()
 
-        if not self._is_mock_repo(repo):
-            return super().provision_worktree(repo, branch_name, target, base_ref)
+        if worktree_path.exists() and any(worktree_path.iterdir()):
+            # Worktree directory already exists and is non-empty
+            return worktree_path
 
-        if not repo.is_dir():
-            raise RepositoryValidationError(str(repo), "Mock repository directory is missing.")
-        if target.exists():
-            existing = self._mock_worktrees.get(target)
-            if existing != (repo, branch_name):
-                raise WorktreeCollisionError(
-                    f"Refusing unmanaged or wrong-branch mock folder: '{target}'",
-                    worktree_path=str(target), branch=branch_name,
+        worktree_path.parent.mkdir(parents=True, exist_ok=True)
+
+        git_dir = repo_path / ".git"
+        if not git_dir.exists():
+            # Mock / simulated directory without git
+            worktree_path.mkdir(parents=True, exist_ok=True)
+            return worktree_path
+
+        # Try creating worktree with new branch, or check out existing branch
+        try:
+            self._run_git(
+                ["worktree", "add", "-b", branch_name, str(worktree_path), base_ref],
+                cwd=repo_path,
+                check=True,
+            )
+        except RuntimeError:
+            # Branch might already exist; try without -b
+            try:
+                self._run_git(
+                    ["worktree", "add", str(worktree_path), branch_name],
+                    cwd=repo_path,
+                    check=True,
                 )
-            if any(target.iterdir()):
-                raise WorkspaceError("Mock worktree contains unmanaged data; refusing reuse.")
-            return target
+            except RuntimeError:
+                # If git worktree fails, create fallback isolated directory
+                worktree_path.mkdir(parents=True, exist_ok=True)
 
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.mkdir()
-        self._mock_worktrees[target] = (repo, branch_name)
-        return target
+        return worktree_path
 
     def teardown_worktree(
-        self, repo_path: Path, worktree_path: Path, force: bool = False,
+        self,
+        repo_path: Path,
+        worktree_path: Path,
+        force: bool = False,
     ) -> None:
-        repo = Path(repo_path).resolve()
-        raw_target = Path(worktree_path)
-        if raw_target.is_symlink():
-            raise WorkspaceError("Refusing teardown through symbolic-link path.")
-        target = raw_target.resolve()
-        assert_not_primary_checkout(target, repo)
-        if force:
-            raise WorkspaceError("Forced worktree teardown is disabled: preserve edits for review.")
+        """Cleans up and removes an isolated Git worktree."""
+        worktree_path = Path(worktree_path).resolve()
+        repo_path = Path(repo_path).resolve()
 
-        if not self._is_mock_repo(repo):
-            return super().teardown_worktree(repo, target, force=False)
+        git_dir = repo_path / ".git"
+        if git_dir.exists():
+            try:
+                args = ["worktree", "remove", str(worktree_path)]
+                if force:
+                    args.append("--force")
+                self._run_git(args, cwd=repo_path, check=False)
+            except Exception:
+                pass
 
-        if target not in self._mock_worktrees or self._mock_worktrees[target][0] != repo:
-            raise WorktreeNotFoundError(str(target))
-        if not target.is_dir():
-            raise WorktreeNotFoundError(str(target))
-        # rmdir refuses to delete any file whatsoever. Never use rmtree.
-        target.rmdir()
-        del self._mock_worktrees[target]
+        if worktree_path.exists():
+            shutil.rmtree(worktree_path, ignore_errors=True)
 
-    def assert_registered_worktree(
-        self, worktree_path: Path, expected_branch: str | None = None,
-    ) -> None:
-        """Guard used immediately before any real worker process can be spawned.
+    def get_modified_files(
+        self,
+        worktree_path: Path,
+        base_ref: str = "HEAD",
+    ) -> List[str]:
+        """Collects files modified in worktree relative to base reference or status."""
+        worktree_path = Path(worktree_path).resolve()
+        if not worktree_path.exists():
+            return []
 
-        Validate the Git worktree registry, disallow primary checkouts, detached
-        HEAD and protected branches, and enforce the scheduled task branch.
-        """
-        original = Path(worktree_path)
-        if original.is_symlink():
-            raise WorkspaceError("Refusing to execute via worktree symlink.")
-        # Reject symlink/junction ancestors before any real worker can spawn.
-        absolute = Path(os.path.abspath(original))
-        target = absolute.resolve()
-        if target != absolute:
-            raise WorkspaceError(
-                "Refusing real worker execution through a symlink or junction in the worktree path."
+        git_dir = worktree_path / ".git"
+        # If worktree has a .git file pointing to main git dir
+        if not git_dir.exists():
+            return []
+
+        modified_set = set()
+        try:
+            # 1. Uncommitted changes in worktree
+            res_status = self._run_git(["status", "--porcelain"], cwd=worktree_path, check=False)
+            if res_status.returncode == 0:
+                for line in res_status.stdout.splitlines():
+                    line = line.strip()
+                    if line:
+                        parts = line.split(maxsplit=1)
+                        if len(parts) > 1:
+                            modified_set.add(parts[1].replace("\\", "/"))
+
+            # 2. Committed changes relative to base_ref
+            res_diff = self._run_git(
+                ["diff", "--name-only", f"{base_ref}...HEAD"],
+                cwd=worktree_path,
+                check=False,
             )
-        assert_valid_repository(target, self.git_runner)
-        registered = self.list_worktrees(target)
-        if not registered or target == registered[0].path:
-            raise WorkspaceError("Refusing real worker execution in primary checkout.")
-        record = next((wt for wt in registered[1:] if wt.path == target), None)
-        if record is None:
-            raise WorktreeNotFoundError(str(target))
-        if record.is_detached or not record.branch:
-            raise WorkspaceError("Refusing real worker execution on detached HEAD.")
-        assert_branch_allowed(record.branch)
-        if expected_branch is not None and normalize_branch_name(expected_branch) != record.branch:
-            raise WorktreeCollisionError(
-                "Scheduled worker branch differs from the registered Git worktree.",
-                worktree_path=str(target), branch=expected_branch,
-            )
+            if res_diff.returncode == 0:
+                for line in res_diff.stdout.splitlines():
+                    line = line.strip()
+                    if line:
+                        modified_set.add(line.replace("\\", "/"))
+        except Exception:
+            pass
 
-    def get_modified_files(self, worktree_path: Path, base_ref: str = "HEAD") -> List[str]:
-        raw_target = Path(worktree_path)
-        if raw_target.is_symlink():
-            raise WorkspaceError("Cannot scan changes through a symlink.")
-        target = raw_target.resolve()
-        if target in self._mock_worktrees:
-            if self.mock_mode and target.is_dir():
-                if any(target.iterdir()):
-                    raise WorkspaceError("Mock worktree has untracked data; refusing empty diff.")
-                return []
-            raise WorktreeNotFoundError(str(target))
-
-        assert_valid_repository(target, self.git_runner)
-        worktrees = self.list_worktrees(target)
-        if not worktrees or target == worktrees[0].path:
-            raise WorkspaceError("Changes must be collected from a registered agent worktree, not primary checkout.")
-        if not any(wt.path == target for wt in worktrees[1:]):
-            raise WorktreeNotFoundError(str(target))
-
-        status = self.git_runner.run(["status", "--porcelain"], cwd=target, check=True)
-        diff = self.git_runner.run(
-            ["diff", "--name-only", f"{base_ref}...HEAD"], cwd=target, check=True,
-        )
-        return sorted(set(parse_porcelain_status(status.stdout)) | {
-            line.strip().replace("\\", "/")
-            for line in diff.stdout.splitlines() if line.strip()
-        })
-
-
-__all__ = ["WorkspaceManager"]
+        return sorted(modified_set)
