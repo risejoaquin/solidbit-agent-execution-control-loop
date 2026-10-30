@@ -6,6 +6,7 @@ Supports Windows Credential Manager / DPAPI integration and in-memory mock adapt
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import abc
 import datetime
@@ -122,7 +123,7 @@ class InMemoryOAuth2CredentialProvider(IOAuth2CredentialProvider):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with safe_urlopen(req, timeout=15) as resp:
                 resp_data = json.loads(resp.read().decode("utf-8"))
                 return self._apply_token_response(resp_data)
         except urllib.error.HTTPError as e:

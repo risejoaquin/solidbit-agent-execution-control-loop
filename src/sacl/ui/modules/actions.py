@@ -47,7 +47,7 @@ class ActionExecutionModule:
         """Dispatches an action and returns empirically measured execution results."""
         params = params or {}
         exec_id = (
-            f"EXEC-{int(time.time())}-{hashlib.md5(action_type.encode()).hexdigest()[:4].upper()}"
+            f"EXEC-{int(time.time())}-{hashlib.sha256(action_type.encode()).hexdigest()[:4].upper()}"
         )
         t_start_total = time.perf_counter()
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -430,7 +430,7 @@ class ActionExecutionModule:
                 # 5. Registro Real en Base de Datos SQLite WAL (sacl_ops.db)
                 t_step5 = time.perf_counter()
                 proj_name = target_root.name
-                gate_req_id = f"REQ-{datetime.now().strftime('%Y%m%d')}-{hashlib.md5(run_id.encode()).hexdigest()[:8].upper()}"
+                gate_req_id = f"REQ-{datetime.now().strftime('%Y%m%d')}-{hashlib.sha256(run_id.encode()).hexdigest()[:8].upper()}"
                 job_id = f"JOB-{run_id}"
 
                 if self.service and hasattr(self.service, "_get_read_write_conn"):

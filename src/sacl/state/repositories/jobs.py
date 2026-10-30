@@ -118,7 +118,7 @@ class JobRepository(BaseRepository):
             params.append(project_id)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM jobs {where_clause} ORDER BY priority DESC, created_at ASC LIMIT ?;"
+        sql = f"SELECT * FROM jobs {where_clause} ORDER BY priority DESC, created_at ASC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
 
         rows = self.fetchall_dict(sql, params)

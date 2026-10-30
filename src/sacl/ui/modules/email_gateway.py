@@ -11,6 +11,7 @@ header is spoofable and is never trusted as the sole control.
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import html
 import json
@@ -188,7 +189,7 @@ class EmailGatewayModule:
                     },
                     method="POST",
                 )
-                with urllib.request.urlopen(req, timeout=8.0) as resp:
+                with safe_urlopen(req, timeout=8.0) as resp:
                     resp_data = json.loads(resp.read().decode("utf-8"))
                     log_entry["resend_id"] = resp_data.get("id")
                     log_entry["status"] = "SENT"

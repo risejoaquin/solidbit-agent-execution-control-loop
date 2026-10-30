@@ -180,7 +180,7 @@ class RunRepository(BaseRepository):
             params.append(status)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM runs {where_clause} ORDER BY started_at DESC LIMIT ?;"
+        sql = f"SELECT * FROM runs {where_clause} ORDER BY started_at DESC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
         return self.fetchall_dict(sql, params)
 

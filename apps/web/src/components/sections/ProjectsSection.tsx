@@ -9,15 +9,37 @@ import {
   ChevronUp,
   FolderOpen,
   AlertCircle,
+  Sparkles,
+  ShieldCheck,
+  GitBranch,
+  GitCommit,
+  Play,
+  Loader2,
+  RefreshCw,
+  Award,
 } from 'lucide-react'
 
-export const ProjectsSection: React.FC = () => {
+interface ProjectsSectionProps {
+  onLaunchAutoSprint?: (planData: any) => void
+  onNavigateSection?: (section: string) => void
+}
+
+export const ProjectsSection: React.FC<ProjectsSectionProps> = ({
+  onLaunchAutoSprint,
+  onNavigateSection,
+}) => {
   const [projectsList, setProjectsList] = useState<any[]>([])
   const [activeProjId, setActiveProjId] = useState<string>('')
   const [fsTree, setFsTree] = useState<any[]>([])
   const [docContent, setDocContent] = useState<string | null>(null)
   const [selectedDocName, setSelectedDocName] = useState<string>('')
   const [showFileTree, setShowFileTree] = useState<boolean>(false)
+
+  // 360° Project Dossier & Live Audit State
+  const [inspection360, setInspection360] = useState<any | null>(null)
+  const [loading360, setLoading360] = useState<boolean>(false)
+  const [planningAutoSprint, setPlanningAutoSprint] = useState<boolean>(false)
+  const [autoSprintResult, setAutoSprintResult] = useState<any | null>(null)
 
   // Manual Import Form State (Poka-Yoke + Inline Validation)
   const [showImportModal, setShowImportModal] = useState<boolean>(false)
@@ -27,18 +49,38 @@ export const ProjectsSection: React.FC = () => {
     null
   )
 
+  const loadInspection360 = async (projId?: string) => {
+    setLoading360(true)
+    try {
+      const q = projId ? `?project_id=${encodeURIComponent(projId)}` : ''
+      const res = await fetch(`/api/projects/inspect-360${q}`)
+      const data = await res.json()
+      if (data && data.success) {
+        setInspection360(data)
+      }
+    } catch (e) {
+      console.warn('Error loading 360 inspection:', e)
+    } finally {
+      setLoading360(false)
+    }
+  }
+
   const loadData = async () => {
+    let currentActiveId = ''
     try {
       const res = await fetch('/api/projects')
       const data = await res.json()
       if (data && data.projects) {
         setProjectsList(data.projects)
         const active = data.projects.find((p: any) => p.is_active)
-        setActiveProjId(active?.id || data.active_project || (data.projects[0]?.id ?? ''))
+        currentActiveId = active?.id || data.active?.id || (data.projects[0]?.id ?? '')
+        setActiveProjId(currentActiveId)
       }
     } catch (e) {
       console.warn('Error loading projects:', e)
     }
+
+    await loadInspection360(currentActiveId)
 
     try {
       const treeRes = await fetch('/api/fs/tree')
@@ -65,13 +107,52 @@ export const ProjectsSection: React.FC = () => {
       const data = await res.json()
       if (data.success) {
         setActiveProjId(projId)
-        setFeedback({ type: 'success', message: data.message || 'Proyecto activado.' })
-        loadData()
+        setAutoSprintResult(null)
+        setFeedback({ type: 'success', message: data.message || 'Proyecto activado y auditado.' })
+        await loadData()
       } else {
         setFeedback({ type: 'error', message: data.error || 'No se pudo activar el proyecto.' })
       }
     } catch (e: any) {
       setFeedback({ type: 'error', message: 'Error de red: ' + e.message })
+    }
+  }
+
+  const handleAuditAndAutoSprint = async (executeImmediately: boolean) => {
+    setPlanningAutoSprint(true)
+    setFeedback(null)
+    try {
+      const res = await fetch('/api/projects/audit-and-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project_id: activeProjId,
+          execute_immediately: executeImmediately,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setAutoSprintResult(data)
+        if (data.inspection) {
+          setInspection360(data.inspection)
+        }
+        setFeedback({
+          type: 'success',
+          message: data.message,
+        })
+        if (onLaunchAutoSprint && data.plan && !executeImmediately) {
+          onLaunchAutoSprint(data)
+        }
+      } else {
+        setFeedback({
+          type: 'error',
+          message: data.error || 'No se pudo sintetizar el sprint automático.',
+        })
+      }
+    } catch (e: any) {
+      setFeedback({ type: 'error', message: 'Error de conexión: ' + e.message })
+    } finally {
+      setPlanningAutoSprint(false)
     }
   }
 
@@ -91,7 +172,7 @@ export const ProjectsSection: React.FC = () => {
         setFeedback({ type: 'success', message: data.message })
         setImportPath('')
         setShowImportModal(false)
-        loadData()
+        await loadData()
       } else {
         setFeedback({
           type: 'error',
@@ -118,7 +199,7 @@ export const ProjectsSection: React.FC = () => {
       const data = await res.json()
       if (data.success) {
         setFeedback({ type: 'success', message: data.message })
-        loadData()
+        await loadData()
       }
     } catch (e: any) {
       setFeedback({ type: 'error', message: 'Error quitando proyecto: ' + e.message })
@@ -138,24 +219,23 @@ export const ProjectsSection: React.FC = () => {
     }
   }
 
-  // Poka-Yoke inline check for Windows/Unix folder path
   const isPathValid = importPath.trim().length >= 3
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-fade-in">
-      {/* 1. Clean Header (Hick's Law: Single Primary CTA "+ Importar Carpeta Manualmente") */}
+    <div className="space-y-6 max-w-6xl mx-auto animate-fade-in pb-12 text-left">
+      {/* 1. Header con CTA para Importar Proyecto */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-zinc-950 border border-zinc-800 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <h1 className="text-lg font-extrabold text-white tracking-tight">
-              Mis Proyectos Importados
+              Proyectos Vinculados y Expediente 360° SolidBit
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-zinc-900 text-zinc-200 border border-zinc-700">
               {projectsList.length} {projectsList.length === 1 ? 'Proyecto' : 'Proyectos'}
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Solo aparecen las carpetas que tú importas manualmente. No escaneamos carpetas personales de tu computadora.
+            Abre cualquier proyecto para ver todo su estado en vivo, auditar sus 5 dimensiones SolidBit y diseñar el Sprint automáticamente con los hallazgos.
           </p>
         </div>
 
@@ -165,9 +245,9 @@ export const ProjectsSection: React.FC = () => {
             setShowImportModal(true)
             setFeedback(null)
           }}
-          className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-sm shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 text-xs font-bold flex items-center gap-2 transition cursor-pointer shrink-0"
         >
-          <Plus className="w-4 h-4 text-black" />
+          <Plus className="w-4 h-4 text-emerald-400" />
           <span>+ Importar Carpeta Manualmente</span>
         </button>
       </div>
@@ -177,8 +257,8 @@ export const ProjectsSection: React.FC = () => {
         <div
           className={`p-4 rounded-2xl border text-xs flex items-center justify-between gap-3 ${
             feedback.type === 'success'
-              ? 'bg-zinc-900 border-emerald-500/40 text-white'
-              : 'bg-zinc-900 border-amber-500/40 text-zinc-200'
+              ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
+              : 'bg-amber-950/30 border-amber-500/40 text-amber-200'
           }`}
         >
           <div className="flex items-center gap-2.5">
@@ -187,7 +267,7 @@ export const ProjectsSection: React.FC = () => {
             ) : (
               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
             )}
-            <span>{feedback.message}</span>
+            <span className="font-medium">{feedback.message}</span>
           </div>
           <button
             type="button"
@@ -199,111 +279,328 @@ export const ProjectsSection: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Imported Projects Cards */}
-      {projectsList.length === 0 ? (
-        <div className="p-10 rounded-3xl bg-zinc-950 border border-zinc-800 text-center space-y-3">
-          <FolderGit2 className="w-8 h-8 text-zinc-500 mx-auto" />
-          <h3 className="text-sm font-bold text-white">No has importado ningún proyecto todavía</h3>
-          <p className="text-xs text-zinc-400 max-w-md mx-auto">
-            Agrega la ruta de la carpeta donde tienes tu código para trabajar sobre ella de forma limpia y ordenada.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowImportModal(true)}
-            className="px-4 py-2 rounded-xl bg-white text-black text-xs font-bold cursor-pointer"
-          >
-            + Importar mi primera carpeta
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {projectsList.map((p) => {
-            const isActive = p.id === activeProjId || p.is_active
-            return (
-              <div
-                key={p.id}
-                className={`p-5 rounded-3xl transition flex flex-col justify-between space-y-4 border ${
-                  isActive
-                    ? 'bg-zinc-900 border-white ring-1 ring-white shadow-lg'
-                    : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700'
-                }`}
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                          isActive
-                            ? 'bg-white text-black'
-                            : 'bg-zinc-900 border border-zinc-800 text-zinc-200'
-                        }`}
-                      >
-                        <FolderGit2 className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-white">{p.name}</h3>
-                        <span className="text-[11px] text-zinc-400 block">
-                          Rama: <strong className="text-zinc-200 font-mono">{p.branch || 'main'}</strong>
-                        </span>
-                      </div>
+      {/* 2. Selector de Proyectos Importados */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {projectsList.map((p) => {
+          const isActive = p.id === activeProjId || p.is_active
+          return (
+            <div
+              key={p.id}
+              className={`p-5 rounded-3xl transition flex flex-col justify-between space-y-4 border ${
+                isActive
+                  ? 'bg-zinc-900/90 border-emerald-500/60 ring-1 ring-emerald-500/30 shadow-lg'
+                  : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700'
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                        isActive
+                          ? 'bg-emerald-500 text-black font-bold'
+                          : 'bg-zinc-900 border border-zinc-800 text-zinc-200'
+                      }`}
+                    >
+                      <FolderGit2 className="w-5 h-5" />
                     </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold ${
-                          isActive
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-zinc-800 text-zinc-400'
-                        }`}
-                      >
-                        {isActive ? '✓ EN USO' : 'GUARDADO'}
+                    <div>
+                      <h3 className="text-sm font-bold text-white">{p.name}</h3>
+                      <span className="text-[11px] text-zinc-400 block">
+                        Rama: <strong className="text-zinc-200 font-mono">{p.branch || 'main'}</strong> · Commit:{' '}
+                        <code className="text-emerald-400">{p.commit_hash || 'HEAD'}</code>
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveProject(p.id, p.name)}
-                        className="p-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-red-400 transition cursor-pointer"
-                        title="Quitar de la lista"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-black border border-zinc-850 text-[11px] font-mono text-zinc-300 truncate">
-                    {p.path}
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold ${
+                        isActive
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-zinc-800 text-zinc-400'
+                      }`}
+                    >
+                      {isActive ? '✓ PROYECTO ABIERTO' : 'DISPONIBLE'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveProject(p.id, p.name)}
+                      className="p-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-red-400 transition cursor-pointer"
+                      title="Quitar de la lista"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-zinc-850">
-                  <div className="flex flex-wrap gap-1.5">
-                    {(p.tech_stack || []).slice(0, 3).map((t: string) => (
-                      <span
-                        key={t}
-                        className="px-2 py-0.5 rounded-md bg-black border border-zinc-800 text-[10px] font-mono text-zinc-300"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+                <div className="p-2.5 rounded-xl bg-black border border-zinc-850 text-[11px] font-mono text-zinc-300 flex items-center justify-between">
+                  <span className="truncate">{p.path}</span>
+                  <span className="text-[10px] text-zinc-500 shrink-0 ml-2">
+                    {p.docs_count || 0} docs
+                  </span>
+                </div>
+              </div>
 
-                  {!isActive && (
+              <div className="flex items-center justify-between pt-2 border-t border-zinc-850">
+                <div className="flex flex-wrap gap-1.5">
+                  {(p.tech_stack || []).slice(0, 4).map((t: string) => (
+                    <span
+                      key={t}
+                      className="px-2 py-0.5 rounded-md bg-black border border-zinc-800 text-[10px] font-mono text-zinc-300"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSwitchProject(p.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    isActive
+                      ? 'bg-zinc-800 text-emerald-300 border border-emerald-500/30'
+                      : 'bg-white hover:bg-zinc-200 text-black'
+                  }`}
+                >
+                  {isActive ? 'Expediente 360° Activo' : 'Abrir y Auditar Proyecto'}
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 3. EXPEDIENTE 360° DEL PROYECTO Y AUDITORÍA SOLIDBIT EN VIVO */}
+      {inspection360 && (
+        <div className="p-6 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-6 shadow-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-zinc-850 pb-5">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  EXPEDIENTE 360° EN VIVO
+                </span>
+                <h2 className="text-base sm:text-lg font-extrabold text-white">
+                  {inspection360.project?.name} ({inspection360.project?.path})
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-zinc-900 text-emerald-400 border border-zinc-750">
+                  Salud SolidBit: {inspection360.audit_summary?.overall_score}%
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400">
+                Rama <code className="text-zinc-200">{inspection360.project?.branch}</code> @ commit{' '}
+                <code className="text-emerald-400">{inspection360.project?.commit}</code> ·{' '}
+                {inspection360.project?.py_tests_count || 0} archivos de prueba Pytest ·{' '}
+                {inspection360.project?.docs_count || 0} documentos de arquitectura · Auditado en{' '}
+                {inspection360.audit_summary?.duration_ms} ms
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => loadInspection360(activeProjId)}
+                disabled={loading360}
+                className="px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-750 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading360 ? 'animate-spin' : ''}`} />
+                <span>Re-Auditar Proyecto</span>
+              </button>
+
+              {/* SINGLE Primary Action Token in 360 Dossier (Hick's Law) */}
+              <button
+                type="button"
+                onClick={() => handleAuditAndAutoSprint(true)}
+                disabled={planningAutoSprint}
+                className="px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg disabled:opacity-50"
+              >
+                {planningAutoSprint ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                ) : (
+                  <Sparkles className="w-4 h-4 text-black" />
+                )}
+                <span>
+                  ⚡ Diseñar y Ejecutar Sprint Automático desde Auditoría
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3A. Matriz de las 5 Dimensiones de Auditoría SolidBit (con los 6 Personajes) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Diagnóstico en 5 Dimensiones del Escuadrón SolidBit</span>
+              </h3>
+              <span className="text-[11px] font-mono text-zinc-400">
+                5/5 Dimensiones Evaluadas en Disco
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+              {(inspection360.audit_dimensions || []).map((dim: any) => (
+                <div
+                  key={dim.id}
+                  className="p-4 rounded-2xl bg-black border border-zinc-850 flex flex-col justify-between space-y-3"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 text-emerald-400 border border-zinc-800 font-bold">
+                        {dim.character}
+                      </span>
+                      <span className="text-xs font-mono font-extrabold text-emerald-400">
+                        {dim.score}%
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold text-white leading-snug">{dim.dimension}</h4>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">{dim.summary}</p>
+                  </div>
+                  <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+                    <span>{dim.workorder}</span>
+                    <span className="text-emerald-400 font-bold">✓ {dim.status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3B. Hallazgos de Auditoría y Propuesta Automática de Sprint */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 p-5 rounded-2xl bg-black border border-zinc-850 space-y-3">
+              <div className="flex items-center justify-between border-b border-zinc-900 pb-2.5">
+                <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                  <Award className="w-4 h-4 text-amber-400" />
+                  <span>Hallazgos Accionables Detectados para el Sprint Automático</span>
+                </h3>
+                <span className="text-[10px] font-mono text-zinc-400">
+                  {(inspection360.findings || []).length} tareas sintetizadas
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {(inspection360.findings || []).map((f: any) => (
+                  <div
+                    key={f.id}
+                    className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-850 space-y-1.5"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-900 text-amber-300 border border-zinc-800">
+                          {f.id} · {f.contract}
+                        </span>
+                        <span className="text-xs font-bold text-white">{f.title}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                        Agentes: {f.agent}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400">{f.detail}</p>
+                    <div className="text-[11px] font-mono text-zinc-300 pt-1">
+                      ↳ Tarea automática: <strong className="text-white">{f.suggested_task}</strong>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3C. Commits Recientes y Contratos Vigentes del Proyecto */}
+            <div className="p-5 rounded-2xl bg-black border border-zinc-850 space-y-4 flex flex-col justify-between">
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-white flex items-center gap-2 border-b border-zinc-900 pb-2.5">
+                  <GitBranch className="w-4 h-4 text-emerald-400" />
+                  <span>Historial Git Reciente y Contratos</span>
+                </h3>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto custom-scroll pr-1">
+                  {(inspection360.git_telemetry?.recent_commits || []).map((c: any) => (
+                    <div
+                      key={c.hash}
+                      className="p-2.5 rounded-xl bg-zinc-950 border border-zinc-900 text-[11px] space-y-0.5"
+                    >
+                      <div className="flex items-center justify-between font-mono text-[10px]">
+                        <span className="text-emerald-400 font-bold flex items-center gap-1">
+                          <GitCommit className="w-3 h-3" />
+                          {c.hash}
+                        </span>
+                        <span className="text-zinc-500">{c.when}</span>
+                      </div>
+                      <p className="text-zinc-200 font-medium truncate">{c.subject}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-zinc-900">
+                <span className="text-[10px] font-mono uppercase text-zinc-400 block">
+                  Contratos Congelados Aplicados:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {(inspection360.contracts_catalog || []).map((c: any) => (
+                    <span
+                      key={c.id}
+                      title={c.name}
+                      className="px-2 py-0.5 rounded-md bg-zinc-900 border border-emerald-500/30 text-[10px] font-mono text-emerald-300 font-bold"
+                    >
+                      ✓ {c.id}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3D. Resultado en Vivo del Sprint Automático (Mesa de Decisión Directa) */}
+          {autoSprintResult && autoSprintResult.plan && (
+            <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-500/40 space-y-4 animate-fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-500/20 pb-3">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-emerald-300 font-bold block">
+                    ✓ SPRINT SINTETIZADO Y EJECUTADO DESDE LA AUDITORÍA DEL PROYECTO
+                  </span>
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    {autoSprintResult.plan.sprint_id} · {autoSprintResult.plan.title}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {onNavigateSection && (
                     <button
                       type="button"
-                      onClick={() => handleSwitchProject(p.id)}
-                      className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-bold transition cursor-pointer"
+                      onClick={() => onNavigateSection('executions')}
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-sm"
                     >
-                      Trabajar aquí
+                      <Play className="w-3.5 h-3.5 text-black" />
+                      <span>Ir a la Mesa de Decisiones y Firmar Gate 5</span>
                     </button>
                   )}
                 </div>
               </div>
-            )
-          })}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                {(autoSprintResult.plan.waves || []).map((w: any) => (
+                  <div
+                    key={w.wave_number}
+                    className="p-3 rounded-xl bg-black/90 border border-zinc-800 space-y-1"
+                  >
+                    <div className="flex items-center justify-between font-mono text-[10px]">
+                      <span className="text-emerald-400 font-bold">OLEADA {w.wave_number}</span>
+                      <span className="text-zinc-400">{w.expected_duration}</span>
+                    </div>
+                    <p className="font-bold text-white text-xs">{w.name}</p>
+                    <p className="text-[11px] text-zinc-400 font-mono">
+                      Agentes: {(w.parallel_agents || []).join(', ')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* 3. Progressive Disclosure: File Explorer tucked behind a clean toggle */}
-      <div className="pt-2">
+      {/* 4. Divulgación Progresiva: Explorador de Archivos y Lector de Documentación */}
+      <div className="pt-1">
         <button
           type="button"
           onClick={() => setShowFileTree(!showFileTree)}
@@ -313,8 +610,8 @@ export const ProjectsSection: React.FC = () => {
             <FolderOpen className="w-4 h-4 text-zinc-400" />
             <span>
               {showFileTree
-                ? 'Ocultar explorador de archivos del proyecto activo'
-                : `Explorar archivos dentro del proyecto activo (${fsTree.length} elementos)`}
+                ? 'Ocultar explorador de archivos y documentos del proyecto activo'
+                : `Inspeccionar archivos y documentos técnicos del proyecto (${fsTree.length} elementos en raíz)`}
             </span>
           </span>
           {showFileTree ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -327,7 +624,7 @@ export const ProjectsSection: React.FC = () => {
                 <div
                   key={item.path}
                   onClick={() => {
-                    if (item.extension === '.md' || item.extension === '.json') {
+                    if (!item.is_dir) {
                       handleViewDoc(item.path, item.name)
                     }
                   }}
@@ -337,7 +634,7 @@ export const ProjectsSection: React.FC = () => {
                     {item.is_dir ? (
                       <FolderGit2 className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                     ) : (
-                      <FileText className="w-3.5 h-3.5 text-zinc-200 shrink-0" />
+                      <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     )}
                     <span className="truncate">{item.name}</span>
                   </div>
@@ -357,7 +654,7 @@ export const ProjectsSection: React.FC = () => {
                 </div>
               ) : (
                 <p className="text-xs text-zinc-500 py-8 text-center">
-                  Selecciona un archivo .md o .json de la izquierda para leer su contenido.
+                  Selecciona un archivo de la izquierda (.md, .json, .py, .ts) para inspeccionar su contenido real en disco.
                 </p>
               )}
             </div>
@@ -365,7 +662,7 @@ export const ProjectsSection: React.FC = () => {
         )}
       </div>
 
-      {/* 4. Manual Folder Import Modal (Poka-Yoke + Smart Suggestions) */}
+      {/* 5. Modal de Importación Manual (Poka-Yoke) */}
       {showImportModal && (
         <div
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
@@ -391,14 +688,14 @@ export const ProjectsSection: React.FC = () => {
             <form onSubmit={handleImportProject} className="space-y-4 text-xs">
               <div className="space-y-1.5">
                 <label className="text-zinc-300 font-bold block">
-                  Pega la ruta completa de la carpeta en tu computadora:
+                  Ruta del repositorio o proyecto local:
                 </label>
                 <input
                   type="text"
                   autoFocus
                   value={importPath}
                   onChange={(e) => setImportPath(e.target.value)}
-                  placeholder="Ej: C:\Users\TuUsuario\Documents\Stable-Ecommerce"
+                  placeholder="Ej: ~/Proyectos/Stable-Ecommerce"
                   className="w-full bg-black border border-zinc-750 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-white"
                 />
                 <div className="flex items-center gap-1.5 text-[11px] pt-1">

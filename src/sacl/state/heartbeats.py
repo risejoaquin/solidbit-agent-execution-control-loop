@@ -106,7 +106,7 @@ class HeartbeatManager(BaseRepository):
             params.append(instance_id)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM heartbeats {where_clause} ORDER BY heartbeat_id DESC LIMIT ?;"
+        sql = f"SELECT * FROM heartbeats {where_clause} ORDER BY heartbeat_id DESC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
 
         rows = self.fetchall_dict(sql, params)

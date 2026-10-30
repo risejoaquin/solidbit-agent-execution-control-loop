@@ -181,6 +181,45 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
     )
   }
 
+  // 1-Click Automatic Audit + Sprint Synthesis from Project Findings
+  const handleAutoPlanFromAudit = async (executeImmediately: boolean = false) => {
+    setLoading(true)
+    setExecutionPhase(
+      executeImmediately
+        ? 'Auditando el proyecto en 5 dimensiones y ejecutando el Sprint con los 6 agentes...'
+        : 'Auditando el proyecto en vivo y diseñando el Sprint automáticamente con los hallazgos...'
+    )
+    try {
+      const res = await fetch('/api/projects/audit-and-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project_id: selectedProjectId,
+          execute_immediately: executeImmediately,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success && data.plan) {
+        setActivePlan(data.plan)
+        if (data.ticket?.title) setSprintTitle(data.ticket.title)
+        if (data.ticket?.key) setSprintKey(data.ticket.key)
+        if (data.ticket?.contracts) setSelectedContracts(data.ticket.contracts)
+        setActiveStep(3)
+        if (executeImmediately && data.execution) {
+          setExecutionResult(data.execution)
+          onSprintExecuted?.()
+        }
+      } else {
+        alert('No pudimos autogenerar el sprint desde la auditoría: ' + (data.error || 'Reintenta'))
+      }
+    } catch (e: any) {
+      alert('Error de conexión: ' + e.message)
+    } finally {
+      setLoading(false)
+      setExecutionPhase('')
+    }
+  }
+
   // Generate Automatic Work Plan
   const handleGeneratePlan = async () => {
     setLoading(true)
@@ -350,6 +389,28 @@ export const SprintDesignerModal: React.FC<SprintDesignerModalProps> = ({
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Banner de Síntesis Automática desde Auditoría 360° (1 Clic) */}
+        <div className="p-3.5 rounded-2xl bg-emerald-950/25 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-300 font-bold block">
+              ⚡ Flujo Continuo SolidBit · Sin llenar formularios a mano
+            </span>
+            <p className="text-xs text-zinc-200">
+              Audita el proyecto activo en vivo y deja que <strong>Atlas, Vega, Orión, Centinela, Fénix y Nova</strong> diseñen el Sprint automáticamente con los hallazgos.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => handleAutoPlanFromAudit(false)}
+              className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-extrabold transition cursor-pointer shadow-sm disabled:opacity-50"
+            >
+              ⚡ Autodiseñar desde Auditoría (1 Clic)
+            </button>
+          </div>
         </div>
 
         {/* Visual 3-Step Progress Bar */}

@@ -185,11 +185,9 @@ class IdempotencyHelper(BaseRepository):
         params.append(id_value)
         params.extend(status_params)
 
-        sql = f"""
-            UPDATE {table}
-            SET {", ".join(set_clauses)}
-            WHERE {id_column} = ? AND {where_status};
-        """
+        sql = (
+            f"UPDATE {table} SET {', '.join(set_clauses)} WHERE {id_column} = ? AND {where_status};"  # nosec B608
+        )
         cursor = self.execute(sql, params)
         self.commit()
         return cursor.rowcount > 0

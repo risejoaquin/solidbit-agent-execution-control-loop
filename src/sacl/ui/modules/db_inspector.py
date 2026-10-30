@@ -47,7 +47,7 @@ class DBInspectorModule:
             cur = conn.cursor()
             for t in tables:
                 try:
-                    cur.execute(f"SELECT COUNT(*) FROM {t};")
+                    cur.execute(f"SELECT COUNT(*) FROM {t};")  # nosec B608 - validated against static tables tuple
                     cnt = cur.fetchone()[0]
                     stats[t] = cnt
                     total += cnt

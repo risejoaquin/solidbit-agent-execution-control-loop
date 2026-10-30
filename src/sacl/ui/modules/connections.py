@@ -117,7 +117,7 @@ class ConnectionsModule:
         """Opens the official authentication portal or triggers native CLI browser OAuth."""
         if tool_id == "resend" and shutil.which("resend"):
             try:
-                subprocess.Popen(["resend", "login"], shell=True)
+                subprocess.Popen(["resend", "login"], shell=False)
                 return {
                     "success": True,
                     "tool_id": tool_id,
@@ -129,7 +129,7 @@ class ConnectionsModule:
 
         if tool_id == "railway" and shutil.which("railway"):
             try:
-                subprocess.Popen(["railway", "login"], shell=True)
+                subprocess.Popen(["railway", "login"], shell=False)
                 return {
                     "success": True,
                     "tool_id": tool_id,
@@ -140,7 +140,7 @@ class ConnectionsModule:
                 logger.warning(f"Error launching railway login: {exc}")
 
         if tool_id == "gh" and shutil.which("gh"):
-            r = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, shell=True)
+            r = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, shell=False)
             if r.returncode == 0:
                 return {
                     "success": True,
@@ -360,7 +360,7 @@ class ConnectionsModule:
                 stderr=subprocess.PIPE,
                 text=True,
                 timeout=3.5,
-                shell=True,
+                shell=False,
             )
             combined_ver = (proc.stdout or proc.stderr or "").strip()
             if combined_ver:
@@ -458,7 +458,7 @@ class ConnectionsModule:
                     auth_url=self.AUTH_URLS.get(tool_id, ""),
                 )
             try:
-                r_gh = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, timeout=3.5, shell=True)
+                r_gh = subprocess.run(["gh", "auth", "status"], capture_output=True, text=True, timeout=3.5, shell=False)
                 combined = (r_gh.stdout or "") + "\n" + (r_gh.stderr or "")
                 if r_gh.returncode == 0 and ("Logged in to" in combined or "account" in combined):
                     acct_line = "Sesión de GitHub activa"
@@ -522,7 +522,7 @@ class ConnectionsModule:
                     auth_url=self.AUTH_URLS.get(tool_id, ""),
                 )
             try:
-                r_rs = subprocess.run(["resend", "whoami"], capture_output=True, text=True, timeout=3.0, shell=True)
+                r_rs = subprocess.run(["resend", "whoami"], capture_output=True, text=True, timeout=3.0, shell=False)
                 out_rs = (r_rs.stdout or "") + (r_rs.stderr or "")
                 if r_rs.returncode == 0 and "not_authenticated" not in out_rs.lower() and "error" not in out_rs.lower():
                     return TechnologyConnection(
@@ -568,7 +568,7 @@ class ConnectionsModule:
                     auth_url=self.AUTH_URLS.get(tool_id, ""),
                 )
             try:
-                r_rw = subprocess.run(["railway", "whoami"], capture_output=True, text=True, timeout=3.5, shell=True)
+                r_rw = subprocess.run(["railway", "whoami"], capture_output=True, text=True, timeout=3.5, shell=False)
                 out_rw = ((r_rw.stdout or "") + " " + (r_rw.stderr or "")).strip()
                 if r_rw.returncode == 0 and "not logged in" not in out_rw.lower() and "unauthorized" not in out_rw.lower():
                     return TechnologyConnection(
@@ -614,7 +614,7 @@ class ConnectionsModule:
                     auth_url=self.AUTH_URLS.get(tool_id, ""),
                 )
             try:
-                r_sb = subprocess.run(["supabase", "projects", "list"], capture_output=True, text=True, timeout=3.5, shell=True)
+                r_sb = subprocess.run(["supabase", "projects", "list"], capture_output=True, text=True, timeout=3.5, shell=False)
                 if r_sb.returncode == 0:
                     return TechnologyConnection(
                         id=tool_id,
@@ -705,7 +705,7 @@ class ConnectionsModule:
                     auth_url=self.AUTH_URLS.get(tool_id, ""),
                 )
             try:
-                r_gc = subprocess.run(["gcloud", "auth", "list"], capture_output=True, text=True, timeout=3.5, shell=True)
+                r_gc = subprocess.run(["gcloud", "auth", "list"], capture_output=True, text=True, timeout=3.5, shell=False)
                 out_gc = (r_gc.stdout or "") + (r_gc.stderr or "")
                 if r_gc.returncode == 0 and "ACTIVE" in out_gc:
                     active_acct = "Cuenta activa en gcloud"
@@ -743,7 +743,7 @@ class ConnectionsModule:
 
         if tool_id == "docker":
             try:
-                r_dk = subprocess.run(["docker", "info"], capture_output=True, text=True, timeout=3.5, shell=True)
+                r_dk = subprocess.run(["docker", "info"], capture_output=True, text=True, timeout=3.5, shell=False)
                 if r_dk.returncode == 0:
                     return TechnologyConnection(
                         id=tool_id,
@@ -800,7 +800,7 @@ class ConnectionsModule:
                     auth_url=self.AUTH_URLS.get(tool_id, ""),
                 )
             try:
-                r_aws = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True, timeout=3.5, shell=True)
+                r_aws = subprocess.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True, timeout=3.5, shell=False)
                 if r_aws.returncode == 0:
                     return TechnologyConnection(
                         id=tool_id,

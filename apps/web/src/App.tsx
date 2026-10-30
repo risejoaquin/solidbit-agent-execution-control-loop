@@ -319,7 +319,15 @@ export default function App() {
             <ExecutionsSection />
           )}
 
-          {currentSection === 'projects' && <ProjectsSection />}
+          {currentSection === 'projects' && (
+            <ProjectsSection
+              onNavigateSection={(sec) => setCurrentSection(sec)}
+              onLaunchAutoSprint={(data) => {
+                if (data?.ticket) setSelectedJiraTicketForSprint(data.ticket)
+                loadData()
+              }}
+            />
+          )}
 
           {(currentSection === 'database' || currentSection === 'reports') && <ReportsSection />}
 

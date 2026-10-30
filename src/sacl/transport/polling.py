@@ -132,7 +132,7 @@ class FallbackPoller:
         cursor = self.db_conn.cursor()
         placeholders = ",".join("?" for _ in candidate_ids)
         cursor.execute(
-            f"SELECT message_id FROM mail_messages WHERE message_id IN ({placeholders})",
+            f"SELECT message_id FROM mail_messages WHERE message_id IN ({placeholders})",  # nosec B608
             candidate_ids,
         )
         handled_ids = {row[0] for row in cursor.fetchall()}

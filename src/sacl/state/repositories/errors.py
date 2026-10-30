@@ -121,7 +121,7 @@ class ErrorRepository(BaseRepository):
             params.append(severity)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM errors {where_clause} ORDER BY error_id ASC LIMIT ?;"
+        sql = f"SELECT * FROM errors {where_clause} ORDER BY error_id ASC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
 
         rows = self.fetchall_dict(sql, params)

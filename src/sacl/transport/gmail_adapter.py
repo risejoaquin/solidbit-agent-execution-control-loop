@@ -13,6 +13,7 @@ Features:
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import abc
 import base64
@@ -142,7 +143,7 @@ class GmailApiAdapter(IGmailApiAdapter):
             req = urllib.request.Request(url, data=data_bytes, headers=headers, method=method)
 
             try:
-                with urllib.request.urlopen(req, timeout=30) as resp:
+                with safe_urlopen(req, timeout=30) as resp:
                     resp_bytes = resp.read()
                     if not resp_bytes:
                         return {}

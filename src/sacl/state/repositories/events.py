@@ -101,7 +101,7 @@ class EventRepository(BaseRepository):
             params.append(severity)
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        sql = f"SELECT * FROM events {where_clause} ORDER BY event_id ASC LIMIT ?;"
+        sql = f"SELECT * FROM events {where_clause} ORDER BY event_id ASC LIMIT ?;"  # nosec B608 - conditions are static strings
         params.append(limit)
 
         rows = self.fetchall_dict(sql, params)

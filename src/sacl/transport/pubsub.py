@@ -7,6 +7,7 @@ Implements outbound-only event-driven wake signal consumption adhering strictly 
 """
 
 from __future__ import annotations
+from sacl.transport.http_client import safe_urlopen
 
 import abc
 import base64
@@ -166,7 +167,7 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
+            with safe_urlopen(req, timeout=timeout_seconds) as resp:
                 resp_data = json.loads(resp.read().decode("utf-8"))
                 self._consecutive_failures = 0
 
@@ -212,7 +213,7 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15):
+            with safe_urlopen(req, timeout=15):
                 pass
         except Exception as err:
             logger.error("Failed to acknowledge Pub/Sub messages %s: %s", ack_ids, err)
@@ -238,7 +239,7 @@ class PubSubPullSubscriber(IPubSubSubscriber):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=15):
+            with safe_urlopen(req, timeout=15):
                 pass
         except Exception as err:
             logger.warning("Failed to modify ack deadline: %s", err)

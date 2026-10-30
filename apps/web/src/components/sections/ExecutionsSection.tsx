@@ -226,14 +226,21 @@ export const ExecutionsSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Resumen de Verificación (Reconocimiento antes que recuerdo) */}
+          {/* Resumen de Verificación y Dictamen de los 6 Personajes SolidBit */}
           {dossier?.decision_checklist && (
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-zinc-300 block">
-                1. Resumen de Verificaciones Automáticas Completadas:
-              </span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-zinc-300 block">
+                  1. Verificaciones Reales y Contratos Auditados ({dossier.run_id || 'Corrida Activa'}):
+                </span>
+                {dossier.commit_hash && (
+                  <span className="text-[11px] font-mono text-emerald-400">
+                    Commit: {dossier.commit_hash}
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                {dossier.decision_checklist.slice(0, 3).map((chk: any) => (
+                {dossier.decision_checklist.map((chk: any) => (
                   <div
                     key={chk.id}
                     className="p-3 rounded-xl bg-black border border-zinc-850 space-y-1"
@@ -249,6 +256,30 @@ export const ExecutionsSection: React.FC = () => {
                   </div>
                 ))}
               </div>
+
+              {dossier?.agent_verdicts && (
+                <div className="pt-2 space-y-2">
+                  <span className="text-xs font-bold text-zinc-300 block">
+                    Dictamen del Escuadrón de Agentes SolidBit:
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                    {dossier.agent_verdicts.map((av: any) => (
+                      <div
+                        key={av.character}
+                        className="p-2.5 rounded-xl bg-black border border-zinc-850 space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-white">{av.character}</span>
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-bold">
+                            {av.verdict === 'APPROVED' ? '✓ OK' : 'GATE 5'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 leading-snug">{av.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

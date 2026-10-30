@@ -56,7 +56,7 @@ class ProjectsModule:
         self.projects = []
         seen: set = set()
         for p_str in saved_paths:
-            p = Path(p_str)
+            p = resolve_safe_path(p_str)
             if p.exists() and p.is_dir():
                 real_s = str(p.resolve())
                 if real_s not in seen:
@@ -297,6 +297,15 @@ class ProjectsModule:
             ),
             None,
         )
+        if not matched and project_id_or_path in ('sacl-control-loop', 'orquestador-sacl'):
+            current_root = Path.cwd().resolve()
+            inspected = self._inspect_single_folder(current_root)
+            inspected['id'] = 'sacl-control-loop'
+            self.projects.insert(0, inspected)
+            self.active_project_id = 'sacl-control-loop'
+            self._save_imported_paths()
+            return {'success': True, 'active_project': inspected, 'message': 'Proyecto sacl-control-loop activado.'}
+
         if not matched:
             imp = self.import_project(project_id_or_path)
             if imp.get("success"):
