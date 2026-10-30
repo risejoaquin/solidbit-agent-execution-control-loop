@@ -1,0 +1,32 @@
+name: "Defecto SACL"
+description: "Defecto con reproducción y evidencia"
+title: "fix: "
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Comportamiento observado
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Pasos para reproducir con datos sintéticos
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Severidad
+      options:
+        - Seguridad / integridad
+        - Funcional
+        - Documentación
+    validations:
+      required: true
