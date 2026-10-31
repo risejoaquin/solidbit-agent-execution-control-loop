@@ -1658,6 +1658,58 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             return
 
         
+        
+        # Workspace Context Boundary Mount & Validation (Handshake)
+        if path == "/api/workspace/mount":
+            target_path = body.get("path", "").strip()
+            if not target_path:
+                self._send_json(400, {"success": False, "error": "Ruta de workspace vacía."})
+                return
+            p = Path(target_path).expanduser().resolve()
+            if not p.exists() or not p.is_dir():
+                self._send_json(400, {"success": False, "error": f"El directorio no existe en el host: {target_path}"})
+                return
+            
+            # Verificar si contiene un repositorio Git
+            is_git = (p / ".git").exists()
+            branch = "main"
+            if is_git:
+                try:
+                    res = subprocess.run(["git", "branch", "--show-current"], cwd=str(p), capture_output=True, text=True, timeout=2)
+                    if res.returncode == 0 and res.stdout.strip():
+                        branch = res.stdout.strip()
+                except Exception:
+                    pass
+
+            ws_id = f"ws-{p.name.lower().replace(' ', '-')}"
+            try:
+                conn = self.service._get_read_write_conn()
+                with conn:
+                    conn.execute(
+                        """
+                        INSERT INTO projects (project_id, name, root_path, default_branch, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(project_id) DO UPDATE SET
+                            root_path = excluded.root_path,
+                            updated_at = excluded.updated_at
+                        """,
+                        (ws_id, p.name, str(p), branch, datetime.now(timezone.utc).isoformat(), datetime.now(timezone.utc).isoformat())
+                    )
+            except Exception as e:
+                logger.warning(f"Error persisting workspace project: {e}")
+
+            broadcast_sse("workspace_mounted", {"workspace_id": ws_id, "name": p.name, "path": str(p), "branch": branch})
+            self._send_json(200, {
+                "success": True,
+                "workspace_id": ws_id,
+                "name": p.name,
+                "path": str(p),
+                "branch": branch,
+                "is_git": is_git,
+                "is_clean": True
+            })
+            return
+
         # 18c. Ingress Gateway: Direct Enqueue from UI/Chat (EOP EDA Architecture)
         if path == "/api/orchestrator/enqueue":
             try:
