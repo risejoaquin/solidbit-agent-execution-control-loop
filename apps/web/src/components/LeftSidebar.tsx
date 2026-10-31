@@ -1,31 +1,4 @@
 import React, { useState } from 'react'
-import {
-  PanelLeftClose,
-  PanelLeft,
-  Zap,
-  FolderGit2,
-  Database,
-  ShieldCheck,
-  Bot,
-  CheckSquare,
-  Key,
-  Mail,
-  MessageSquare,
-  Layers,
-  Settings,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react'
-import { useLanguage } from '../context/LanguageContext'
-
-interface NavItem {
-  id: string
-  label: string
-  subtitle?: string
-  icon: React.FC<{ className?: string }>
-  action: () => void
-  badge?: number
-}
 
 interface LeftSidebarProps {
   currentSection: string
@@ -40,165 +13,175 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   pendingGatesCount = 0,
   projectsCount = 1,
 }) => {
-  const { t } = useLanguage()
-  const [showAdvancedTools, setShowAdvancedTools] = useState<boolean>(false)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false)
 
-  // Navegación Principal Estricta SolidBit KISS (3 Entidades Nucleares)
-  const primaryDomainEntities: NavItem[] = [
-    {
-      id: 'dashboard',
-      label: t('Sprint Activo (Flujo 3 Fases)', 'Active Sprint (3 Phases)'),
-      subtitle: t('Diseñar → Implementar → Subir', 'Design → Implement → Deploy'),
-      icon: Zap,
-      action: () => onSelectSection('dashboard'),
-      badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
-    },
+  const navItems = [
     {
       id: 'projects',
-      label: t('Proyectos & Repositorios', 'Projects & Repositories'),
-      subtitle: `${projectsCount} ${
-        projectsCount === 1
-          ? t('repositorio vinculado', 'linked repository')
-          : t('repositorios vinculados', 'linked repositories')
-      }`,
-      icon: FolderGit2,
-      action: () => onSelectSection('projects'),
-    },
-    {
-      id: 'database',
-      label: t('Auditoría Base de Datos', 'Database Audit'),
-      subtitle: t('sacl_ops.db · SQLite WAL', 'sacl_ops.db · SQLite WAL'),
-      icon: Database,
-      action: () => onSelectSection('database'),
-    },
-  ]
-
-  // Carpeta de "Herramientas Avanzadas" (Colapsable)
-  const advancedTools: NavItem[] = [
-    {
-      id: 'executions',
-      label: t('Aprobaciones Humanas', 'Human Approvals'),
-      icon: ShieldCheck,
-      action: () => onSelectSection('executions'),
-      badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
-    },
-    {
-      id: 'agents',
-      label: t('Escuadrón de Agentes', 'Agent Squad'),
-      icon: Bot,
-      action: () => onSelectSection('agents'),
-    },
-    {
-      id: 'jira',
-      label: t('Requerimientos & Backlog', 'Requirements & Backlog'),
-      icon: CheckSquare,
-      action: () => onSelectSection('jira'),
-    },
-    {
-      id: 'connections',
-      label: t('Conexiones de Infraestructura', 'Infrastructure Connections'),
-      icon: Key,
-      action: () => onSelectSection('connections'),
-    },
-    {
-      id: 'email',
-      label: t('Notificaciones Resend', 'Resend Notifications'),
-      icon: Mail,
-      action: () => onSelectSection('email'),
+      label: 'Proyectos Locales',
+      subtitle: `${projectsCount} vinculado(s)`,
+      icon: (className: string) => (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+          <circle cx="12" cy="13" r="2" />
+        </svg>
+      ),
     },
     {
       id: 'chat',
-      label: t('Terminal de Consulta', 'Consultation Terminal'),
-      icon: MessageSquare,
-      action: () => onSelectSection('chat'),
+      label: 'Chat de Planeación',
+      subtitle: 'Comandos CQRS e IoC',
+      icon: (className: string) => (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          <path d="M8 9h8" />
+          <path d="M8 13h6" />
+        </svg>
+      ),
     },
     {
       id: 'workflows',
-      label: t('Catálogo de Flujos / Contratos', 'Flow Catalog / Contracts'),
-      icon: Layers,
-      action: () => onSelectSection('workflows'),
+      label: 'Skills Importer',
+      subtitle: 'SKILL.md & Manifiestos',
+      icon: (className: string) => (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2Universal" />
+          <polyline points="2 17 12 22 22 17" />
+          <polyline points="2 12 12 17 22 12" />
+        </svg>
+      ),
     },
     {
-      id: 'github',
-      label: t('Configuración & Git', 'Settings & Git'),
-      icon: Settings,
-      action: () => onSelectSection('github'),
+      id: 'connections',
+      label: 'Tecnologías Locales',
+      subtitle: 'Credenciales en Backend',
+      icon: (className: string) => (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="7.5" cy="15.5" r="5.5" />
+          <path d="m21 2-9.6 9.6" />
+          <path d="m15.5 7.5 3 3L22 7l-3-3" />
+        </svg>
+      ),
+    },
+    {
+      id: 'dashboard',
+      label: 'Monitoreo en Tiempo Real',
+      subtitle: 'Control Loop & Telemetría',
+      icon: (className: string) => (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+        </svg>
+      ),
+      badge: pendingGatesCount > 0 ? pendingGatesCount : undefined,
+    },
+    {
+      id: 'settings',
+      label: 'Configuración / Git',
+      subtitle: 'Daemon antigravity & WAL',
+      icon: (className: string) => (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      ),
     },
   ]
 
   return (
     <aside
       id="left-sidebar-navigation"
-      className={`border-r border-white/5 bg-[#0C0C0E] flex flex-col justify-between shrink-0 select-none hidden md:flex h-full transition-all duration-300 ${
+      className={`border-r border-white/8 bg-[#000000] flex flex-col justify-between shrink-0 select-none h-screen transition-all duration-200 z-30 ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
-      {/* Zona Superior: Entidades Principales */}
-      <div className="p-3.5 space-y-4 overflow-y-auto custom-scroll">
-        <div className="px-2 pt-1 pb-0.5 flex items-center justify-between">
+      {/* Top Header & Navigation */}
+      <div className="flex flex-col h-full overflow-hidden">
+        {/* Brand & Collapse Header */}
+        <div className="h-14 border-b border-white/8 px-3.5 flex items-center justify-between shrink-0">
           {!isCollapsed && (
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-extrabold">
-              {t('SolidBit Navegación', 'SolidBit Navigation')}
-            </span>
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div className="truncate">
+                <span className="text-xs font-semibold tracking-wider text-white uppercase block leading-none">
+                  SolidBit EOP
+                </span>
+                <span className="text-[10px] text-zinc-500 font-mono tracking-tight block mt-1">
+                  Control Plane v1.0
+                </span>
+              </div>
+            </div>
           )}
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-white transition cursor-pointer ml-auto"
-            title={isCollapsed ? t('Expandir menú', 'Expand menu') : t('Colapsar menú', 'Collapse menu')}
+            className="p-1.5 rounded bg-[#0a0a0a] hover:bg-zinc-900 border border-white/8 text-zinc-400 hover:text-white transition cursor-pointer ml-auto"
+            title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            aria-label="Toggle Sidebar"
           >
-            {isCollapsed ? <PanelLeft className="w-3.5 h-3.5 text-emerald-400" /> : <PanelLeftClose className="w-3.5 h-3.5" />}
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {isCollapsed ? (
+                <>
+                  <rect width="18" height="18" x="3" y="3" rx="2" />
+                  <path d="M9 3v18" />
+                  <path d="m14 15 3-3-3-3" />
+                </>
+              ) : (
+                <>
+                  <rect width="18" height="18" x="3" y="3" rx="2" />
+                  <path d="M9 3v18" />
+                  <path d="m16 9-3 3 3 3" />
+                </>
+              )}
+            </svg>
           </button>
         </div>
 
-        {/* 3 Entidades Principales */}
-        <nav className="space-y-1">
-          {primaryDomainEntities.map((item) => {
-            const isActive = currentSection === item.id || (item.id === 'database' && currentSection === 'reports')
-            const IconComponent = item.icon
+        {/* Navigation Items */}
+        <nav className="p-2 space-y-1 overflow-y-auto flex-1">
+          {navItems.map((item) => {
+            const isActive =
+              currentSection === item.id ||
+              (item.id === 'dashboard' && (currentSection === 'executions' || currentSection === 'database'))
             return (
               <button
                 key={item.id}
                 type="button"
-                id={`nav-item-${item.id}`}
-                onClick={item.action}
-                className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all cursor-pointer group ${
+                onClick={() => onSelectSection(item.id)}
+                className={`w-full text-left rounded p-2.5 flex items-center transition border ${
                   isActive
-                    ? 'bg-[#18181B] border border-white/10 text-white shadow-lg'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60 border border-transparent'
-                }`}
+                    ? 'bg-[#0a0a0a] border-white/20 text-white'
+                    : 'bg-transparent border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-[#0a0a0a] hover:border-white/8'
+                } ${isCollapsed ? 'justify-center' : 'justify-between'}`}
+                title={isCollapsed ? item.label : undefined}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                      isActive
-                        ? 'bg-white text-black font-extrabold shadow-sm'
-                        : 'bg-zinc-900 border border-white/5 text-zinc-400 group-hover:text-zinc-200 group-hover:bg-zinc-850'
+                    className={`shrink-0 ${
+                      isActive ? 'text-emerald-400' : 'text-zinc-400 group-hover:text-zinc-200'
                     }`}
                   >
-                    <IconComponent className="w-4 h-4" />
+                    {item.icon('w-4 h-4')}
                   </div>
                   {!isCollapsed && (
-                    <div className="min-w-0 leading-tight">
-                      <span
-                        className={`text-xs block truncate ${
-                          isActive ? 'font-bold text-white' : 'font-medium'
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                      {item.subtitle && (
-                        <span className="text-[10px] text-zinc-500 block truncate mt-0.5 font-mono">
-                          {item.subtitle}
-                        </span>
-                      )}
+                    <div className="truncate text-left">
+                      <div className="text-xs font-medium truncate leading-tight">{item.label}</div>
+                      <div className="text-[10px] text-zinc-500 font-mono truncate leading-none mt-1">
+                        {item.subtitle}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {item.badge !== undefined && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0 ml-1">
+                {!isCollapsed && item.badge !== undefined && item.badge > 0 && (
+                  <span className="ml-2 px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
                     {item.badge}
                   </span>
                 )}
@@ -207,70 +190,23 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           })}
         </nav>
 
-        {/* Carpeta "Herramientas Avanzadas" (Colapsada por defecto) */}
-        <div className="pt-2 border-t border-white/5 space-y-1">
-          <button
-            type="button"
-            onClick={() => setShowAdvancedTools(!showAdvancedTools)}
-            className="w-full flex items-center justify-between p-2 rounded-xl text-left text-zinc-400 hover:text-white hover:bg-zinc-900/40 transition cursor-pointer"
-          >
-            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold">
-              {t('Herramientas Avanzadas', 'Advanced Tools')}
-            </span>
-            {showAdvancedTools ? (
-              <ChevronUp className="w-3.5 h-3.5 text-zinc-500" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
-            )}
-          </button>
-
-          {showAdvancedTools && (
-            <div className="space-y-0.5 pt-1 animate-fade-in">
-              {advancedTools.map((item) => {
-                const isActive = currentSection === item.id
-                const IconComponent = item.icon
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={item.action}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition cursor-pointer ${
-                      isActive
-                        ? 'bg-zinc-800 text-white font-bold'
-                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <IconComponent className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </div>
-                    {item.badge !== undefined && (
-                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
+        {/* Footer Status Pill */}
+        <div className="p-3 border-t border-white/8 bg-[#000000] shrink-0">
+          {isCollapsed ? (
+            <div className="flex justify-center" title="Daemon antigravity conectado">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            </div>
+          ) : (
+            <div className="bg-[#0a0a0a] border border-white/8 rounded p-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="text-[11px] text-zinc-300 font-mono">CLI Daemon :8765</span>
+              </div>
+              <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.5 rounded">
+                EDA OK
+              </span>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Zona Inferior: Estado del Runtime Local */}
-      <div className="p-3 border-t border-white/5 space-y-2">
-        <div className="p-2.5 rounded-xl bg-black border border-white/5 space-y-1 font-mono text-[10px]">
-          <div className="flex items-center justify-between">
-            <span className="text-zinc-500 uppercase">sacl_ops.db</span>
-            <span className="text-emerald-400 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              SQLite WAL
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-zinc-400">
-            <span>Daemon</span>
-            <span className="text-zinc-300">127.0.0.1:8765</span>
-          </div>
         </div>
       </div>
     </aside>
