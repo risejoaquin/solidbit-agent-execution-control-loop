@@ -708,6 +708,8 @@ export default function App() {
         currentSection={currentSection}
         onSelectSection={(sec) => setCurrentSection(sec)}
         projectName={projectName}
+        pendingGatesCount={pendingGatesCount}
+        projectsCount={projects.length}
       />
 
       {/* Mobile Bottom Navigation Bar */}
