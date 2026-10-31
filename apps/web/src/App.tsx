@@ -348,57 +348,146 @@ export default function App() {
     window.addEventListener('fsm-event', onCustomEvent)
 
     let sse: EventSource | null = null
-    try {
-      sse = new EventSource('/api/events/stream')
-      sse.addEventListener('snapshot', () => loadData())
-      sse.addEventListener('gate', () => loadData())
-      sse.addEventListener('gate_decided', () => loadData())
-      sse.addEventListener('gate_requested', () => loadData())
-      sse.addEventListener('job', () => loadData())
-      sse.addEventListener('sprint_executed', () => loadData())
-      sse.addEventListener('changes_applied', () => loadData())
-      sse.addEventListener('project_removed', (e) => {
-        try {
-          const d = JSON.parse(e.data)
-          if (d?.removed_id) {
-            handleAtomicProjectTeardown(d.removed_id)
-          } else {
-            loadData()
-          }
-        } catch {
+
+    // Handlers defined with stable references for deterministic memory cleanup
+    const onSnapshot = () => loadData()
+    const onGate = () => loadData()
+    const onGateDecided = () => loadData()
+    const onGateRequested = () => {
+      setPendingGatesCount((prev) => prev + 1)
+      loadData()
+    }
+    const onJob = () => loadData()
+    const onSprintExecuted = () => loadData()
+    const onChangesApplied = () => loadData()
+
+    const onProjectRemoved = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        if (d?.removed_id) {
+          handleAtomicProjectTeardown(d.removed_id)
+        } else {
           loadData()
         }
-      })
-      sse.addEventListener('agent_event', (e) => {
-        try {
-          handleFSMEvent(JSON.parse(e.data))
-        } catch {}
-      })
-      sse.addEventListener('action_executed', (e) => {
-        try {
-          const d = JSON.parse(e.data)
-          handleFSMEvent(d)
-        } catch {}
+      } catch {
         loadData()
-      })
-      sse.addEventListener('terminal_log', (e) => {
-        try {
-          const d = JSON.parse(e.data)
-          handleFSMEvent(d)
-        } catch {}
-      })
-      sse.onmessage = (e) => {
-        try {
-          handleFSMEvent(JSON.parse(e.data))
-        } catch {}
       }
+    }
+
+    const onAgentEvent = (e: MessageEvent) => {
+      try {
+        handleFSMEvent(JSON.parse(e.data))
+      } catch {}
+    }
+
+    const onTaskRunning = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        handleFSMEvent({ ...d, status: 'RUNNING' })
+      } catch {}
+    }
+
+    const onAgentSpawned = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        handleFSMEvent({ ...d, status: 'RUNNING' })
+      } catch {}
+    }
+
+    const onArtifactGenerated = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        handleFSMEvent({ ...d, status: 'PASS' })
+      } catch {}
+    }
+
+    const onApprovalRequired = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        handleFSMEvent({ ...d, status: 'BLOCKED' })
+        setPendingGatesCount((prev) => prev + 1)
+      } catch {}
+    }
+
+    const onHeartbeat = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        if (d?.payload?.instance_id || d?.instance_id) {
+          handleFSMEvent({
+            agent: d?.payload?.instance_id || d?.instance_id,
+            status: d?.payload?.status || d?.status || 'HEALTHY',
+            message: 'Heartbeat liveness audit pulse',
+          })
+        }
+      } catch {}
+    }
+
+    const onActionExecuted = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        handleFSMEvent(d)
+      } catch {}
+      loadData()
+    }
+
+    const onTerminalLog = (e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        handleFSMEvent(d)
+      } catch {}
+    }
+
+    const onGeneralMessage = (e: MessageEvent) => {
+      try {
+        handleFSMEvent(JSON.parse(e.data))
+      } catch {}
+    }
+
+    try {
+      sse = new EventSource('/api/events/stream')
+      sse.addEventListener('snapshot', onSnapshot)
+      sse.addEventListener('gate', onGate)
+      sse.addEventListener('gate_decided', onGateDecided)
+      sse.addEventListener('gate_requested', onGateRequested)
+      sse.addEventListener('job', onJob)
+      sse.addEventListener('sprint_executed', onSprintExecuted)
+      sse.addEventListener('changes_applied', onChangesApplied)
+      sse.addEventListener('project_removed', onProjectRemoved)
+      sse.addEventListener('agent_event', onAgentEvent)
+      sse.addEventListener('task_running', onTaskRunning)
+      sse.addEventListener('agent_spawned', onAgentSpawned)
+      sse.addEventListener('artifact_generated', onArtifactGenerated)
+      sse.addEventListener('approval_required', onApprovalRequired)
+      sse.addEventListener('heartbeat_recorded', onHeartbeat)
+      sse.addEventListener('action_executed', onActionExecuted)
+      sse.addEventListener('terminal_log', onTerminalLog)
+      sse.onmessage = onGeneralMessage
     } catch {
       console.warn('SSE not supported or connection closed')
     }
 
     return () => {
       window.removeEventListener('fsm-event', onCustomEvent)
-      if (sse) sse.close()
+      if (sse) {
+        sse.removeEventListener('snapshot', onSnapshot)
+        sse.removeEventListener('gate', onGate)
+        sse.removeEventListener('gate_decided', onGateDecided)
+        sse.removeEventListener('gate_requested', onGateRequested)
+        sse.removeEventListener('job', onJob)
+        sse.removeEventListener('sprint_executed', onSprintExecuted)
+        sse.removeEventListener('changes_applied', onChangesApplied)
+        sse.removeEventListener('project_removed', onProjectRemoved)
+        sse.removeEventListener('agent_event', onAgentEvent)
+        sse.removeEventListener('task_running', onTaskRunning)
+        sse.removeEventListener('agent_spawned', onAgentSpawned)
+        sse.removeEventListener('artifact_generated', onArtifactGenerated)
+        sse.removeEventListener('approval_required', onApprovalRequired)
+        sse.removeEventListener('heartbeat_recorded', onHeartbeat)
+        sse.removeEventListener('action_executed', onActionExecuted)
+        sse.removeEventListener('terminal_log', onTerminalLog)
+        sse.onmessage = null
+        sse.close()
+      }
     }
   }, [handleFSMEvent, handleAtomicProjectTeardown])
 
