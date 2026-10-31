@@ -14,6 +14,7 @@ import { ChatSection } from './components/sections/ChatSection'
 import { RoadmapSection } from './components/sections/RoadmapSection'
 import { AgentsSection } from './components/sections/AgentsSection'
 import { ExecutionsSection } from './components/sections/ExecutionsSection'
+import { AgentsHouseSection } from './components/sections/AgentsHouseSection'
 import { ProjectsSection } from './components/sections/ProjectsSection'
 import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
@@ -42,6 +43,7 @@ export default function App() {
       'designer',
       'roadmap',
       'agents',
+      'agents_house',
       'gates',
       'executions',
       'projects',
@@ -543,6 +545,8 @@ export default function App() {
       case 'designer':
       case 'roadmap':
         return [{ label: 'Mapa de Flujo DAG', sectionId: 'roadmap' }]
+      case 'agents_house':
+        return [{ label: 'Casa de Agentes · Control Loop', sectionId: 'agents_house' }]
       case 'agents':
         return [{ label: 'Escuadrón de Agentes', sectionId: 'agents' }]
       case 'gates':
@@ -661,6 +665,10 @@ export default function App() {
               tasks={tasks}
               onOpenSprintModal={() => setIsSprintModalOpen(true)}
             />
+          )}
+
+          {currentSection === 'agents_house' && (
+            <AgentsHouseSection onAgentLaunched={() => loadData()} />
           )}
 
           {currentSection === 'agents' && (
