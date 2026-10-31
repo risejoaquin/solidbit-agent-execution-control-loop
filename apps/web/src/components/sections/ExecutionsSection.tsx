@@ -78,6 +78,41 @@ export const ExecutionsSection: React.FC = () => {
 
   useEffect(() => {
     loadData()
+
+    let sse: EventSource | null = null
+    const onReload = () => loadData()
+
+    try {
+      sse = new EventSource('/api/events/stream')
+      sse.addEventListener('gate', onReload)
+      sse.addEventListener('gate_decided', onReload)
+      sse.addEventListener('gate_requested', onReload)
+      sse.addEventListener('approval_required', onReload)
+      sse.addEventListener('job', onReload)
+      sse.addEventListener('job_enqueued', onReload)
+      sse.addEventListener('action_executed', onReload)
+      sse.addEventListener('artifact_generated', onReload)
+      sse.addEventListener('task_running', onReload)
+      sse.addEventListener('agent_event', onReload)
+    } catch {
+      console.warn('SSE not supported in ExecutionsSection')
+    }
+
+    return () => {
+      if (sse) {
+        sse.removeEventListener('gate', onReload)
+        sse.removeEventListener('gate_decided', onReload)
+        sse.removeEventListener('gate_requested', onReload)
+        sse.removeEventListener('approval_required', onReload)
+        sse.removeEventListener('job', onReload)
+        sse.removeEventListener('job_enqueued', onReload)
+        sse.removeEventListener('action_executed', onReload)
+        sse.removeEventListener('artifact_generated', onReload)
+        sse.removeEventListener('task_running', onReload)
+        sse.removeEventListener('agent_event', onReload)
+        sse.close()
+      }
+    }
   }, [])
 
   const handleDecision = async (decision: 'APPROVED' | 'REJECTED') => {

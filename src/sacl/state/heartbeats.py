@@ -35,6 +35,27 @@ class HeartbeatManager(BaseRepository):
         """
         cursor = self.execute(sql, (component, instance_id, pid, status, now, details_json))
         self.commit()
+
+        # Telemetry Event Bus Integration (Fail-Safe: Non-blocking, isolated from ACID transaction)
+        try:
+            from sacl.observability.events import create_audit_event, get_event_bus
+            get_event_bus().publish(
+                create_audit_event(
+                    event_type="HEARTBEAT_RECORDED",
+                    severity="DEBUG",
+                    payload={
+                        "component": component,
+                        "instance_id": instance_id,
+                        "pid": pid,
+                        "status": status,
+                        "last_seen_at": now,
+                    },
+                )
+            )
+        except Exception:
+            # Observability failures must never break heartbeat persistence or cause transaction rollback
+            pass
+
         return cursor.lastrowid  # type: ignore[return-value]
 
     def record_heartbeat_model(self, heartbeat: HeartbeatRecord) -> int:
