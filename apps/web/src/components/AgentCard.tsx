@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 
 export interface AgentCardData {
   agentName: string
@@ -12,6 +12,7 @@ export interface AgentCardData {
   latencyMs?: number
   syncStatus?: string
   memoryMb?: number
+  skin?: string
 }
 
 interface AgentCardProps {
@@ -30,54 +31,67 @@ export const AgentCard: React.FC<AgentCardProps> = React.memo(({ agent, onInspec
     ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
     : 'text-red-400 bg-red-500/10 border-red-500/20'
 
-  // Iconografía de rol canónica
-  const getRoleIcon = () => {
+  // Mapeo determinístico de Sprite Bomberman por Agente
+  const getBombermanSprite = () => {
     const name = agent.agentName.toLowerCase()
     if (name.includes('atlas')) {
-      return (
-        <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-          <path d="M2 12h20" />
-        </svg>
-      )
+      return {
+        src: '/assets/sprites/bomberman/atlas_white_idle.png',
+        cheerSrc: '/assets/sprites/bomberman/atlas_white_cheering.png',
+        label: 'White Bomberman',
+        border: 'border-blue-500/30 bg-blue-500/10',
+      }
     }
     if (name.includes('vega')) {
-      return (
-        <svg className="w-3.5 h-3.5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <ellipse cx="12" cy="5" rx="9" ry="3" />
-          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-        </svg>
-      )
+      return {
+        src: '/assets/sprites/bomberman/vega_blue_idle.png',
+        cheerSrc: '/assets/sprites/bomberman/vega_blue_cheering.png',
+        label: 'Blue Bomberman',
+        border: 'border-purple-500/30 bg-purple-500/10',
+      }
     }
     if (name.includes('nova')) {
-      return (
-        <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
-      )
+      return {
+        src: '/assets/sprites/bomberman/nova_red_idle.png',
+        cheerSrc: '/assets/sprites/bomberman/nova_red_cheering.png',
+        label: 'Red Bomberman',
+        border: 'border-emerald-500/30 bg-emerald-500/10',
+      }
     }
-    return (
-      <svg className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M12 2v20M2 12h20" />
-      </svg>
-    )
+    return {
+      src: '/assets/sprites/bomberman/centinela_black_idle.png',
+      cheerSrc: '/assets/sprites/bomberman/centinela_black_cheering.png',
+      label: 'Black Bomberman',
+      border: 'border-amber-500/30 bg-amber-500/10',
+    }
   }
+
+  const sprite = getBombermanSprite()
+  const displaySprite = agent.skin === 'bomberman_cheering' ? sprite.cheerSrc : sprite.src
 
   return (
     <div
       onClick={onInspect}
-      className="bg-[#0a0a0a] border border-white/8 rounded p-3 flex flex-col justify-between hover:border-white/20 transition cursor-pointer select-none"
+      className="bg-[#0a0a0a] border border-white/8 rounded p-3 flex flex-col justify-between hover:border-white/20 transition cursor-pointer select-none group"
     >
       {/* Top Identity Header */}
       <div>
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1 rounded bg-[#121212] border border-white/8 shrink-0">
-              {getRoleIcon()}
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Bomberman Avatar Sprite Container */}
+            <div
+              className={`w-9 h-9 rounded border flex items-center justify-center p-1 shrink-0 bg-[#000000] relative group-hover:scale-105 transition-transform ${sprite.border}`}
+              title={sprite.label}
+            >
+              <img
+                src={displaySprite}
+                alt={agent.agentName}
+                className="w-7 h-7 object-contain [image-rendering:pixelated]"
+                loading="lazy"
+              />
+              <span className="absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 border border-black" />
             </div>
+
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-semibold text-white truncate font-sans">{agent.agentName}</span>
@@ -128,7 +142,7 @@ export const AgentCard: React.FC<AgentCardProps> = React.memo(({ agent, onInspec
         {agent.commitSha && (
           <span className="text-zinc-400">git: {agent.commitSha.substring(0, 7)}</span>
         )}
-        <span className="text-zinc-600">O(1) memo</span>
+        <span className="text-zinc-600">16-bit Skin</span>
       </div>
     </div>
   )

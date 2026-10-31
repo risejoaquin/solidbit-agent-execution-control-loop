@@ -1,19 +1,21 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import type { AgentCardData } from './AgentCard'
 
 interface AgentProfileExtendedProps {
   agent: AgentCardData | null
   isOpen: boolean
   onClose: () => void
+  onSkinChange?: (agentName: string, skinKey: string) => void
 }
 
 export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
   agent,
   isOpen,
   onClose,
+  onSkinChange,
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'sdlc' | 'skins'>('profile')
-  const [selectedSkin, setSelectedSkin] = useState<'strict' | 'fast' | 'debug'>('strict')
+  const [selectedSkin, setSelectedSkin] = useState<'bomberman_idle' | 'bomberman_cheering' | 'minimal_strict' | 'minimal_fast'>('bomberman_idle')
 
   if (!isOpen || !agent) return null
 
@@ -26,6 +28,9 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
         sdlcRole: 'Stage 1-3: Requerimientos, Mapeo de DAG y Particionamiento de Oleadas.',
         ownedPaths: ['src/sacl/scheduler', 'src/sacl/engine', 'campaigns/'],
         avatarBorder: 'border-blue-500/40 text-blue-400 bg-blue-500/10',
+        spriteIdle: '/assets/sprites/bomberman/atlas_white_idle.png',
+        spriteCheering: '/assets/sprites/bomberman/atlas_white_cheering.png',
+        skinName: 'White Bomberman (P1)',
       }
     }
     if (name.includes('vega')) {
@@ -35,6 +40,9 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
         sdlcRole: 'Stage 4: Mutación de Modelos, Schemas de Base de Datos y Repositorios.',
         ownedPaths: ['src/sacl/storage', 'migrations/', 'database/postgresql'],
         avatarBorder: 'border-purple-500/40 text-purple-400 bg-purple-500/10',
+        spriteIdle: '/assets/sprites/bomberman/vega_blue_idle.png',
+        spriteCheering: '/assets/sprites/bomberman/vega_blue_cheering.png',
+        skinName: 'Blue Bomberman (P3)',
       }
     }
     if (name.includes('nova')) {
@@ -44,6 +52,9 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
         sdlcRole: 'Stage 5-7: Suites de Pruebas Unitarias, Integración y Contratos OpenAPI.',
         ownedPaths: ['tests/', 'tests/unit', 'tests/integration', 'contracts/'],
         avatarBorder: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+        spriteIdle: '/assets/sprites/bomberman/nova_red_idle.png',
+        spriteCheering: '/assets/sprites/bomberman/nova_red_cheering.png',
+        skinName: 'Red/Green Bomberman (P4)',
       }
     }
     return {
@@ -52,30 +63,56 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
       sdlcRole: 'Stage 8-9: Detección de Fugas, Verificación de Políticas y Gate 5 HMAC.',
       ownedPaths: ['src/sacl/security', 'src/sacl/policy', '.github/'],
       avatarBorder: 'border-amber-500/40 text-amber-400 bg-amber-500/10',
+      spriteIdle: '/assets/sprites/bomberman/centinela_black_idle.png',
+      spriteCheering: '/assets/sprites/bomberman/centinela_black_cheering.png',
+      skinName: 'Black Bomberman (P2)',
     }
   }
 
   const persona = getPersonaDetails()
 
+  const currentAvatarSrc =
+    selectedSkin === 'bomberman_cheering'
+      ? persona.spriteCheering
+      : persona.spriteIdle
+
+  const handleSelectSkin = (skin: 'bomberman_idle' | 'bomberman_cheering' | 'minimal_strict' | 'minimal_fast') => {
+    setSelectedSkin(skin)
+    if (onSkinChange) {
+      onSkinChange(agent.agentName, skin)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-[140] bg-black/60 backdrop-blur-sm flex justify-end select-none">
+    <div className="fixed inset-0 z-[140] bg-black/60 backdrop-blur-sm flex justify-end select-none animate-in fade-in duration-200">
       <div className="w-full max-w-md bg-[#0a0a0a] border-l border-white/8 h-full flex flex-col justify-between text-left p-6 shadow-2xl animate-in slide-in-from-right duration-200">
         {/* Top Header */}
         <div>
           <div className="flex items-center justify-between border-b border-white/8 pb-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className={`w-10 h-10 rounded-lg border flex items-center justify-center font-bold font-mono text-sm shrink-0 ${persona.avatarBorder}`}>
-                {agent.agentName.slice(0, 2).toUpperCase()}
+              <div className={`w-12 h-12 rounded-lg border flex items-center justify-center p-1 shrink-0 bg-[#000000] ${persona.avatarBorder}`}>
+                <img
+                  src={currentAvatarSrc}
+                  alt={agent.agentName}
+                  className="w-8 h-8 object-contain [image-rendering:pixelated]"
+                />
               </div>
               <div className="min-w-0">
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider font-sans truncate">
-                  {agent.agentName}
-                </h2>
-                <p className="text-[10px] text-zinc-500 font-mono truncate">{agent.role}</p>
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-sm font-bold text-white uppercase tracking-wider font-sans truncate">
+                    {agent.agentName}
+                  </h2>
+                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded">
+                    SKIN ACTIVA
+                  </span>
+                </div>
+                <p className="text-[10px] text-zinc-400 font-mono truncate">{agent.role}</p>
+                <p className="text-[9px] text-zinc-500 font-mono truncate">{persona.skinName}</p>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={onClose}
               className="text-zinc-500 hover:text-white font-mono text-sm px-2 py-1 rounded transition cursor-pointer"
             >
@@ -83,30 +120,52 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
             </button>
           </div>
 
-          {/* Tabs Selector */}
-          <div className="flex rounded-lg border border-white/8 bg-[#000000] p-1 my-4 text-[10px] font-mono">
-            {(['profile', 'sdlc', 'skins'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-1 rounded transition cursor-pointer uppercase font-semibold ${
-                  activeTab === tab ? 'bg-[#1a1a1a] text-white' : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                {tab === 'profile' ? 'Identidad' : tab === 'sdlc' ? 'Ciclo SDLC' : 'Skins / Perfil'}
-              </button>
-            ))}
+          {/* Navigation Tabs */}
+          <div className="flex border-b border-white/8 mt-4 gap-4 text-xs font-mono">
+            <button
+              type="button"
+              onClick={() => setActiveTab('profile')}
+              className={`pb-2 border-b-2 transition cursor-pointer ${
+                activeTab === 'profile'
+                  ? 'border-white text-white font-bold'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              Identidad
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('sdlc')}
+              className={`pb-2 border-b-2 transition cursor-pointer ${
+                activeTab === 'sdlc'
+                  ? 'border-white text-white font-bold'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              Ciclo SDLC
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('skins')}
+              className={`pb-2 border-b-2 transition cursor-pointer flex items-center gap-1 ${
+                activeTab === 'skins'
+                  ? 'border-emerald-400 text-emerald-400 font-bold'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <span>🎮 Skins & Sprites</span>
+            </button>
           </div>
 
           {/* Tab Content */}
-          <div className="space-y-4 text-xs font-sans">
+          <div className="mt-4 space-y-4 overflow-y-auto max-h-[60vh] custom-scroll pr-1">
             {activeTab === 'profile' && (
               <div className="space-y-3.5">
                 <div className="p-3 bg-[#000000] border border-white/8 rounded-lg space-y-1">
                   <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">
-                    Personalidad Operativa
+                    Personalidad Arquitectónica
                   </span>
-                  <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                  <p className="text-xs text-zinc-200 font-sans leading-relaxed">
                     {persona.personality}
                   </p>
                 </div>
@@ -174,34 +233,101 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
             {activeTab === 'skins' && (
               <div className="space-y-3">
                 <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
-                  Perfil de Ejecución del Agente (Skin)
+                  Catálogo de Skins Super Bomberman (16-bit SNES)
                 </span>
 
-                {(['strict', 'fast', 'debug'] as const).map((skin) => (
-                  <div
-                    key={skin}
-                    onClick={() => setSelectedSkin(skin)}
-                    className={`p-3 rounded-lg border transition cursor-pointer ${
-                      selectedSkin === skin
-                        ? 'bg-emerald-500/10 border-emerald-500/40 text-white'
-                        : 'bg-[#000000] border-white/8 hover:border-white/20 text-zinc-400'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs uppercase font-mono">{skin} Mode</span>
-                      {selectedSkin === skin && (
-                        <span className="text-[9px] font-mono text-emerald-400">Activo</span>
-                      )}
+                {/* Skin 1: Bomberman Idle */}
+                <div
+                  onClick={() => handleSelectSkin('bomberman_idle')}
+                  className={`p-3 rounded-lg border transition cursor-pointer flex items-center justify-between gap-3 ${
+                    selectedSkin === 'bomberman_idle'
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-white'
+                      : 'bg-[#000000] border-white/8 hover:border-white/20 text-zinc-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-[#121212] border border-white/10 flex items-center justify-center p-1">
+                      <img
+                        src={persona.spriteIdle}
+                        alt="Idle"
+                        className="w-7 h-7 object-contain [image-rendering:pixelated]"
+                      />
                     </div>
-                    <p className="text-[11px] text-zinc-400 mt-1 font-sans">
-                      {skin === 'strict'
-                        ? 'Auditoría formal de contratos, cero tolerancias a regresiones.'
-                        : skin === 'fast'
-                        ? 'Pase ágil optimizado para refactorizaciones cosméticas de UI.'
-                        : 'Registro exhaustivo con trazas completas de SQLite y eventos FSM.'}
-                    </p>
+                    <div>
+                      <div className="font-bold text-xs font-mono text-white">
+                        {persona.skinName} · Walk / Idle
+                      </div>
+                      <div className="text-[10px] text-zinc-500">Sprite frontal clásico reactivo</div>
+                    </div>
                   </div>
-                ))}
+                  {selectedSkin === 'bomberman_idle' && (
+                    <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                      ACTIVA
+                    </span>
+                  )}
+                </div>
+
+                {/* Skin 2: Bomberman Cheering (Victoria) */}
+                <div
+                  onClick={() => handleSelectSkin('bomberman_cheering')}
+                  className={`p-3 rounded-lg border transition cursor-pointer flex items-center justify-between gap-3 ${
+                    selectedSkin === 'bomberman_cheering'
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-white'
+                      : 'bg-[#000000] border-white/8 hover:border-white/20 text-zinc-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded bg-[#121212] border border-white/10 flex items-center justify-center p-1">
+                      <img
+                        src={persona.spriteCheering}
+                        alt="Cheering"
+                        className="w-7 h-7 object-contain [image-rendering:pixelated]"
+                      />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs font-mono text-white">
+                        {persona.skinName} · Cheering (Victoria Gate 5)
+                      </div>
+                      <div className="text-[10px] text-zinc-500">Celebración post-aprobación HMAC</div>
+                    </div>
+                  </div>
+                  {selectedSkin === 'bomberman_cheering' && (
+                    <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded">
+                      ACTIVA
+                    </span>
+                  )}
+                </div>
+
+                {/* Modos Minimalistas */}
+                <div className="pt-2 border-t border-white/8 space-y-2">
+                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block">
+                    Modos de Ejecución SDLC
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div
+                      onClick={() => handleSelectSkin('minimal_strict')}
+                      className={`p-2.5 rounded border text-xs font-mono transition cursor-pointer ${
+                        selectedSkin === 'minimal_strict'
+                          ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                          : 'bg-[#000000] border-white/8 text-zinc-500'
+                      }`}
+                    >
+                      <div className="font-bold">Strict Mode</div>
+                      <div className="text-[9px] text-zinc-600 mt-0.5">Auditoría Formal</div>
+                    </div>
+                    <div
+                      onClick={() => handleSelectSkin('minimal_fast')}
+                      className={`p-2.5 rounded border text-xs font-mono transition cursor-pointer ${
+                        selectedSkin === 'minimal_fast'
+                          ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                          : 'bg-[#000000] border-white/8 text-zinc-500'
+                      }`}
+                    >
+                      <div className="font-bold">Fast Mode</div>
+                      <div className="text-[9px] text-zinc-600 mt-0.5">Pase Rápido UI</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -211,6 +337,7 @@ export const AgentProfileExtended: React.FC<AgentProfileExtendedProps> = ({
         <div className="pt-4 border-t border-white/8 flex items-center justify-between text-[10px] font-mono text-zinc-500 shrink-0">
           <span>Identidad Gobernada por SolidBit EOP</span>
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-1.5 bg-[#121212] hover:bg-zinc-800 text-zinc-200 border border-white/8 rounded transition cursor-pointer"
           >
