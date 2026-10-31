@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
+import { GlobalLiveLogsTerminal } from '../GlobalLiveLogsTerminal'
 import {
   User,
   GitBranch,
@@ -102,7 +103,7 @@ export const SettingsSection: React.FC = () => {
       const data = await res.json()
       setFeedback({
         type: 'success',
-        message: `Sincronización Git completada: ${data.message || 'Rama al día con origin'}`,
+        message: `SincronizaciÃ³n Git completada: ${data.message || 'Rama al dÃ­a con origin'}`,
       })
       loadData()
     } catch (e: any) {
@@ -183,7 +184,7 @@ export const SettingsSection: React.FC = () => {
             </div>
 
             <div className="p-3.5 rounded-xl bg-black border border-zinc-850 space-y-1">
-              <span className="text-[10px] text-zinc-500">Último Commit:</span>
+              <span className="text-[10px] text-zinc-500">Ãšltimo Commit:</span>
               <div className="text-zinc-200 font-bold">{ghStatus.last_commit || 'HEAD'}</div>
             </div>
 
@@ -216,7 +217,7 @@ export const SettingsSection: React.FC = () => {
                 <label className="text-xs font-semibold text-zinc-300">Nombre Completo</label>
                 <span className={`text-[11px] flex items-center gap-1 ${isNameValid ? 'text-emerald-400' : 'text-zinc-500'}`}>
                   <CheckCircle2 className="w-3 h-3" />
-                  {isNameValid ? 'Válido' : 'Requerido'}
+                  {isNameValid ? 'VÃ¡lido' : 'Requerido'}
                 </span>
               </div>
               <input
@@ -241,10 +242,10 @@ export const SettingsSection: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-300">Correo Electrónico</label>
+                <label className="text-xs font-semibold text-zinc-300">Correo ElectrÃ³nico</label>
                 <span className={`text-[11px] flex items-center gap-1 ${isEmailValid ? 'text-emerald-400' : 'text-amber-400'}`}>
                   <CheckCircle2 className="w-3 h-3" />
-                  {isEmailValid ? 'Formato de correo válido' : 'Ingresa un correo válido'}
+                  {isEmailValid ? 'Formato de correo vÃ¡lido' : 'Ingresa un correo vÃ¡lido'}
                 </span>
               </div>
               <input
@@ -257,10 +258,10 @@ export const SettingsSection: React.FC = () => {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-zinc-300">Clave Privada de Autorización</label>
+                <label className="text-xs font-semibold text-zinc-300">Clave Privada de AutorizaciÃ³n</label>
                 <span className={`text-[11px] flex items-center gap-1 ${isSecretValid ? 'text-emerald-400' : 'text-amber-400'}`}>
                   <CheckCircle2 className="w-3 h-3" />
-                  {isSecretValid ? 'Longitud segura (8+ caracteres)' : 'Mínimo 8 caracteres'}
+                  {isSecretValid ? 'Longitud segura (8+ caracteres)' : 'MÃ­nimo 8 caracteres'}
                 </span>
               </div>
               <input
@@ -283,6 +284,25 @@ export const SettingsSection: React.FC = () => {
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Observabilidad Global: Live Logs Terminal (Fase 1 Bocetos EOP) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-white font-sans uppercase tracking-wider">
+              Consola de Eventos y Live Logs (antigravity Engine)
+            </h2>
+            <p className="text-xs text-zinc-400 font-mono mt-0.5">
+              Transmisión continua de telemetría de bajo nivel, transiciones FSM y confirmaciones SQLite WAL.
+            </p>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold uppercase">
+            SSE Stream Activo
+          </span>
+        </div>
+
+        <GlobalLiveLogsTerminal maxLines={200} />
       </div>
     </div>
   )
