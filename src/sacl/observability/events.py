@@ -12,6 +12,35 @@ from typing import Any, Dict, FrozenSet, Optional
 from sacl.contracts.models import AuditEvent
 from sacl.observability.correlation import get_current_correlation
 
+class TelemetryEventBus:
+    """Asynchronous and decoupled in-memory pub-sub bus for real-time telemetry events."""
+
+    def __init__(self) -> None:
+        self._subscribers: list[Any] = []
+
+    def subscribe(self, callback: Any) -> None:
+        if callback not in self._subscribers:
+            self._subscribers.append(callback)
+
+    def unsubscribe(self, callback: Any) -> None:
+        if callback in self._subscribers:
+            self._subscribers.remove(callback)
+
+    def publish(self, event: AuditEvent) -> None:
+        for cb in list(self._subscribers):
+            try:
+                cb(event)
+            except Exception:
+                pass
+
+
+_GLOBAL_EVENT_BUS = TelemetryEventBus()
+
+
+def get_event_bus() -> TelemetryEventBus:
+    return _GLOBAL_EVENT_BUS
+
+
 
 class Severity(str, Enum):
     """Standard audit and logging event severity levels."""

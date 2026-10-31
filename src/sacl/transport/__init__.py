@@ -37,6 +37,11 @@ from sacl.transport.exceptions import (
     ZipResourceLimitExceededError,
 )
 from sacl.transport.gateway import MailGateway
+from sacl.transport.local_gateway import (
+    IngressResult,
+    LocalIngressGateway,
+)
+
 from sacl.transport.gmail_adapter import (
     GmailApiAdapter,
     IGmailApiAdapter,

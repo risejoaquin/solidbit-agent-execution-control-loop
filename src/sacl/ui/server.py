@@ -155,6 +155,32 @@ def _unused_legacy_profile() -> Dict[str, Any]:
     }
 
 
+
+# Subscribe SSE broadcaster to the global TelemetryEventBus
+try:
+    from sacl.observability.events import get_event_bus
+    def _on_telemetry_event(audit_ev: Any) -> None:
+        try:
+            ev_dict = {
+                "event_id": audit_ev.event_id,
+                "job_id": audit_ev.job_id,
+                "run_id": audit_ev.run_id,
+                "node_id": audit_ev.node_id,
+                "agent_id": audit_ev.agent_id,
+                "event_type": audit_ev.event_type,
+                "severity": audit_ev.severity,
+                "payload": audit_ev.payload,
+                "created_at": audit_ev.created_at,
+            }
+            broadcast_sse(audit_ev.event_type.lower(), ev_dict)
+            broadcast_sse("agent_event", ev_dict)
+        except Exception:
+            pass
+    get_event_bus().subscribe(_on_telemetry_event)
+except Exception:
+    pass
+
+
 def _save_operator_profile(profile: Dict[str, Any]) -> None:
     try:
         PROFILE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -1630,6 +1656,24 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             broadcast_sse("jira_ticket_transitioned", payload)
             self._send_json(200, {"success": True, "ticket_key": ticket_key, "status": new_status})
             return
+
+        
+        # 18c. Ingress Gateway: Direct Enqueue from UI/Chat (EOP EDA Architecture)
+        if path == "/api/orchestrator/enqueue":
+            try:
+                from sacl.transport.local_gateway import LocalIngressGateway
+                conn = self.service._get_read_write_conn()
+                gateway = LocalIngressGateway(conn)
+                priority = int(body.get("priority", 0))
+                proj_id = body.get("project_id") or "stable-ecommerce"
+                res = gateway.submit_payload(body, project_id=proj_id, priority=priority)
+                broadcast_sse("job_enqueued", res.to_dict())
+                self._send_json(200 if res.accepted else 400, res.to_dict())
+                return
+            except Exception as e:
+                logger.exception("Error in /api/orchestrator/enqueue: %s", e)
+                self._send_json(500, {"success": False, "error": str(e)})
+                return
 
         # 18b. Orchestrator: Create/Update Sprint & Sync Jira or SQLite WAL
         if path == "/api/orchestrator/create-sprint":

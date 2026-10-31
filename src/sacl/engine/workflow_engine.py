@@ -249,13 +249,50 @@ class WorkflowEngine:
         goal = params.get("goal") or f"Ejecutar workflow {details['name']}"
         strict = params.get("strict_mode", True)
 
-        # 1. Step 1: Validation of Pre-Conditions & Contract Invariants
+        # 1. Step 1: Validation of Pre-Conditions & Hard Policy Engine
+        from sacl.policy.hard_policy import HardPolicyEngine
+        from sacl.observability.events import AuditEventType, create_audit_event, get_event_bus
+
+        bus = get_event_bus()
+        policy_engine = HardPolicyEngine()
+
+        # Emit TASK_RUNNING
+        bus.publish(create_audit_event(
+            event_type="TASK_RUNNING",
+            severity="INFO",
+            run_id=execution_id,
+            job_id=params.get("job_id", f"job-{execution_id}"),
+            payload={"skill_id": skill_id, "goal": goal}
+        ))
+
+        # Check Hard Policy invariants
+        target_action = params.get("action") or skill_id
+        if policy_engine.is_denied(target_action):
+            bus.publish(create_audit_event(
+                event_type="APPROVAL_REQUIRED",
+                severity="WARN",
+                run_id=execution_id,
+                payload={
+                    "action": target_action,
+                    "reason": f"Acción '{target_action}' requiere gate de aprobación humana.",
+                    "skill_id": skill_id
+                }
+            ))
+            return {
+                "success": False,
+                "status": "APPROVAL_REQUIRED",
+                "execution_id": execution_id,
+                "message": f"Acción '{target_action}' retenida por política de seguridad. Esperando firma HMAC.",
+                "action": target_action,
+                "deliverables": [],
+            }
+
         steps: List[Dict[str, Any]] = [
             {
                 "step": 1,
                 "name": "Verificación de Invariantes & Worktree",
                 "status": "COMPLETED",
-                "output": "Aislamiento verificado en rama y worktree de ejecución. Zero-deploy guard activo.",
+                "output": "Aislamiento verificado en rama y worktree. Políticas de seguridad evaluadas.",
                 "duration_ms": 120,
             }
         ]
@@ -523,6 +560,18 @@ class WorkflowEngine:
             except Exception as e:
                 logger.warning(f"Could not log workflow event to DB: {e}")
 
+        bus.publish(create_audit_event(
+            event_type="ARTIFACT_GENERATED",
+            severity="INFO",
+            run_id=execution_id,
+            payload={
+                "execution_id": execution_id,
+                "deliverables": [
+                    f"artifacts/{execution_id}_report.md",
+                    f"workorders/{execution_id}.json",
+                ]
+            }
+        ))
         duration = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         return {
