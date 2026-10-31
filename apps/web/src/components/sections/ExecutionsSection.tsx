@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { AgentCard, type AgentCardData } from '../AgentCard'
+import { AgentProfileExtended } from '../AgentProfileExtended'
 
 export const ExecutionsSection: React.FC = () => {
   const [agents, setAgents] = useState<AgentCardData[]>([
@@ -48,6 +49,8 @@ export const ExecutionsSection: React.FC = () => {
   const [pendingGates, setPendingGates] = useState<any[]>([])
   const [selectedGate, setSelectedGate] = useState<any>(null)
   const [decisionLoading, setDecisionLoading] = useState(false)
+  const [inspectedAgent, setInspectedAgent] = useState<AgentCardData | null>(null)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [justification, setJustification] = useState('Autorización humana otorgada con verificación de contratos.')
 
   const loadPendingGates = async () => {
@@ -213,10 +216,17 @@ export const ExecutionsSection: React.FC = () => {
       <div className="flex-1 overflow-y-auto custom-scroll">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           {agents.map((agent) => (
-            <AgentCard key={agent.agentName} agent={agent} />
+            <AgentCard key={agent.agentName} agent={agent} onInspect={() => { setInspectedAgent(agent); setIsProfileOpen(true); }} />
           ))}
         </div>
       </div>
+
+      {/* Drawer Lateral de Perfil Extendido SDLC (Fase 2 Bocetos EOP) */}
+      <AgentProfileExtended
+        agent={inspectedAgent}
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
     </div>
   )
 }
