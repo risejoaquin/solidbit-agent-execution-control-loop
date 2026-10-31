@@ -90,7 +90,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   return (
     <aside
       id="left-sidebar-navigation"
-      className={`border-r border-white/8 bg-[#000000] flex flex-col justify-between shrink-0 select-none h-screen transition-all duration-200 z-30 ${
+      className={`border-r border-white/8 bg-[#000000] hidden md:flex flex-col justify-between shrink-0 select-none h-screen transition-all duration-200 z-30 ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
