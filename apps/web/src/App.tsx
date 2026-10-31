@@ -19,6 +19,7 @@ import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
 import { WorkflowsSection } from './components/sections/WorkflowsSection'
 import { TechAuthHubSection } from './components/sections/TechAuthHubSection'
+import { SkillsImporterSection } from './components/sections/SkillsImporterSection'
 import { EmailGatewaySection } from './components/sections/EmailGatewaySection'
 import { JiraSection } from './components/sections/JiraSection'
 import { DiffInspectorModal } from './components/DiffInspectorModal'
@@ -651,7 +652,8 @@ export default function App() {
 
           {currentSection === 'connections' && <TechAuthHubSection />}
 
-          {currentSection === 'workflows' && <WorkflowsSection />}
+          {currentSection === 'workflows' && <SkillsImporterSection />}
+          {currentSection === 'skills' && <SkillsImporterSection />}
 
           {(currentSection === 'designer' || currentSection === 'roadmap') && (
             <RoadmapSection
