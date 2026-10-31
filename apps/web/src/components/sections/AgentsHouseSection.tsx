@@ -140,43 +140,43 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
   }, [])
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#000000] space-y-3 select-none text-left">
-      {/* Header Aeronáutico Técnico */}
-      <div className="border border-white/8 bg-[#0a0a0a] rounded-lg p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xs font-bold text-white tracking-wider uppercase font-sans">
+    <div className="flex flex-col w-full bg-[#000000] space-y-3 select-none text-left min-h-full pb-16 md:pb-6">
+      {/* Header Aeronáutico Técnico con scroll horizontal en móvil si se requiere */}
+      <div className="border border-white/8 bg-[#0a0a0a] rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xs sm:text-sm font-bold text-white tracking-wider uppercase font-sans truncate">
               Casa de Agentes Tiempo Real
             </h1>
-            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-              BOCETO FÍSICO PARIDAD 100%
+            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded shrink-0">
+              PARIDAD 100%
             </span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-500 mt-0.5">
-            Los agentes se ven en tiempo real con un diseño completo importando assets, personalidad y sprint SDLC.
+          <p className="text-[10px] font-mono text-zinc-500 mt-0.5 leading-snug">
+            Los agentes se ven en tiempo real con diseño completo, assets Bomberman y pipeline SDLC.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setIsCampaignModalOpen(true)}
-          className="px-3 py-1.5 rounded text-xs font-mono bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition cursor-pointer flex items-center gap-1.5"
+          className="w-full sm:w-auto px-3 py-2 rounded text-xs font-mono bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="M3 9h18" />
             <path d="M9 21V9" />
           </svg>
-          <span>Diseñar Wave / Campaña (Ventana Emergente)</span>
+          <span>Diseñar Wave / Campaña (Emergente)</span>
         </button>
       </div>
 
-      {/* Layout Split de Dos Columnas: Exacto como en tu Boceto Físico */}
-      <div className="flex-1 flex flex-col md:flex-row gap-3 min-h-0 overflow-hidden">
-        {/* Columna Izquierda: Menú Lateral de la Casa de Agentes (Skills, Skins, Procesos, Diseñar) */}
-        <div className="w-full md:w-56 bg-[#0a0a0a] border border-white/8 rounded-lg p-3 flex flex-col justify-between shrink-0">
-          <div className="space-y-1.5">
-            <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider px-2 py-1">
+      {/* Menú de Boceto Físico: En móvil horizontal deslizable, en escritorio vertical (w-56) */}
+      <div className="flex flex-col md:flex-row gap-3">
+        {/* Menú Lateral / Barra de Pestañas Móvil */}
+        <div className="w-full md:w-56 bg-[#0a0a0a] border border-white/8 rounded-lg p-2.5 sm:p-3 flex md:flex-col justify-between shrink-0 overflow-x-auto custom-scroll">
+          <div className="flex md:flex-col gap-1.5 w-full">
+            <div className="hidden md:block text-[9px] font-mono text-zinc-500 uppercase tracking-wider px-2 py-1">
               Parámetros de Agentes
             </div>
 
@@ -184,21 +184,21 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
             <button
               type="button"
               onClick={() => setActiveSideMenu('skills')}
-              className={`w-full text-left px-3 py-2 rounded text-xs font-mono transition flex items-center justify-between ${
+              className={`px-3 py-1.5 sm:py-2 rounded text-xs font-mono transition flex items-center justify-between whitespace-nowrap shrink-0 md:shrink md:w-full ${
                 activeSideMenu === 'skills'
                   ? 'bg-white/10 text-white font-semibold border border-white/10'
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <span>Skills</span>
-              <span className="text-[9px] text-zinc-600">.md</span>
+              <span className="hidden md:inline text-[9px] text-zinc-600">.md</span>
             </button>
 
             {/* 2. Skins (Activa y conectada a Bomberman) */}
             <button
               type="button"
               onClick={() => setActiveSideMenu('skins')}
-              className={`w-full text-left px-3 py-2 rounded text-xs font-mono transition flex items-center justify-between ${
+              className={`px-3 py-1.5 sm:py-2 rounded text-xs font-mono transition flex items-center justify-between whitespace-nowrap shrink-0 md:shrink md:w-full ${
                 activeSideMenu === 'skins'
                   ? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30'
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
@@ -208,35 +208,34 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span>Skins</span>
               </div>
-              <span className="text-[9px] text-emerald-500 font-mono">16-bit SNES</span>
+              <span className="hidden md:inline text-[9px] text-emerald-500 font-mono">16-bit SNES</span>
             </button>
 
             {/* 3. Procesos */}
             <button
               type="button"
               onClick={() => setActiveSideMenu('procesos')}
-              className={`w-full text-left px-3 py-2 rounded text-xs font-mono transition flex items-center justify-between ${
+              className={`px-3 py-1.5 sm:py-2 rounded text-xs font-mono transition flex items-center justify-between whitespace-nowrap shrink-0 md:shrink md:w-full ${
                 activeSideMenu === 'procesos'
                   ? 'bg-white/10 text-white font-semibold border border-white/10'
                   : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <span>Procesos</span>
-              <span className="text-[9px] text-zinc-600">Kahn DAG</span>
+              <span className="hidden md:inline text-[9px] text-zinc-600">Kahn DAG</span>
             </button>
 
-            {/* 4. Diseñar wave/campaña / ventana emergente */}
+            {/* 4. Diseñar wave/campaña */}
             <button
               type="button"
               onClick={() => setIsCampaignModalOpen(true)}
-              className="w-full text-left px-3 py-2 rounded text-xs font-mono transition border border-dashed border-white/20 text-zinc-300 hover:text-emerald-400 hover:border-emerald-500/40 mt-3"
+              className="px-3 py-1.5 sm:py-2 rounded text-xs font-mono transition border border-dashed border-white/20 text-zinc-300 hover:text-emerald-400 hover:border-emerald-500/40 whitespace-nowrap shrink-0 md:shrink md:w-full md:mt-3"
             >
-              <div className="font-semibold">+ Diseñar Wave/Campaña</div>
-              <div className="text-[9px] text-zinc-500">Ventana emergente</div>
+              <div className="font-semibold">+ Diseñar Wave</div>
             </button>
           </div>
 
-          <div className="p-2.5 bg-[#000000] border border-white/8 rounded text-[9px] font-mono text-zinc-500 space-y-1">
+          <div className="hidden md:block p-2.5 bg-[#000000] border border-white/8 rounded text-[9px] font-mono text-zinc-500 space-y-1 mt-4">
             <div className="text-zinc-400 font-bold">SOLIDBIT AGENTS</div>
             <div>• {agents.length} avatares activos</div>
             <div>• Zero-Token aislado</div>
@@ -244,20 +243,20 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
           </div>
         </div>
 
-        {/* Columna Derecha: Recuadro Grande con la Cuadrícula de Avatares (Exacto al Boceto Físico) */}
-        <div className="flex-1 bg-[#0a0a0a] border border-white/8 rounded-lg p-4 overflow-y-auto custom-scroll flex flex-col justify-between">
+        {/* Columna Derecha / Principal: Cuadrícula Adaptativa para Móvil y Desktop */}
+        <div className="flex-1 bg-[#0a0a0a] border border-white/8 rounded-lg p-3 sm:p-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3 border-b border-white/8 pb-2">
               <div className="text-xs font-mono text-zinc-400">
-                Vista de Campo: <span className="text-white font-semibold">{activeSideMenu.toUpperCase()}</span>
+                Vista: <span className="text-white font-semibold">{activeSideMenu.toUpperCase()}</span>
               </div>
               <div className="text-[10px] font-mono text-emerald-400">
-                Haz clic en cualquier avatar para auditar SDLC y alternar skins
+                Toca cualquier avatar para auditar SDLC
               </div>
             </div>
 
-            {/* Cuadrícula de Siluetas/Avatares: 6 personajes tal como el boceto (2 filas de 3) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* Cuadrícula Adaptativa: 1 columna en móvil (iPhone 13 Pro), 2 en tablet, 3 en desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
               {agents.map((agent) => (
                 <AgentCard
                   key={agent.agentName}
@@ -271,11 +270,11 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
             </div>
           </div>
 
-          {/* Mini-Panel inferior contextual según menú seleccionado */}
+          {/* Banner inferior contextual */}
           {activeSideMenu === 'skins' && (
-            <div className="mt-4 p-3 bg-[#000000] border border-white/8 rounded flex items-center justify-between text-xs font-mono">
+            <div className="mt-3 p-2.5 sm:p-3 bg-[#000000] border border-white/8 rounded flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] font-mono">
               <div className="flex items-center gap-2">
-                <span className="text-emerald-400 font-bold">Sprites SNES Activos:</span>
+                <span className="text-emerald-400 font-bold">Sprites SNES:</span>
                 <span className="text-zinc-400">
                   White (Atlas), Blue (Vega), Red (Nova), Black (Centinela).
                 </span>
@@ -285,18 +284,18 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
           )}
 
           {activeSideMenu === 'skills' && (
-            <div className="mt-4 p-3 bg-[#000000] border border-white/8 rounded text-xs font-mono space-y-1">
+            <div className="mt-3 p-2.5 sm:p-3 bg-[#000000] border border-white/8 rounded text-[11px] font-mono space-y-1">
               <div className="text-white font-bold">Skills Vinculados a los Agentes:</div>
-              <div className="text-zinc-400 text-[11px]">
+              <div className="text-zinc-400">
                 Atlas (sacl-orchestrator) · Vega (solidbit-engineer) · Nova (pytest-runner) · Centinela (solidbit-sdlc).
               </div>
             </div>
           )}
 
           {activeSideMenu === 'procesos' && (
-            <div className="mt-4 p-3 bg-[#000000] border border-white/8 rounded text-xs font-mono space-y-1">
+            <div className="mt-3 p-2.5 sm:p-3 bg-[#000000] border border-white/8 rounded text-[11px] font-mono space-y-1">
               <div className="text-white font-bold">Control Loop Kahn DAG en Ejecución:</div>
-              <div className="text-zinc-400 text-[11px]">
+              <div className="text-zinc-400">
                 Particionado de oleadas por worktrees efímeros sin colisiones en SQLite WAL.
               </div>
             </div>
