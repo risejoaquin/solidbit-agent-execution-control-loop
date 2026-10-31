@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { SoftPhaseMultiVoice, AVAILABLE_VOICES } from '../SoftPhaseMultiVoice'
+import { CampaignVisualBuilder } from '../CampaignVisualBuilder'
 
 interface CQRSCommandMessage {
   id: string
@@ -24,6 +25,7 @@ export const ChatSection: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedVoiceIds, setSelectedVoiceIds] = useState<string[]>(['sec-auditor', 'arch-strict', 'data-vega'])
   const [isMultiVoiceOpen, setIsMultiVoiceOpen] = useState(false)
+  const [isCampaignBuilderOpen, setIsCampaignBuilderOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -159,6 +161,19 @@ export const ChatSection: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setIsCampaignBuilderOpen(true)}
+            className="px-2.5 py-1 rounded text-[10px] font-mono border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition cursor-pointer flex items-center gap-1.5"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18" />
+              <path d="M9 21V9" />
+            </svg>
+            <span>Diseñar Campaña Visual</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsMultiVoiceOpen(!isMultiVoiceOpen)}
             className={`px-2.5 py-1 rounded text-[10px] font-mono border transition cursor-pointer flex items-center gap-1.5 ${
               isMultiVoiceOpen
@@ -288,6 +303,25 @@ export const ChatSection: React.FC = () => {
           <span>Zero-Blocking ACK</span>
         </div>
       </div>
+
+      {/* Modal Visual Campaign Builder (Fase 3 EOP) */}
+      <CampaignVisualBuilder
+        isOpen={isCampaignBuilderOpen}
+        onClose={() => setIsCampaignBuilderOpen(false)}
+        onDispatched={(jobId) => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `builder-ack-${Date.now()}`,
+              role: 'system_ack',
+              content: `Campaña visual despachada exitosamente vía Command Hub. Job ID: ${jobId}`,
+              job_id: jobId,
+              status: 'ENQUEUED',
+              timestamp: new Date().toLocaleTimeString('es-ES'),
+            },
+          ])
+        }}
+      />
     </div>
   )
 }
