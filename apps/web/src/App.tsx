@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Header } from './components/Header'
 import { LeftSidebar } from './components/LeftSidebar'
+import { WorkspaceSelector, type WorkspaceContext } from './components/WorkspaceSelector'
 import { CenterDashboard } from './components/CenterDashboard'
 import { PersistentTelemetryDrawer } from './components/PersistentTelemetryDrawer'
 import { InteractivePipelineStepper } from './components/InteractivePipelineStepper'
@@ -57,6 +58,13 @@ export default function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false)
   const [projectName, setProjectName] = useState<string>('Tienda Online (Stable-Ecommerce)')
   const [activeBranch, setActiveBranch] = useState<string>('worktrees/scheduler')
+  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceContext | null>({
+    workspace_id: 'ws-stable-ecommerce',
+    name: 'Tienda Online (Stable-Ecommerce)',
+    path: 'C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator',
+    branch: 'worktrees/scheduler',
+    is_clean: true
+  })
   const [selectedJiraTicketForSprint, setSelectedJiraTicketForSprint] = useState<any | null>(null)
 
   // Dynamic state loaded strictly from backend APIs
@@ -555,6 +563,18 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#000000] text-zinc-100 font-sans overflow-hidden">
+      {/* Context Boundary Global State Lock: Intercepts entire UI if no workspace is mounted */}
+      {activeWorkspace === null && (
+        <WorkspaceSelector
+          currentPath="C:/Users/Lucilfer/Documents/Stable-Ecommerce-Orchestrator"
+          onWorkspaceMounted={(ws) => {
+            setActiveWorkspace(ws)
+            setProjectName(ws.name)
+            setActiveBranch(ws.branch)
+            loadData()
+          }}
+        />
+      )}
       {/* Header Global de Proyecto con Rama Anclada y Dropdown */}
       <Header
         projectName={projectName}
