@@ -554,7 +554,7 @@ export default function App() {
   const activeProject = projects.find((p) => p.is_active) || projects[0]
 
   return (
-    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#09090B] text-zinc-100 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen min-h-[100dvh] w-screen bg-[#000000] text-zinc-100 font-sans overflow-hidden">
       {/* Header Global de Proyecto con Rama Anclada y Dropdown */}
       <Header
         projectName={projectName}
@@ -572,7 +572,7 @@ export default function App() {
       <NetworkStatusBanner onRetry={loadData} />
 
       {/* Layout Maestro de 3 Capas Continuas (Sidebar ~18%, Workbench ~52%, Telemetría ~30%) */}
-      <div className="flex flex-1 overflow-hidden bg-[#09090B] relative">
+      <div className="flex flex-1 overflow-hidden bg-[#000000] relative">
         {/* Capa 1: Sidebar de Navegación OOUX (Izquierda) */}
         <LeftSidebar
           currentSection={currentSection}
@@ -585,7 +585,7 @@ export default function App() {
         <main className="flex-1 overflow-y-auto custom-scroll p-3.5 sm:p-5 lg:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
           {/* Breadcrumbs Limpio en vistas secundarias (KISS) */}
           {currentSection !== 'dashboard' && (
-            <div className="border-b border-white/5 pb-2">
+            <div className="border-b border-white/8 pb-2">
               <Breadcrumbs items={getBreadcrumbs()} onNavigate={(sec) => setCurrentSection(sec)} />
             </div>
           )}
