@@ -215,6 +215,33 @@ export const ChatSection: React.FC = () => {
     setLoading(true)
 
     try {
+      // Direct Local Gateway ingestion if structured JSON manifest or command
+      if (text.startsWith('{') && text.endsWith('}')) {
+        try {
+          const parsedManifest = JSON.parse(text)
+          const enqueueRes = await fetch('/api/orchestrator/enqueue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(parsedManifest),
+          })
+          const enqueueData = await enqueueRes.json()
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `asst-${Date.now()}`,
+              role: 'assistant',
+              content: enqueueData.accepted
+                ? `⚡ **Manifiesto Encolado Directamente (Local Gateway IoC):**\n- Job ID: \`${enqueueData.job_id}\`\n- Estado: \`${enqueueData.status}\`\n- Tareas orquestadas de forma desatendida.`
+                : `❌ **Error de Ingress:** ${enqueueData.message || 'Manifiesto rechazado'}`,
+              timestamp: new Date().toISOString(),
+            },
+          ])
+          return
+        } catch (jsonErr) {
+          // Normal chat flow if not strictly valid JSON
+        }
+      }
+
       const res = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
