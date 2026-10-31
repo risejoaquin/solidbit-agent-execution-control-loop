@@ -1,4 +1,5 @@
 ﻿import React, { useState, useRef } from 'react'
+import { AIEngineSelectorModal } from '../AIEngineSelectorModal'
 
 interface ImportedSkillMeta {
   id: string
@@ -23,6 +24,7 @@ export const SkillsImporterSection: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false)
   const [generatedSkillMd, setGeneratedSkillMd] = useState<string>('')
   const [authoringStatus, setAuthoringStatus] = useState<string | null>(null)
+  const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -169,15 +171,32 @@ version: 1.0.0
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6 text-left">
-      {/* Encabezado */}
-      <div>
-        <h1 className="text-xl font-bold text-white uppercase tracking-wider font-sans">
-          Skills Importer & Authoring Studio
-        </h1>
-        <p className="text-xs text-zinc-500 font-mono mt-1">
-          Carga de manifiestos estructurados y diseño asistido de habilidades con persistencia en disco local.
-        </p>
+      {/* Encabezado con Desglose de Motores IA (Boceto Fase 1) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/8 pb-4">
+        <div>
+          <h1 className="text-xl font-bold text-white uppercase tracking-wider font-sans">
+            Skills Importer & Authoring Studio
+          </h1>
+          <p className="text-xs text-zinc-500 font-mono mt-1">
+            Carga de manifiestos estructurados y diseño asistido de habilidades con persistencia en disco local.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsAiModalOpen(true)}
+          className="px-3.5 py-2 bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-white/25 rounded-lg text-xs font-mono text-emerald-400 font-semibold flex items-center gap-2 transition cursor-pointer self-start sm:self-auto"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>⚡ Desglose de Motores IA</span>
+        </button>
       </div>
+
+      {/* Modal Desplegable de Motores IA */}
+      <AIEngineSelectorModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Columna Izquierda: Carga Drag & Drop */}
@@ -307,3 +326,4 @@ version: 1.0.0
     </div>
   )
 }
+
