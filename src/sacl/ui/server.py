@@ -1685,6 +1685,36 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(500, {"success": False, "error": str(e)})
                 return
 
+        # Workspace Native File Explorer Dialog (Non-blocking IPC)
+        if path == "/api/workspace/browse":
+            import concurrent.futures
+            def _ask_directory():
+                try:
+                    import tkinter as tk
+                    from tkinter import filedialog
+                    root = tk.Tk()
+                    root.withdraw()
+                    root.attributes("-topmost", True)
+                    selected = filedialog.askdirectory(title="Seleccionar Workspace / Proyecto Local")
+                    root.destroy()
+                    return selected
+                except Exception as ex:
+                    logger.warning(f"Error opening native folder dialog: {ex}")
+                    return ""
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_ask_directory)
+                try:
+                    folder = future.result(timeout=60)
+                except Exception:
+                    folder = ""
+
+            self._send_json(200, {
+                "success": bool(folder),
+                "path": folder
+            })
+            return
+
         # Workspace Context Boundary Mount & Validation (Handshake)
         if path == "/api/workspace/mount":
             target_path = body.get("path", "").strip()

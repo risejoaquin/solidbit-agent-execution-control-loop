@@ -17,6 +17,7 @@ import { ExecutionsSection } from './components/sections/ExecutionsSection'
 import { ProjectsSection } from './components/sections/ProjectsSection'
 import { ReportsSection } from './components/sections/ReportsSection'
 import { SettingsSection } from './components/sections/SettingsSection'
+import { GitHubSection } from './components/sections/GitHubSection'
 import { WorkflowsSection } from './components/sections/WorkflowsSection'
 import { TechAuthHubSection } from './components/sections/TechAuthHubSection'
 import { SkillsImporterSection } from './components/sections/SkillsImporterSection'
@@ -699,7 +700,8 @@ export default function App() {
 
           {(currentSection === 'database' || currentSection === 'reports') && <ReportsSection />}
 
-          {(currentSection === 'github' || currentSection === 'settings') && <SettingsSection />}
+          {currentSection === 'github' && <GitHubSection />}
+          {currentSection === 'settings' && <SettingsSection />}
         </main>
 
         {/* Capa 3: Drawer Persistente de Telemetría, Logs FSM y Daemon (Derecha) */}

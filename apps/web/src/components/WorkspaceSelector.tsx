@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 
 export interface WorkspaceContext {
   workspace_id: string
@@ -19,7 +19,27 @@ export const WorkspaceSelector: React.FC<WorkspaceSelectorProps> = ({
 }) => {
   const [workspacePath, setWorkspacePath] = useState(currentPath)
   const [isValidating, setIsValidating] = useState(false)
+  const [isBrowsing, setIsBrowsing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const handleBrowseNative = async () => {
+    setIsBrowsing(true)
+    setErrorMessage(null)
+    try {
+      const res = await fetch('/api/workspace/browse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (res.ok && data.success && data.path) {
+        setWorkspacePath(data.path)
+      }
+    } catch (err: any) {
+      setErrorMessage(`No se pudo abrir el explorador nativo: ${err.message}`)
+    } finally {
+      setIsBrowsing(false)
+    }
+  }
 
   const handleMount = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,7 +88,7 @@ export const WorkspaceSelector: React.FC<WorkspaceSelectorProps> = ({
             </svg>
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-white tracking-wide uppercase">Context Boundary · EOP</h2>
+            <h2 className="text-sm font-semibold text-white tracking-wide uppercase font-sans">Context Boundary · EOP</h2>
             <p className="text-[11px] text-zinc-500 font-mono mt-0.5">Inicialización de Workspace Local Obligatoria</p>
           </div>
         </div>
@@ -78,53 +98,71 @@ export const WorkspaceSelector: React.FC<WorkspaceSelectorProps> = ({
           Para garantizar el aislamiento de operaciones y la integridad de contratos, define el directorio raíz del repositorio de trabajo. El demonio local validará la estructura y permisos antes de habilitar el Control Plane.
         </p>
 
-        {/* Formulario */}
+        {/* Formulario con Explorador Nativo IPC */}
         <form onSubmit={handleMount} className="mt-5 space-y-4">
           <div>
-            <label className="text-[10px] font-mono text-zinc-400 block mb-1.5 uppercase tracking-wider">
-              Ruta del Proyecto en Disco
-            </label>
-            <input
-              id="workspace-path-input"
-              type="text"
-              value={workspacePath}
-              onChange={(e) => setWorkspacePath(e.target.value)}
-              placeholder="Ej: C:\Proyectos\Mi-Proyecto-EOP o /home/user/workspace"
-              className="w-full bg-[#000000] border border-white/8 rounded px-3 py-2 text-xs font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-white/20 transition"
-              disabled={isValidating}
-              autoFocus
-            />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
+                Ruta del Proyecto en Disco
+              </label>
+              <button
+                type="button"
+                onClick={handleBrowseNative}
+                disabled={isBrowsing || isValidating}
+                className="text-[10px] font-mono text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              >
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                </svg>
+                {isBrowsing ? 'Abriendo explorador...' : '📁 Explorar Sistema (Nativo)'}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <input
+                id="workspace-path-input"
+                type="text"
+                value={workspacePath}
+                onChange={(e) => setWorkspacePath(e.target.value)}
+                placeholder="Ej: C:\Proyectos\Mi-Proyecto-EOP o selecciona Explorar"
+                className="flex-1 bg-[#000000] border border-white/8 rounded px-3 py-2 text-xs font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-white/20 transition"
+                disabled={isValidating || isBrowsing}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={handleBrowseNative}
+                disabled={isBrowsing || isValidating}
+                className="px-3 py-2 bg-[#121212] border border-white/8 rounded text-xs font-mono text-zinc-300 hover:border-white/20 transition cursor-pointer"
+                title="Abrir explorador de carpetas del sistema operativo"
+              >
+                Buscar
+              </button>
+            </div>
           </div>
 
           {errorMessage && (
             <div className="p-3 rounded bg-red-500/10 border border-red-500/20 flex items-start gap-2.5">
-              <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" x2="12" y1="8" y2="12" />
-                <line x1="12" x2="12.01" y1="16" y2="16" />
-              </svg>
-              <span className="text-[11px] text-red-400 font-sans">{errorMessage}</span>
+              <span className="text-red-400 text-xs font-mono">✕</span>
+              <p className="text-xs font-mono text-red-400 leading-normal">{errorMessage}</p>
             </div>
           )}
 
           <div className="pt-2 flex items-center justify-between">
-            <span className="text-[10px] font-mono text-zinc-500">Handshake: POST /api/workspace/mount</span>
+            <span className="text-[10px] font-mono text-zinc-600">Handshake SQLite WAL & Git Branch</span>
             <button
               id="workspace-mount-btn"
               type="submit"
-              disabled={!workspacePath.trim() || isValidating}
-              className={`px-4 py-2 rounded text-xs font-medium transition border flex items-center gap-2 ${
-                workspacePath.trim() && !isValidating
-                  ? 'bg-white text-black border-white hover:bg-zinc-200 cursor-pointer'
-                  : 'bg-zinc-900 text-zinc-600 border-white/8 cursor-not-allowed'
-              }`}
+              disabled={isValidating || isBrowsing || !workspacePath.trim()}
+              className="px-4 py-2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition text-xs font-mono font-medium flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              {isValidating && (
-                <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
+              {isValidating ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                  <span>Validando Entorno...</span>
+                </>
+              ) : (
+                <span>Vincular Workspace ➔</span>
               )}
-              <span>{isValidating ? 'Validando Integridad...' : 'Montar Workspace'}</span>
             </button>
           </div>
         </form>
