@@ -44,3 +44,10 @@ Observabilidad continua sobre el control de versiones sin exposición de credenc
 3. **Auditoría Automática:** Centinela evalúa el código resultante contra la matriz de prohibiciones constitucionales y ejecuta las suites de pruebas automatizadas.
 4. **Gate 5 (Compuerta Humana):** Cuando las pruebas alcanzan el 100% de aprobación, la tarjeta de campaña cambia a estado ámbar (APPROVAL_REQUIRED).
 5. **Firma y Cierre:** Inspecciona el diff y el reporte de evidencias. Para autorizar la integración, inyecta la resolución firmada con tu HMAC en el Command Hub. El motor fusiona los cambios, destruye el entorno efímero (*Cascading Teardown*) y deja el espacio de trabajo en un estado limpio y reproducible.
+
+---
+
+## 4. Gobernanza de Roles y Context Boundaries Externos
+
+- **Operador Interno (Soberano):** Mantiene jurisdicción exclusiva sobre la arquitectura core de SolidPOS, Web POS y la red de Dark Kitchens (Hermosillo, Guaymas, Empalme).
+- **Usuarios Externos / Clientes EOP (Ej. Julián):** Operan exclusivamente como clientes finales del software EOP sobre sus propios repositorios aislados. Tienen prohibida la asignación o interferencia como colaboradores o recursos de desarrollo en campañas de SolidPOS. Su límite de contexto (*Context Boundary*) es 100% independiente.
