@@ -1659,6 +1659,32 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
 
         
         
+        
+        # Skills Importer Endpoint (Local Storage Persistence)
+        if path == "/api/skills/import":
+            skill_id = body.get("skill_id", "").strip()
+            name = body.get("name", "").strip()
+            content = body.get("content", "")
+            fmt = body.get("format", "markdown")
+            if not skill_id or not content:
+                self._send_json(400, {"success": False, "error": "Datos incompletos de la habilidad."})
+                return
+            
+            try:
+                skills_dir = self.service.workspace_root / ".agents" / "skills" / skill_id
+                skills_dir.mkdir(parents=True, exist_ok=True)
+                file_name = "SKILL.md" if fmt == "markdown" else f"{skill_id}.json"
+                skill_file = skills_dir / file_name
+                skill_file.write_text(content, encoding="utf-8")
+                
+                broadcast_sse("skill_imported", {"skill_id": skill_id, "name": name, "format": fmt})
+                self._send_json(200, {"success": True, "skill_id": skill_id, "name": name})
+                return
+            except Exception as e:
+                logger.exception("Error saving imported skill: %s", e)
+                self._send_json(500, {"success": False, "error": str(e)})
+                return
+
         # Workspace Context Boundary Mount & Validation (Handshake)
         if path == "/api/workspace/mount":
             target_path = body.get("path", "").strip()
