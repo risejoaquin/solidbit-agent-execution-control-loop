@@ -65,17 +65,6 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
       lastActive: 'Justo ahora',
       skin: 'bomberman_idle',
     },
-    {
-      agentName: 'Julian (External EOP)',
-      role: 'Operador Soberano Independiente',
-      currentProcess: 'Context Boundary Aislado',
-      status: 'PASS',
-      lastLog: 'Operación en espacio soberano propio.',
-      pid: 14228,
-      commitSha: 'c6370d7',
-      lastActive: 'Justo ahora',
-      skin: 'bomberman_idle',
-    },
   ])
 
   // Menú lateral interno exacto de tu boceto físico
