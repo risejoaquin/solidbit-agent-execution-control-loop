@@ -18,9 +18,10 @@ export interface AgentCardData {
 interface AgentCardProps {
   agent: AgentCardData
   onInspect?: () => void
+  onQuickOrder?: (agent: AgentCardData) => void
 }
 
-export const AgentCard: React.FC<AgentCardProps> = React.memo(({ agent, onInspect }) => {
+export const AgentCard: React.FC<AgentCardProps> = React.memo(({ agent, onInspect, onQuickOrder }) => {
   const isHealthy = ['RUNNING', 'COMPLETED', 'PASS', 'Activo'].includes(agent.status)
   const isWaiting = ['WAITING_APPROVAL', 'BLOCKED', 'HUMAN_IN_THE_LOOP', 'En espera'].includes(agent.status)
   const isError = ['ERROR', 'FAILED', 'FAIL'].includes(agent.status)
@@ -136,13 +137,29 @@ export const AgentCard: React.FC<AgentCardProps> = React.memo(({ agent, onInspec
         </span>
       </div>
 
-      {/* Bottom Metadata: PID / Commit */}
+      {/* Bottom Metadata & Botón de Orden Rápida */}
       <div className="flex items-center justify-between text-[9px] font-mono text-zinc-500 pt-1 border-t border-white/8">
-        <span>PID: {agent.pid ? agent.pid : 'DAEMON'}</span>
-        {agent.commitSha && (
-          <span className="text-zinc-400">git: {agent.commitSha.substring(0, 7)}</span>
+        <div className="flex items-center gap-2">
+          <span>PID: {agent.pid ? agent.pid : 'DAEMON'}</span>
+          {agent.commitSha && (
+            <span className="text-zinc-400 hidden sm:inline">git: {agent.commitSha.substring(0, 7)}</span>
+          )}
+        </div>
+
+        {/* Botón de Orden Rápida (1 Toque) */}
+        {onQuickOrder && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onQuickOrder(agent)
+            }}
+            className="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition flex items-center gap-1 cursor-pointer"
+            title="Lanzar orden rápida para este agente"
+          >
+            <span>⚡ Orden</span>
+          </button>
         )}
-        <span className="text-zinc-600">16-bit Skin</span>
       </div>
     </div>
   )

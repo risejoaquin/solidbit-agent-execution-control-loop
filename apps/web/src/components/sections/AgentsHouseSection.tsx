@@ -69,15 +69,66 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
 
   // Menú lateral interno exacto de tu boceto físico
   const [activeSideMenu, setActiveSideMenu] = useState<'skills' | 'skins' | 'procesos' | 'builder'>('skins')
+  // Filtro superior por estado (Tarea B)
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'WAITING_GATE'>('ALL')
   const [inspectedAgent, setInspectedAgent] = useState<AgentCardData | null>(null)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [selectedVoiceIds, setSelectedVoiceIds] = useState<string[]>(['sec-auditor', 'arch-strict', 'data-vega'])
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false)
 
+  // Estado para el modal de orden rápida
+  const [quickOrderAgent, setQuickOrderAgent] = useState<AgentCardData | null>(null)
+  const [quickOrderText, setQuickOrderText] = useState('')
+  const [quickOrderLoading, setQuickOrderLoading] = useState(false)
+
   const toggleVoice = (id: string) => {
     setSelectedVoiceIds((prev) =>
       prev.includes(id) ? (prev.length > 1 ? prev.filter((v) => v !== id) : prev) : [...prev, id]
     )
+  }
+
+  // Filtrado reactivo de agentes
+  const filteredAgents = agents.filter((agent) => {
+    if (statusFilter === 'ACTIVE') {
+      return ['RUNNING', 'COMPLETED', 'PASS', 'Activo'].includes(agent.status)
+    }
+    if (statusFilter === 'WAITING_GATE') {
+      return ['WAITING_APPROVAL', 'BLOCKED', 'HUMAN_IN_THE_LOOP', 'En espera'].includes(agent.status)
+    }
+    return true
+  })
+
+  // Lanzar orden rápida
+  const handleLaunchQuickOrder = async () => {
+    if (!quickOrderAgent || !quickOrderText.trim()) return
+    setQuickOrderLoading(true)
+    try {
+      const payload = {
+        command: 'EXECUTE_WAVE',
+        job_id: `quick-${Date.now()}`,
+        project_id: 'stable-ecommerce',
+        manifest: {
+          id: `pkg-${Date.now()}`,
+          agent: quickOrderAgent.agentName,
+          tasks: [quickOrderText.trim()],
+          priority: 0,
+        },
+      }
+      const res = await fetch('/api/orchestrator/enqueue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (res.ok) {
+        if (onAgentLaunched) onAgentLaunched({ agent: quickOrderAgent.agentName, task: quickOrderText })
+        setQuickOrderAgent(null)
+        setQuickOrderText('')
+      }
+    } catch (e) {
+      console.warn('Error launching quick order:', e)
+    } finally {
+      setQuickOrderLoading(false)
+    }
   }
 
   // SSE Telemetry listener
@@ -232,27 +283,75 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
           </div>
         </div>
 
-        {/* Columna Derecha / Principal: Cuadrícula Adaptativa para Móvil y Desktop */}
+        {/* Columna Derecha / Principal: Cuadrícula Adaptativa con Filtros Rápidos */}
         <div className="flex-1 bg-[#0a0a0a] border border-white/8 rounded-lg p-3 sm:p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-3 border-b border-white/8 pb-2">
-              <div className="text-xs font-mono text-zinc-400">
-                Vista: <span className="text-white font-semibold">{activeSideMenu.toUpperCase()}</span>
+            {/* Barra Superior con Chips de Filtrado Rápido (Tarea B) */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 mb-3 border-b border-white/8 pb-2.5">
+              <div className="flex items-center gap-1.5 bg-[#121212] border border-white/8 rounded-lg p-1 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('ALL')}
+                  className={`flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-mono rounded transition ${
+                    statusFilter === 'ALL'
+                      ? 'bg-white/10 text-white font-semibold'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Todos ({agents.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('ACTIVE')}
+                  className={`flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-mono rounded transition flex items-center justify-center gap-1 ${
+                    statusFilter === 'ACTIVE'
+                      ? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/30'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>Activos ({agents.filter((a) => ['RUNNING', 'COMPLETED', 'PASS', 'Activo'].includes(a.status)).length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('WAITING_GATE')}
+                  className={`flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-mono rounded transition flex items-center justify-center gap-1 ${
+                    statusFilter === 'WAITING_GATE'
+                      ? 'bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/30'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span>Esperando Gate 5 ({agents.filter((a) => ['WAITING_APPROVAL', 'BLOCKED', 'HUMAN_IN_THE_LOOP', 'En espera'].includes(a.status)).length})</span>
+                </button>
               </div>
-              <div className="text-[10px] font-mono text-emerald-400">
-                Toca cualquier avatar para auditar SDLC
+
+              <div className="text-[10px] font-mono text-zinc-500 hidden sm:block">
+                ⚡ Clic en "Orden" para despacho de 1 toque
               </div>
             </div>
 
             {/* Cuadrícula Adaptativa: 1 columna en móvil (iPhone 13 Pro), 2 en tablet, 3 en desktop */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
-              {agents.map((agent) => (
+              {filteredAgents.map((agent) => (
                 <AgentCard
                   key={agent.agentName}
                   agent={agent}
                   onInspect={() => {
                     setInspectedAgent(agent)
                     setIsProfileOpen(true)
+                  }}
+                  onQuickOrder={(a) => {
+                    setQuickOrderAgent(a)
+                    setQuickOrderText(
+                      a.agentName === 'Atlas'
+                        ? 'Verificar consistencia del grafo Kahn DAG sin ciclos de ramas'
+                        : a.agentName === 'Vega'
+                        ? 'Auditar balance transaccional estricto en SQLite WAL bajo invariante DR-INV-001'
+                        : a.agentName === 'Nova'
+                        ? 'Ejecutar suite completa de pruebas unitarias Pytest'
+                        : 'Auditar 9 políticas constitucionales y compuertas Gate 5'
+                    )
                   }}
                 />
               ))}
@@ -291,6 +390,57 @@ export const AgentsHouseSection: React.FC<AgentsHouseSectionProps> = ({ onAgentL
           )}
         </div>
       </div>
+
+      {/* Mini-Modal de Orden Rápida (1 Toque) */}
+      {quickOrderAgent && (
+        <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-4 sm:p-5 w-full max-w-md shadow-2xl text-left space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 font-bold text-sm">⚡ Orden Rápida:</span>
+                <span className="text-white font-bold text-sm font-sans">{quickOrderAgent.agentName}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickOrderAgent(null)}
+                className="text-zinc-500 hover:text-white font-mono text-sm p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-400 font-sans">
+              Despacha una directiva puntual sin abrir el maquetador completo de campañas.
+            </p>
+
+            <textarea
+              value={quickOrderText}
+              onChange={(e) => setQuickOrderText(e.target.value)}
+              rows={3}
+              className="w-full bg-[#000000] border border-white/10 rounded p-2.5 text-xs text-white font-mono focus:border-emerald-500/50 outline-none"
+              placeholder="Ingresa la orden directa para este agente..."
+            />
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/8">
+              <button
+                type="button"
+                onClick={() => setQuickOrderAgent(null)}
+                className="px-3 py-1.5 rounded text-xs font-mono text-zinc-400 hover:text-white"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleLaunchQuickOrder}
+                disabled={quickOrderLoading || !quickOrderText.trim()}
+                className="px-4 py-1.5 rounded text-xs font-mono bg-emerald-500 text-black font-semibold hover:bg-emerald-400 transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {quickOrderLoading ? 'Enviando...' : 'Despachar Ahora'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Drawer Lateral de Perfil Extendido SDLC (Fase 2) */}
       <AgentProfileExtended

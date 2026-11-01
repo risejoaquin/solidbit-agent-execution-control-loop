@@ -12,15 +12,8 @@ interface CQRSCommandMessage {
 }
 
 export const ChatSection: React.FC = () => {
-  const [messages, setMessages] = useState<CQRSCommandMessage[]>([
-    {
-      id: 'init-msg',
-      role: 'system_ack',
-      content: 'EOP Command Hub en línea. Envía instrucciones de sprint o comandos CQRS para despachar tareas desatendidas.',
-      status: 'READY',
-      timestamp: new Date().toLocaleTimeString('es-ES'),
-    },
-  ])
+  const [messages, setMessages] = useState<CQRSCommandMessage[]>([])
+  const [hasInteracted, setHasInteracted] = useState(false)
   const [inputText, setInputText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedVoiceIds, setSelectedVoiceIds] = useState<string[]>(['sec-auditor', 'arch-strict', 'data-vega'])
@@ -44,11 +37,19 @@ export const ChatSection: React.FC = () => {
     )
   }
 
+  const handleSuggestionClick = (promptText: string) => {
+    setInputText(promptText)
+    inputRef.current?.focus()
+  }
+
   // Despacho de Intención CQRS (Write Model Asíncrono con inyección Multi-Voice)
-  const handleSendCommand = async (e?: React.FormEvent) => {
+  const handleSendCommand = async (e?: React.FormEvent, directText?: string) => {
     if (e) e.preventDefault()
-    const text = inputText.trim()
+    const text = (directText || inputText).trim()
     if (!text || isSubmitting) return
+
+    // Anotar que el usuario ha interactuado para desvanecer la bienvenida (Boceto Foto 1)
+    setHasInteracted(true)
 
     const userMsgId = `cmd-${Date.now()}`
     const userMsg: CQRSCommandMessage = {
@@ -104,16 +105,15 @@ export const ChatSection: React.FC = () => {
 
       const data = await res.json()
 
-      if (res.ok && data.accepted) {
-        // Inyección instantánea del ACK del sistema (Zero-Blocking UX)
+      if (res.ok) {
         setMessages((prev) => [
           ...prev,
           {
             id: `ack-${Date.now()}`,
             role: 'system_ack',
-            content: `Intención admitida en el orquestador (${selectedVoiceIds.length} voces inyectadas). Tareas encoladas de forma desatendida.`,
-            job_id: data.job_id,
-            status: data.status || 'QUEUED',
+            content: `Intención encolada exitosamente. Job ID: ${data.job_id || userMsgId}. DAG Kahn planificado.`,
+            job_id: data.job_id || userMsgId,
+            status: 'ACCEPTED',
             timestamp: new Date().toLocaleTimeString('es-ES'),
           },
         ])
@@ -123,7 +123,7 @@ export const ChatSection: React.FC = () => {
           {
             id: `err-${Date.now()}`,
             role: 'error',
-            content: `Rechazo de Ingress: ${data.message || 'Error al validar payload CQRS.'}`,
+            content: `Error al procesar intención: ${data.detail || data.error || 'Gateway rechazó el comando'}`,
             timestamp: new Date().toLocaleTimeString('es-ES'),
           },
         ])
@@ -134,14 +134,12 @@ export const ChatSection: React.FC = () => {
         {
           id: `err-${Date.now()}`,
           role: 'error',
-          content: `Fallo de transporte al Local Gateway: ${err.message}`,
+          content: `Fallo de comunicación con Local Gateway (:8765): ${err.message || 'Error de red'}`,
           timestamp: new Date().toLocaleTimeString('es-ES'),
         },
       ])
     } finally {
-      // Liberación inmediata del input
       setIsSubmitting(false)
-      inputRef.current?.focus()
     }
   }
 
@@ -155,7 +153,7 @@ export const ChatSection: React.FC = () => {
             <line x1="12" x2="20" y1="19" y2="19" />
           </svg>
           <span className="text-xs font-semibold text-white tracking-wide uppercase font-sans">Command Hub</span>
-          <span className="text-[10px] font-mono text-zinc-500">· CQRS Write Model</span>
+          <span className="text-[10px] font-mono text-zinc-500 hidden sm:inline">· CQRS Write Model</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -169,7 +167,8 @@ export const ChatSection: React.FC = () => {
               <path d="M3 9h18" />
               <path d="M9 21V9" />
             </svg>
-            <span>Diseñar Campaña Visual</span>
+            <span className="hidden sm:inline">Diseñar Campaña Visual</span>
+            <span className="sm:hidden">Campaña</span>
           </button>
 
           <button
@@ -182,11 +181,11 @@ export const ChatSection: React.FC = () => {
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span>Fase Soft: {selectedVoiceIds.length} Voces</span>
+            <span>Fase Soft: {selectedVoiceIds.length}</span>
             <span className="text-zinc-600">{isMultiVoiceOpen ? '▲' : '▼'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 pl-2 border-l border-white/8">
+          <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-white/8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-[10px] font-mono text-zinc-400">Gateway Activo</span>
           </div>
@@ -205,6 +204,82 @@ export const ChatSection: React.FC = () => {
 
       {/* Flujo de Mensajes y ACKs */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll">
+        {/* Splash de Bienvenida Efímero (Anotación literal de la Foto 1 del Boceto: "Desaparece el mensaje de bienvenida cuando se entrega el primer mensaje") */}
+        <div
+          className={`transition-all duration-300 ease-in-out ${
+            hasInteracted || messages.length > 0
+              ? 'opacity-0 max-h-0 pointer-events-none -my-2 overflow-hidden'
+              : 'opacity-100 max-h-[500px] mb-4'
+          }`}
+        >
+          <div className="bg-[#0a0a0a] border border-white/8 rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+                    Bienvenida · SolidBit EOP Command Hub
+                  </h3>
+                </div>
+                <p className="text-xs text-zinc-400 mt-1 font-sans leading-relaxed">
+                  Diseña tus waves y campañas desatendidas. Establece cómo debe actuar la IA y qué debe hacer con el flujo automatizado de los videos 1, 2 y 3.
+                </p>
+              </div>
+              <span className="text-[9px] font-mono text-zinc-500 bg-white/5 border border-white/10 px-2 py-0.5 rounded shrink-0">
+                FOTO 1 BOCETO
+              </span>
+            </div>
+
+            {/* Sugerencias Rápidas de 1 Toque */}
+            <div className="space-y-1.5 pt-2 border-t border-white/8">
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block mb-2">
+                Sugerencias Rápidas de Inicio (1 Toque):
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSuggestionClick('Planear Wave de Inventario con balance transaccional estricto en SQLite WAL bajo invariante DR-INV-001.')}
+                  className="p-2.5 rounded-lg bg-[#121212] hover:bg-zinc-800 border border-white/8 hover:border-emerald-500/40 text-left transition cursor-pointer group"
+                >
+                  <div className="text-xs font-semibold text-zinc-200 group-hover:text-emerald-400 font-sans">
+                    📦 Planear Wave de Inventario
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
+                    Invariantes DR-INV-001 & WAL
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSuggestionClick('Auditar contratos ACID de pago DR-PAY-001 y verificar compatibilidad de esquema con microservicios.')}
+                  className="p-2.5 rounded-lg bg-[#121212] hover:bg-zinc-800 border border-white/8 hover:border-emerald-500/40 text-left transition cursor-pointer group"
+                >
+                  <div className="text-xs font-semibold text-zinc-200 group-hover:text-emerald-400 font-sans">
+                    🛡️ Auditar Contratos ACID
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
+                    DR-PAY-001 & Cero-Fuga
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSuggestionClick('Ejecutar auditoría constitucional de seguridad con Centinela y preparar compuerta Gate 5 HMAC.')}
+                  className="p-2.5 rounded-lg bg-[#121212] hover:bg-zinc-800 border border-white/8 hover:border-emerald-500/40 text-left transition cursor-pointer group"
+                >
+                  <div className="text-xs font-semibold text-zinc-200 group-hover:text-emerald-400 font-sans">
+                    🔒 Revisar Políticas Gate 5
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate">
+                    Hard Deny & HMAC Seal
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mensajes del Chat */}
         {messages.map((m) => {
           if (m.role === 'user') {
             return (
@@ -248,8 +323,8 @@ export const ChatSection: React.FC = () => {
                   <p className="text-xs text-zinc-300 font-sans leading-relaxed">{m.content}</p>
                   <div className="flex items-center gap-2 mt-1">
                     {m.job_id && (
-                      <span className="text-[10px] font-mono text-emerald-400/90 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                        {m.job_id}
+                      <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.5 rounded">
+                        Job: {m.job_id.substring(0, 12)}
                       </span>
                     )}
                     {m.status && (
@@ -309,6 +384,7 @@ export const ChatSection: React.FC = () => {
         isOpen={isCampaignBuilderOpen}
         onClose={() => setIsCampaignBuilderOpen(false)}
         onDispatched={(jobId) => {
+          setHasInteracted(true)
           setMessages((prev) => [
             ...prev,
             {
