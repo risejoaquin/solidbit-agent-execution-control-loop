@@ -6,7 +6,6 @@ Supports Windows Credential Manager / DPAPI integration and in-memory mock adapt
 """
 
 from __future__ import annotations
-from sacl.transport.http_client import safe_urlopen
 
 import abc
 import datetime
@@ -18,6 +17,7 @@ import urllib.request
 from typing import Any, Callable, Dict, Optional
 
 from sacl.transport.exceptions import TransportAuthError
+from sacl.transport.http_client import safe_urlopen
 
 logger = logging.getLogger("sacl.transport.oauth")
 

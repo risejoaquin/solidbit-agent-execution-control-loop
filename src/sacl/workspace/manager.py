@@ -7,7 +7,6 @@ and modified file tracking.
 
 from __future__ import annotations
 
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -18,6 +17,7 @@ from sacl.workspace.dirty_root import check_clean_root, parse_porcelain_status
 from sacl.workspace.exceptions import (
     WorkspaceError,
     WorktreeCollisionError,
+    WorktreeNotFoundError,
 )
 from sacl.workspace.git_runner import GitRunner
 from sacl.workspace.guards import (

@@ -13,7 +13,6 @@ Features:
 """
 
 from __future__ import annotations
-from sacl.transport.http_client import safe_urlopen
 
 import abc
 import base64
@@ -31,6 +30,7 @@ from sacl.transport.exceptions import (
     StaleHistoryCursorError,
     TransportError,
 )
+from sacl.transport.http_client import safe_urlopen
 from sacl.transport.oauth import IOAuth2CredentialProvider
 
 logger = logging.getLogger("sacl.transport.gmail_adapter")

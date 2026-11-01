@@ -3,6 +3,7 @@
 Only mock executor callbacks are used. No worker processes are launched.
 """
 import sqlite3
+
 import pytest
 
 from sacl.contracts.invariants import JobSideStatus, JobStatus

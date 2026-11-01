@@ -34,7 +34,6 @@ from sacl.workspace.guards import assert_branch_allowed, assert_not_primary_chec
 from sacl.workspace.manager import WorkspaceManager
 from tests.helpers.db_helpers import verify_canonical_domains_exist
 
-
 ROOT = Path(__file__).resolve().parents[2]
 
 

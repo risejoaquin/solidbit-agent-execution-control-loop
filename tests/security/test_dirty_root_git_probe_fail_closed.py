@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
 from argparse import Namespace
 from types import SimpleNamespace
 from unittest.mock import Mock
-import shutil
-import subprocess
 
 import pytest
 

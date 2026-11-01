@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
+from sacl.contracts.exceptions import PolicyDeniedError
 from sacl.contracts.invariants import (
     JobSideStatus,
     JobStatus,
@@ -109,6 +110,7 @@ class JobDispatcher:
     def _resolve_target_repo_path(self, project_id: Optional[str], metadata: Dict[str, Any]) -> str:
         """Resolve project roots from trusted resolver or SQLite; deny metadata redirects."""
         from pathlib import PureWindowsPath
+
         from sacl.policy.project_registry import normalize_fs_path
 
         def canonical_root(value: Any) -> str:

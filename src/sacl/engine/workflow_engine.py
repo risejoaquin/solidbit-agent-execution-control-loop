@@ -250,8 +250,8 @@ class WorkflowEngine:
         strict = params.get("strict_mode", True)
 
         # 1. Step 1: Validation of Pre-Conditions & Hard Policy Engine
+        from sacl.observability.events import create_audit_event, get_event_bus
         from sacl.policy.hard_policy import HardPolicyEngine
-        from sacl.observability.events import AuditEventType, create_audit_event, get_event_bus
 
         bus = get_event_bus()
         policy_engine = HardPolicyEngine()

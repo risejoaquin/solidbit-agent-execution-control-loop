@@ -36,14 +36,14 @@ from sacl.observability.events import (
     GATE_HALTED,
     Severity,
 )
-from sacl.supervisor.dispatcher import JobDispatcher
-from sacl.supervisor.lease import LeaseCoordinator, default_process_alive_check
 from sacl.recovery.process_identity import (
     ProcessInspectionStatus,
     ProcessInspector,
     get_default_process_inspector,
     inspect_process,
 )
+from sacl.supervisor.dispatcher import JobDispatcher
+from sacl.supervisor.lease import LeaseCoordinator, default_process_alive_check
 from sacl.supervisor.lifecycle import JobLifecycleManager
 
 

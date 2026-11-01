@@ -1,6 +1,8 @@
-import os
 import glob
+import os
+
 from PIL import Image
+
 
 def slice_spritesheet(image_path, output_dir, tile_width=24, tile_height=24, prefix="agent_skin", skip_empty=True):
     os.makedirs(output_dir, exist_ok=True)
@@ -8,7 +10,7 @@ def slice_spritesheet(image_path, output_dir, tile_width=24, tile_height=24, pre
         img = Image.open(image_path)
         img = img.convert("RGBA")
         img_width, img_height = img.size
-        
+
         index = 0
         saved_count = 0
         for y in range(0, img_height, tile_height):
@@ -16,7 +18,7 @@ def slice_spritesheet(image_path, output_dir, tile_width=24, tile_height=24, pre
                 # Evitar desbordamientos si el último tile es menor
                 box = (x, y, min(x + tile_width, img_width), min(y + tile_height, img_height))
                 tile = img.crop(box)
-                
+
                 # Descartar tiles completamente transparentes si skip_empty es True
                 if skip_empty:
                     extrema = tile.getextrema()
@@ -24,12 +26,12 @@ def slice_spritesheet(image_path, output_dir, tile_width=24, tile_height=24, pre
                     if len(extrema) >= 4 and extrema[3][1] == 0:
                         index += 1
                         continue
-                
+
                 output_filename = f"{prefix}_{saved_count:03d}.png"
                 tile.save(os.path.join(output_dir, output_filename))
                 saved_count += 1
                 index += 1
-                
+
         print(f"[OK] {saved_count} sprites extraídos exitosamente desde {image_path} hacia {output_dir}")
         return saved_count
     except Exception as e:

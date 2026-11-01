@@ -2,7 +2,7 @@
 
 import sqlite3
 
-from sacl.contracts.invariants import JobStatus
+from sacl.contracts.invariants import JobSideStatus, JobStatus
 from sacl.observability.errors import ErrorRecorder
 from sacl.supervisor.dispatcher import JobDispatcher, RunContext
 from sacl.supervisor.lease import LeaseCoordinator

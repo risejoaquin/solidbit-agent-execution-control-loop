@@ -7,9 +7,9 @@ than depending on zipfile's last-entry-wins behavior.
 
 from __future__ import annotations
 
+import zipfile
 from pathlib import PurePosixPath
 from typing import Iterable, Optional, Tuple
-import zipfile
 
 
 def find_ambiguous_member(entries: Iterable[zipfile.ZipInfo]) -> Optional[Tuple[str, str]]:

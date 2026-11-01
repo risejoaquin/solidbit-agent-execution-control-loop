@@ -10,14 +10,13 @@ enforcing:
 
 from __future__ import annotations
 
-import json
 import logging
 import sqlite3
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from sacl.contracts.invariants import JobStatus
 from sacl.observability.events import (
@@ -109,7 +108,7 @@ class LocalIngressGateway:
             or (manifest.get("project_id") if isinstance(manifest, dict) else None)
             or "default"
         )
-        
+
         try:
             # Check or register project
             proj = self.project_repo.get_project(target_project)
@@ -132,7 +131,7 @@ class LocalIngressGateway:
             )
 
             # Enqueue Job
-            created_job = self.queue.enqueue_job(
+            _ = self.queue.enqueue_job(
                 job_id=job_id,
                 package_id=manifest_id,
                 project_id=target_project,

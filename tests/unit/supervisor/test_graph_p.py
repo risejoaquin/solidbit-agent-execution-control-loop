@@ -588,7 +588,8 @@ def test_graph_p_cold_start_default_path_verifies_three_way_pid_identity(
     expected: bool,
 ) -> None:
     """An existing PID alone must not reconnect a worker after host restart."""
-    from datetime import timedelta
+    from datetime import datetime, timedelta, timezone
+
     from sacl.recovery.process_identity import MockProcessInspector
 
     recorded = datetime.now(timezone.utc)

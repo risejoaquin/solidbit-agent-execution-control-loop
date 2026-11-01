@@ -10,9 +10,13 @@ import pytest
 from sacl.contracts.exceptions import DirtyRootError
 from sacl.worker.worktree import WorkspaceManager
 from sacl.workspace.exceptions import (
-    BranchProtectionError, GitCommandError,
-    PrimaryCheckoutViolationError, RepositoryValidationError,
-    WorkspaceError, WorktreeCollisionError, WorktreeNotFoundError,
+    BranchProtectionError,
+    GitCommandError,
+    PrimaryCheckoutViolationError,
+    RepositoryValidationError,
+    WorkspaceError,
+    WorktreeCollisionError,
+    WorktreeNotFoundError,
 )
 
 
@@ -226,8 +230,8 @@ def test_real_worker_branch_is_bound_to_registered_task(
 def test_canonical_manager_cannot_silence_git_status_or_bad_ref(
     git_checkout: Path, tmp_path: Path,
 ) -> None:
-    from sacl.workspace.manager import WorkspaceManager as CanonicalWorkspaceManager
     from sacl.workspace.git_runner import GitRunner
+    from sacl.workspace.manager import WorkspaceManager as CanonicalWorkspaceManager
 
     manager = CanonicalWorkspaceManager()
     worktree = tmp_path / "canonical"

@@ -1657,9 +1657,9 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"success": True, "ticket_key": ticket_key, "status": new_status})
             return
 
-        
-        
-        
+
+
+
         # Skills Importer Endpoint (Local Storage Persistence)
         if path == "/api/skills/import":
             skill_id = body.get("skill_id", "").strip()
@@ -1669,14 +1669,14 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             if not skill_id or not content:
                 self._send_json(400, {"success": False, "error": "Datos incompletos de la habilidad."})
                 return
-            
+
             try:
                 skills_dir = self.service.workspace_root / ".agents" / "skills" / skill_id
                 skills_dir.mkdir(parents=True, exist_ok=True)
                 file_name = "SKILL.md" if fmt == "markdown" else f"{skill_id}.json"
                 skill_file = skills_dir / file_name
                 skill_file.write_text(content, encoding="utf-8")
-                
+
                 broadcast_sse("skill_imported", {"skill_id": skill_id, "name": name, "format": fmt})
                 self._send_json(200, {"success": True, "skill_id": skill_id, "name": name})
                 return
@@ -1725,7 +1725,7 @@ class DecisionShellRequestHandler(BaseHTTPRequestHandler):
             if not p.exists() or not p.is_dir():
                 self._send_json(400, {"success": False, "error": f"El directorio no existe en el host: {target_path}"})
                 return
-            
+
             # Verificar si contiene un repositorio Git
             is_git = (p / ".git").exists()
             branch = "main"

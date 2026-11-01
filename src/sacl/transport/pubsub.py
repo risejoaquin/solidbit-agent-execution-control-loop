@@ -7,7 +7,6 @@ Implements outbound-only event-driven wake signal consumption adhering strictly 
 """
 
 from __future__ import annotations
-from sacl.transport.http_client import safe_urlopen
 
 import abc
 import base64
@@ -21,6 +20,7 @@ import urllib.request
 from typing import Any, Dict, List, Optional
 
 from sacl.transport.exceptions import TransportError
+from sacl.transport.http_client import safe_urlopen
 from sacl.transport.oauth import IOAuth2CredentialProvider
 
 logger = logging.getLogger("sacl.transport.pubsub")

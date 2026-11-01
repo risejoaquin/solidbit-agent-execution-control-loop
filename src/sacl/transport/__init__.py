@@ -37,15 +37,14 @@ from sacl.transport.exceptions import (
     ZipResourceLimitExceededError,
 )
 from sacl.transport.gateway import MailGateway
-from sacl.transport.local_gateway import (
-    IngressResult,
-    LocalIngressGateway,
-)
-
 from sacl.transport.gmail_adapter import (
     GmailApiAdapter,
     IGmailApiAdapter,
     MockGmailApiAdapter,
+)
+from sacl.transport.local_gateway import (
+    IngressResult,
+    LocalIngressGateway,
 )
 from sacl.transport.oauth import (
     CREDENTIAL_TARGET_NAME,
@@ -107,6 +106,9 @@ __all__ = [
     # Fallback Polling
     "FallbackPoller",
     "PollingResult",
+    # Local Ingress Gateway
+    "LocalIngressGateway",
+    "IngressResult",
     # Outbox Dispatch
     "OutboxDispatcher",
     # Exceptions

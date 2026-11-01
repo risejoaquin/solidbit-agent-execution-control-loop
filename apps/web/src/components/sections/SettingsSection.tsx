@@ -13,7 +13,7 @@ export const SettingsSection: React.FC = () => {
   const [operatorName, setOperatorName] = useState('')
   const [operatorRole, setOperatorRole] = useState('Product Owner / Autoridad Principal')
   const [operatorEmail, setOperatorEmail] = useState('')
-  const [secretKey, setSecretKey] = useState('sacl-local-audit-secret-2026')
+  const [secretKey, setSecretKey] = useState('')
   const [ghStatus, setGhStatus] = useState<any>(null)
   const [prs, setPrs] = useState<any[]>([])
   const [saving, setSaving] = useState(false)

@@ -11,7 +11,6 @@ header is spoofable and is never trusted as the sole control.
 """
 
 from __future__ import annotations
-from sacl.transport.http_client import safe_urlopen
 
 import html
 import json
@@ -22,6 +21,7 @@ import secrets
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
+from sacl.transport.http_client import safe_urlopen
 from sacl.ui.security import inbound_webhook_token, verify_inbound_token, verify_svix_signature
 
 logger = logging.getLogger("sacl.ui.modules.email_gateway")

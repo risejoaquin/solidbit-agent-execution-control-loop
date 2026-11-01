@@ -3,10 +3,11 @@
 All executor callbacks are mock functions. No worker is started.
 """
 import sqlite3
+
 import pytest
 
-from sacl.contracts.invariants import JobSideStatus, JobStatus
 from sacl.contracts.exceptions import PolicyDeniedError
+from sacl.contracts.invariants import JobSideStatus, JobStatus
 from sacl.supervisor.dispatcher import JobDispatcher
 from sacl.supervisor.lease import LeaseCoordinator
 from sacl.supervisor.lifecycle import JobLifecycleManager

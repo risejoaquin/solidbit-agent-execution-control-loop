@@ -2,9 +2,12 @@
 import subprocess
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
+
 from sacl.worker.worktree import WorkspaceManager
 from sacl.workspace.exceptions import WorkspaceError
+
 
 def git(*args, cwd=None):
     result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, timeout=15)

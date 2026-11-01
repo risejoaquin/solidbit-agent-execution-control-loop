@@ -1,5 +1,6 @@
 """Ensure summary generator is conservative if tests were missing or failed."""
 from pathlib import Path
+
 from scripts.report_e2e_mock import build_report
 
 

@@ -1,6 +1,8 @@
 """P0: bounded approvals reject traversal and ambiguous Windows paths (mock-only)."""
 import pytest
-from sacl.policy.approval import matches_scope_pattern, is_scope_covered
+
+from sacl.policy.approval import is_scope_covered, matches_scope_pattern
+
 
 @pytest.mark.parametrize("requested", [
     "docs/../src/secrets.py", "docs/../../main", "docs\\..\\secret",

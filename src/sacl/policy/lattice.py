@@ -12,7 +12,7 @@ in lower layers. Approvals cannot override hard denials.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Union
 
 from sacl.contracts.exceptions import (
     ApprovalRequiredError,

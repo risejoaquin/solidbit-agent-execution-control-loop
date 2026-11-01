@@ -12,6 +12,7 @@ from typing import Any, Dict, FrozenSet, Optional
 from sacl.contracts.models import AuditEvent
 from sacl.observability.correlation import get_current_correlation
 
+
 class TelemetryEventBus:
     """Asynchronous and decoupled in-memory pub-sub bus for real-time telemetry events."""
 

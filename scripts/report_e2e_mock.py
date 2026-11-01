@@ -3,9 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import xml.etree.ElementTree as ET
-
+from pathlib import Path
 
 STEPS = {
     "TEST-01-AST": "Windows PowerShell AST parser",
