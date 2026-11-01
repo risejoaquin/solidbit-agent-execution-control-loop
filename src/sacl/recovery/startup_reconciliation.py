@@ -121,9 +121,9 @@ class StartupReconciliationEngine(IRecoveryManager):
     def check_pid_safety(self, pid: int, recorded_start_time: str) -> bool:
         """Verifies process identity to prevent interacting with recycled PIDs."""
         res = inspect_process(
-            pid=pid, expected_start_time=recorded_start_time, inspector=self.inspector
+            pid=pid, persisted_start_time=recorded_start_time, inspector=self.inspector
         )
-        return res.status == ProcessInspectionStatus.RUNNING_MATCH
+        return res.status == ProcessInspectionStatus.ALIVE_VALID
 
     def execute_startup_reconciliation(
         self,

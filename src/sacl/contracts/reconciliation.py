@@ -63,7 +63,18 @@ def verify_process_observation(
         return obs, False, reason
 
     drift_sec: Optional[float] = None
-    if persisted_start_time and actual_start_time:
+    if persisted_start_time:
+        if not actual_start_time:
+            reason = "Process start time cannot be verified (missing actual start time)"
+            obs = ProcessObservation(
+                pid=pid,
+                is_active=is_active,
+                process_name=process_name,
+                start_time_drift_seconds=None,
+                exit_code=exit_code,
+            )
+            return obs, False, reason
+
         if isinstance(persisted_start_time, str):
             try:
                 # Remove Z and parse ISO format
