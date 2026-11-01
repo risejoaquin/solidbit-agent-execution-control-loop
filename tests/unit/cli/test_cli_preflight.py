@@ -38,7 +38,9 @@ def test_cli_preflight_missing_mandatory_powershell_fails(capsys, monkeypatch):
     original_which = shutil.which
     monkeypatch.setattr(
         "sacl.cli.preflight.shutil.which",
-        lambda command: None if command in ("powershell.exe", "powershell") else original_which(command),
+        lambda command: None
+        if command in ("powershell.exe", "powershell", "pwsh", "bash")
+        else original_which(command),
     )
     assert main(["preflight"]) == 1
     assert "PREFLIGHT VERDICT: FAIL" in capsys.readouterr().out
