@@ -106,6 +106,7 @@ class StartupReconciliationEngine(IRecoveryManager):
 
     def _get_connection(self) -> sqlite3.Connection:
         if isinstance(self.db_source, sqlite3.Connection):
+            self.db_source.row_factory = sqlite3.Row
             return self.db_source
         conn = sqlite3.connect(str(self.db_source))
         conn.row_factory = sqlite3.Row
