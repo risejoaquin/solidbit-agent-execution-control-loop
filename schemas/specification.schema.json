@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solidbit.io/schemas/sacl/v1/specification.schema.json",
+  "title": "SACL Specification Contract",
+  "description": "Closed, versioned contract for a SACL component. This schema governs requirements; it does not grant runtime or implementation authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "spec_id", "schema_version", "status", "title", "owner",
+    "reviewers", "parent_spec", "target_paths", "scope", "functional_contracts",
+    "invariants", "quality_attributes", "security", "architecture",
+    "agent_roles", "acceptance_scenarios", "governance"
+  ],
+  "properties": {
+    "schema": { "const": "solidbit.sacl.specification.v1" },
+    "spec_id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]{2,63}$" },
+    "schema_version": { "const": "1.0.0" },
+    "status": { "enum": ["draft", "in_review", "frozen", "superseded"] },
+    "title": { "type": "string", "minLength": 5, "maxLength": 160 },
+    "owner": { "type": "string", "minLength": 2 },
+    "reviewers": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string", "minLength": 2 }
+    },
+    "parent_spec": { "type": ["string", "null"], "pattern": "^[A-Z][A-Z0-9-]{2,63}$" },
+    "target_paths": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["owns", "non_goals"],
+      "properties": {
+        "owns": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 8 } },
+        "non_goals": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 8 } }
+      }
+    },
+    "functional_contracts": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "requirement"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]+$" },
+          "requirement": { "type": "string", "pattern": "^(MUST|MUST NOT|SHOULD|SHOULD NOT|MAY) .{12,}$" }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "statement"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]+$" },
+          "statement": { "type": "string", "pattern": "^(MUST|MUST NOT) .{12,}$" }
+        }
+      }
+    },
+    "quality_attributes": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "metric", "operator", "threshold", "unit", "verification"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]+$" },
+          "metric": { "type": "string", "minLength": 3 },
+          "operator": { "enum": ["<", "<=", "=", ">=", ">"] },
+          "threshold": { "type": "number" },
+          "unit": { "type": "string", "minLength": 1 },
+          "verification": { "type": "string", "minLength": 8 }
+        }
+      }
+    },
+    "security": {
+      "type": "object", "additionalProperties": false,
+      "required": ["must_not"],
+      "properties": {
+        "must_not": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 8 } }
+      }
+    },
+    "architecture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allowed_dependencies", "forbidden_dependencies"],
+      "properties": {
+        "allowed_dependencies": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 2 } },
+        "forbidden_dependencies": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 2 } }
+      }
+    },
+    "agent_roles": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["role", "may", "must_not"],
+        "properties": {
+          "role": { "type": "string", "minLength": 2 },
+          "may": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 8 } },
+          "must_not": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 8 } }
+        }
+      }
+    },
+    "acceptance_scenarios": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "given", "when", "then"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]+$" },
+          "given": { "type": "string", "minLength": 8 },
+          "when": { "type": "string", "minLength": 8 },
+          "then": { "type": "string", "minLength": 8 }
+        }
+      }
+    },
+    "governance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["owner_role", "reviewer_roles", "implementation_authorized", "human_approval_required", "max_agent_attempts"],
+      "properties": {
+        "owner_role": { "type": "string", "minLength": 2 },
+        "reviewer_roles": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 2 } },
+        "implementation_authorized": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "max_agent_attempts": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    }
+  }
+}

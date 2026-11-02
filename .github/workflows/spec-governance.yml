@@ -1,0 +1,35 @@
+name: SACL Specification Governance
+
+on:
+  push:
+    branches: [main, AC-CONT, "sacl/**"]
+  pull_request:
+    branches: [main, AC-CONT]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  specification-contracts:
+    name: JSON Schema, inheritance and governance tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project and test dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Validate specification contracts
+        run: python scripts/validate_specifications.py
+
+      - name: Run governance regression tests
+        run: python -m pytest tests/governance/test_specification_governance.py -q

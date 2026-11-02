@@ -1,0 +1,165 @@
+{
+  "schema": "solidbit.sacl.specification.v1",
+  "spec_id": "SACL-ROOT-001",
+  "schema_version": "1.0.0",
+  "status": "draft",
+  "title": "SACL V1 control-plane and agent-execution governance",
+  "owner": "human-architect",
+  "reviewers": ["qa-reviewer", "application-security-reviewer"],
+  "parent_spec": null,
+  "target_paths": [
+    "src/sacl/**",
+    "schemas/**",
+    "contracts/**",
+    "tests/**",
+    "scripts/**"
+  ],
+  "scope": {
+    "owns": [
+      "Deterministic validation and authorization boundaries for SACL execution packages.",
+      "Traceability between requirements, contracts, implementation, tests, and CI evidence.",
+      "Role boundaries and fail-closed escalation for delegated agent work."
+    ],
+    "non_goals": [
+      "This specification does not authorize SACL runtime activation or real agent execution.",
+      "This specification does not authorize production access, remote production execution, deployment, or merge.",
+      "This specification does not replace the frozen Decision Baseline or existing architecture invariants."
+    ]
+  },
+  "functional_contracts": [
+    {
+      "id": "SACL-F-001",
+      "requirement": "MUST validate every specification document against the closed JSON Schema before it can be accepted by CI."
+    },
+    {
+      "id": "SACL-F-002",
+      "requirement": "MUST resolve every parent specification and reject missing parents, duplicate identifiers, and inheritance cycles."
+    },
+    {
+      "id": "SACL-F-003",
+      "requirement": "MUST reject a child specification that removes or changes a parent invariant or weakens inherited security restrictions."
+    },
+    {
+      "id": "SACL-F-004",
+      "requirement": "MUST produce a non-zero process exit code when any specification or inheritance check fails."
+    },
+    {
+      "id": "SACL-F-005",
+      "requirement": "MUST preserve human approval as the authority for architecture changes, irreversible actions, and operational activation."
+    }
+  ],
+  "invariants": [
+    {
+      "id": "SACL-I-001",
+      "statement": "MUST preserve the precedence order in DECISION_BASELINE.md and contracts/architecture-invariants.json."
+    },
+    {
+      "id": "SACL-I-002",
+      "statement": "MUST keep hard local deny above project policy, package requests, and approval grants."
+    },
+    {
+      "id": "SACL-I-003",
+      "statement": "MUST treat execution packages and agent-produced artifacts as untrusted input until validated."
+    },
+    {
+      "id": "SACL-I-004",
+      "statement": "MUST keep implementation_authorized false unless the human principal explicitly changes the governing authorization."
+    },
+    {
+      "id": "SACL-I-005",
+      "statement": "MUST keep main pushes, merges, deployments, production mutations, and real-host certification behind separate explicit human authorization."
+    },
+    {
+      "id": "SACL-I-006",
+      "statement": "MUST retain immutable traceability from specification identifiers to acceptance scenarios and CI evidence."
+    }
+  ],
+  "quality_attributes": [],
+  "security": {
+    "must_not": [
+      "Agent-generated package content MUST NOT grant itself executable authority.",
+      "A valid approval MUST NOT override a hard-deny policy.",
+      "Secrets, OAuth tokens, signing keys, or production credentials MUST NOT be written to Git or agent prompts.",
+      "CI mocks MUST NOT be represented as proof of real-host compatibility or production readiness.",
+      "An agent MUST NOT modify a frozen contract without an approved, versioned architecture decision."
+    ]
+  },
+  "architecture": {
+    "allowed_dependencies": [],
+    "forbidden_dependencies": [
+      "Unapproved runtime dependencies or network services.",
+      "Direct production database or cloud mutations from CI.",
+      "Unverified Antigravity lifecycle hooks or tool matchers treated as security boundaries."
+    ]
+  },
+  "agent_roles": [
+    {
+      "role": "product-owner",
+      "may": ["Define business outcomes and acceptance criteria in measurable terms."],
+      "must_not": ["MUST NOT select implementation frameworks or silently alter frozen technical contracts."]
+    },
+    {
+      "role": "software-architect",
+      "may": ["Define module boundaries, dependency direction, public interfaces, and versioned architecture decisions."],
+      "must_not": ["MUST NOT override explicit human decisions or proven behavior without an approved decision record."]
+    },
+    {
+      "role": "database-owner",
+      "may": ["Own DDL, migrations, relational constraints, indexes, and persistence invariants."],
+      "must_not": ["MUST NOT modify production data or weaken schema constraints without explicit approval."]
+    },
+    {
+      "role": "core-engineer",
+      "may": ["Implement code within the assigned target paths and approved interfaces."],
+      "must_not": ["MUST NOT change public signatures, frozen schemas, or dependencies outside the assigned contract."]
+    },
+    {
+      "role": "qa-engineer",
+      "may": ["Create deterministic unit, integration, regression, and property-based tests from approved contracts."],
+      "must_not": ["MUST NOT change production code to make tests pass or weaken acceptance criteria."]
+    },
+    {
+      "role": "application-security",
+      "may": ["Audit code, dependencies, permissions, and policy bypass paths; block unsafe changes."],
+      "must_not": ["MUST NOT approve its own remediation or suppress findings without recorded rationale."]
+    },
+    {
+      "role": "reviewer-oracle",
+      "may": ["Issue a machine-verifiable acceptance or rejection verdict against the specification and test evidence."],
+      "must_not": ["MUST NOT infer acceptance from narrative claims, green badges, or unverified artifacts."]
+    }
+  ],
+  "acceptance_scenarios": [
+    {
+      "id": "SACL-AC-001",
+      "given": "No valid execution package is queued and no approved work is pending.",
+      "when": "The persistent supervisor evaluates the next scheduling cycle.",
+      "then": "The supervisor remains idle and does not launch an LLM worker."
+    },
+    {
+      "id": "SACL-AC-002",
+      "given": "A package requests an operation denied by hard local policy.",
+      "when": "The policy lattice evaluates the effective permissions.",
+      "then": "The request is denied even if the package or approval requests that operation."
+    },
+    {
+      "id": "SACL-AC-003",
+      "given": "A candidate implementation changes a frozen invariant or omits its required test evidence.",
+      "when": "The specification and CI gates evaluate the candidate.",
+      "then": "The candidate is rejected and no downstream integration or deployment is triggered."
+    },
+    {
+      "id": "SACL-AC-004",
+      "given": "An agent exhausts its configured retry budget or encounters a specification conflict.",
+      "when": "The orchestration workflow reaches its escalation boundary.",
+      "then": "The work is blocked with a structured diagnostic and awaits human arbitration."
+    }
+  ],
+  "governance": {
+    "owner_role": "human-architect",
+    "reviewer_roles": ["qa-reviewer", "application-security-reviewer"],
+    "implementation_authorized": false,
+    "human_approval_required": true,
+    "max_agent_attempts": 3
+  }
+}
