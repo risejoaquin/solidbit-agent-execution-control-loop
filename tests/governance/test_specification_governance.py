@@ -60,6 +60,22 @@ def test_inheritance_cycle_is_rejected() -> None:
     assert any("cycle detected" in error for error in validate_inheritance([first, second]))
 
 
+def test_duplicate_requirement_ids_are_rejected() -> None:
+    spec = {
+        "spec_id": "SACL-MOD-001",
+        "status": "draft",
+        "parent_spec": None,
+        "functional_contracts": [
+            {"id": "SACL-F-001"},
+            {"id": "SACL-F-001"},
+        ],
+    }
+    assert any(
+        "duplicate functional_contracts id" in error
+        for error in validate_inheritance([spec])
+    )
+
+
 def test_cli_returns_nonzero_for_invalid_specification(tmp_path: Path) -> None:
     (tmp_path / "schemas").mkdir()
     shutil.copy(

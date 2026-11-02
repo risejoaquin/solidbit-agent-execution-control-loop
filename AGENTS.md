@@ -4,11 +4,12 @@ These instructions apply to every coding agent working in this repository. They 
 
 ## Before changing files
 
-1. Read `DECISION_BASELINE.md`, `docs/AUTHORITY_MODEL.md`, and `docs/SPECIFICATION_GOVERNANCE.md`.
-2. Identify the applicable `.sdd.json` specification and record its ID and the base commit SHA.
-3. Inspect the actual code, tests, schemas, and current behavior. Do not infer an interface from a prompt or a neighboring module.
-4. State exact target paths, non-goals, acceptance tests, and prohibited actions before implementation.
-5. If no specification exists, a contract conflicts, or a required value is unknown, stop and request an architecture decision. Do not fill critical gaps by guessing.
+1. Read `DECISION_BASELINE.md`, `docs/AUTHORITY_MODEL.md`, `docs/SPECIFICATION_GOVERNANCE.md`, and `docs/SPEC_DRIVEN_COMPLETION_ROADMAP.md`.
+2. Read the root contract `specs/sacl-v1.sdd.json` and identify the most specific applicable child `.sdd.json` specification.
+3. Record the specification ID and exact base commit SHA.
+4. Inspect the actual code, tests, schemas, and current behavior. Do not infer an interface from a prompt or a neighboring module.
+5. State exact target paths, non-goals, acceptance tests, and prohibited actions before implementation.
+6. If no specification exists, a contract conflicts, or a required value is unknown, stop and request an architecture decision. Do not fill critical gaps by guessing.
 
 ## Implementation rules
 

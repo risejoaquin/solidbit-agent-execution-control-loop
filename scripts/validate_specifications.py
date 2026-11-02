@@ -34,6 +34,30 @@ def validate_inheritance(specs: list[dict[str, Any]]) -> list[str]:
         else:
             by_id[spec_id] = spec
 
+        for collection in (
+            "functional_contracts",
+            "invariants",
+            "quality_attributes",
+            "acceptance_scenarios",
+        ):
+            seen: set[str] = set()
+            for item in spec.get(collection, []):
+                item_id = item.get("id") if isinstance(item, dict) else None
+                if not isinstance(item_id, str):
+                    continue
+                if item_id in seen:
+                    errors.append(f"{spec_id}: duplicate {collection} id: {item_id}")
+                seen.add(item_id)
+
+        seen_roles: set[str] = set()
+        for role in spec.get("agent_roles", []):
+            role_id = role.get("role") if isinstance(role, dict) else None
+            if not isinstance(role_id, str):
+                continue
+            if role_id in seen_roles:
+                errors.append(f"{spec_id}: duplicate agent role: {role_id}")
+            seen_roles.add(role_id)
+
     for spec_id, spec in by_id.items():
         parent_id = spec.get("parent_spec")
         if parent_id is None:
@@ -42,6 +66,8 @@ def validate_inheritance(specs: list[dict[str, Any]]) -> list[str]:
         if parent is None:
             errors.append(f"{spec_id}: missing parent_spec {parent_id}")
             continue
+        if parent.get("status") == "superseded":
+            errors.append(f"{spec_id}: cannot inherit from superseded parent {parent_id}")
 
         parent_invariants = {
             item.get("id"): item.get("statement")
@@ -106,11 +132,9 @@ def validate_repository(root: Path) -> list[str]:
 
     try:
         schema = _load_json(schema_path)
-        schema_errors = list(Draft202012Validator.check_schema(schema) or [])
+        Draft202012Validator.check_schema(schema)
     except Exception as exc:  # schema load errors are user-facing validation failures
         return [f"invalid specification schema: {exc}"]
-    if schema_errors:
-        return [f"invalid specification schema: {schema_errors}"]
 
     validator = Draft202012Validator(schema)
     paths = sorted(specs_dir.rglob("*.sdd.json"))
@@ -128,9 +152,7 @@ def validate_repository(root: Path) -> list[str]:
         documents.append(document)
         for issue in validator.iter_errors(document):
             location = ".".join(str(part) for part in issue.absolute_path) or "$"
-            errors.append(
-                f"{path.relative_to(root)}:{location}: {issue.message}"
-            )
+            errors.append(f"{path.relative_to(root)}:{location}: {issue.message}")
 
     if not errors:
         errors.extend(validate_inheritance(documents))
